@@ -28,7 +28,7 @@ from sbp.observation import SBP_MSG_OBS
 from sbp.tracking    import SBP_MSG_EPHEMERIS
 
 class SimpleAdapter(TabularAdapter):
-    columns = [('PRN', 0), ('Pseudorange',  1), ('Carrier Phase',  2), ('C/N0', 3)]
+    columns = [('PRN', 0), ('Pseudorange',  1), ('Carrier Phase',  2), ('C/N0', 3), ('Carrier Freq', 4)]
 
 class Observation:
   def from_binary(self, data):
@@ -151,6 +151,8 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     # Confirm this packet is good.
     # Assumes no out-of-order packets
     if (count == 0):
+      self.old_tow = self.gps_tow
+      self.old_obs = self.obs
       self.gps_tow = tow;
       self.gps_week = wn;
       self.prev_obs_total = total
@@ -173,10 +175,16 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     for i in range(n_obs):
       P, Li, Lf, snr, lock, prn = struct.unpack(obs_fmt, obs_data[:obs_size])
       obs_data = obs_data[obs_size:]
+      cp = float(Li) + float(Lf) / (1<<8)
+      try:
+        ocp = self.old_obs[prn][1]
+      except Exception as e:
+        ocp = 0
+      cf = (cp - ocp) / (self.gps_tow - self.old_tow)
       self.obs[prn] = (
         float(P) / 1e2,
         float(Li) + float(Lf) / (1<<8),
-        float(snr) / 4)
+        float(snr) / 4, cf)
 
     if (count == total - 1):
       self.t = datetime.datetime(1980, 1, 6) + \
