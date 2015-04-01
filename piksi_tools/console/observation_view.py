@@ -27,7 +27,7 @@ import datetime
 from sbp.observation import *
 
 class SimpleAdapter(TabularAdapter):
-    columns = [('PRN', 0), ('Pseudorange',  1), ('Carrier Phase',  2), ('C/N0', 3)]
+    columns = [('PRN', 0), ('Pseudorange',  1), ('Carrier Phase',  2), ('C/N0', 3), ('Carrier Freq', 4)]
 
 class ObservationView(HasTraits):
   python_console_cmds = Dict()
@@ -129,6 +129,8 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     # Confirm this packet is good.
     # Assumes no out-of-order packets
     if (count == 0):
+      self.old_tow = self.gps_tow
+      self.old_obs = self.obs
       self.gps_tow = tow;
       self.gps_week = wn;
       self.prev_obs_total = total
@@ -149,11 +151,19 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     # See sbp_piksi.h for format
     for o in sbp_msg.obs:
       prn = o.sid.sat
+      # compute time difference of carrier phase for display
+      cp = float(o.L.i) + float(o.L.f) / (1<<8), 
+      try:
+        ocp = self.old_obs[prn][1]
+      except Exception as e:
+        ocp = 0
+      cf = (cp - ocp) / (self.gps_tow - self.old_tow)
       if ((o.sid.code == 0)):
         prn += 1
       self.obs[prn] = (float(o.P) / 1e2,
                        float(o.L.i) + float(o.L.f) / (1<<8),
-                       float(o.cn0) / 4)
+                       float(o.cn0) / 4,
+                       cf)
     if (count == total - 1):
       self.t = datetime.datetime(1980, 1, 6) + \
                datetime.timedelta(weeks=self.gps_week) + \
