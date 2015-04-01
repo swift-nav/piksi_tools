@@ -1,0 +1,11 @@
+include *.cfg
+include *.md
+include *.rst
+include *.py
+include *.sh
+include .coveragerc
+include .gitignore
+include LICENSE
+include tox.ini
+recursive-include piksi_tools/ *.py
+prune docs/_build
