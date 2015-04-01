@@ -21,7 +21,7 @@ import time
 import struct
 
 from numpy              import mean
-from sbp.acquisition    import SBP_MSG_ACQ_RESULT
+from sbp.acquisition    import SBP_MSG_ACQ_RESULT, MsgAcqResult
 from sbp.piksi          import SBP_MSG_PRINT
 from sbp.client.handler import *
 
@@ -31,7 +31,11 @@ N_PRINT = 32
 SNR_THRESHOLD = 25
 
 class AcqResults():
+  """
+  AcqResults
 
+  The :class:`AcqResults` collects acquisition results.
+  """
   def __init__(self, link):
     self.acqs = []
     self.link = link
@@ -41,7 +45,7 @@ class AcqResults():
   def __str__(self):
     tmp = "Last %d acquisitions:\n" % len(self.acqs[-N_PRINT:])
     for a in self.acqs[-N_PRINT:]:
-      tmp += "PRN %2d, SNR: %3.2f\n" % (a['PRN'], a['SNR'])
+      tmp += "PRN %2d, SNR: %3.2f\n" % (a.prn, a.snr)
     tmp += "Max SNR         : %3.2f\n" % (self.max_snr())
     tmp += "Mean of max SNRs: %3.2f\n" % (self.mean_max_snrs(SNR_THRESHOLD))
     return tmp
@@ -49,7 +53,7 @@ class AcqResults():
   # Return the maximum SNR received.
   def max_snr(self):
     try:
-      return max([a['SNR'] for a in self.acqs])
+      return max([a.snr for a in self.acqs])
     except ValueError, KeyError:
       return 0
 
@@ -57,11 +61,11 @@ class AcqResults():
   def mean_max_snrs(self, snr_threshold):
     snrs = []
     # Get the max SNR for each PRN.
-    for prn in set([a['PRN'] for a in self.acqs]):
-      acqs_prn = filter(lambda x: x['PRN'] == prn, self.acqs)
-      acqs_prn_max_snr = max([a['SNR'] for a in acqs_prn])
+    for prn in set([a.prn for a in self.acqs]):
+      acqs_prn = filter(lambda x: x.prn == prn, self.acqs)
+      acqs_prn_max_snr = max([a.snr for a in acqs_prn])
       if acqs_prn_max_snr >= snr_threshold:
-        snrs += [max([a['SNR'] for a in acqs_prn])]
+        snrs += [max([a.snr for a in acqs_prn])]
     if snrs:
       return mean(snrs)
     else:
@@ -70,14 +74,7 @@ class AcqResults():
   def _receive_acq_result(self, sbp_msg):
     while N_RECORD > 0 and len(self.acqs) >= N_RECORD:
       self.acqs.pop(0)
-
-    self.acqs.append({})
-    a = self.acqs[-1]
-
-    a['SNR'] = struct.unpack('f', sbp_msg.payload[0:4])[0]  # SNR of best point.
-    a['CP'] = struct.unpack('f', sbp_msg.payload[4:8])[0]   # Code phase of best point.
-    a['CF'] = struct.unpack('f', sbp_msg.payload[8:12])[0]  # Carr freq of best point.
-    a['PRN'] = struct.unpack('B', sbp_msg.payload[12])[0]   # PRN of acq.
+    self.acqs.append(MsgAcqResult(sbp_msg))
 
 def get_args():
   """
