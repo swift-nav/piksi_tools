@@ -9,6 +9,10 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+"""
+The :mod:`piksi_tools.acq_results` module contains function related to
+monitoring acquisition.
+"""
 
 import serial_link
 import argparse
@@ -16,9 +20,10 @@ import sys
 import time
 import struct
 
-from numpy           import mean
-from sbp.acquisition import SBP_MSG_ACQ_RESULT
-from sbp.piksi       import SBP_MSG_PRINT
+from numpy              import mean
+from sbp.acquisition    import SBP_MSG_ACQ_RESULT
+from sbp.piksi          import SBP_MSG_PRINT
+from sbp.client.handler import *
 
 N_RECORD = 0 # Number of results to keep in memory, 0 = no limit.
 N_PRINT = 32
@@ -30,7 +35,7 @@ class AcqResults():
   def __init__(self, link):
     self.acqs = []
     self.link = link
-    self.link.add_callback(SBP_MSG_ACQ_RESULT, self._receive_acq_result)
+    self.link.add_callback(self._receive_acq_result, SBP_MSG_ACQ_RESULT)
     self.max_corr = 0
 
   def __str__(self):
@@ -74,44 +79,45 @@ class AcqResults():
     a['CF'] = struct.unpack('f', sbp_msg.payload[8:12])[0]  # Carr freq of best point.
     a['PRN'] = struct.unpack('B', sbp_msg.payload[12])[0]   # PRN of acq.
 
-if __name__ == "__main__":
+def get_args():
+  """
+  Get and parse arguments.
+  """
+  import argparse
   parser = argparse.ArgumentParser(description='Acquisition Monitor')
   parser.add_argument("-f", "--ftdi",
                       help="use pylibftdi instead of pyserial.",
                       action="store_true")
   parser.add_argument('-p', '--port',
-                      default=[serial_link.DEFAULT_PORT], nargs=1,
+                      default=[serial_link.SERIAL_PORT], nargs=1,
                       help='specify the serial port to use.')
-  args = parser.parse_args()
-  serial_port = args.port[0]
+  parser.add_argument("-b", "--baud",
+                      default=[serial_link.SERIAL_BAUD], nargs=1,
+                      help="specify the baud rate to use.")
+  return parser.parse_args()
 
-  print "Waiting for device to be plugged in ...",
-  sys.stdout.flush()
-  found_device = False
-  while not found_device:
-    try:
-      link = serial_link.SerialLink(serial_port, use_ftdi=args.ftdi)
-      found_device = True
-    except KeyboardInterrupt:
-      # Clean up and exit.
-      link.close()
-      sys.exit()
-    except:
-      # Couldn't find device.
-      time.sleep(0.01)
-  print "link with device successfully created."
-  link.add_callback(SBP_MSG_PRINT, serial_link.default_print_callback)
+def main():
+  """
+  Get configuration, get driver, and build handler and start it.
+  """
+  args = get_args()
+  port = args.port[0]
+  baud = args.baud[0]
+  use_ftdi = args.ftdi
+  # Driver with context
+  with serial_link.get_driver(use_ftdi, port, baud) as driver:
+    # Handler with context
+    with Handler(driver.read, driver.write) as link:
+      link.add_callback(serial_link.printer, SBP_MSG_PRINT)
+      acq_results = AcqResults(link)
+      link.start()
 
-  acq_results = AcqResults(link)
+      try:
+        while True:
+          print acq_results
+          time.sleep(0.1)
+      except KeyboardInterrupt:
+        pass
 
-  # Wait for ctrl+C before exiting.
-  try:
-    while True:
-      print acq_results
-      time.sleep(0.1)
-  except KeyboardInterrupt:
-    pass
-
-  # Clean up and exit.
-  link.close()
-  sys.exit()
+if __name__ == "__main__":
+  main()
