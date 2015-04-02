@@ -14,7 +14,8 @@ import struct
 import sys
 import serial_link
 
-from sbp.piksi import SBP_MSG_STM_UNIQUE_ID
+from sbp.piksi          import SBP_MSG_STM_UNIQUE_ID
+from sbp.client.handler import *
 
 class STMUniqueID:
 
@@ -22,7 +23,7 @@ class STMUniqueID:
     self.unique_id_returned = False
     self.unique_id = None
     self.link = link
-    link.add_callback(SBP_MSG_STM_UNIQUE_ID, self.receive_stm_unique_id_callback)
+    link.add_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID)
 
   def receive_stm_unique_id_callback(self,sbp_msg):
     self.unique_id_returned = True
@@ -31,13 +32,41 @@ class STMUniqueID:
   def get_id(self):
     self.unique_id_returned = False
     self.unique_id = None
-    self.link.send_message(SBP_MSG_STM_UNIQUE_ID, struct.pack("<I",0))
+    self.link.send(SBP_MSG_STM_UNIQUE_ID, struct.pack("<I",0))
     while not self.unique_id_returned:
       time.sleep(0.1)
     return self.unique_id
 
+def get_args():
+  """
+  Get and parse arguments.
+  """
+  import argparse
+  parser = argparse.ArgumentParser(description='Acquisition Monitor')
+  parser.add_argument("-f", "--ftdi",
+                      help="use pylibftdi instead of pyserial.",
+                      action="store_true")
+  parser.add_argument('-p', '--port',
+                      default=[serial_link.SERIAL_PORT], nargs=1,
+                      help='specify the serial port to use.')
+  parser.add_argument("-b", "--baud",
+                      default=[serial_link.SERIAL_BAUD], nargs=1,
+                      help="specify the baud rate to use.")
+  return parser.parse_args()
+
+def main():
+  """
+  Get configuration, get driver, and build handler and start it.
+  """
+  args = get_args()
+  port = args.port[0]
+  baud = args.baud[0]
+  # Driver with context
+  with serial_link.get_driver(args.ftdi, port, baud) as driver:
+    with Handler(driver.read, driver.write) as link:
+      link.start()
+      unique_id = STMUniqueID(link).get_id()
+      print "STM Unique ID =", "0x" + ''.join(["%02x" % (b) for b in unique_id])
+
 if __name__ == "__main__":
-  link = serial_link.SerialLink()
-  unique_id = STMUniqueID(link).get_id()
-  print "STM Unique ID =", "0x" + ''.join(["%02x" % (b) for b in unique_id])
-  link.close()
+  main()
