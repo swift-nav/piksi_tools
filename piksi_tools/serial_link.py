@@ -32,6 +32,13 @@ LOG_FILENAME = time.strftime("serial-link-%Y%m%d-%H%M%S.log")
 SERIAL_PORT  = "/dev/ttyUSB0"
 SERIAL_BAUD  = 1000000
 
+def get_ports():
+  """
+  Get list of serial ports.
+  """
+  import serial.tools.list_ports
+  return [p for p in serial.tools.list_ports.comports() if p[1][0:4] != "ttyS"]
+
 def get_args():
   """
   Get and parse arguments.
