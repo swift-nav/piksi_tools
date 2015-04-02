@@ -10,7 +10,7 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 """
-The :mod:`piksi_tools.acq_results` module contains function related to
+The :mod:`piksi_tools.acq_results` module contains functions related to
 monitoring acquisition.
 """
 

@@ -17,7 +17,7 @@ setting up and running SBP message handling.
 import sys
 import time
 
-from sbp.piksi                          import SBP_MSG_PRINT
+from sbp.piksi                          import SBP_MSG_PRINT, SBP_MSG_RESET
 from sbp.client.drivers.file_driver     import FileDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.pyftdi_driver   import PyFTDIDriver
@@ -148,14 +148,14 @@ def main():
   # Driver with context
   with get_driver(use_ftdi, port, baud, input_filename) as driver:
     # Handler with context
-    with Handler(driver.read, driver.write, verbose) as handler:
+    with Handler(driver.read, driver.write, verbose) as link:
       # Logger with context
       with get_logger(use_log, use_json, use_byte, log_filename) as logger:
-        handler.add_callback(printer, SBP_MSG_PRINT)
-        handler.add_callback(logger)
-        handler.start()
+        link.add_callback(printer, SBP_MSG_PRINT)
+        link.add_callback(logger)
+        link.start()
         if reset:
-          handler.send(SBP_RESET, "")
+          link.send(SBP_MSG_RESET, "")
         try:
           if timeout is None:
             while True:
