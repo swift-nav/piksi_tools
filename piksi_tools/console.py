@@ -12,12 +12,13 @@
 import serial_link
 from version import VERSION as CONSOLE_VERSION
 from sbp.piksi import *
+import sbp.client.handler
 
 import argparse
 parser = argparse.ArgumentParser(description='Swift Nav Console.')
 parser.add_argument('-p', '--port', nargs=1, default=[None],
                     help='specify the serial port to use.')
-parser.add_argument('-b', '--baud', nargs=1, default=[serial_link.DEFAULT_BAUD],
+parser.add_argument('-b', '--baud', nargs=1, default=[serial_link.SERIAL_BAUD],
                     help='specify the baud rate to use.')
 parser.add_argument("-v", "--verbose",
                     help="print extra debugging information.",
@@ -119,7 +120,7 @@ class ConsoleHandler(Handler):
       info.ui.title = CONSOLE_TITLE + ' : ' + info.object.device_serial
 
 class SwiftConsole(HasTraits):
-  link = Instance(serial_link.SerialLink)
+  link = Instance(sbp.client.handler.Handler)
   console_output = Instance(OutputStream)
   python_console_env = Dict
   device_serial = Str('')
@@ -219,16 +220,16 @@ class SwiftConsole(HasTraits):
     reset = kwargs.pop('reset')
     try:
       self.link = serial_link.SerialLink(*args, **kwargs)
-      self.link.add_callback(SBP_MSG_PRINT, self.print_message_callback)
-      self.link.add_callback(SBP_MSG_DEBUG_VAR, self.debug_var_callback)
+      self.link.add_callback(self.print_message_callback, SBP_MSG_PRINT)
+      self.link.add_callback(self.debug_var_callback, SBP_MSG_DEBUG_VAR)
       # Setup logging
       if log:
         log_name = serial_link.generate_log_filename()
         self.log_file = open(log_name, 'w+')
         print "Logging at %s." % log_name
-        self.link.add_global_callback(serial_link.default_log_callback(self.log_file))
+        self.link.add_callback(serial_link.default_log_callback(self.log_file)) ## TODO
         if reset:
-          self.link.send_message(SBP_MSG_RESET, '')
+          self.link.send(SBP_MSG_RESET, '')
 
       settings_read_finished_functions = []
 
@@ -256,7 +257,7 @@ class SwiftConsole(HasTraits):
       self.update_view.settings = self.settings_view.settings
 
       self.python_console_env = {
-          'send_message': self.link.send_message,
+          'send_message': self.link.send,
           'link': self.link,
       }
       self.python_console_env.update(self.tracking_view.python_console_cmds)

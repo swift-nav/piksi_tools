@@ -178,12 +178,9 @@ class SystemMonitorView(HasTraits):
     super(SystemMonitorView, self).__init__()
 
     self.link = link
-    self.link.add_callback(SBP_MSG_HEARTBEAT,
-      self.heartbeat_callback)
-    self.link.add_callback(SBP_MSG_THREAD_STATE,
-      self.thread_state_callback)
-    self.link.add_callback(SBP_MSG_UART_STATE,
-      self.uart_state_callback)
+    self.link.add_callback(self.heartbeat_callback, SBP_MSG_HEARTBEAT)
+    self.link.add_callback(self.thread_state_callback, SBP_MSG_THREAD_STATE)
+    self.link.add_callback(self.uart_state_callback, SBP_MSG_UART_STATE)
 
 
     self.python_console_cmds = {

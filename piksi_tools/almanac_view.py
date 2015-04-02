@@ -43,13 +43,13 @@ class AlmanacView(HasTraits):
     gps_tow = gps_secs % (7*24*3600)
     print gps_week, gps_tow
     buff = struct.pack("<dH", gps_tow, gps_week)
-    self.link.send_message(SBP_MSG_SET_TIME, buff)
+    self.link.send(SBP_MSG_SET_TIME, buff)
 
   def _send_alm_fired(self):
     self.update_alamanc_view()
 
     for sat in self.alm.sats:
-      self.link.send_message(SBP_MSG_ALMANAC, sat.packed())
+      self.link.send(SBP_MSG_ALMANAC, sat.packed())
       time.sleep(0.1)
 
   def update_alamanc_view(self):

@@ -131,7 +131,7 @@ class TrackingView(HasTraits):
     self.plot.legend.tools.append(LegendTool(self.plot.legend, drag_button="right"))
 
     self.link = link
-    self.link.add_callback(SBP_MSG_TRACKING_STATE, self.tracking_state_callback)
+    self.link.add_callback(self.tracking_state_callback, SBP_MSG_TRACKING_STATE)
 
     self.python_console_cmds = {
       'track': self

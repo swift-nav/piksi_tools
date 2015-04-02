@@ -243,8 +243,8 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     self.eph_file   = None
 
     self.link = link
-    self.link.add_callback(SBP_MSG_OBS, self.obs_packed_callback)
-    self.link.add_callback(SBP_MSG_EPHEMERIS, self.ephemeris_callback)
+    self.link.add_callback(self.obs_packed_callback, SBP_MSG_OBS)
+    self.link.add_callback(self.ephemeris_callback, SBP_MSG_EPHEMERIS)
 
     self.python_console_cmds = {
       'obs': self
