@@ -20,15 +20,31 @@ PACKAGES = [
   'piksi_tools',
 ]
 
-PACKAGE_DATA = {
-  'piksi_tools': ['*.yaml', 'images/*.svg']
-}
-
 PLATFORMS = [
   'linux',
   'osx',
   'win32',
 ]
+
+DATA_FILES = [
+  ('piksi_tools', 'settings.yaml'),
+]
+
+PACKAGE_DATA = { 'piksi_tools' : [
+  'settings.yaml',
+  'images/fontawesome/download.svg',
+  'images/fontawesome/exclamation-triangle.svg',
+  'images/fontawesome/floppy-o.svg',
+  'images/fontawesome/refresh.svg',
+  'images/fontawesome/stop.svg',
+  'images/iconic/fullscreen.svg',
+  'images/iconic/move.svg',
+  'images/iconic/pause.svg',
+  'images/iconic/play.svg',
+  'images/iconic/stop.svg',
+  'images/iconic/target.svg',
+  'images/iconic/x.svg',
+] }
 
 cwd = os.path.abspath(os.path.dirname(__file__))
 with open(cwd + '/README.rst') as f:
@@ -46,8 +62,8 @@ setup(name='piksi_tools',
       url='https://github.com/swift-nav/piksi_tools',
       classifiers=CLASSIFIERS,
       packages=PACKAGES,
-      platforms=PLATFORMS,
       package_data=PACKAGE_DATA,
+      platforms=PLATFORMS,
       install_requires=INSTALL_REQUIRES,
       use_2to3=False,
       zip_safe=False)
