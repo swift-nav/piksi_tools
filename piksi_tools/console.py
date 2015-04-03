@@ -18,7 +18,7 @@ import sbp.client.handler
 from sbp.piksi import *
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
-from version import VERSION as CONSOLE_VERSION
+from piksi_tools import __version__ as CONSOLE_VERSION
 
 def get_args():
   """

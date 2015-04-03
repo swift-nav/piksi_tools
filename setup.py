@@ -20,6 +20,10 @@ PACKAGES = [
   'piksi_tools',
 ]
 
+PACKAGE_DATA = {
+  'piksi_tools': ['*.yaml', 'images/*.svg']
+}
+
 PLATFORMS = [
   'linux',
   'osx',
@@ -43,6 +47,7 @@ setup(name='piksi_tools',
       classifiers=CLASSIFIERS,
       packages=PACKAGES,
       platforms=PLATFORMS,
+      package_data=PACKAGE_DATA,
       install_requires=INSTALL_REQUIRES,
       use_2to3=False,
       zip_safe=False)

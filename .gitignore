@@ -59,3 +59,10 @@ target/
 
 # LaTeX output
 sbp_out.*
+
+/piksi_tools/RELEASE-VERSION
+/piksi_tools/testing/hub_ctrl
+/piksi_tools/testing/bootload_log*
+/piksi_tools/pyinstaller/build
+/piksi_tools/pyinstaller/dist
+

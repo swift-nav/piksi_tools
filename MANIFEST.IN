@@ -8,5 +8,7 @@ include .coveragerc
 include .gitignore
 include LICENSE
 include tox.ini
+include *.yaml
 recursive-include piksi_tools/ *.py
+recursive-include piksi_tools/images *
 prune docs/_build
