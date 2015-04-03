@@ -52,7 +52,7 @@ DIRNAME=$(dirname "$0")
 RES=$DIRNAME/dmg-resources
 
 APP="dist/Piksi Console.app"
-DMG="dist/piksi_console_`git describe --dirty`.dmg"
+DMG="dist/piksi_console_`git describe --tags --dirty`.dmg"
 
 KEEP_TEMP=0
 
@@ -96,7 +96,7 @@ fi
 
 TMP_DIR=$(mktemp -d -t console-dmg)
 TMP_TEMPLATE=$TMP_DIR/template
-TMP_DMG=$TMP_DIR/piksi_console_`git describe --dirty`.dmg
+TMP_DMG=$TMP_DIR/piksi_console_`git describe --tags --dirty`.dmg
 
 echo "Preparing an image template in $TMP_TEMPLATE"
 echo "============================================="
