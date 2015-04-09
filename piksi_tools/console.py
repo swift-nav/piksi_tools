@@ -21,6 +21,10 @@ from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
 from piksi_tools import __version__ as CONSOLE_VERSION
 
+# Shut chaco up for now
+import warnings
+warnings.simplefilter(action = "ignore", category = FutureWarning)
+
 def get_args():
   """
   Get and parse arguments.
