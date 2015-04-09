@@ -17,7 +17,8 @@ setting up and running SBP message handling.
 import sys
 import time
 
-from sbp.piksi                          import SBP_MSG_PRINT, SBP_MSG_RESET
+from sbp.logging                        import SBP_MSG_PRINT
+from sbp.piksi                          import SBP_MSG_RESET
 from sbp.client.drivers.file_driver     import FileDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.pyftdi_driver   import PyFTDIDriver

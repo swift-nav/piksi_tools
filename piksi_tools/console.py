@@ -15,7 +15,8 @@ import sys
 
 import serial_link
 import sbp.client.handler
-from sbp.piksi import *
+from sbp.logging import SBP_MSG_DEBUG_VAR, SBP_MSG_PRINT
+from sbp.piksi import SBP_MSG_RESET
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
 from piksi_tools import __version__ as CONSOLE_VERSION

@@ -22,7 +22,7 @@ import struct
 
 from numpy              import mean
 from sbp.acquisition    import SBP_MSG_ACQ_RESULT, MsgAcqResult
-from sbp.piksi          import SBP_MSG_PRINT
+from sbp.logging        import SBP_MSG_PRINT
 from sbp.client.handler import *
 
 N_RECORD = 0 # Number of results to keep in memory, 0 = no limit.
