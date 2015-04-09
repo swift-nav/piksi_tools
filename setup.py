@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-from piksi_tools import __version__
 from setuptools import setup
 import os
+
+VERSION = "0.8"
 
 CLASSIFIERS = [
   'Intended Audience :: Developers',
@@ -56,7 +57,7 @@ with open(cwd + '/requirements.txt') as f:
 setup(name='piksi_tools',
       description='Python tools for the Piksi GNSS receiver.',
       long_description=readme,
-      version=__version__,
+      version=VERSION,
       author='Swift Navigation',
       author_email='dev@swiftnav.com',
       url='https://github.com/swift-nav/piksi_tools',
