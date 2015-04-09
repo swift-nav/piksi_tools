@@ -221,7 +221,7 @@ class SwiftConsole(HasTraits):
 
   def _clear_button_fired(self):
     self.console_output.reset()
-  def __init__(self, *args, **kwargs):
+  def __init__(self, link):
     self.console_output = OutputStream()
     sys.stdout = self.console_output
     sys.stderr = self.console_output
@@ -230,17 +230,9 @@ class SwiftConsole(HasTraits):
     reset = kwargs.pop('reset')
     verbose = kwargs.pop('verbose')
     try:
-      self.driver = get_driver(*args, **kwargs)
-      self.link = sbp.client.handler.Handler(self.driver.read, self.driver.write, verbose)
+      self.link = link
       self.link.add_callback(self.print_message_callback, SBP_MSG_PRINT)
       self.link.add_callback(self.debug_var_callback, SBP_MSG_DEBUG_VAR)
-      # Setup logging
-      if log:
-        log_name = serial_link.LOG_FILENAME
-        self.logger = PickleLogger(log_name)
-        self.link.add_callback(self.logger)
-      if reset:
-        self.link.send(SBP_MSG_RESET, '')
       self.link.start()
 
       settings_read_finished_functions = []
@@ -325,16 +317,16 @@ if not port:
   else:
     print "Using serial device '%s'" % port
 
-console = SwiftConsole(port,
-                       baud,
-                       use_ftdi=args.ftdi,
-                       verbose=args.verbose,
-                       update=args.update,
-                       log=args.log,
-                       reset=args.reset)
-
-console.configure_traits()
-console.stop()
+# Driver with context
+with serial_link.get_driver(args.ftdi, port, baud) as driver:
+  with sbp.client.handler.Handler(driver.read, driver.write, args.verbose) as link:
+    with get_logger(args.log, False, False, serial_link.LOG_FILENAME) as logger:
+      link.add_callback(logger)
+      if reset:
+        link.send(SBP_MSG_RESET, "")
+      console = SwiftConsole(link, update=args.update)
+      console.configure_traits()
+      console.stop()
 
 # Force exit, even if threads haven't joined
 try:
