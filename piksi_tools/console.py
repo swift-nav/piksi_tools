@@ -221,14 +221,10 @@ class SwiftConsole(HasTraits):
 
   def _clear_button_fired(self):
     self.console_output.reset()
-  def __init__(self, link):
+  def __init__(self, link, update):
     self.console_output = OutputStream()
     sys.stdout = self.console_output
     sys.stderr = self.console_output
-    update = kwargs.pop('update')
-    log = kwargs.pop('log')
-    reset = kwargs.pop('reset')
-    verbose = kwargs.pop('verbose')
     try:
       self.link = link
       self.link.add_callback(self.print_message_callback, SBP_MSG_PRINT)
@@ -272,19 +268,8 @@ class SwiftConsole(HasTraits):
       self.python_console_env.update(self.update_view.python_console_cmds)
       self.python_console_env.update(self.settings_view.python_console_cmds)
     except:
-      self.link.stop()
-      self.driver.flush()
-      self.driver.close()
       import traceback
       traceback.print_exc()
-
-  def stop(self):
-    self.link.stop()
-    self.driver.flush()
-    self.driver.close()
-    if self.logger:
-      self.logger.flush()
-      self.logger.close()
 
 class PortChooser(HasTraits):
   ports = List()
@@ -317,16 +302,14 @@ if not port:
   else:
     print "Using serial device '%s'" % port
 
-# Driver with context
 with serial_link.get_driver(args.ftdi, port, baud) as driver:
   with sbp.client.handler.Handler(driver.read, driver.write, args.verbose) as link:
-    with get_logger(args.log, False, False, serial_link.LOG_FILENAME) as logger:
+    with serial_link.get_logger(args.log, False, False, serial_link.LOG_FILENAME) as logger:
       link.add_callback(logger)
-      if reset:
+      if args.reset:
         link.send(SBP_MSG_RESET, "")
       console = SwiftConsole(link, update=args.update)
       console.configure_traits()
-      console.stop()
 
 # Force exit, even if threads haven't joined
 try:
