@@ -15,7 +15,7 @@ import threading
 import time
 import struct
 
-from almanac import Almanac
+from piksi_tools.almanac import Almanac
 from sbp.piksi import SBP_MSG_ALMANAC, SBP_MSG_SET_TIME
 
 class AlmanacView(HasTraits):

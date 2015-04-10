@@ -19,7 +19,7 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 """
-The :mod:`piksi_tools.acq_results` module contains functions loading firmware
+The :mod:`piksi_tools.bootload` module contains functions loading firmware
 images.
 """
 

@@ -31,7 +31,7 @@ import numpy as np
 import datetime
 
 
-from fileio import FileIO
+from piksi_tools.fileio import FileIO
 import callback_prompt as prompt
 
 from sbp.piksi    import *
@@ -300,7 +300,8 @@ class SettingsView(HasTraits):
       SBP_MSG_SETTINGS_READ_BY_INDEX)
 
     # Read in yaml file for setting metadatas (hardcoded filename for now)
-    self.settings_yaml = SettingsList("settings.yaml")
+    # TODO this path here is sad panda
+    self.settings_yaml = SettingsList("piksi_tools/console/settings.yaml")
 
     # List of functions to be executed after all settings are read.
     # No support for arguments currently.

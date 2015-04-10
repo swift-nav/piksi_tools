@@ -13,13 +13,14 @@ import os
 import struct
 import sys
 
-import serial_link
+from piksi_tools import serial_link
 import sbp.client.handler
 from sbp.logging import SBP_MSG_DEBUG_VAR, SBP_MSG_PRINT
 from sbp.piksi import SBP_MSG_RESET
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
-from piksi_tools import __version__ as CONSOLE_VERSION
+
+from version import VERSION as CONSOLE_VERSION
 
 # Shut chaco up for now
 import warnings
