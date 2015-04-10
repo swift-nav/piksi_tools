@@ -116,13 +116,13 @@ class BaselineView(HasTraits):
     self.running = not self.running
 
   def _reset_button_fired(self):
-    self.link.send_message(SBP_MSG_RESET_FILTERS, '\x00')
+    self.link.send(SBP_MSG_RESET_FILTERS, '\x00')
 
   def _reset_iar_button_fired(self):
-    self.link.send_message(SBP_MSG_RESET_FILTERS, '\x01')
+    self.link.send(SBP_MSG_RESET_FILTERS, '\x01')
 
   def _init_base_button_fired(self):
-    self.link.send_message(SBP_MSG_INIT_BASE, '')
+    self.link.send(SBP_MSG_INIT_BASE, '')
 
   def _clear_button_fired(self):
     self.ns = []
@@ -289,10 +289,10 @@ class BaselineView(HasTraits):
     self.nsec = 0
 
     self.link = link
-    self.link.add_callback(SBP_MSG_BASELINE_NED, self._baseline_callback_ned)
-    self.link.add_callback(SBP_MSG_BASELINE_ECEF, self._baseline_callback_ecef)
-    self.link.add_callback(SBP_MSG_IAR_STATE, self.iar_state_callback)
-    self.link.add_callback(SBP_MSG_GPS_TIME, self.gps_time_callback)
+    self.link.add_callback(self._baseline_callback_ned, SBP_MSG_BASELINE_NED)
+    self.link.add_callback(self._baseline_callback_ecef, SBP_MSG_BASELINE_ECEF)
+    self.link.add_callback(self.iar_state_callback, SBP_MSG_IAR_STATE)
+    self.link.add_callback(self.gps_time_callback, SBP_MSG_GPS_TIME)
 
     self.python_console_cmds = {
       'baseline': self

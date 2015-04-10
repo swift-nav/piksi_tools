@@ -13,10 +13,10 @@ import time
 
 parser = argparse.ArgumentParser(description='Print Piksi device details.')
 parser.add_argument('-p', '--port',
-	     default=[serial_link.DEFAULT_PORT], nargs=1,
+	     default=[serial_link.SERIAL_PORT], nargs=1,
 	     help='specify the serial port to use.')
 parser.add_argument("-b", "--baud",
-	     default=[serial_link.DEFAULT_BAUD], nargs=1,
+	     default=[serial_link.SERIAL_BAUD], nargs=1,
 	     help="specify the baud rate to use.")
 parser.add_argument("-v", "--verbose",
 	     help="print extra debugging information.",
@@ -25,43 +25,43 @@ parser.add_argument("-f", "--ftdi",
 	     help="use pylibftdi instead of pyserial.",
 	     action="store_true")
 args = parser.parse_args()
-serial_port = args.port[0]
+port = args.port[0]
 baud = args.baud[0]
-link = serial_link.SerialLink(serial_port, baud, use_ftdi=args.ftdi,
-	    print_unhandled=args.verbose)
 
 settings_read = False
 def callback():
   global settings_read
   settings_read = True
 
-sv = settings_view.SettingsView(link, read_finished_functions=[callback], gui_mode=False)
+# Driver with context
+with serial_link.get_driver(arts.ftdi, port, baud) as driver:
+  # Handler with context
+  with Handler(driver.read, driver.write, args.verbose) as link:
+    sv = settings_view.SettingsView(link, read_finished_functions=[callback], gui_mode=False)
 
-while not settings_read:
-  time.sleep(1)
+    while not settings_read:
+      time.sleep(1)
 
-print "===================================="
-print "Piksi Device", serial_port
-print "===================================="
-print
-print "System Info"
-print "-----------"
-print
-
-for k_, v_ in sv.settings['system_info'].iteritems():
-  print "%-20s %s" % (k_, v_)
-
-print
-print "Settings"
-print "--------"
-print
-
-for k, v in sv.settings.iteritems():
-  if k != 'system_info':
-    print "%s:" % k
-    for k_, v_ in v.iteritems():
-      print "    %-20s %s" % (k_, v_)
+    print "===================================="
+    print "Piksi Device", serial_port
+    print "===================================="
+    print
+    print "System Info"
+    print "-----------"
     print
 
-link.close()
+    for k_, v_ in sv.settings['system_info'].iteritems():
+      print "%-20s %s" % (k_, v_)
+
+    print
+    print "Settings"
+    print "--------"
+    print
+
+    for k, v in sv.settings.iteritems():
+      if k != 'system_info':
+        print "%s:" % k
+        for k_, v_ in v.iteritems():
+          print "    %-20s %s" % (k_, v_)
+        print
 

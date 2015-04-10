@@ -31,11 +31,12 @@ import numpy as np
 import datetime
 
 
-from fileio import FileIO
+from piksi_tools.fileio import FileIO
 import callback_prompt as prompt
 
 from sbp.piksi    import *
-from sbp.standard import SBP_MSG_STARTUP
+from sbp.settings import *
+from sbp.system   import SBP_MSG_STARTUP
 
 from settings_list import SettingsList
 
@@ -197,10 +198,10 @@ class SettingsView(HasTraits):
     self.settings.clear()
     self.enumindex = 0
     self.ordering_counter = 0
-    self.link.send_message(SBP_MSG_SETTINGS_READ_BY_INDEX, u16_to_str(self.enumindex))
+    self.link.send(SBP_MSG_SETTINGS_READ_BY_INDEX, u16_to_str(self.enumindex))
 
   def _settings_save_button_fired(self):
-    self.link.send_message(SBP_MSG_SETTINGS_SAVE, "")
+    self.link.send(SBP_MSG_SETTINGS_SAVE, "")
 
   def _factory_default_button_fired(self):
     confirm_prompt = prompt.CallbackPrompt(
@@ -217,7 +218,7 @@ class SettingsView(HasTraits):
     fio = FileIO(self.link)
     fio.remove('config')
     # Reset the Piksi
-    self.link.send_message(SBP_MSG_RESET, '')
+    self.link.send(SBP_MSG_RESET, '')
 
   ##Callbacks for receiving messages
 
@@ -271,7 +272,7 @@ class SettingsView(HasTraits):
                                                  )
 
     self.enumindex += 1
-    self.link.send_message(SBP_MSG_SETTINGS_READ_BY_INDEX, u16_to_str(self.enumindex))
+    self.link.send(SBP_MSG_SETTINGS_READ_BY_INDEX, u16_to_str(self.enumindex))
 
   def settings_read_callback(self, sbp_msg):
     section, setting, value = sbp_msg.payload.split('\0')[:3]
@@ -283,7 +284,7 @@ class SettingsView(HasTraits):
     self._settings_read_button_fired()
 
   def set(self, section, name, value):
-      self.link.send_message(SBP_MSG_SETTINGS,
+      self.link.send(SBP_MSG_SETTINGS,
           '%s\0%s\0%s\0' % (section, name, value))
 
   def __init__(self, link, read_finished_functions=[], gui_mode=True):
@@ -293,13 +294,14 @@ class SettingsView(HasTraits):
     self.enumindex = 0
     self.settings = {}
     self.link = link
-    self.link.add_callback(SBP_MSG_SETTINGS, self.settings_read_callback)
-    self.link.add_callback(SBP_MSG_STARTUP, self.piksi_startup_callback)
-    self.link.add_callback(SBP_MSG_SETTINGS_READ_BY_INDEX,
-        self.settings_read_by_index_callback)
+    self.link.add_callback(self.settings_read_callback, SBP_MSG_SETTINGS)
+    self.link.add_callback(self.piksi_startup_callback, SBP_MSG_STARTUP)
+    self.link.add_callback(self.settings_read_by_index_callback,
+      SBP_MSG_SETTINGS_READ_BY_INDEX)
 
     # Read in yaml file for setting metadatas (hardcoded filename for now)
-    self.settings_yaml = SettingsList("settings.yaml")
+    # TODO this path here is sad panda
+    self.settings_yaml = SettingsList("piksi_tools/console/settings.yaml")
 
     # List of functions to be executed after all settings are read.
     # No support for arguments currently.

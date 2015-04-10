@@ -14,7 +14,7 @@ import sys
 import serial_link
 import threading
 
-from sbp.piksi import *
+from sbp.file_io import *
 
 class FileIO(object):
   def __init__(self, link):
@@ -38,8 +38,8 @@ class FileIO(object):
     buf = ''
     while True:
       msg = struct.pack("<IB", len(buf), chunksize) + filename + '\0'
-      self.link.send_message(SBP_MSG_FILEIO_READ, msg)
-      data = self.link.wait_message(SBP_MSG_FILEIO_READ, timeout=1.0)
+      self.link.send(SBP_MSG_FILEIO_READ, msg)
+      data = self.link.wait(SBP_MSG_FILEIO_READ, timeout=1.0)
       if not data:
         raise Exception("Timeout waiting for FILEIO_READ reply")
       if data[:len(msg)] != msg:
@@ -66,8 +66,8 @@ class FileIO(object):
     files = []
     while True:
       msg = struct.pack("<I", len(files)) + dirname + '\0'
-      self.link.send_message(SBP_MSG_FILEIO_READ_DIR, msg)
-      data = self.link.wait_message(SBP_MSG_FILEIO_READ_DIR, timeout=1.0)
+      self.link.send(SBP_MSG_FILEIO_READ_DIR, msg)
+      data = self.link.wait(SBP_MSG_FILEIO_READ_DIR, timeout=1.0)
       if not data:
         raise Exception("Timeout waiting for FILEIO_READ_DIR reply")
       if data[:len(msg)] != msg:
@@ -86,7 +86,7 @@ class FileIO(object):
     filename : str
         Name of the file to delete.
     """
-    self.link.send_message(SBP_MSG_FILEIO_REMOVE, filename + '\0')
+    self.link.send(SBP_MSG_FILEIO_REMOVE, filename + '\0')
 
   def write(self, filename, data, offset=0, trunc=True):
     """
@@ -118,8 +118,8 @@ class FileIO(object):
       chunk = data[:chunksize]
       data = data[chunksize:]
       header = struct.pack("<I", offset) + filename + '\0'
-      self.link.send_message(SBP_MSG_FILEIO_WRITE, header + chunk)
-      reply = self.link.wait_message(SBP_MSG_FILEIO_WRITE, timeout=1.0)
+      self.link.send(SBP_MSG_FILEIO_WRITE, header + chunk)
+      reply = self.link.wait(SBP_MSG_FILEIO_WRITE, timeout=1.0)
       if not reply:
         raise Exception("Timeout waiting for FILEIO_WRITE reply")
       if reply != header:
@@ -164,8 +164,10 @@ def print_dir_listing(files):
   for f in files:
     print f
 
-
-if __name__ == "__main__":
+def get_args():
+  """
+  Get and parse arguments.
+  """
   import argparse
   parser = argparse.ArgumentParser(description='Swift Nav File I/O Utility.')
   parser.add_argument('-r', '--read', nargs=1,
@@ -175,10 +177,10 @@ if __name__ == "__main__":
   parser.add_argument('-d', '--delete', nargs=1,
                      help='delete a file')
   parser.add_argument('-p', '--port',
-                     default=[serial_link.DEFAULT_PORT], nargs=1,
+                     default=[serial_link.SERIAL_PORT], nargs=1,
                      help='specify the serial port to use.')
   parser.add_argument("-b", "--baud",
-                     default=[serial_link.DEFAULT_BAUD], nargs=1,
+                     default=[serial_link.SERIAL_BAUD], nargs=1,
                      help="specify the baud rate to use.")
   parser.add_argument("-v", "--verbose",
                      help="print extra debugging information.",
@@ -189,28 +191,34 @@ if __name__ == "__main__":
   parser.add_argument("-f", "--ftdi",
                      help="use pylibftdi instead of pyserial.",
                      action="store_true")
-  args = parser.parse_args()
-  serial_port = args.port[0]
+  return parser.parse_args()
+
+def main():
+  args = get_args()
+  port = args.port[0]
   baud = args.baud[0]
-  link = serial_link.SerialLink(serial_port, baud, use_ftdi=args.ftdi,
-                                print_unhandled=args.verbose)
+  # Driver with context
+  with serial_link.get_driver(args.ftdi, port, baud) as driver:
+    # Handler with context
+    with Handler(driver.read, driver.write, args.verbose) as link:
+      f = FileIO(link)
 
-  f = FileIO(link)
+      try:
+        if args.read:
+          data = f.read(args.read[0])
+          if args.hex:
+            print hexdump(data)
+          else:
+            print data
+        elif args.delete:
+          f.remove(args.delete[0])
+        elif args.list is not None:
+          print_dir_listing(f.readdir(args.list[0]))
+        else:
+          print "No command given, listing root directory:"
+          print_dir_listing(f.readdir())
+      except KeyboardInterrupt:
+        pass
 
-  try:
-    if args.read:
-      data = f.read(args.read[0])
-      if args.hex:
-        print hexdump(data)
-      else:
-        print data
-    elif args.delete:
-      f.remove(args.delete[0])
-    elif args.list is not None:
-      print_dir_listing(f.readdir(args.list[0]))
-    else:
-      print "No command given, listing root directory:"
-      print_dir_listing(f.readdir())
-  except KeyboardInterrupt:
-    pass
-
+if __name__ == "__main__":
+  main()

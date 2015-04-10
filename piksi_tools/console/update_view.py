@@ -15,7 +15,8 @@ from time import sleep
 from intelhex import IntelHex, HexRecordError, HexReaderError
 from pkg_resources import parse_version
 
-from sbp.piksi import SBP_MSG_BOOTLOADER_JUMP_TO_APP, SBP_MSG_RESET
+from sbp.bootload import SBP_MSG_BOOTLOADER_JUMP_TO_APP
+from sbp.piksi import SBP_MSG_RESET
 
 from threading import Thread
 
@@ -27,8 +28,9 @@ from traitsui.api import View, Handler, Action, Item, TextEditor, VGroup, \
 from pyface.api import GUI, FileDialog, OK, ProgressDialog
 
 from version import VERSION as CONSOLE_VERSION
-import bootload
-import flash
+
+from piksi_tools import bootload
+from piksi_tools import flash
 import callback_prompt as prompt
 from update_downloader import UpdateDownloader
 from output_stream import OutputStream
@@ -233,7 +235,7 @@ class UpdateView(HasTraits):
 
     Parameters
     ----------
-    link : serial_link.SerialLink
+    link : sbp.client.handler.Handler
       Link for SBP transfer to/from Piksi.
     prompt : bool
       Prompt user to update console/firmware if out of date.
@@ -564,7 +566,7 @@ class UpdateView(HasTraits):
       progress_dialog.close()
 
     # Must tell Piksi to jump to application after updating firmware.
-    self.link.send_message(SBP_MSG_BOOTLOADER_JUMP_TO_APP, '\x00')
+    self.link.send(SBP_MSG_BOOTLOADER_JUMP_TO_APP, '\x00')
     self._write("Firmware updates finished.")
     self._write("")
 
@@ -581,7 +583,7 @@ class UpdateView(HasTraits):
       Either "STM" or "M25".
     """
     # Reset device if the application is running to put into bootloader mode.
-    self.link.send_message(SBP_MSG_RESET, '')
+    self.link.send(SBP_MSG_RESET, '')
 
     self.pk_boot = bootload.Bootloader(self.link)
 

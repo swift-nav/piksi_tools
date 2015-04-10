@@ -19,8 +19,8 @@ import os
 import numpy as np
 import datetime
 
-from sbp.piksi    import SBP_MSG_THREAD_STATE, SBP_MSG_UART_STATE
-from sbp.standard import SBP_MSG_HEARTBEAT
+from sbp.piksi  import SBP_MSG_THREAD_STATE, SBP_MSG_UART_STATE
+from sbp.system import SBP_MSG_HEARTBEAT
 
 class SimpleAdapter(TabularAdapter):
     columns = [('Thread Name', 0), ('CPU %',  1), ('Stack Free',  2)]
@@ -178,12 +178,9 @@ class SystemMonitorView(HasTraits):
     super(SystemMonitorView, self).__init__()
 
     self.link = link
-    self.link.add_callback(SBP_MSG_HEARTBEAT,
-      self.heartbeat_callback)
-    self.link.add_callback(SBP_MSG_THREAD_STATE,
-      self.thread_state_callback)
-    self.link.add_callback(SBP_MSG_UART_STATE,
-      self.uart_state_callback)
+    self.link.add_callback(self.heartbeat_callback, SBP_MSG_HEARTBEAT)
+    self.link.add_callback(self.thread_state_callback, SBP_MSG_THREAD_STATE)
+    self.link.add_callback(self.uart_state_callback, SBP_MSG_UART_STATE)
 
 
     self.python_console_cmds = {

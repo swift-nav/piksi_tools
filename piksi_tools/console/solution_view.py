@@ -334,10 +334,10 @@ class SolutionView(HasTraits):
     self.plot.overlays.append(zt)
 
     self.link = link
-    self.link.add_callback(SBP_MSG_POS_LLH, self._pos_llh_callback)
-    self.link.add_callback(SBP_MSG_VEL_NED, self.vel_ned_callback)
-    self.link.add_callback(SBP_MSG_DOPS, self.dops_callback)
-    self.link.add_callback(SBP_MSG_GPS_TIME, self.gps_time_callback)
+    self.link.add_callback(self._pos_llh_callback, SBP_MSG_POS_LLH)
+    self.link.add_callback(self.vel_ned_callback, SBP_MSG_VEL_NED)
+    self.link.add_callback(self.dops_callback, SBP_MSG_DOPS)
+    self.link.add_callback(self.gps_time_callback, SBP_MSG_GPS_TIME)
 
     self.week = None
     self.nsec = 0
