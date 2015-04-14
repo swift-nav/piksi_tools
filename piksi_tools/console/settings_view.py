@@ -287,7 +287,9 @@ class SettingsView(HasTraits):
       self.link.send(SBP_MSG_SETTINGS,
           '%s\0%s\0%s\0' % (section, name, value))
 
-  def __init__(self, link, read_finished_functions=[], gui_mode=True):
+  def __init__(self, link, read_finished_functions=[],
+               name_of_yaml_file="settings.yaml", gui_mode=True):
+
     super(SettingsView, self).__init__()
 
     self.gui_mode = gui_mode
@@ -299,9 +301,8 @@ class SettingsView(HasTraits):
     self.link.add_callback(self.settings_read_by_index_callback,
       SBP_MSG_SETTINGS_READ_BY_INDEX)
 
-    # Read in yaml file for setting metadatas (hardcoded filename for now)
-    # TODO this path here is sad panda
-    self.settings_yaml = SettingsList("piksi_tools/console/settings.yaml")
+    # Read in yaml file for setting metadata 
+    self.settings_yaml = SettingsList(name_of_yaml_file)
 
     # List of functions to be executed after all settings are read.
     # No support for arguments currently.
