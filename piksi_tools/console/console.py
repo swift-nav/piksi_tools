@@ -19,6 +19,7 @@ from sbp.logging import SBP_MSG_DEBUG_VAR, SBP_MSG_PRINT
 from sbp.piksi import SBP_MSG_RESET
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
+from sbp.ext_events import *
 
 from version import VERSION as CONSOLE_VERSION
 
@@ -216,6 +217,12 @@ class SwiftConsole(HasTraits):
     except UnicodeDecodeError:
       print "Critical Error encoding the serial stream as ascii."
 
+  def ext_event_callback(self, sbp_msg):
+    e = MsgExtEvent(sbp_msg)
+    print 'External event: %s edge on pin %d at wn=%d, tow=%d, time qual=%s' % (
+      "Rising" if (e.flags & (1<<0)) else "Falling", e.pin, e.wn, e.tow,
+      "good" if (e.flags & (1<<1)) else "unknown")
+      
   def debug_var_callback(self, sbp_msg):
     x = struct.unpack('<d', sbp_msg.payload[:8])[0]
     name = sbp_msg.payload[8:]
@@ -234,6 +241,7 @@ class SwiftConsole(HasTraits):
       self.link = link
       self.link.add_callback(self.print_message_callback, SBP_MSG_PRINT)
       self.link.add_callback(self.debug_var_callback, SBP_MSG_DEBUG_VAR)
+      self.link.add_callback(self.ext_event_callback, SBP_MSG_EXT_EVENT)
       self.link.start()
 
       settings_read_finished_functions = []
