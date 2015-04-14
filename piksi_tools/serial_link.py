@@ -19,6 +19,7 @@ import time
 
 from sbp.logging                        import SBP_MSG_PRINT
 from sbp.piksi                          import SBP_MSG_RESET
+from sbp.system                         import SBP_MSG_HEARTBEAT
 from sbp.client.drivers.file_driver     import FileDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.pyftdi_driver   import PyFTDIDriver
@@ -27,6 +28,7 @@ from sbp.client.loggers.json_logger     import JSONLogger
 from sbp.client.loggers.null_logger     import NullLogger
 from sbp.client.loggers.pickle_logger   import PickleLogger
 from sbp.client.handler                 import Handler
+from sbp.client.watchdog                import Watchdog
 
 LOG_FILENAME = time.strftime("serial-link-%Y%m%d-%H%M%S.log")
 
@@ -67,6 +69,9 @@ def get_args():
   parser.add_argument("-t", "--timeout",
                       default=[None], nargs=1,
                       help="exit after TIMEOUT seconds have elapsed.")
+  parser.add_argument("-w", "--watchdog",
+                      default=[None], nargs=1,
+                      help="alarm after WATCHDOG seconds have elapsed without heartbeat.")
   parser.add_argument("-r", "--reset",
                       action="store_true",
                       help="reset device after connection.")
@@ -137,6 +142,15 @@ def printer(sbp_msg):
   """
   sys.stdout.write(sbp_msg.payload)
 
+def watchdog_alarm():
+  """
+  Called when the watchdog timer alarms. Will raise a KeyboardInterrupt to the
+  main thread and exit the process.
+  """
+  sys.stderr.write("ERROR: Watchdog expired!")
+  import thread
+  thread.interrupt_main()
+
 def main():
   """
   Get configuration, get driver, get logger, and build handler and start it.
@@ -144,34 +158,43 @@ def main():
   args = get_args()
   port = args.port[0]
   baud = args.baud[0]
-  verbose = args.verbose
-  use_ftdi = args.ftdi
-  use_log = args.log
-  use_json = args.json
-  use_byte = args.byte
   timeout = args.timeout[0]
-  reset = args.reset
   input_filename = args.input_filename[0]
   log_filename = args.log_filename[0]
+  watchdog = args.watchdog[0]
   # Driver with context
-  with get_driver(use_ftdi, port, baud, input_filename) as driver:
+  with get_driver(args.ftdi, port, baud, input_filename) as driver:
     # Handler with context
-    with Handler(driver.read, driver.write, verbose) as link:
+    with Handler(driver.read, driver.write, args.verbose) as link:
       # Logger with context
-      with get_logger(use_log, use_json, use_byte, log_filename) as logger:
+      with get_logger(args.log, args.json, args.byte, log_filename) as logger:
         link.add_callback(printer, SBP_MSG_PRINT)
         link.add_callback(logger)
         link.start()
-        if reset:
+        # Reset device
+        if args.reset:
           link.send(SBP_MSG_RESET, "")
+        # Setup watchdog
+        if watchdog:
+          link.add_callback(Watchdog(float(watchdog), watchdog_alarm), SBP_MSG_HEARTBEAT)
         try:
           if timeout is None:
+            # Wait forever until the user presses Ctrl-C
             while True:
               time.sleep(0.1)
           else:
-            time.sleep(float(timeout))
+            # Wait until the timeout has elapsed
+            expire = time.time() + float(args.timeout[0])
+            while time.time() < expire:
+              time.sleep(0.1)
+            print "Timer expired!"
         except KeyboardInterrupt:
-          pass
+          # Callbacks, such as the watchdog timer on SBP_HEARTBEAT call
+          # thread.interrupt_main(), which throw a KeyboardInterrupt
+          # exception. To get the proper error condition, return exit code
+          # of 1. Note that the finally block does get caught since exit
+          # itself throws a SystemExit exception.
+          sys.exit(1)
 
 if __name__ == "__main__":
   main()
