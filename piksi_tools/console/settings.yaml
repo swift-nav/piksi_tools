@@ -450,6 +450,16 @@
   Description: Period for sending the SBP_HEARTBEAT messages
   Notes:
 
+- group: system_monitor
+  name: watchdog
+  type: boolean
+  units:
+  default value: 'true'
+  enumerated possible values: true,false
+  Description: Enable hardware watchdog timer to reset the Piksi if it locks up for
+    any reason.
+  Notes: You must reset the Piksi for changes to this setting to take effect.
+
 - group: telemetry_radio
   name: configuration_string
   type: string
@@ -586,4 +596,4 @@
     detecting the event, Piksi will generate a MSG_EXT_EVENT message
     reporting the event, including a timestamp accurate to better than
     a microsecond.
-    Requires NAP firmware v0.12 or later.
+    Requires NAP firmware >= 0.12.
