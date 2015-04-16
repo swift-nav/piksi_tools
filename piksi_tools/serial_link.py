@@ -167,34 +167,37 @@ def main():
     # Handler with context
     with Handler(driver.read, driver.write, args.verbose) as link:
       # Logger with context
-      with get_logger(args.log, args.json, args.byte, log_filename) as logger:
-        link.add_callback(printer, SBP_MSG_PRINT)
-        link.add_callback(logger)
-        link.start()
-        # Reset device
-        if args.reset:
-          link.send(SBP_MSG_RESET, "")
-        # Setup watchdog
-        if watchdog:
-          link.add_callback(Watchdog(float(watchdog), watchdog_alarm), SBP_MSG_HEARTBEAT)
-        try:
-          if timeout is None:
-            # Wait forever until the user presses Ctrl-C
-            while True:
-              time.sleep(0.1)
-          else:
-            # Wait until the timeout has elapsed
-            expire = time.time() + float(args.timeout[0])
-            while time.time() < expire:
-              time.sleep(0.1)
-            print "Timer expired!"
-        except KeyboardInterrupt:
-          # Callbacks, such as the watchdog timer on SBP_HEARTBEAT call
-          # thread.interrupt_main(), which throw a KeyboardInterrupt
-          # exception. To get the proper error condition, return exit code
-          # of 1. Note that the finally block does get caught since exit
-          # itself throws a SystemExit exception.
-          sys.exit(1)
+      with get_logger(args.log, False, args.byte, log_filename) as logger:
+        # JSON Logger with context
+        with get_logger(args.log, args.json, False, log_filename + ".json") as json_logger:
+          link.add_callback(printer, SBP_MSG_PRINT)
+          link.add_callback(logger)
+          link.add_callback(json_logger)
+          link.start()
+          # Reset device
+          if args.reset:
+            link.send(SBP_MSG_RESET, "")
+          # Setup watchdog
+          if watchdog:
+            link.add_callback(Watchdog(float(watchdog), watchdog_alarm), SBP_MSG_HEARTBEAT)
+          try:
+            if timeout is None:
+              # Wait forever until the user presses Ctrl-C
+              while True:
+                time.sleep(0.1)
+            else:
+              # Wait until the timeout has elapsed
+              expire = time.time() + float(args.timeout[0])
+              while time.time() < expire:
+                time.sleep(0.1)
+              print "Timer expired!"
+          except KeyboardInterrupt:
+            # Callbacks, such as the watchdog timer on SBP_HEARTBEAT call
+            # thread.interrupt_main(), which throw a KeyboardInterrupt
+            # exception. To get the proper error condition, return exit code
+            # of 1. Note that the finally block does get caught since exit
+            # itself throws a SystemExit exception.
+            sys.exit(1)
 
 if __name__ == "__main__":
   main()
