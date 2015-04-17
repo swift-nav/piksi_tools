@@ -6,8 +6,8 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from traits.etsconfig.api import ETSConfig
 ETSConfig.toolkit = 'null'
 
-import serial_link
-import settings_view
+from piksi_tools import serial_link
+from piksi_tools.console import settings_view
 import argparse
 import time
 
