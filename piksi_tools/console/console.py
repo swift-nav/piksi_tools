@@ -56,11 +56,6 @@ def get_args():
                       help="specify the TraitsUI toolkit to use, either 'wx' or 'qt4'.")
   return parser.parse_args()
 
-def get_driver(port=serial_link.SERIAL_PORT, baud=serial_link.SERIAL_BAUD, use_ftdi=False):
-  if use_ftdi:
-    return PyFTDIDriver(baud)
-  return PySerialDriver(port, baud)
-
 args = get_args()
 port = args.port[0]
 baud = args.baud[0]
@@ -317,7 +312,7 @@ if not port:
 
 with serial_link.get_driver(args.ftdi, port, baud) as driver:
   with sbp.client.handler.Handler(driver.read, driver.write, args.verbose) as link:
-    with serial_link.get_logger(args.log, False, False, serial_link.LOG_FILENAME) as logger:
+    with serial_link.get_logger(args.log, serial_link.LOG_FILENAME) as logger:
       link.add_callback(logger)
       if args.reset:
         link.send(SBP_MSG_RESET, "")
