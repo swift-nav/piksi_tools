@@ -27,7 +27,7 @@ from sbp.client.loggers.null_logger     import NullLogger
 from sbp.client.handler                 import Handler
 from sbp.client.watchdog                import Watchdog
 
-LOG_FILENAME = time.strftime("serial-link-%Y%m%d-%H%M%S.log")
+LOG_FILENAME = time.strftime("serial-link-%Y%m%d-%H%M%S.log.json")
 
 SERIAL_PORT  = "/dev/ttyUSB0"
 SERIAL_BAUD  = 1000000
