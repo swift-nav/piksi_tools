@@ -45,7 +45,7 @@ with serial_link.get_driver(args.ftdi, port, baud) as driver:
       time.sleep(1)
 
     print "===================================="
-    print "Piksi Device", serial_port
+    print "Piksi Device", port
     print "===================================="
     print
     print "System Info"
