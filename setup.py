@@ -3,7 +3,7 @@
 from setuptools import setup
 import os
 
-VERSION = "0.9"
+VERSION = "0.10"
 
 CLASSIFIERS = [
   'Intended Audience :: Developers',
@@ -19,6 +19,7 @@ CLASSIFIERS = [
 
 PACKAGES = [
   'piksi_tools',
+  'piksi_tools.console',
 ]
 
 PLATFORMS = [
@@ -27,24 +28,20 @@ PLATFORMS = [
   'win32',
 ]
 
-DATA_FILES = [
-  ('piksi_tools', 'settings.yaml'),
-]
-
 PACKAGE_DATA = { 'piksi_tools' : [
-  'settings.yaml',
-  'images/fontawesome/download.svg',
-  'images/fontawesome/exclamation-triangle.svg',
-  'images/fontawesome/floppy-o.svg',
-  'images/fontawesome/refresh.svg',
-  'images/fontawesome/stop.svg',
-  'images/iconic/fullscreen.svg',
-  'images/iconic/move.svg',
-  'images/iconic/pause.svg',
-  'images/iconic/play.svg',
-  'images/iconic/stop.svg',
-  'images/iconic/target.svg',
-  'images/iconic/x.svg',
+  'console/settings.yaml',
+  'console/images/fontawesome/download.svg',
+  'console/images/fontawesome/exclamation-triangle.svg',
+  'console/images/fontawesome/floppy-o.svg',
+  'console/images/fontawesome/refresh.svg',
+  'console/images/fontawesome/stop.svg',
+  'console/images/iconic/fullscreen.svg',
+  'console/images/iconic/move.svg',
+  'console/images/iconic/pause.svg',
+  'console/images/iconic/play.svg',
+  'console/images/iconic/stop.svg',
+  'console/images/iconic/target.svg',
+  'console/images/iconic/x.svg',
 ] }
 
 cwd = os.path.abspath(os.path.dirname(__file__))
