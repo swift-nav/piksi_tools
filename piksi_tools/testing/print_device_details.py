@@ -6,6 +6,7 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from traits.etsconfig.api import ETSConfig
 ETSConfig.toolkit = 'null'
 
+from sbp.client.handler import Handler
 from piksi_tools import serial_link
 from piksi_tools.console import settings_view
 import argparse
