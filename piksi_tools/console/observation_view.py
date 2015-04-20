@@ -24,8 +24,8 @@ import os
 import numpy as np
 import datetime
 
-from sbp.observation import SBP_MSG_OBS
-from sbp.tracking    import SBP_MSG_EPHEMERIS
+from sbp.observation import SBP_MSG_OBS, SBP_MSG_EPHEMERIS
+from sbp.tracking    import SBP_MSG_EPHEMERIS_OLD
 
 class SimpleAdapter(TabularAdapter):
     columns = [('PRN', 0), ('Pseudorange',  1), ('Carrier Phase',  2), ('C/N0', 3)]
@@ -245,6 +245,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     self.link = link
     self.link.add_callback(self.obs_packed_callback, SBP_MSG_OBS)
     self.link.add_callback(self.ephemeris_callback, SBP_MSG_EPHEMERIS)
+    self.link.add_callback(self.ephemeris_callback, SBP_MSG_EPHEMERIS_OLD)
 
     self.python_console_cmds = {
       'obs': self
