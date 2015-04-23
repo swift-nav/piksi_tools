@@ -72,6 +72,9 @@ def get_args():
   parser.add_argument("-o", "--log-filename",
                       default=[LOG_FILENAME], nargs=1,
                       help="file to log output to.")
+  parser.add_argument("-a", "--append-log-filename",
+                      default=[None], nargs=1,
+                      help="file to append log output to.")
   return parser.parse_args()
 
 def get_driver(use_ftdi=False, port=SERIAL_PORT, baud=SERIAL_BAUD):
@@ -107,6 +110,20 @@ def get_logger(use_log=False, filename=LOG_FILENAME):
   print "Logging at %s." % filename
   return JSONLogger(filename)
 
+def get_append_logger(filename):
+  """
+  Get a append logger based on configuration options.
+
+  Parameters
+  ----------
+  filename : string
+    File to log to.
+  """
+  if not filename:
+    return NullLogger()
+  print "Append logging at %s." % filename
+  return JSONLogger(filename, "a")
+
 def printer(sbp_msg):
   """
   Default print callback
@@ -136,6 +153,7 @@ def main():
   baud = args.baud[0]
   timeout = args.timeout[0]
   log_filename = args.log_filename[0]
+  append_log_filename = args.append_log_filename[0]
   watchdog = args.watchdog[0]
   # Driver with context
   with get_driver(args.ftdi, port, baud) as driver:
@@ -143,33 +161,35 @@ def main():
     with Handler(driver.read, driver.write, args.verbose) as link:
       # Logger with context
       with get_logger(args.log, log_filename) as logger:
-        link.add_callback(printer, SBP_MSG_PRINT)
-        link.add_callback(logger)
-        link.start()
-        # Reset device
-        if args.reset:
-          link.send(SBP_MSG_RESET, "")
-        # Setup watchdog
-        if watchdog:
-          link.add_callback(Watchdog(float(watchdog), watchdog_alarm), SBP_MSG_HEARTBEAT)
-        try:
-          if timeout is None:
-            # Wait forever until the user presses Ctrl-C
-            while True:
-              time.sleep(0.1)
-          else:
-            # Wait until the timeout has elapsed
-            expire = time.time() + float(args.timeout[0])
-            while time.time() < expire:
-              time.sleep(0.1)
-            print "Timer expired!"
-        except KeyboardInterrupt:
-          # Callbacks, such as the watchdog timer on SBP_HEARTBEAT call
-          # thread.interrupt_main(), which throw a KeyboardInterrupt
-          # exception. To get the proper error condition, return exit code
-          # of 1. Note that the finally block does get caught since exit
-          # itself throws a SystemExit exception.
-          sys.exit(1)
+        with get_append_logger(append_log_filename) as append_logger:
+          link.add_callback(printer, SBP_MSG_PRINT)
+          link.add_callback(logger)
+          link.add_callback(append_logger)
+          link.start()
+          # Reset device
+          if args.reset:
+            link.send(SBP_MSG_RESET, "")
+          # Setup watchdog
+          if watchdog:
+            link.add_callback(Watchdog(float(watchdog), watchdog_alarm), SBP_MSG_HEARTBEAT)
+          try:
+            if timeout is None:
+              # Wait forever until the user presses Ctrl-C
+              while True:
+                time.sleep(0.1)
+            else:
+              # Wait until the timeout has elapsed
+              expire = time.time() + float(args.timeout[0])
+              while time.time() < expire:
+                time.sleep(0.1)
+              print "Timer expired!"
+          except KeyboardInterrupt:
+            # Callbacks, such as the watchdog timer on SBP_HEARTBEAT call
+            # thread.interrupt_main(), which throw a KeyboardInterrupt
+            # exception. To get the proper error condition, return exit code
+            # of 1. Note that the finally block does get caught since exit
+            # itself throws a SystemExit exception.
+            sys.exit(1)
 
 if __name__ == "__main__":
   main()
