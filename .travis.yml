@@ -11,5 +11,6 @@ deploy:
   on:
     tags: true
 notifications:
+  email: false
   slack:
     secure: c/HX84/BjWHU/8LmtES2fh7lFiXwXnRJnwjCYjLw85M/Po2PYkGRkwk+o5BTX2cei9+QkXGxLcyCYZtMbRU0nN2S6t5Va7WaZulmFtqgnjn4eTxtdctk0Gk5nDB8qUuruxo8F5qki6z86UtRQzr0Ms52GZbUhLPsJTCsXZRyvk0=
