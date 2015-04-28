@@ -1,5 +1,12 @@
 language: python
 python:
-  - 2.7
+- 2.7
 script:
-  - tox
+- tox
+deploy:
+  provider: pypi
+  user: mark.fine@gmail.com
+  password:
+    secure: ieClfaRbsPwbrSIvxPw4BPJr907iYrTembEVTyHt506/lRO2ps2F6QOoMqv/LV3HWHCV01mPUM1fdOaGrs/mtrCtrBDHV6nb1En/u46g7R/lHnqkfVdo+Mu+z0Pfpd+WIGsUu8KxSNdT2TKvyVelhlqnLgksjvEc7RjXpDdPc7s=
+  on:
+    tags: true
