@@ -10,3 +10,6 @@ deploy:
     secure: ieClfaRbsPwbrSIvxPw4BPJr907iYrTembEVTyHt506/lRO2ps2F6QOoMqv/LV3HWHCV01mPUM1fdOaGrs/mtrCtrBDHV6nb1En/u46g7R/lHnqkfVdo+Mu+z0Pfpd+WIGsUu8KxSNdT2TKvyVelhlqnLgksjvEc7RjXpDdPc7s=
   on:
     tags: true
+notifications:
+  slack:
+    secure: krqeFGB7BImlkuOqN03SYob4mCwRQEXK2H1Y8SdrbK4o7GaWYeOYd9xlN/ZXPXO4YdfXrBYh9pZYvv0wmrb8zzjKERNPOyakwE3/GWH/eTcmGMsQzrOOftTZDDwSQ9vdvpuejp5pM2P4VRZ6jPdiiDxe3j2cxYyDuhdlVZgQqnk=
