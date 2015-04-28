@@ -39,6 +39,7 @@ with serial_link.get_driver(args.ftdi, port, baud) as driver:
   # Handler with context
   with Handler(driver.read, driver.write, args.verbose) as link:
     sv = settings_view.SettingsView(link, read_finished_functions=[callback], gui_mode=False)
+    sv._settings_read_button_fired()
     link.start()
 
     while not settings_read:
