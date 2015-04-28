@@ -1,6 +1,12 @@
 Tools for the Piksi GNSS receiver
 =================================
 
+.. image:: https://travis-ci.org/swift-nav/piksi_tools.png
+    :target: https://travis-ci.org/swift-nav/piksi_tools
+
+.. image:: https://badge.fury.io/py/piksi_tools.png
+    :target: https://pypi.python.org/pypi/piksi_tools
+
 Python tools for the Piksi GNSS receiver.
 
 Setup
@@ -36,7 +42,7 @@ Testing
 
 To run the tests and check for coverage::
 
-  $  py.test -v --cov piksi_tools tests/
+  $  tox
 
 License
 -------
