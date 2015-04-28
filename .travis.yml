@@ -12,4 +12,4 @@ deploy:
     tags: true
 notifications:
   slack:
-    secure: krqeFGB7BImlkuOqN03SYob4mCwRQEXK2H1Y8SdrbK4o7GaWYeOYd9xlN/ZXPXO4YdfXrBYh9pZYvv0wmrb8zzjKERNPOyakwE3/GWH/eTcmGMsQzrOOftTZDDwSQ9vdvpuejp5pM2P4VRZ6jPdiiDxe3j2cxYyDuhdlVZgQqnk=
+    secure: c/HX84/BjWHU/8LmtES2fh7lFiXwXnRJnwjCYjLw85M/Po2PYkGRkwk+o5BTX2cei9+QkXGxLcyCYZtMbRU0nN2S6t5Va7WaZulmFtqgnjn4eTxtdctk0Gk5nDB8qUuruxo8F5qki6z86UtRQzr0Ms52GZbUhLPsJTCsXZRyvk0=
