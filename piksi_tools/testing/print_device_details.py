@@ -14,17 +14,17 @@ import time
 
 parser = argparse.ArgumentParser(description='Print Piksi device details.')
 parser.add_argument('-p', '--port',
-	     default=[serial_link.SERIAL_PORT], nargs=1,
-	     help='specify the serial port to use.')
+                    default=[serial_link.SERIAL_PORT], nargs=1,
+                    help='specify the serial port to use.')
 parser.add_argument("-b", "--baud",
-	     default=[serial_link.SERIAL_BAUD], nargs=1,
-	     help="specify the baud rate to use.")
+                    default=[serial_link.SERIAL_BAUD], nargs=1,
+                    help="specify the baud rate to use.")
 parser.add_argument("-v", "--verbose",
-	     help="print extra debugging information.",
-	     action="store_true")
+                    help="print extra debugging information.",
+                    action="store_true")
 parser.add_argument("-f", "--ftdi",
-	     help="use pylibftdi instead of pyserial.",
-	     action="store_true")
+                    help="use pylibftdi instead of pyserial.",
+                    action="store_true")
 args = parser.parse_args()
 port = args.port[0]
 baud = args.baud[0]
@@ -39,8 +39,15 @@ with serial_link.get_driver(args.ftdi, port, baud) as driver:
   # Handler with context
   with Handler(driver.read, driver.write, args.verbose) as link:
     sv = settings_view.SettingsView(link, read_finished_functions=[callback], gui_mode=False)
-    sv._settings_read_button_fired()
     link.start()
+
+    # Give the firmware time to start up and possibly send settings.
+    time.sleep(10)
+
+    # Force the firmware to send settings.
+    global settings_read
+    settings_read = False
+    sv._settings_read_button_fired()
 
     while not settings_read:
       time.sleep(1)
