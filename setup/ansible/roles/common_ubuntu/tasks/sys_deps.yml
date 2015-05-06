@@ -19,6 +19,7 @@
     - python-setuptools
     - python-pip
     - python-virtualenv
+    - swig
 
 - name: Install python pip
   sudo: True
