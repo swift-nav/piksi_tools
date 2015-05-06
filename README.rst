@@ -33,8 +33,9 @@ Bootloader example
 Console example
 ~~~~~~~~~~~~~~~
 
-To use the Piksi console, binary installers (Windows and OS X) are
-.. _here: http://downloads.swiftnav.com/piksi_console/ .
+To use the Piksi console, binary installers (Windows and OS X) are here_.
+
+.. _here: http://downloads.swiftnav.com/piksi_console/
 
 Testing
 -------
