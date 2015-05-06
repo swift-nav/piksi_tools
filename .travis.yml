@@ -10,6 +10,7 @@ deploy:
     secure: ieClfaRbsPwbrSIvxPw4BPJr907iYrTembEVTyHt506/lRO2ps2F6QOoMqv/LV3HWHCV01mPUM1fdOaGrs/mtrCtrBDHV6nb1En/u46g7R/lHnqkfVdo+Mu+z0Pfpd+WIGsUu8KxSNdT2TKvyVelhlqnLgksjvEc7RjXpDdPc7s=
   on:
     tags: true
+    all_branches: true
 notifications:
   email: false
   slack:
