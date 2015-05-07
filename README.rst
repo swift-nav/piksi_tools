@@ -30,12 +30,12 @@ Usage Examples
 Bootloader example
 ~~~~~~~~~~~~~~~~~~
 
-Something cool.
-
 Console example
 ~~~~~~~~~~~~~~~
 
-Something cooler.
+To use the Piksi console, binary installers (Windows and OS X) are here_.
+
+.. _here: http://downloads.swiftnav.com/piksi_console/
 
 Testing
 -------
