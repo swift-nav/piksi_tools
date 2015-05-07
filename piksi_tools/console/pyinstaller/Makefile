@@ -25,10 +25,9 @@ console: $(spec_file)
 	make $(UNAME)
 
 Windows:
-	echo "Makefile not configured to build Windows installers"
+	makensis win_installer.nsi /V4
 Cygwin:
-	echo "Makefile not configured to build Windows installers"
-
+	makensis win_installer.nsi /V4
 
 Darwin:
 	sudo ./create-dmg-installer.sh
