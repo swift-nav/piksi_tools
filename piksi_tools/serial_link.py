@@ -75,6 +75,9 @@ def get_args():
   parser.add_argument("-a", "--append-log-filename",
                       default=[None], nargs=1,
                       help="file to append log output to.")
+  parser.add_argument("-d", "--tags",
+                      default=[None], nargs=1,
+                      help="tags to decorate logs with.")
   return parser.parse_args()
 
 def get_driver(use_ftdi=False, port=SERIAL_PORT, baud=SERIAL_BAUD):
@@ -110,7 +113,7 @@ def get_logger(use_log=False, filename=LOG_FILENAME):
   print "Logging at %s." % filename
   return JSONLogger(filename)
 
-def get_append_logger(filename):
+def get_append_logger(filename, tags):
   """
   Get a append logger based on configuration options.
 
@@ -118,11 +121,13 @@ def get_append_logger(filename):
   ----------
   filename : string
     File to log to.
+  tags : string
+    Tags to log out
   """
   if not filename:
     return NullLogger()
   print "Append logging at %s." % filename
-  return JSONLogger(filename, "a")
+  return JSONLogger(filename, "a", tags)
 
 def printer(sbp_msg):
   """
@@ -155,13 +160,14 @@ def main():
   log_filename = args.log_filename[0]
   append_log_filename = args.append_log_filename[0]
   watchdog = args.watchdog[0]
+  tags = args.tags[0]
   # Driver with context
   with get_driver(args.ftdi, port, baud) as driver:
     # Handler with context
     with Handler(driver.read, driver.write, args.verbose) as link:
       # Logger with context
       with get_logger(args.log, log_filename) as logger:
-        with get_append_logger(append_log_filename) as append_logger:
+        with get_append_logger(append_log_filename, tags) as append_logger:
           link.add_callback(printer, SBP_MSG_PRINT)
           link.add_callback(logger)
           link.add_callback(append_logger)
