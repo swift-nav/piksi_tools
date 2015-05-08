@@ -180,6 +180,7 @@ class BaselineView(HasTraits):
 
       if self.log_file is None:
         self.log_file = open(time.strftime("baseline_log_%Y%m%d-%H%M%S.csv"), 'w')
+        self.log_file.write('time,north(meters),east(meters),down(meters),distance(meters),num_sats,flags,num_hypothesis')
 
       self.log_file.write('%s,%.4f,%.4f,%.4f,%.4f,%d,0x%02x,%d\n' % (
         str(t),
