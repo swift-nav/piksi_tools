@@ -195,7 +195,6 @@ class SettingsView(HasTraits):
   )
 
   def _settings_read_button_fired(self):
-    self.settings.clear()
     self.enumindex = 0
     self.ordering_counter = 0
     self.link.send(SBP_MSG_SETTINGS_READ_BY_INDEX, u16_to_str(self.enumindex))
@@ -301,7 +300,7 @@ class SettingsView(HasTraits):
     self.link.add_callback(self.settings_read_by_index_callback,
       SBP_MSG_SETTINGS_READ_BY_INDEX)
 
-    # Read in yaml file for setting metadata 
+    # Read in yaml file for setting metadata
     self.settings_yaml = SettingsList(name_of_yaml_file)
 
     # List of functions to be executed after all settings are read.
