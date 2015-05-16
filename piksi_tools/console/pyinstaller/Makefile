@@ -10,7 +10,7 @@ ifneq (,$(findstring /cygdrive/,$(PATH)))
 else
 ifneq (,$(findstring WINDOWS,$(PATH)))
     UNAME := Windows
-    PLAT_ARGS=""
+    PLAT_ARGS="-F"
 else
     UNAME := $(shell uname -s)
     PLAT_ARGS="-w"
@@ -25,9 +25,9 @@ console: $(spec_file)
 	make $(UNAME)
 
 Windows:
-	makensis win_installer.nsi /V4
+	makensis win_installer.nsi 
 Cygwin:
-	makensis win_installer.nsi /V4
+	makensis win_installer.nsi
 
 Darwin:
 	sudo ./create-dmg-installer.sh
