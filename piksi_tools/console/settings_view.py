@@ -169,6 +169,12 @@ class SettingsView(HasTraits):
     width=16, height=16
   )
 
+  piksi_reset_button = SVGButton(
+    label='Reset Piksi', tooltip='Reset Piksi',
+    filename=os.path.join(os.path.dirname(__file__), 'images', 'fontawesome', 'power27.svg'),
+    width=16, height=16
+  )
+
   settings_list = List(SettingBase)
   selected_setting = Instance(SettingBase)
 
@@ -188,6 +194,7 @@ class SettingsView(HasTraits):
           Item('settings_read_button', show_label=False),
           Item('settings_save_button', show_label=False),
           Item('factory_default_button', show_label=False),
+          Item('piksi_reset_button', show_label=False),
         ),
         Item('selected_setting', style='custom', show_label=False),
       ),
@@ -211,6 +218,9 @@ class SettingsView(HasTraits):
     confirm_prompt.text = "This will erase all settings and then reset the device.\n" \
                         + "Are you sure you want to reset to factory defaults?"
     confirm_prompt.run(block=False)
+
+  def _piksi_reset_button_fired(self):
+    self.link.send(SBP_MSG_RESET, '')
 
   def reset_factory_defaults(self):
     # Delete settings file
