@@ -256,7 +256,7 @@ class Flash():
     # IntelHex object to store read flash data in that was read from device.
     self._read_callback_ihx = IntelHex()
     self.link.add_callback(self._done_callback, SBP_MSG_FLASH_DONE)
-    self.link.add_callback(self._read_callback, SBP_MSG_FLASH_READ)
+    self.link.add_callback(self._read_callback, SBP_MSG_FLASH_READ_DEVICE)
     self.ihx_elapsed_ops = 0 # N operations finished in self.write_ihx
     if self.flash_type == "STM":
       self.flash_type_byte = 0
@@ -342,7 +342,7 @@ class Flash():
     """ Remove instance callbacks from sbp.client.handler.Handler. """
     self.stopped = True
     self.link.remove_callback(self._done_callback, SBP_MSG_FLASH_DONE)
-    self.link.remove_callback(self._read_callback, SBP_MSG_FLASH_READ)
+    self.link.remove_callback(self._read_callback, SBP_MSG_FLASH_READ_DEVICE)
 
   def __str__(self):
     """ Return flashing status. """
@@ -384,7 +384,8 @@ class Flash():
     msg_buf += struct.pack("<I", address)
     msg_buf += struct.pack("B", len(data))
     self.inc_n_queued_ops()
-    self.link.send(SBP_MSG_FLASH_PROGRAM, msg_buf + data)
+    # TODO: Using deprecated path. Move to MSG_FLASH_PROGRAM.
+    self.link.send(SBP_MSG_FLASH_DONE, msg_buf + data)
 
   def read(self, address, length):
     """
@@ -401,7 +402,8 @@ class Flash():
     msg_buf += struct.pack("<I", address)
     msg_buf += struct.pack("B", length)
     self.inc_n_queued_ops()
-    self.link.send(SBP_MSG_FLASH_READ, msg_buf)
+    # TODO: Using deprecated path. Move to MSG_FLASH_READ_HOST.
+    self.link.send(SBP_MSG_FLASH_READ_DEVICE, msg_buf)
 
   def _done_callback(self, sbp_msg):
     """

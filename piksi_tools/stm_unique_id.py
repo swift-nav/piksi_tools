@@ -14,7 +14,7 @@ import struct
 import sys
 import serial_link
 
-from sbp.flash          import SBP_MSG_STM_UNIQUE_ID
+from sbp.flash          import SBP_MSG_STM_UNIQUE_ID_DEVICE
 from sbp.client.handler import *
 
 class STMUniqueID:
@@ -23,7 +23,7 @@ class STMUniqueID:
     self.unique_id_returned = False
     self.unique_id = None
     self.link = link
-    link.add_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID)
+    link.add_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_DEVICE)
 
   def receive_stm_unique_id_callback(self,sbp_msg):
     self.unique_id_returned = True
@@ -32,7 +32,8 @@ class STMUniqueID:
   def get_id(self):
     self.unique_id_returned = False
     self.unique_id = None
-    self.link.send(SBP_MSG_STM_UNIQUE_ID, struct.pack("<I",0))
+    # TODO: Using deprecated path. Move to MSG_STM_UNIQUE_ID_HOST.
+    self.link.send(SBP_MSG_STM_UNIQUE_ID_DEVICE, struct.pack("<I",0))
     while not self.unique_id_returned:
       time.sleep(0.1)
     return self.unique_id
