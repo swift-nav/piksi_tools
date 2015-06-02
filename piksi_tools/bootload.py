@@ -78,8 +78,8 @@ class Bootloader():
     return True
 
   def reply_handshake(self):
-    # TODO: Logic to drive message choice.
-    if True:
+    # < v2.0 of the bootloader, reuse single handshake message.
+    if self.version < "v2.0":
       self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_DEVICE, '\x00')
     else:
       self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_HOST, '\x00')
@@ -160,7 +160,8 @@ def main():
         # Catch all other errors and exit cleanly.
         try:
           import flash
-          with flash.Flash(link, flash_type=("STM" if use_stm else "M25")) as piksi_flash:
+          with flash.Flash(link, flash_type=("STM" if use_stm else "M25"),
+                           version=piksi_bootloader.version) as piksi_flash:
             if erase:
               for s in range(1,12):
                 print "\rErasing STM Sector", s,
