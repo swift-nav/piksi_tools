@@ -78,8 +78,11 @@ class Bootloader():
     return True
 
   def reply_handshake(self):
-    # TODO: Using deprecated path. Move to SBP_MSG_BOOTLOADER_HANDSHAKE_HOST.
-    self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_DEVICE, '\x00')
+    # TODO: Logic to drive message choice.
+    if True:
+      self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_DEVICE, '\x00')
+    else:
+      self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_HOST, '\x00')
 
   def jump_to_app(self):
     self.link.send(SBP_MSG_BOOTLOADER_JUMP_TO_APP, '\x00')

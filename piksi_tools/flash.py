@@ -384,8 +384,11 @@ class Flash():
     msg_buf += struct.pack("<I", address)
     msg_buf += struct.pack("B", len(data))
     self.inc_n_queued_ops()
-    # TODO: Using deprecated path. Move to MSG_FLASH_PROGRAM.
-    self.link.send(SBP_MSG_FLASH_DONE, msg_buf + data)
+    # TODO: Logic to drive message choice.
+    if True:
+      self.link.send(SBP_MSG_FLASH_DONE, msg_buf + data)
+    else:
+      self.link.send(SBP_MSG_FLASH_PROGRAM, msg_buf + data)
 
   def read(self, address, length):
     """
@@ -402,8 +405,11 @@ class Flash():
     msg_buf += struct.pack("<I", address)
     msg_buf += struct.pack("B", length)
     self.inc_n_queued_ops()
-    # TODO: Using deprecated path. Move to MSG_FLASH_READ_HOST.
-    self.link.send(SBP_MSG_FLASH_READ_DEVICE, msg_buf)
+    # TODO: Logic to drive message choice.
+    if True:
+      self.link.send(SBP_MSG_FLASH_READ_DEVICE, msg_buf)
+    else:
+      self.link.send(SBP_MSG_FLASH_READ_HOST, msg_buf)
 
   def _done_callback(self, sbp_msg):
     """

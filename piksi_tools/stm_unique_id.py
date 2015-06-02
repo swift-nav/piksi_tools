@@ -32,8 +32,11 @@ class STMUniqueID:
   def get_id(self):
     self.unique_id_returned = False
     self.unique_id = None
-    # TODO: Using deprecated path. Move to MSG_STM_UNIQUE_ID_HOST.
-    self.link.send(SBP_MSG_STM_UNIQUE_ID_DEVICE, struct.pack("<I",0))
+    # TODO: Logic to drive message choice.
+    if True:
+      self.link.send(SBP_MSG_STM_UNIQUE_ID_DEVICE, struct.pack("<I",0))
+    else:
+      self.link.send(SBP_MSG_STM_UNIQUE_ID_HOST, struct.pack("<I",0))
     while not self.unique_id_returned:
       time.sleep(0.1)
     return self.unique_id
