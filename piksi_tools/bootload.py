@@ -44,7 +44,7 @@ class Bootloader():
     self.handshake_received = False
     self.version = None
     self.link = link
-    self.link.add_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE)
+    self.link.add_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEVICE)
 
   def __enter__(self):
     return self
@@ -55,7 +55,7 @@ class Bootloader():
 
   def stop(self):
     self.stopped = True
-    self.link.remove_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE)
+    self.link.remove_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEVICE)
 
   def _handshake_callback(self, sbp_msg):
     if len(sbp_msg.payload)==1 and struct.unpack('B', sbp_msg.payload[0])==0:
@@ -78,7 +78,11 @@ class Bootloader():
     return True
 
   def reply_handshake(self):
-    self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE, '\x00')
+    # < v2.0 of the bootloader, reuse single handshake message.
+    if self.version < "v2.0":
+      self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_DEVICE, '\x00')
+    else:
+      self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_HOST, '\x00')
 
   def jump_to_app(self):
     self.link.send(SBP_MSG_BOOTLOADER_JUMP_TO_APP, '\x00')
@@ -156,7 +160,8 @@ def main():
         # Catch all other errors and exit cleanly.
         try:
           import flash
-          with flash.Flash(link, flash_type=("STM" if use_stm else "M25")) as piksi_flash:
+          with flash.Flash(link, flash_type=("STM" if use_stm else "M25"),
+                           version=piksi_bootloader.version) as piksi_flash:
             if erase:
               for s in range(1,12):
                 print "\rErasing STM Sector", s,
