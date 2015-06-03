@@ -3,7 +3,7 @@
 import yaml
 import jinja2
 import re
-from piksi_tools.settings_list import SettingsList
+from piksi_tools.console.settings_list import SettingsList
 from piksi_tools.console import *
 import os
 
