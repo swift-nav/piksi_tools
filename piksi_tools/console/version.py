@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 # Author: Douglas Creager <dcreager@dcreager.net>
 # This file is placed into the public domain.

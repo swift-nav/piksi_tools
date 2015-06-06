@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # Copyright (C) 2011-2014 Swift Navigation Inc.
 # Contact: Niels Joubert <njoubert@gmail.com>
 #

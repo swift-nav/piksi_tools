@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # Switch the power on/off to a USB device
 # connected to a Digi HUBPORT/14

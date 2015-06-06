@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 #
 # Bootloader for the Swift Navigation Piksi GPS Receiver
 #

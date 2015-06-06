@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 import sys, os
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
