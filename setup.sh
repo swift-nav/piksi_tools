@@ -192,6 +192,7 @@ function install_ansible () {
             log_info "Installing ansible from custom repo..."
             sudo add-apt-repository ppa:rquillo/ansible
             sudo apt-get update && sudo apt-get install ansible
+            ;;
         *)
             unsupported_platform
             ;;
