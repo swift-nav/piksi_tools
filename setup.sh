@@ -91,7 +91,6 @@ function linux_detect_distro() {
         # Restore IFS
         IFS="${IFS_old}"
         unset IFS_old
-        exit
     fi
 }
 
@@ -170,7 +169,7 @@ function setup_ansible_plugins () {
 function install_ansible () {
     # Required if Ansible's not already available via apt-get.
     if [[ ! -x /usr/bin/ansible ]]; then
-    	if [[ ! "${LINUX_DISTRO}" ]]; then
+    	if [[ -z "${LINUX_DISTRO+detected}" ]]; then
     		linux_detect_distro
     	fi
         case $LINUX_DISTRO in
@@ -207,7 +206,7 @@ function run_all_platforms () {
     elif [[ "$OSTYPE" == "linux-"* ]]; then
         piksi_splash_linux
         log_info "Checking system dependencies for Linux..."
-    	if [[ ! "${LINUX_DISTRO}" ]]; then
+    	if [[ -z "${LINUX_DISTRO+detected}" ]]; then
     		linux_detect_distro
     	fi
         case ${LINUX_DISTRO} in
