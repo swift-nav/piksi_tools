@@ -25,6 +25,12 @@
   roles:
     - common_ubuntu
 
+- name: provision piksi development dependencies for Arch
+  hosts: Arch
+  gather_facts: false
+  roles:
+    - common_arch
+
 - name: provision piksi development dependencies for OS X
   hosts: MacOSX
   gather_facts: false

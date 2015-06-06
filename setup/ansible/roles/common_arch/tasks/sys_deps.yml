@@ -1,0 +1,37 @@
+# Uses pacman to install system-wide dependencies and pip to install
+# python dependencies.
+
+- name: Install base Arch packages
+  pacman: name={{ item }} state=present update_cache=yes
+  sudo: True
+  with_items:
+    - base-devel
+    - git
+    - icu
+    - python2
+    - python2-pip
+    - python2-pyqt4
+    - python2-pyside
+    - python2-setuptools
+    - python2-sip
+    - python2-virtualenv
+    - swig
+    - wxgtk2.8
+
+- name: Install python packages
+  sudo: True
+  pip: name={{ item }} executable=pip2 virtualenv_command=virtualenv2
+  with_items:
+    - construct
+    - chaco
+    - enable
+    - intelhex
+    - pyserial
+    - pylibftdi
+    - pyparsing==1.5.7
+    - pygments
+    - PyVTK
+    - sbp==0.29
+    - six
+    - traits
+    - traitsui
