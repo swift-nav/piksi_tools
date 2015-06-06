@@ -40,6 +40,11 @@ function log_error () {
     color $error_color "$@"
 }
 
+function unsupported_platform() {
+    log_error "This script does not support this platform. Please contact mookerji@swiftnav.com."
+    exit 1
+}
+
 #########################
 ## Linux dependency management and build
 
@@ -55,6 +60,39 @@ function piksi_splash_linux () {
          Welcome to piksi_tools development installer!
 
     "
+}
+
+function linux_detect_distro() {
+    if [[ "${OSTYPE}" == "linux-"* ]]; then
+        if [[ -f /etc/os-release ]]; then
+            os_release_file=/etc/os-release
+        elif [[ -f /usr/lib/os-release ]]; then
+            os_release_file=/usr/lib/os-release
+        else
+            log_info "Could not locate an os-release file."
+            # TODO Also use lsb_release to try to identify OS
+            unsupported_platform
+        fi
+        # Save old IFS and use new one
+        IFS_old="${IFS}"
+        IFS='='
+        # parse os-release file
+        LINUX_DISTRO=linux # The default, according to the spec
+        while read -r os_release_key os_release_value; do
+            if [[ "${os_release_key}" == "ID" ]]; then
+                LINUX_DISTRO=$os_release_value
+                break
+            fi
+        done < $os_release_file
+        # unset variables used in parsing
+        unset os_release_key
+        unset os_release_value
+        unset os_release_file
+        # Restore IFS
+        IFS="${IFS_old}"
+        unset IFS_old
+        exit
+    fi
 }
 
 ####################################################################
@@ -153,8 +191,7 @@ function run_all_platforms () {
         log_info "Please enter your password..."
         bootstrap_osx
     else
-        log_error "This script does not support this platform. Please contact mookerji@swiftnav.com."
-        exit 1
+        unsupported_platform
     fi
     # setup_ansible_plugins
     ansible-playbook --ask-sudo-pass -i setup/ansible/inventory.ini \
