@@ -95,6 +95,10 @@ function linux_detect_distro() {
     fi
 }
 
+function command_exists() {
+    command -v >/dev/null 2>&1 ${@}
+}
+
 ####################################################################
 ## Mac OS X dependency management and build
 
@@ -166,9 +170,32 @@ function setup_ansible_plugins () {
 function install_ansible () {
     # Required if Ansible's not already available via apt-get.
     if [[ ! -x /usr/bin/ansible ]]; then
-        log_info "Installing ansible from custom repo..."
-        sudo add-apt-repository ppa:rquillo/ansible
-        sudo apt-get update && sudo apt-get install ansible
+    	if [[ ! "${LINUX_DISTRO}" ]]; then
+    		linux_detect_distro
+    	fi
+        case $LINUX_DISTRO in
+        arch)
+            log_info "Installing ansible..."
+            sudo pacman -Sy ansible
+            ;;
+        debian)
+            sudo apt-get update
+            if ! command_exists add-apt-repository; then
+                log_info "Could not find add-apt-repository, installing now..."
+                sudo apt-get install software-properties-common
+            fi
+            log_info "Installing ansible from custom repo..."
+            sudo add-apt-repository ppa:rquillo/ansible
+            sudo apt-get install ansible
+            ;;
+        ubuntu)
+            log_info "Installing ansible from custom repo..."
+            sudo add-apt-repository ppa:rquillo/ansible
+            sudo apt-get update && sudo apt-get install ansible
+        *)
+            unsupported_platform
+            ;;
+        esac
     fi
 }
 
@@ -179,12 +206,26 @@ function run_all_platforms () {
     elif [[ "$OSTYPE" == "linux-"* ]]; then
         piksi_splash_linux
         log_info "Checking system dependencies for Linux..."
-        log_info "Please enter your password for apt-get..."
-        log_info "Updating..."
-        sudo apt-get update
-        sudo apt-get install -y curl
-        sudo apt-get install python python-dev python-pip
-        sudo pip install ansible
+    	if [[ ! "${LINUX_DISTRO}" ]]; then
+    		linux_detect_distro
+    	fi
+        case ${LINUX_DISTRO} in
+        arch)
+            sudo pacman -Sy --needed curl python2 python2-pip
+            sudo pip2 install ansible
+            ;;
+        debian|ubuntu)
+            log_info "Please enter your password for apt-get..."
+            log_info "Updating..."
+            sudo apt-get update
+            sudo apt-get install -y curl
+            sudo apt-get install python python-dev python-pip
+            sudo pip install ansible
+            ;;
+        *)
+            unsupported_platform
+            ;;
+        esac
     elif [[ "$OSTYPE" == "darwin"* ]]; then
         piksi_splash_osx
         log_info "Checking system dependencies for OSX..."
