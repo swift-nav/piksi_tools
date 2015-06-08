@@ -2,8 +2,7 @@
 
 from setuptools import setup
 import os
-
-VERSION = "0.16"
+from piksi_tools.version import VERSION
 
 CLASSIFIERS = [
   'Intended Audience :: Developers',
@@ -29,6 +28,7 @@ PLATFORMS = [
 ]
 
 PACKAGE_DATA = { 'piksi_tools' : [
+  'RELEASE-VERSION',
   'console/settings.yaml',
   'console/images/fontawesome/download.svg',
   'console/images/fontawesome/exclamation-triangle.svg',
