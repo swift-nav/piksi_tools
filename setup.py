@@ -3,6 +3,7 @@
 from setuptools import setup
 from subprocess import Popen, PIPE
 import os
+import piksi_tools.version
 
 def call_git_describe():
     try:
@@ -75,7 +76,7 @@ def get_git_version():
     # Finally, return the current version.
     return version
 
-VERSION = get_git_version()
+VERSION = piksi_tools.version.VERSION
 
 CLASSIFIERS = [
   'Intended Audience :: Developers',
