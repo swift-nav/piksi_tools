@@ -21,7 +21,7 @@ from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
 from sbp.ext_events import *
 
-from version import VERSION as CONSOLE_VERSION
+from piksi_tools.version import VERSION as CONSOLE_VERSION
 
 # Shut chaco up for now
 import warnings
