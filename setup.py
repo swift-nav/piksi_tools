@@ -28,6 +28,7 @@ PLATFORMS = [
 ]
 
 PACKAGE_DATA = { 'piksi_tools' : [
+  'RELEASE-VERSION',
   'console/settings.yaml',
   'console/images/fontawesome/download.svg',
   'console/images/fontawesome/exclamation-triangle.svg',

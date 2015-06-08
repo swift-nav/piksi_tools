@@ -9,7 +9,6 @@ include .gitignore
 include LICENSE
 include tox.ini
 include *.yaml
-include piksi_tools/RELEASE-VERSION
 recursive-include piksi_tools/ *.py
 recursive-include piksi_tools/console/images *
 prune docs/_build
