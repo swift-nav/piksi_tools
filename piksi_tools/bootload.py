@@ -44,7 +44,7 @@ class Bootloader():
     self.handshake_received = False
     self.version = None
     self.link = link
-    self.link.add_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEVICE)
+    self.link.add_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED)
 
   def __enter__(self):
     return self
@@ -55,7 +55,7 @@ class Bootloader():
 
   def stop(self):
     self.stopped = True
-    self.link.remove_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEVICE)
+    self.link.remove_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED)
 
   def _handshake_callback(self, sbp_msg):
     if len(sbp_msg.payload)==1 and struct.unpack('B', sbp_msg.payload[0])==0:
@@ -80,7 +80,7 @@ class Bootloader():
   def reply_handshake(self):
     # < v2.0 of the bootloader, reuse single handshake message.
     if self.version < "v2.0":
-      self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_DEVICE, '\x00')
+      self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED, '\x00')
     else:
       self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_HOST, '\x00')
 
