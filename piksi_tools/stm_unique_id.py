@@ -23,7 +23,7 @@ class STMUniqueID:
     self.heartbeat_received = False
     self.unique_id_returned = False
     # SBP version is unset in older devices.
-    self.sbp_version = 0
+    self.sbp_version = (0, 0)
     self.unique_id = None
     self.link = link
     link.add_callback(self.receive_heartbeat, SBP_MSG_HEARTBEAT)
@@ -31,7 +31,7 @@ class STMUniqueID:
 
   def receive_heartbeat(self, sbp_msg):
     self.heartbeat_received = True
-    self.sbp_version = (sbp_msg.flags >> 8) & 0xFF
+    self.sbp_version = ((sbp_msg.flags >> 8) & 0xF, sbp_msg.flags & 0xF)
 
   def receive_stm_unique_id_callback(self,sbp_msg):
     self.unique_id_returned = True
@@ -42,8 +42,8 @@ class STMUniqueID:
       time.sleep(0.1)
     self.unique_id_returned = False
     self.unique_id = None
-    # < 45 of the bootloader, reuse single stm message.
-    if self.sbp_version < 45:
+    # < 0.45 of the bootloader, reuse single stm message.
+    if self.sbp_version < (0, 45):
       self.link.send(SBP_MSG_STM_UNIQUE_ID_DEVICE, struct.pack("<I",0))
     else:
       self.link.send(SBP_MSG_STM_UNIQUE_ID_HOST, struct.pack("<I",0))

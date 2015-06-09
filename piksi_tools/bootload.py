@@ -44,7 +44,7 @@ class Bootloader():
     self.handshake_received = False
     self.version = None
     # SBP version is unset in older devices.
-    self.sbp_version = 0
+    self.sbp_version = (0, 0)
     self.link = link
     self.link.add_callback(self._deprecated_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED)
     self.link.add_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEVICE)
@@ -72,7 +72,7 @@ class Bootloader():
 
   def _handshake_callback(self, sbp_msg):
     self.version = sbp_msg.version
-    self.sbp_version = sbp_msg.flags & 0xff
+    self.sbp_version = ((sbp_msg.flags >> 8) & 0xF, sbp_msg.flags & 0xF)
     self.handshake_received = True
 
   def wait_for_handshake(self, timeout=None):
@@ -88,7 +88,7 @@ class Bootloader():
 
   def reply_handshake(self):
     # < 0.45 of SBP protocol, reuse single handshake message.
-    if self.sbp_version < 45:
+    if self.sbp_version < (0, 45):
       self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED, '\x00')
     else:
       self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_HOST, '\x00')
@@ -165,7 +165,7 @@ def main():
         piksi_bootloader.reply_handshake()
         print "received."
         print "Piksi Onboard Bootloader Version:", piksi_bootloader.version
-        if piksi_bootloader.sbp_version > 0:
+        if piksi_bootloader.sbp_version > (0, 0):
           print "Piksi Onboard SBP Protocol Version:", piksi_bootloader.sbp_version
 
         # Catch all other errors and exit cleanly.

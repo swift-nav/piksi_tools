@@ -242,7 +242,7 @@ class Flash():
       Handler to send messages to Piksi over and register callbacks with.
     flash_type : string
       Which Piksi flash to interact with ("M25" or "STM").
-    sbp_version : int
+    sbp_version : (int, int)
       SBP protocol version, used to select messages to send.
 
     Returns
@@ -388,7 +388,7 @@ class Flash():
     msg_buf += struct.pack("B", len(data))
     self.inc_n_queued_ops()
     # < 0.45 of SBP protocol, reuse single flash message.
-    if self.sbp_version < 45:
+    if self.sbp_version < (0, 45):
       self.link.send(SBP_MSG_FLASH_DONE, msg_buf + data)
     else:
       self.link.send(SBP_MSG_FLASH_PROGRAM, msg_buf + data)
@@ -409,7 +409,7 @@ class Flash():
     msg_buf += struct.pack("B", length)
     self.inc_n_queued_ops()
     # < 0.45 of SBP protocol, reuse single read message.
-    if self.sbp_version < 45:
+    if self.sbp_version < (0, 45):
       self.link.send(SBP_MSG_FLASH_READ_DEVICE, msg_buf)
     else:
       self.link.send(SBP_MSG_FLASH_READ_HOST, msg_buf)
