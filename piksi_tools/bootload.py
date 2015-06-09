@@ -43,7 +43,8 @@ class Bootloader():
     self.stopped = False
     self.handshake_received = False
     self.version = None
-    self.sbp_protocol = None
+    # SBP version is unset in older devices.
+    self.sbp_version = 0
     self.link = link
     self.link.add_callback(self._deprecated_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED)
     self.link.add_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEVICE)
@@ -71,8 +72,7 @@ class Bootloader():
 
   def _handshake_callback(self, sbp_msg):
     self.version = sbp_msg.version
-    # Taking the sbp_protocol here, but continuing to use the bootloader version below.
-    self.sbp_protocol = sbp_msg.flags & 0xff
+    self.sbp_version = sbp_msg.flags & 0xff
     self.handshake_received = True
 
   def wait_for_handshake(self, timeout=None):
@@ -87,8 +87,8 @@ class Bootloader():
     return True
 
   def reply_handshake(self):
-    # < v2.0 of the bootloader, reuse single handshake message.
-    if self.version < "v2.0":
+    # < 0.45 of SBP protocol, reuse single handshake message.
+    if self.sbp_version < 45:
       self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED, '\x00')
     else:
       self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_HOST, '\x00')
@@ -165,12 +165,14 @@ def main():
         piksi_bootloader.reply_handshake()
         print "received."
         print "Piksi Onboard Bootloader Version:", piksi_bootloader.version
+        if piksi_bootloader.sbp_version > 0:
+          print "Piksi Onboard SBP Protocol Version:", piksi_bootloader.sbp_version
 
         # Catch all other errors and exit cleanly.
         try:
           import flash
           with flash.Flash(link, flash_type=("STM" if use_stm else "M25"),
-                           version=piksi_bootloader.version) as piksi_flash:
+                           sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
             if erase:
               for s in range(1,12):
                 print "\rErasing STM Sector", s,

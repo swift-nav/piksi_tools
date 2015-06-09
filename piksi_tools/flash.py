@@ -231,7 +231,7 @@ def _m25_write_status(self, sr):
 
 class Flash():
 
-  def __init__(self, link, flash_type, version):
+  def __init__(self, link, flash_type, sbp_version):
     """
     Object representing either of the two flashes (STM/M25) on the Piksi,
     including methods to erase, program, and read.
@@ -242,8 +242,8 @@ class Flash():
       Handler to send messages to Piksi over and register callbacks with.
     flash_type : string
       Which Piksi flash to interact with ("M25" or "STM").
-    version : string
-      Piksi bootloader version, used to select messages to send.
+    sbp_version : int
+      SBP protocol version, used to select messages to send.
 
     Returns
     -------
@@ -255,7 +255,7 @@ class Flash():
     self.status = ''
     self.link = link
     self.flash_type = flash_type
-    self.version = version
+    self.sbp_version = sbp_version
     # IntelHex object to store read flash data in that was read from device.
     self._read_callback_ihx = IntelHex()
     self.link.add_callback(self._done_callback, SBP_MSG_FLASH_DONE)
@@ -387,8 +387,8 @@ class Flash():
     msg_buf += struct.pack("<I", address)
     msg_buf += struct.pack("B", len(data))
     self.inc_n_queued_ops()
-    # < v2.0 of the bootloader, reuse single flash message.
-    if self.version < "v2.0":
+    # < 0.45 of SBP protocol, reuse single flash message.
+    if self.sbp_version < 45:
       self.link.send(SBP_MSG_FLASH_DONE, msg_buf + data)
     else:
       self.link.send(SBP_MSG_FLASH_PROGRAM, msg_buf + data)
@@ -408,8 +408,8 @@ class Flash():
     msg_buf += struct.pack("<I", address)
     msg_buf += struct.pack("B", length)
     self.inc_n_queued_ops()
-    # < v2.0 of the bootloader, reuse single read message.
-    if self.version < "v2.0":
+    # < 0.45 of SBP protocol, reuse single read message.
+    if self.sbp_version < 45:
       self.link.send(SBP_MSG_FLASH_READ_DEVICE, msg_buf)
     else:
       self.link.send(SBP_MSG_FLASH_READ_HOST, msg_buf)
