@@ -43,7 +43,9 @@ class Bootloader():
     self.stopped = False
     self.handshake_received = False
     self.version = None
+    self.sbp_protocol = None
     self.link = link
+    self.link.add_callback(self._deprecated_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED)
     self.link.add_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEVICE)
 
   def __enter__(self):
@@ -55,15 +57,22 @@ class Bootloader():
 
   def stop(self):
     self.stopped = True
+    self.link.remove_callback(self._deprecated_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED)
     self.link.remove_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEVICE)
 
-  def _handshake_callback(self, sbp_msg):
+  def _deprecated_callback(self, sbp_msg):
     if len(sbp_msg.payload)==1 and struct.unpack('B', sbp_msg.payload[0])==0:
       # == v0.1 of the bootloader, returns hardcoded version number 0.
       self.version = "v0.1"
     else:
       # > v0.1 of the bootloader, returns git commit string.
       self.version = sbp_msg.payload[:]
+    self.handshake_received = True
+
+  def _handshake_callback(self, sbp_msg):
+    self.version = sbp_msg.version
+    # Taking the sbp_protocol here, but continuing to use the bootloader version below.
+    self.sbp_protocol = sbp_msg.flags & 0xff
     self.handshake_received = True
 
   def wait_for_handshake(self, timeout=None):
@@ -80,7 +89,7 @@ class Bootloader():
   def reply_handshake(self):
     # < v2.0 of the bootloader, reuse single handshake message.
     if self.version < "v2.0":
-      self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_DEVICE, '\x00')
+      self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED, '\x00')
     else:
       self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_HOST, '\x00')
 
