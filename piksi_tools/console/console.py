@@ -44,9 +44,9 @@ def get_args():
   parser.add_argument("-l", "--log",
                       action="store_true",
                       help="serialize SBP messages to log file.")
-  parser.add_argument("-o", "--logfileprefix",
-                      default=["console_log"], nargs=1,
-                      help="file prefix for logged output.")
+  parser.add_argument("-o", "--log-filename",
+                      default=[serial_link.LOG_FILENAME], nargs=1,
+                      help="file to log output to.")
   parser.add_argument("-r", "--reset",
                       action="store_true",
                       help="reset device after connection.")
@@ -63,7 +63,7 @@ def get_args():
 args = get_args()
 port = args.port[0]
 baud = args.baud[0]
-log_file_prefix = args.logfileprefix[0]
+log_filename = args.log_filename[0]
 
 # Toolkit
 from traits.etsconfig.api import ETSConfig
@@ -317,8 +317,7 @@ if not port:
 
 with serial_link.get_driver(args.ftdi, port, baud) as driver:
   with sbp.client.handler.Handler(driver.read, driver.write, args.verbose) as link:
-    logfilename = log_file_prefix + "_" + time.strftime("%Y%m%d-%H%M%S.log.json")
-    with serial_link.get_logger(args.log, logfilename) as logger:
+    with serial_link.get_logger(args.log, log_filename) as logger:
       link.add_callback(logger)
       if args.reset:
         link.send(SBP_MSG_RESET, "")
