@@ -29,6 +29,7 @@ import sys
 import serial_link
 
 from sbp.bootload import *
+from sbp.deprecated import *
 from sbp.logging import *
 from sbp.piksi import *
 from sbp.client.handler import Handler
