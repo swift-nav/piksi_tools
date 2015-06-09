@@ -73,11 +73,10 @@ class SystemMonitorView(HasTraits):
   msg_obs_window_latency_ms = Int(0)
 
   piksi_reset_button = SVGButton(
-  label='Reset Piksi', tooltip='Reset Piksi',
-  filename=os.path.join(os.path.dirname(__file__), 'images', 'fontawesome', 'power27.svg'),
-  width=16, height=16
-  )
-
+    label='Reset Piksi', tooltip='Reset Piksi',
+    filename=os.path.join(os.path.dirname(__file__), 'images', 'fontawesome', 'power27.svg'),
+    width=16, height=16
+   )
 
   traits_view = View(
     VGroup(
@@ -138,7 +137,7 @@ class SystemMonitorView(HasTraits):
           label='USB UART', show_border=True,
         ),
         VGroup(
-        Item('piksi_reset_button', show_label=False),
+          Item('piksi_reset_button', show_label=False),
         ),
       ),
     )
