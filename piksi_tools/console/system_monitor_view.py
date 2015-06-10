@@ -13,13 +13,17 @@ from traits.api import Instance, Dict, HasTraits, Array, Float, on_trait_change,
 from traitsui.api import Item, View, HGroup, VGroup, ArrayEditor, HSplit, TabularEditor
 from traitsui.tabular_adapter import TabularAdapter
 
+from traits.etsconfig.api import ETSConfig
+if ETSConfig.toolkit != 'null':
+  from enable.savage.trait_defs.ui.svg_button import SVGButton
+
 import struct
 import math
 import os
 import numpy as np
 import datetime
 
-from sbp.piksi  import SBP_MSG_THREAD_STATE, SBP_MSG_UART_STATE
+from sbp.piksi  import SBP_MSG_THREAD_STATE, SBP_MSG_UART_STATE, SBP_MSG_RESET
 from sbp.system import SBP_MSG_HEARTBEAT
 
 class SimpleAdapter(TabularAdapter):
@@ -67,6 +71,12 @@ class SystemMonitorView(HasTraits):
   msg_obs_min_latency_ms    = Int(0)
   msg_obs_max_latency_ms    = Int(0)
   msg_obs_window_latency_ms = Int(0)
+
+  piksi_reset_button = SVGButton(
+    label='Reset Piksi', tooltip='Reset Piksi',
+    filename=os.path.join(os.path.dirname(__file__), 'images', 'fontawesome', 'power27.svg'),
+    width=16, height=16
+   )
 
   traits_view = View(
     VGroup(
@@ -126,6 +136,9 @@ class SystemMonitorView(HasTraits):
                style='readonly', format_str='%.2f'),
           label='USB UART', show_border=True,
         ),
+        VGroup(
+          Item('piksi_reset_button', show_label=False),
+        ),
       ),
     )
   )
@@ -143,6 +156,9 @@ class SystemMonitorView(HasTraits):
     th = ThreadState()
     th.from_binary(sbp_msg.payload)
     self.threads.append((th.name, th))
+
+  def _piksi_reset_button_fired(self):
+    self.link.send(SBP_MSG_RESET, '')
 
   def uart_state_callback(self, sbp_msg):
     state = struct.unpack('<ffHHBBffHHBBffHHBBiiii', sbp_msg.payload)
