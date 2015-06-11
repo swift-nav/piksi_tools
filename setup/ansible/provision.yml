@@ -26,7 +26,7 @@
     - common_ubuntu
 
 - name: provision piksi development dependencies for Arch
-  hosts: Arch
+  hosts: Arch Linux
   gather_facts: false
   roles:
     - common_arch
