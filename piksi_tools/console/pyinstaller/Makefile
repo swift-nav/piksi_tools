@@ -1,4 +1,4 @@
-piksi_tools_directory=../
+piksi_tools_directory=../../
 spec_file=console.spec
 pyinstaller=pyinstaller
 
@@ -20,7 +20,6 @@ endif
 
 console: $(spec_file)
 	make clean
-	cp ../../RELEASE-VERSION ../
 	pyinstaller --clean --log-level=DEBUG --paths=$(piksi_tools_directory) --debug $(PLAT_ARGS) $(spec_file) -y >& manifest.out
 	echo "Pyinstaller completed. View output in manifest.out"
 	make $(UNAME)
