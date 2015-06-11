@@ -43,7 +43,7 @@ a = Analysis(['../console.py'],
 
 resources = [
   ('settings.yaml', '../settings.yaml', 'DATA'),
-  ('RELEASE-VERSION', '../../RELEASE-VERSION', 'DATA'),
+  ('RELEASE-VERSION', '../RELEASE-VERSION', 'DATA'),
 ]
 resources += Tree('../images', prefix='images')
 
