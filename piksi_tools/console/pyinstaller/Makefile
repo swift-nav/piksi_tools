@@ -6,7 +6,7 @@ LIBS=-lm
 
 ifneq (,$(findstring /cygdrive/,$(PATH)))
     UNAME := Cygwin
-    PLAT_ARGS = "-F"
+    PLAT_ARGS="-F"
 else
 ifneq (,$(findstring WINDOWS,$(PATH)))
     UNAME := Windows
@@ -20,8 +20,8 @@ endif
 
 console: $(spec_file)
 	make clean
-	pyinstaller --clean --log-level=DEBUG --paths=$(piksi_tools_directory) --debug $(PLAT_ARGS) $(spec_file) -y >& manifest.out
-	echo "Pyinstaller completed. View output in manifest.out"
+	pyinstaller --clean --log-level=DEBUG --paths=$(piksi_tools_directory) --debug $(PLAT_ARGS) $(spec_file) -y >& Make.out
+	echo "Pyinstaller completed. View output in Make.out"
 	make $(UNAME)
 
 Windows:
