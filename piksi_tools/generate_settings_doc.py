@@ -31,7 +31,8 @@ def main():
       (re.compile(r'_'), r'_'),
       (re.compile(r'"'), r"''"),
       (re.compile(r'\.\.\.+'), r'\\ldots'),
-      (re.compile(r'\n'), r'\\newline ')
+      (re.compile(r'\n'), r'\\newline '),
+      (re.compile(r'>='), r'\\geq')
   )
 
   NO_UNDERSCORE = re.compile(r'_')
@@ -71,7 +72,7 @@ def main():
 
   latex_template = jenv.get_template('settings_template.tex')
   with open("settings_out.tex", 'w') as f:
-    f.write(latex_template.render(groups=sorted(groups), setting=sorted(settings.list_of_dicts), version='v0.15'))
+    f.write(latex_template.render(groups=sorted(groups), setting=sorted(settings.list_of_dicts), version='v0.17'))
 
   import subprocess
 
