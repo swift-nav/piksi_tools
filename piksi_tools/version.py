@@ -36,6 +36,7 @@
 __all__ = ("get_git_version")
 
 from subprocess import Popen, PIPE
+import sys
 import os
 
 def call_git_describe():
@@ -51,7 +52,14 @@ def call_git_describe():
 
 def read_release_version():
     try:
-        f = open(os.path.join(os.path.dirname(__file__), 'RELEASE-VERSION'), "r")
+        # see pyinstaller docs for this canonical construction
+        if getattr(sys, 'frozen', False):
+            # we are running in a |PyInstaller| bundle
+            basedir = sys._MEIPASS
+        else:
+            # we are running in a normal Python environment
+            basedir = os.path.dirname(__file__)
+        f = open(os.path.join(basedir, 'RELEASE-VERSION'), "r")
         try:
             version = f.readlines()[0]
             return version.strip()
