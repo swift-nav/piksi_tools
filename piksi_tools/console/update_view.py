@@ -616,7 +616,7 @@ class UpdateView(HasTraits):
     self._write("received bootloader handshake message.")
     self._write("Piksi Onboard Bootloader Version: " + self.pk_boot.version)
 
-    self.pk_flash = flash.Flash(self.link, flash_type)
+    self.pk_flash = flash.Flash(self.link, flash_type, self.pk_boot.sbp_version)
 
   def stop_flash(self):
     """
