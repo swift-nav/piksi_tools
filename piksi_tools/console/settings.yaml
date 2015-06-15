@@ -91,7 +91,7 @@
   name: amb_init_var
   type: Double
   units: non dimensional
-  default value: '1.00E+08'
+  default value: '1.00E+25'
   enumerated possible values:
   Description: Initial integer ambiguity variance at filter initialization
   Notes: This setting adjusts variance estimates in the Swift Kalman filter which
@@ -104,7 +104,7 @@
   name: new_amb_var
   type: Double
   units: non dimensional
-  default value: '1.00E+10'
+  default value: '1.00E+25'
   enumerated possible values:
   Description: Variance for new ambiguity measurements
   Notes: This setting adjusts variance estimates in the Swift Kalman filter which
