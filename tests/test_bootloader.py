@@ -9,10 +9,9 @@ from piksi_tools.bootload import Bootloader
 
 from sbp.piksi import SBP_MSG_RESET
 
-# File location for VCP to communicate with Piksi Under Test.
+# VCP to communicate with Piksi Under Test.
 PORT1 = None
-# File location for VCP to communicate with second Piksi connected via UART to
-# Piksi Under Test.
+# VCP to communicate with second Piksi connected via UART to Piksi Under Test.
 PORT2 = None
 
 # Firmware to flash in tests.
@@ -188,10 +187,6 @@ def get_args():
                       default=[None],
                       help="serial port for the Piksi whose UART is " \
                            "connected to the Piksi Under Test")
-  parser.add_argument('-m', '--m25', nargs=1,
-                      help='the Intel hex file to write to the M25 (FPGA) flash')
-  parser.add_argument('-s', '--stm', nargs=1,
-                      help='the Intel hex file to write to the STM flash')
   return parser.parse_args()
 
 def main():
@@ -199,9 +194,6 @@ def main():
 
   global PORT1 = args.port1[0]
   global PORT2 = args.port2[0]
-
-#  global STM_FW = IntelHex(args.stm[0])
-#  global NAP_FW = IntelHex(args.m25[0])
 
 if __name__ == "__main__":
   main()
