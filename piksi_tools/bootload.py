@@ -57,26 +57,47 @@ class Bootloader():
       self.stop()
 
   def stop(self):
+    """ Remove Bootloader instance callbacks from serial link. """
     self.stopped = True
     self.link.remove_callback(self._deprecated_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEP_A)
     self.link.remove_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_RESP)
 
   def _deprecated_callback(self, sbp_msg, **metadata):
-    if len(sbp_msg.payload)==1 and struct.unpack('B', sbp_msg.payload[0])==0:
+    """ Bootloader handshake for deprecated message ID. """
+    hs_device = MsgBootloaderHandshakeDepA(sbp_msg)
+    if len(hs_device.handshake)==1 and hs_device.handshake[0]==0:
       # == v0.1 of the bootloader, returns hardcoded version number 0.
       self.version = "v0.1"
     else:
       # > v0.1 of the bootloader, returns git commit string.
-      self.version = sbp_msg.payload[:]
+      self.version = ''.join([chr(i) for i in hs_device.handshake])
+      if self.version == '':
+        self.version = "Unknown"
     self.handshake_received = True
 
   def _handshake_callback(self, sbp_msg, **metadata):
-    msg = MsgBootloaderHandshakeDevice(sbp_msg)
-    self.version = msg.version
-    self.sbp_version = ((msg.flags >> 8) & 0xFF, msg.flags & 0xFF)
+    """ Bootloader handshake callback. """
+    hs_device = MsgBootloaderHandshakeResp(sbp_msg)
+    self.version = hs_device.version
+    self.sbp_version = ((hs_device.flags >> 8) & 0xFF, hs_device.flags & 0xFF)
     self.handshake_received = True
 
   def handshake(self, timeout=None):
+    """
+    Handshake device into bootloader mode. If handshake is not received from device, attempt
+    to reset it.
+
+    Parameters
+    ==========
+    timeout: int
+      Time to wait before returning False.
+
+    Returns
+    =======
+    out : bool
+      Returns True if handshake was received, False if timeout was reached before a handshake
+      was received.
+    """
     if timeout is not None:
       t0 = time.time()
     self.handshake_received = False
@@ -98,6 +119,7 @@ class Bootloader():
     return True
 
   def jump_to_app(self):
+    """ Request Piksi bootloader jump to application. """
     self.link(MsgBootloaderJumpToApp(jump=0))
 
 def get_args():

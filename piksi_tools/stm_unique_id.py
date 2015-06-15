@@ -18,30 +18,42 @@ from sbp.flash          import *
 from sbp.system         import *
 from sbp.client         import *
 
-class STMUniqueID:
+class STMUniqueID(object):
+  """
+  Retrieve the STM Unique ID from Piksi.
+  """
 
-  def __init__(self, link):
-    self.heartbeat_received = False
+  def __init__(self, link, sbp_version):
+    """
+    Parameters
+    ==========
+    link : sbp.client.handler.Handler
+      link to register Heartbeat message callback with
+    sbp_version : tuple (int, int)
+      SBP version to use for STM Unique ID messages.
+    """
     self.unique_id_returned = False
-    # SBP version is unset in older devices.
-    self.sbp_version = (0, 0)
     self.unique_id = None
     self.link = link
-    link.add_callback(self.receive_heartbeat, SBP_MSG_HEARTBEAT)
-    link.add_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_RESP)
+    self.sbp_version = sbp_version
 
-  def receive_heartbeat(self, sbp_msg, **metadata):
-    msg = MsgHeartbeat(sbp_msg)
-    self.sbp_version = ((msg.flags >> 16) & 0xFF, (msg.flags >> 8) & 0xFF)
-    self.heartbeat_received = True
+  def __enter__(self):
+    self.link.add_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_RESP)
+    return self
 
-  def receive_stm_unique_id_callback(self,sbp_msg, **metadata):
-    self.unique_id = struct.unpack('<12B',sbp_msg.payload)
+  def __exit__(self, *args):
+    self.link.remove_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_RESP)
+
+  def receive_stm_unique_id_callback(self, sbp_msg, **metadata):
+    """
+    Registered as a callback for the Heartbeat message
+    with sbp.client.handler.Handler.
+    """
     self.unique_id_returned = True
+    self.unique_id = struct.unpack('<12B',sbp_msg.payload)
 
   def get_id(self):
-    while not self.heartbeat_received:
-      time.sleep(0.1)
+    """ Retrieve the STM Unique ID. Blocks until it has received the ID. """
     self.unique_id_returned = False
     self.unique_id = None
     # < 0.45 of the bootloader, reuse single stm message.
@@ -53,20 +65,12 @@ class STMUniqueID:
       time.sleep(0.1)
     return self.unique_id
 
-  def __enter__(self):
-    return self
-
-  def __exit__(self, *args):
-    self.link.remove_callback(self.receive_heartbeat, SBP_MSG_HEARTBEAT)
-    self.link.remove_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_RESP)
-
-
 def get_args():
   """
   Get and parse arguments.
   """
   import argparse
-  parser = argparse.ArgumentParser(description='Acquisition Monitor')
+  parser = argparse.ArgumentParser(description='STM Unique ID')
   parser.add_argument("-f", "--ftdi",
                       help="use pylibftdi instead of pyserial.",
                       action="store_true")
@@ -88,7 +92,8 @@ def main():
   # Driver with context
   with serial_link.get_driver(args.ftdi, port, baud) as driver:
     with Handler(Framer(driver.read, driver.write)) as link:
-      unique_id = STMUniqueID(link).get_id()
+      with STMUniqueID(link) as stm_unique_id:
+        unique_id = stm_unique_id.get_id()
       print "STM Unique ID =", "0x" + ''.join(["%02x" % (b) for b in unique_id])
 
 if __name__ == "__main__":
