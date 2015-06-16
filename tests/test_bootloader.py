@@ -25,6 +25,8 @@ class TestBootloader(TestCase):
 
   def setUp(self):
     """ Set Piksi into a known state (STM / NAP firmware) before each test. """
+    # Give Piksi time to boot application in case it has just been restarted.
+    time.sleep(10)
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
         link.start()
@@ -66,6 +68,8 @@ class TestBootloader(TestCase):
     port : string
       File name of virtual com port connected to Piksi UART.
     """
+    # Give Piksi time to boot application in case it has just been restarted.
+    time.sleep(10)
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
         link.start()
@@ -86,7 +90,7 @@ class TestBootloader(TestCase):
         link.start()
         with Bootloader(link) as piksi_bootloader:
           # If the Piksi bootloader successfully received our handshake, we
-          # should be receiving handshakes from it for a while.
+          # should be able to receive handshakes from it indefinitely.
           for i in range(10):
             time.sleep(1)
             handshake = piksi_bootloader.wait_for_handshake(timeout=2)
@@ -117,15 +121,44 @@ class TestBootloader(TestCase):
               as piksi_flash:
             piksi_flash.write_ihx(NAP_FW)
 
-  """ Test erasing the bootloader once it's sector is locked (should fail). """
+  def test_program_btldr(self):
+    """ Test programming the bootloader once its sector is locked. """
+    self.set_into_btldr_mode(PORT1)
+    with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
+      with Handler(driver.read, driver.write) as link:
+        link.start()
+        with Bootloader(link) as piksi_bootloader:
+          piksi_bootloader.wait_for_handshake()
+          with flash.Flash(link, flash_type='STM', piksi_bootloader.version) \
+              as piksi_flash:
+            # Make sure the bootloader sector is locked.
+            piksi_flash.lock_sector(0)
+            # Make sure the address to test isn't already programmed.
+            piksi_flash.read(0x08003FFF, 1)
+            waiting_for_read = piksi_flash.get_n_queued_ops() > 0
+            while waiting_for_read:
+              waiting_for_read = piksi_flash.get_n_queued_ops() > 0
+            byte_read = piksi_flash._read_callback_ihx.gets(0x08003FFF, 1)
+            self.assertEqual('\xFF', byte_read,
+                             "Address to program is already programmed")
+            # Attempt to write 0x00 to last address of the sector.
+            piksi_flash.program(0x08003FFF, '\x00')
+            waiting_for_read = piksi_flash.get_n_queued_ops() > 0
+            while waiting_for_read:
+              waiting_for_read = piksi_flash.get_n_queued_ops() > 0
+            byte_read = piksi_flash._read_callback_ihx.gets(0x08003FFF, 1)
+            self.assertEqual('\xFF', byte_read,
+                             "Bootloader sector was programmed")
+
   def test_erase_btldr(self):
+    """ Test erasing the bootloader once its sector is locked. """
     pass
 
-  """
-  Test setting Piksi into bootloader mode with an incorrect sender ID
-  (should fail).
-  """
   def test_set_btldr_mode_wrong_sender_id(self):
+    """
+    Test setting Piksi into bootloader mode with an incorrect sender ID
+    (should fail).
+    """
     pass
 
   """ Test flashing using an incorrect sender ID (should fail). """
