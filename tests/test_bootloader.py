@@ -58,23 +58,23 @@ class TestBootloader(unittest.TestCase):
   @classmethod
   def setUpClass(self):
     """ Set Piksi into a known state (STM / NAP firmware) before the tests. """
+    if VERBOSE: print "Setting up Piksi to known state"
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
         link.start()
 
         # Wait until we receive a heartbeat or bootloader handshake so we
         # know what state Piksi is in.
-        print "Waiting for Heartbeat or Bootloader Handshake"
+        if VERBOSE: print "  Waiting for Heartbeat or Bootloader Handshake"
         with Bootloader(link) as piksi_bootloader:
-#        with Heartbeat(link) as heartbeat:
-          heartbeat = Heartbeat(link)
-          while not heartbeat.received and not piksi_bootloader.handshake_received:
-            time.sleep(0.1)
-          print "Received Heartbeat or Bootloader Handshake"
-          # If Piksi is in the application, reset it into the bootloader.
-          if heartbeat.received:
-            print "Resetting Piksi"
-            link.send(SBP_MSG_RESET, "")
+          with Heartbeat(link) as heartbeat:
+            while not heartbeat.received and not piksi_bootloader.handshake_received:
+              time.sleep(0.1)
+            if VERBOSE: print "  Received Heartbeat or Bootloader Handshake"
+            # If Piksi is in the application, reset it into the bootloader.
+            if heartbeat.received:
+              if VERBOSE: print "  Resetting Piksi"
+              link.send(SBP_MSG_RESET, "")
 
         with Bootloader(link) as piksi_bootloader:
           # Set Piksi into bootloader mode.
@@ -82,26 +82,26 @@ class TestBootloader(unittest.TestCase):
           if not no_timeout:
             raise Exception('Timeout while waiting for bootloader handshake')
           piksi_bootloader.reply_handshake()
-          print "In bootloader"
+          if VERBOSE: print "  Received bootloader handshake"
 
           with flash.Flash(link, flash_type="STM",
                    sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
             # Erase entire STM flash (except bootloader).
-            print "Erasing STM"
+            if VERBOSE: print "  Erasing STM"
             for s in range(1,12):
               piksi_flash.erase_sector(s)
             # Write STM firmware.
-            print "Programming STM"
+            if VERBOSE: print "  Programming STM"
             piksi_flash.write_ihx(STM_FW, erase=False)
 
           with flash.Flash(link, flash_type="M25",
                    sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
             # Write NAP hexfile.
-            print "Programming NAP"
+            if VERBOSE: print "  Programming NAP"
             piksi_flash.write_ihx(NAP_FW)
 
           # Jump to the application firmware.
-          print "Jumping to application"
+          if VERBOSE: print "  Jumping to application"
           piksi_bootloader.jump_to_app()
 
   def set_into_btldr_mode(self, port):
@@ -143,7 +143,7 @@ class TestBootloader(unittest.TestCase):
 #                            "Piksi did not stay in bootloader mode")
 
   def test_blah(self):
-    print "OH HERRO"
+    if VERBOSE: print "OH HERRO"
 
 #  def test_flash_stm_firmware(self):
 #    """ Test flashing STM hexfile. """
@@ -288,15 +288,17 @@ def main():
   global STM_FW
   global NAP_FW
   update_downloader = UpdateDownloader()
+  if VERBOSE: print "Downloading STM firmware"
   STM_FW = IntelHex(update_downloader._download_file_from_url(STM_FW_URL))
+  if VERBOSE: print "Downloading NAP firmware"
   NAP_FW = IntelHex(update_downloader._download_file_from_url(NAP_FW_URL))
 
-  # Delete PORT args before calling unittest.main()
-#  sys.argv[1:] = args.unittest_args
+   # Delete args used in main() before calling unittest.main()
+  sys.argv[1:] = args.unittest_args
 
-#  with open('test_bootloader_log.txt', 'w') as f:
+#  with open('bootloader-test-log.txt', 'w') as f:
 #    unittest.main(testRunner=unittest.TextTestRunner(f))
-#  unittest.main()
+  unittest.main()
 
 if __name__ == "__main__":
   main()
