@@ -58,11 +58,13 @@ class Bootloader():
       self.stop()
 
   def stop(self):
+    """ Remove Bootloader instance callbacks from serial link. """
     self.stopped = True
     self.link.remove_callback(self._deprecated_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED)
     self.link.remove_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEVICE)
 
   def _deprecated_callback(self, sbp_msg):
+    """ Bootloader handshake for deprecated message ID. """
     if len(sbp_msg.payload)==1 and struct.unpack('B', sbp_msg.payload[0])==0:
       # == v0.1 of the bootloader, returns hardcoded version number 0.
       self.version = "v0.1"
@@ -72,11 +74,26 @@ class Bootloader():
     self.handshake_received = True
 
   def _handshake_callback(self, sbp_msg):
+    """ Bootloader handshake callback. """
     self.version = sbp_msg.version
     self.sbp_version = ((sbp_msg.flags >> 8) & 0xF, sbp_msg.flags & 0xF)
     self.handshake_received = True
 
   def wait_for_handshake(self, timeout=None):
+    """
+    Wait for handshake message from Piksi bootloader.
+
+    Parameters
+    =========
+    timeout : int
+      Length of time
+
+    Returns
+    =======
+    out : bool
+      Returns True if handshake was received, False if timeout was reached
+      before a handshake was received.
+    """
     if timeout is not None:
       t0 = time.time()
     self.handshake_received = False
@@ -88,6 +105,10 @@ class Bootloader():
     return True
 
   def reply_handshake(self):
+    """
+    Send a handshake to Piksi bootloader to request bootloader mode. Should be
+    sent after receiving handshake from Piksi bootloader.
+    """
     # < 0.45 of SBP protocol, reuse single handshake message.
     if self.sbp_version < (0, 45):
       self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED, '\x00')
@@ -95,6 +116,7 @@ class Bootloader():
       self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_HOST, '\x00')
 
   def jump_to_app(self):
+    """ Request Piksi bootloader jump to application. """
     self.link.send(SBP_MSG_BOOTLOADER_JUMP_TO_APP, '\x00')
 
 def get_args():
