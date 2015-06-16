@@ -48,8 +48,9 @@ class TestBootloader(unittest.TestCase):
   Piksi bootloader tests.
   """
 
-  def setUp(self):
-    """ Set Piksi into a known state (STM / NAP firmware) before each test. """
+  @classmethod
+  def setUpClass(self):
+    """ Set Piksi into a known state (STM / NAP firmware) before the tests. """
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
         link.start()
