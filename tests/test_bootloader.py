@@ -9,6 +9,7 @@ from intelhex import IntelHex
 from piksi_tools import serial_link
 from piksi_tools import flash
 from piksi_tools.bootload import Bootloader
+from piksi_tools.console.update_downloader import UpdateDownloader
 
 from sbp.client.handler import Handler
 
@@ -20,9 +21,15 @@ PORT1 = None
 # VCP to communicate with second Piksi connected via UART to Piksi Under Test.
 PORT2 = None
 
+VERBOSE = False
+
 # Firmware to flash in tests.
-STM_FW = IntelHex('piksi_firmware_v0.16.hex')
-NAP_FW = IntelHex('swift_nap_v0.12.hex')
+STM_FW_URL = \
+  "http://downloads.swiftnav.com/piksi_v2.3.1/stm_fw/piksi_firmware_v0.17.hex"
+NAP_FW_URL = \
+  "http://downloads.swiftnav.com/piksi_v2.3.1/nap_fw/swift_nap_v0.13.hex"
+STM_FW = None
+NAP_FW = None
 
 class Heartbeat():
   """
@@ -37,8 +44,8 @@ class Heartbeat():
   def __enter__(self):
     return self
 
-  def __exit__(self, *args):
-    self.link.remove_callback(self.heartbeat_callback, SBP_MSG_HEARTBEAT)
+#  def __exit__(self, *args):
+#    self.link.remove_callback(self.heartbeat_callback, SBP_MSG_HEARTBEAT)
 
   def heartbeat_callback(self, sbp_msg):
     self.received = True
@@ -59,20 +66,21 @@ class TestBootloader(unittest.TestCase):
         # know what state Piksi is in.
         print "Waiting for Heartbeat or Bootloader Handshake"
         with Bootloader(link) as piksi_bootloader:
-          with Heartbeat(link) as heartbeat:
-            while not heartbeat.received and not piksi_bootloader.handshake_received:
-              time.sleep(0.1)
-            print "Received Heartbeat or Bootloader Handshake"
-            # If Piksi is in the application, reset it into the bootloader.
-            if heartbeat.received:
-              print "Resetting Piksi"
-              link.send(SBP_MSG_RESET, "")
+#        with Heartbeat(link) as heartbeat:
+          heartbeat = Heartbeat(link)
+          while not heartbeat.received and not piksi_bootloader.handshake_received:
+            time.sleep(0.1)
+          print "Received Heartbeat or Bootloader Handshake"
+          # If Piksi is in the application, reset it into the bootloader.
+          if heartbeat.received:
+            print "Resetting Piksi"
+            link.send(SBP_MSG_RESET, "")
 
         with Bootloader(link) as piksi_bootloader:
           # Set Piksi into bootloader mode.
           no_timeout = piksi_bootloader.wait_for_handshake(2)
-          self.assertTrue(no_timeout,
-                          "Timeout while waiting for bootloader handshake")
+          if not no_timeout:
+            raise Exception('Timeout while waiting for bootloader handshake')
           piksi_bootloader.reply_handshake()
           print "In bootloader"
 
@@ -260,6 +268,9 @@ def get_args():
                       default=[None],
                       help="serial port for a Piksi whose UART is " \
                            "connected to the Piksi Under Test")
+  parser.add_argument("-v", "--verbose",
+                      default=False, action="store_true",
+                      help="print more verbose output")
   parser.add_argument('unittest_args', nargs='*')
   return parser.parse_args()
 
@@ -271,12 +282,21 @@ def main():
   PORT1 = args.port1[0]
   PORT2 = args.port2[0]
 
+  global VERBOSE
+  VERBOSE = args.verbose
+
+  global STM_FW
+  global NAP_FW
+  update_downloader = UpdateDownloader()
+  STM_FW = IntelHex(update_downloader._download_file_from_url(STM_FW_URL))
+  NAP_FW = IntelHex(update_downloader._download_file_from_url(NAP_FW_URL))
+
   # Delete PORT args before calling unittest.main()
-  sys.argv[1:] = args.unittest_args
+#  sys.argv[1:] = args.unittest_args
 
 #  with open('test_bootloader_log.txt', 'w') as f:
 #    unittest.main(testRunner=unittest.TextTestRunner(f))
-  unittest.main()
+#  unittest.main()
 
 if __name__ == "__main__":
   main()
