@@ -51,7 +51,14 @@ class Heartbeat():
     self.received = True
 
 def set_known_state(port):
-  """ Set Piksi into a known state (STM / NAP firmware). """
+  """
+  Set Piksi into a known state (STM / NAP firmware).
+
+  Parameters
+  ==========
+  port : string
+    Filepath of virtual com port attached to Piksi.
+  """
   if VERBOSE: print "Setting up Piksi at '%s' to known state" % port
   with serial_link.get_driver(use_ftdi=False, port=port) as driver:
     with Handler(driver.read, driver.write) as link:
@@ -117,7 +124,7 @@ class TestBootloader(unittest.TestCase):
     Parameters
     ==========
     port : string
-      File name of virtual com port connected to Piksi UART.
+      Filepath of virtual com port attached to Piksi.
     """
     with serial_link.get_driver(use_ftdi=False, port=port) as driver:
       with Handler(driver.read, driver.write) as link:
