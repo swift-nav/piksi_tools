@@ -156,30 +156,32 @@ class TestBootloader(unittest.TestCase):
             self.assertTrue(handshake,
                             "Piksi did not stay in bootloader mode")
 
-#  def test_flash_stm_firmware(self):
-#    """ Test flashing STM hexfile. """
-#    self.set_btldr_mode(PORT1)
-#    with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
-#      with Handler(driver.read, driver.write) as link:
-#        link.start()
-#        with Bootloader(link) as piksi_bootloader:
-#          piksi_bootloader.wait_for_handshake()
-#          with flash.Flash(link, flash_type='STM', piksi_bootloader.version) \
-#              as piksi_flash:
-#            piksi_flash.write_ihx(STM_FW)
-#
-#  def test_flash_nap_firmware(self):
-#    """ Test flashing NAP hexfile. """
-#    self.set_btldr_mode(PORT1)
-#    with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
-#      with Handler(driver.read, driver.write) as link:
-#        link.start()
-#        with Bootloader(link) as piksi_bootloader:
-#          piksi_bootloader.wait_for_handshake()
-#          with flash.Flash(link, flash_type='NAP', piksi_bootloader.version) \
-#              as piksi_flash:
-#            piksi_flash.write_ihx(NAP_FW)
-#
+  def test_flash_stm_firmware(self):
+    """ Test flashing STM hexfile. """
+    self.set_btldr_mode(PORT1)
+
+    with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
+      with Handler(driver.read, driver.write) as link:
+        link.start()
+        with Bootloader(link) as piksi_bootloader:
+          piksi_bootloader.wait_for_handshake()
+          with flash.Flash(link, flash_type='STM', piksi_bootloader.version) \
+              as piksi_flash:
+            piksi_flash.write_ihx(STM_FW)
+
+  def test_flash_nap_firmware(self):
+    """ Test flashing NAP hexfile. """
+    self.set_btldr_mode(PORT1)
+
+    with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
+      with Handler(driver.read, driver.write) as link:
+        link.start()
+        with Bootloader(link) as piksi_bootloader:
+          piksi_bootloader.wait_for_handshake()
+          with flash.Flash(link, flash_type='NAP', piksi_bootloader.version) \
+              as piksi_flash:
+            piksi_flash.write_ihx(NAP_FW)
+
 #  def test_program_btldr(self):
 #    """ Test programming the bootloader once its sector is locked. """
 #    self.set_btldr_mode(PORT1)
@@ -208,7 +210,7 @@ class TestBootloader(unittest.TestCase):
 #            byte_read = piksi_flash._read_callback_ihx.gets(0x08003FFF, 1)
 #            self.assertEqual('\xFF', byte_read,
 #                             "Bootloader sector was programmed")
-
+#
 #  def test_erase_btldr(self):
 #    """ Test erasing the bootloader once its sector is locked. """
 #    pass
