@@ -1,3 +1,4 @@
+#!/usr/bin/env python2.7
 # Copyright (C) 2015 Swift Navigation Inc.
 # Contact: Fergus Noble <fergus@swiftnav.com>
 #
@@ -17,7 +18,7 @@ to a mavproxy instance for transmission to an ArduCopter quad.
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.handler import Handler
 from sbp.navigation import SBP_MSG_BASELINE_NED, MsgBaselineNED
-from sbp.observation import SBP_MSG_OBS, SBP_MSG_BASE_POS, SBP_MSG_EPHEMERIS
+from sbp.observation import SBP_MSG_OBS, SBP_MSG_BASE_POS
 
 import socket
 import struct
@@ -53,12 +54,8 @@ def get_args():
 
 def send_udp_callback_generator(udp, args):
   def send_udp_callback(msg):
-    s = ""
-    s += struct.pack("<BHHB", 0x55, msg.msg_type, msg.sender, msg.length)
-    s += msg.payload
-    s += struct.pack("<H", msg.crc)
+    s = msg.pack() 
     udp.sendto(s, (args.address[0], args.udp_port[0]))
-
   return send_udp_callback
 
 def main():
@@ -70,7 +67,8 @@ def main():
 
       handler.add_callback(send_udp_callback_generator(udp, args), msg_type=SBP_MSG_OBS)
       handler.add_callback(send_udp_callback_generator(udp, args), msg_type=SBP_MSG_BASE_POS)
-# Note, we may want to send the ephemeris message in the future but the message is too big for NAVProxy right now
+      # Note, we may want to send the ephemeris message in the future 
+      # but the message is too big for MAVProxy right now
 
       handler.start()
 
