@@ -44,11 +44,61 @@ class Heartbeat():
   def __enter__(self):
     return self
 
-#  def __exit__(self, *args):
-#    self.link.remove_callback(self.heartbeat_callback, SBP_MSG_HEARTBEAT)
+  def __exit__(self, *args):
+    self.link.remove_callback(self.heartbeat_callback, SBP_MSG_HEARTBEAT)
 
   def heartbeat_callback(self, sbp_msg):
     self.received = True
+
+def set_known_state(port):
+  """ Set Piksi into a known state (STM / NAP firmware). """
+  if VERBOSE: print "Setting up Piksi at '%s' to known state" % port
+  with serial_link.get_driver(use_ftdi=False, port=port) as driver:
+    with Handler(driver.read, driver.write) as link:
+      link.start()
+
+      # Wait until we receive a heartbeat or bootloader handshake so we
+      # know what state Piksi is in.
+      if VERBOSE: print "  Waiting for Heartbeat or Bootloader Handshake"
+      with Bootloader(link) as piksi_bootloader:
+        with Heartbeat(link) as heartbeat:
+          while not heartbeat.received and not piksi_bootloader.handshake_received:
+            time.sleep(0.1)
+          if VERBOSE: print "  Received Heartbeat or Bootloader Handshake"
+          # If Piksi is in the application, reset it into the bootloader.
+          if heartbeat.received:
+            if VERBOSE: print "  Resetting Piksi"
+            link.send(SBP_MSG_RESET, "")
+
+      with Bootloader(link) as piksi_bootloader:
+        # Set Piksi into bootloader mode.
+        no_timeout = piksi_bootloader.wait_for_handshake(2)
+        if not no_timeout:
+          raise Exception('Timeout while waiting for bootloader handshake')
+        piksi_bootloader.reply_handshake()
+        if VERBOSE: print "  Received bootloader handshake"
+
+        with flash.Flash(link, flash_type="STM",
+                 sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
+          # Erase entire STM flash (except bootloader).
+          if VERBOSE: print "  Erasing STM"
+          for s in range(1,12):
+            piksi_flash.erase_sector(s)
+          # Write STM firmware.
+          if VERBOSE: print "  Programming STM"
+          piksi_flash.write_ihx(STM_FW, erase=False)
+
+        with flash.Flash(link, flash_type="M25",
+                 sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
+          # Write NAP hexfile.
+          if VERBOSE: print "  Programming NAP"
+          piksi_flash.write_ihx(NAP_FW)
+
+        # Jump to the application firmware.
+        if VERBOSE: print "  Jumping to application"
+        piksi_bootloader.jump_to_app()
+
+        if VERBOSE: print ""
 
 class TestBootloader(unittest.TestCase):
   """
@@ -57,54 +107,10 @@ class TestBootloader(unittest.TestCase):
 
   @classmethod
   def setUpClass(self):
-    """ Set Piksi into a known state (STM / NAP firmware) before the tests. """
-    if VERBOSE: print "Setting up Piksi to known state"
-    with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
-      with Handler(driver.read, driver.write) as link:
-        link.start()
+    """ Do set up before running tests. """
+    set_known_state(PORT1)
 
-        # Wait until we receive a heartbeat or bootloader handshake so we
-        # know what state Piksi is in.
-        if VERBOSE: print "  Waiting for Heartbeat or Bootloader Handshake"
-        with Bootloader(link) as piksi_bootloader:
-          with Heartbeat(link) as heartbeat:
-            while not heartbeat.received and not piksi_bootloader.handshake_received:
-              time.sleep(0.1)
-            if VERBOSE: print "  Received Heartbeat or Bootloader Handshake"
-            # If Piksi is in the application, reset it into the bootloader.
-            if heartbeat.received:
-              if VERBOSE: print "  Resetting Piksi"
-              link.send(SBP_MSG_RESET, "")
-
-        with Bootloader(link) as piksi_bootloader:
-          # Set Piksi into bootloader mode.
-          no_timeout = piksi_bootloader.wait_for_handshake(2)
-          if not no_timeout:
-            raise Exception('Timeout while waiting for bootloader handshake')
-          piksi_bootloader.reply_handshake()
-          if VERBOSE: print "  Received bootloader handshake"
-
-          with flash.Flash(link, flash_type="STM",
-                   sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
-            # Erase entire STM flash (except bootloader).
-            if VERBOSE: print "  Erasing STM"
-            for s in range(1,12):
-              piksi_flash.erase_sector(s)
-            # Write STM firmware.
-            if VERBOSE: print "  Programming STM"
-            piksi_flash.write_ihx(STM_FW, erase=False)
-
-          with flash.Flash(link, flash_type="M25",
-                   sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
-            # Write NAP hexfile.
-            if VERBOSE: print "  Programming NAP"
-            piksi_flash.write_ihx(NAP_FW)
-
-          # Jump to the application firmware.
-          if VERBOSE: print "  Jumping to application"
-          piksi_bootloader.jump_to_app()
-
-  def set_into_btldr_mode(self, port):
+  def set_btldr_mode(self, port):
     """
     Reset Piksi and handshake with bootloader.
 
@@ -113,41 +119,46 @@ class TestBootloader(unittest.TestCase):
     port : string
       File name of virtual com port connected to Piksi UART.
     """
-    # Give Piksi time to boot application in case it has just been restarted.
-    time.sleep(10)
-    with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
+    with serial_link.get_driver(use_ftdi=False, port=port) as driver:
       with Handler(driver.read, driver.write) as link:
         link.start()
-        # Reset Piksi.
-        link.send(SBP_MSG_RESET, "")
+
+        # Wait until we receive a heartbeat or bootloader handshake so we
+        # know what state Piksi is in.
+        with Bootloader(link) as piksi_bootloader:
+          with Heartbeat(link) as heartbeat:
+            while not heartbeat.received and not piksi_bootloader.handshake_received:
+              time.sleep(0.1)
+            # If Piksi is in the application, reset it into the bootloader.
+            if heartbeat.received:
+              link.send(SBP_MSG_RESET, "")
+
         with Bootloader(link) as piksi_bootloader:
           # Set Piksi into bootloader mode.
-          handshake = piksi_bootloader.wait_for_handshake(timeout=5)
+          handshake = piksi_bootloader.wait_for_handshake(timeout=2)
           self.assertTrue(handshake,
                           "Timeout while waiting for bootloader handshake")
           piksi_bootloader.reply_handshake()
 
-#  def test_set_btldr_mode(self):
-#    """ Test setting Piksi into bootloader mode. """
-#    self.set_into_btldr_mode(PORT1)
-#    with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
-#      with Handler(driver.read, driver.write) as link:
-#        link.start()
-#        with Bootloader(link) as piksi_bootloader:
-#          # If the Piksi bootloader successfully received our handshake, we
-#          # should be able to receive handshakes from it indefinitely.
-#          for i in range(10):
-#            time.sleep(1)
-#            handshake = piksi_bootloader.wait_for_handshake(timeout=2)
-#            self.assertTrue(handshake,
-#                            "Piksi did not stay in bootloader mode")
+  def test_set_btldr_mode(self):
+    """ Test setting Piksi into bootloader mode. """
+    self.set_btldr_mode(PORT1)
 
-  def test_blah(self):
-    if VERBOSE: print "OH HERRO"
+    with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
+      with Handler(driver.read, driver.write) as link:
+        link.start()
+        with Bootloader(link) as piksi_bootloader:
+          # If the Piksi bootloader successfully received our handshake, we
+          # should be able to receive handshakes from it indefinitely.
+          for i in range(10):
+            time.sleep(1)
+            handshake = piksi_bootloader.wait_for_handshake(timeout=2)
+            self.assertTrue(handshake,
+                            "Piksi did not stay in bootloader mode")
 
 #  def test_flash_stm_firmware(self):
 #    """ Test flashing STM hexfile. """
-#    self.set_into_btldr_mode(PORT1)
+#    self.set_btldr_mode(PORT1)
 #    with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
 #      with Handler(driver.read, driver.write) as link:
 #        link.start()
@@ -159,7 +170,7 @@ class TestBootloader(unittest.TestCase):
 #
 #  def test_flash_nap_firmware(self):
 #    """ Test flashing NAP hexfile. """
-#    self.set_into_btldr_mode(PORT1)
+#    self.set_btldr_mode(PORT1)
 #    with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
 #      with Handler(driver.read, driver.write) as link:
 #        link.start()
@@ -171,7 +182,7 @@ class TestBootloader(unittest.TestCase):
 #
 #  def test_program_btldr(self):
 #    """ Test programming the bootloader once its sector is locked. """
-#    self.set_into_btldr_mode(PORT1)
+#    self.set_btldr_mode(PORT1)
 #    with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
 #      with Handler(driver.read, driver.write) as link:
 #        link.start()
@@ -292,12 +303,11 @@ def main():
   STM_FW = IntelHex(update_downloader._download_file_from_url(STM_FW_URL))
   if VERBOSE: print "Downloading NAP firmware"
   NAP_FW = IntelHex(update_downloader._download_file_from_url(NAP_FW_URL))
+  if VERBOSE: print ""
 
    # Delete args used in main() before calling unittest.main()
   sys.argv[1:] = args.unittest_args
 
-#  with open('bootloader-test-log.txt', 'w') as f:
-#    unittest.main(testRunner=unittest.TextTestRunner(f))
   unittest.main()
 
 if __name__ == "__main__":
