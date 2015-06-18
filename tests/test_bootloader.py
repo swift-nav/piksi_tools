@@ -17,7 +17,7 @@ import time
 from intelhex import IntelHex
 
 from piksi_tools import serial_link
-from piksi_tools import flash
+from piksi_tools.flash import Flash
 from piksi_tools.bootload import Bootloader
 from piksi_tools.heartbeat import Heartbeat
 from piksi_tools.utils import *
@@ -112,8 +112,8 @@ class TestBootloader(unittest.TestCase):
         with Bootloader(link) as piksi_bootloader:
           with Timeout(TIMEOUT_HANDSHAKE) as timeout:
             piksi_bootloader.wait_for_handshake()
-          with flash.Flash(link, flash_type='STM', sbp_version=piksi_bootloader.version) \
-              as piksi_flash:
+          with Flash(link, flash_type='STM',
+                     sbp_version=piksi_bootloader.version) as piksi_flash:
             with Timeout(TIMEOUT_WRITE_STM) as timeout:
               piksi_flash.write_ihx(STM_FW)
 
@@ -127,8 +127,8 @@ class TestBootloader(unittest.TestCase):
         with Bootloader(link) as piksi_bootloader:
           with Timeout(TIMEOUT_HANDSHAKE) as timeout:
             piksi_bootloader.wait_for_handshake()
-          with flash.Flash(link, flash_type='M25', sbp_version=piksi_bootloader.version) \
-              as piksi_flash:
+          with Flash(link, flash_type='M25',
+                     sbp_version=piksi_bootloader.version) as piksi_flash:
             with Timeout(TIMEOUT_WRITE_NAP) as timeout:
               piksi_flash.write_ihx(NAP_FW)
 
@@ -141,24 +141,20 @@ class TestBootloader(unittest.TestCase):
 
         with Bootloader(link) as piksi_bootloader:
           piksi_bootloader.wait_for_handshake()
-          with flash.Flash(link, flash_type='STM', sbp_version=piksi_bootloader.version) \
-              as piksi_flash:
+          with Flash(link, flash_type='STM',
+                     sbp_version=piksi_bootloader.version) as piksi_flash:
             # Make sure the bootloader sector is locked.
-            piksi_flash.lock_sector(0)
+            with Timeout(TIMEOUT_LOCK_SECTOR) as timeout:
+              piksi_flash.lock_sector(0)
             # Make sure the address to test isn't already programmed.
-            piksi_flash.read(0x08003FFF, 1)
-            waiting_for_read = piksi_flash.get_n_queued_ops() > 0
-            while waiting_for_read:
-              waiting_for_read = piksi_flash.get_n_queued_ops() > 0
-            byte_read = piksi_flash._read_callback_ihx.gets(0x08003FFF, 1)
+            with Timeout(TIMEOUT_READ_STM) as timeout:
+              byte_read = piksi_flash.read(0x08003FFF, 1, block=True)
             self.assertEqual('\xFF', byte_read,
                              "Address to program is already programmed")
             # Attempt to write 0x00 to last address of the sector.
             piksi_flash.program(0x08003FFF, '\x00')
-            waiting_for_read = piksi_flash.get_n_queued_ops() > 0
-            while waiting_for_read:
-              waiting_for_read = piksi_flash.get_n_queued_ops() > 0
-            byte_read = piksi_flash._read_callback_ihx.gets(0x08003FFF, 1)
+            with Timeout(TIMEOUT_READ_STM) as timeout:
+              byte_read = piksi_flash.read(0x08003FFF, 1, block=True)
             self.assertEqual('\xFF', byte_read,
                              "Bootloader sector was programmed")
 
