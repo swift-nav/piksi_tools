@@ -118,7 +118,7 @@ class Bootloader():
 
   def jump_to_app(self):
     """ Request Piksi bootloader jump to application. """
-    self.link.send_msg(MsgBootloaderJumpToApp(jump='\x00'))
+    self.link.send_msg(MsgBootloaderJumpToApp(jump=0))
 
 def get_args():
   """
