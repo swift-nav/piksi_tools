@@ -9,7 +9,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from sbp.system import SBP_MSG_HEARTBEAT
+from sbp.system import SBP_MSG_HEARTBEAT, MsgHeartbeat
 
 class Heartbeat(object):
   """
@@ -36,5 +36,6 @@ class Heartbeat(object):
     self.link.remove_callback(self.heartbeat_callback, SBP_MSG_HEARTBEAT)
 
   def heartbeat_callback(self, sbp_msg):
+    hb = MsgHeartbeat(sbp_msg)
+    self.sbp_version = ((hb.flags >> 8) & 0xF, hb.flags & 0xF)
     self.received = True
-    self.sbp_version = ((sbp_msg.flags >> 8) & 0xF, sbp_msg.flags & 0xF)
