@@ -48,7 +48,7 @@ class Versions(object):
     self.handshake_received = True
 
   def _handshake_callback(self, sbp_msg):
-    self.versions['bootloader'] = MsgBootloaderHandshkeDevice(sbp_msg).version
+    self.versions['bootloader'] = MsgBootloaderHandshakeDevice(sbp_msg).version
     self.link.send(SBP_MSG_BOOTLOADER_JUMP_TO_APP, '\x00')
     self.handshake_received = True
 
