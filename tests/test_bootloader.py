@@ -13,7 +13,6 @@
 import unittest
 import sys
 import time
-import signal
 
 from intelhex import IntelHex
 
@@ -21,6 +20,7 @@ from piksi_tools import serial_link
 from piksi_tools import flash
 from piksi_tools.bootload import Bootloader
 from piksi_tools.heartbeat import Heartbeat
+from piksi_tools.utils import Timeout, setup_piksi
 from piksi_tools.console.update_downloader import UpdateDownloader
 
 from sbp.client.handler import Handler
@@ -42,95 +42,6 @@ NAP_FW_URL = \
 STM_FW = None
 NAP_FW = None
 
-def timeout_handler(signum, frame):
-  raise Exception('Timeout handler called')
-
-class Timeout(object):
-  """
-  Configurable timeout to raise an Exception after a certain number of seconds.
-  """
-
-  def __init__(self, seconds):
-    """
-    Parameters
-    ==========
-    seconds : int
-      Number of seconds before Exception is raised.
-    """
-    signal.signal(signal.SIGALRM, timeout_handler)
-    signal.alarm(seconds)
-
-  def __enter__(self):
-    return self
-
-  def __exit__(self, *args):
-    self.cancel()
-
-  def cancel(self):
-    """ Cancel scheduled Exception. """
-    signal.alarm(0)
-
-def set_known_state(port):
-  """
-  Set Piksi into a known state (STM / NAP firmware).
-
-  Parameters
-  ==========
-  port : string
-    Filepath of virtual com port attached to Piksi.
-  """
-  if VERBOSE: print "Setting up Piksi at '%s' to known state" % port
-  with serial_link.get_driver(use_ftdi=False, port=port) as driver:
-    with Handler(driver.read, driver.write) as link:
-      link.start()
-
-      # Wait until we receive a heartbeat or bootloader handshake so we
-      # know what state Piksi is in.
-      if VERBOSE: print "  Waiting for Heartbeat or Bootloader Handshake"
-      with Bootloader(link) as piksi_bootloader:
-        with Heartbeat(link) as heartbeat:
-          # Throw an exception if a heartbeat or handshake
-          # is not received for 5 seconds.
-          with Timeout(5) as timeout:
-            while not heartbeat.received and not piksi_bootloader.handshake_received:
-              time.sleep(0.1)
-          if VERBOSE: print "  Received Heartbeat or Bootloader Handshake"
-          # If Piksi is in the application, reset it into the bootloader.
-          if heartbeat.received:
-            if VERBOSE: print "  Resetting Piksi"
-            link.send(SBP_MSG_RESET, "")
-
-      with Bootloader(link) as piksi_bootloader:
-        # Set Piksi into bootloader mode.
-        with Timeout(10) as timeout:
-          piksi_bootloader.wait_for_handshake()
-        piksi_bootloader.reply_handshake()
-        if VERBOSE: print "  Received bootloader handshake"
-
-        with flash.Flash(link, flash_type="STM",
-                 sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
-          # Erase entire STM flash (except bootloader).
-          if VERBOSE: print "  Erasing STM"
-          with Timeout(30) as timeout:
-            for s in range(1,12):
-              piksi_flash.erase_sector(s)
-          # Write STM firmware.
-          if VERBOSE: print "  Programming STM"
-          with Timeout(100) as timeout:
-            piksi_flash.write_ihx(STM_FW, erase=False)
-
-        with flash.Flash(link, flash_type="M25",
-                 sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
-          # Write NAP hexfile.
-          if VERBOSE: print "  Programming NAP"
-          with Timeout(250) as timeout:
-            piksi_flash.write_ihx(NAP_FW)
-
-        # Jump to the application firmware.
-        if VERBOSE: print "  Jumping to application"
-        piksi_bootloader.jump_to_app()
-
-        if VERBOSE: print ""
 
 class TestBootloader(unittest.TestCase):
   """
@@ -140,7 +51,10 @@ class TestBootloader(unittest.TestCase):
   @classmethod
   def setUpClass(self):
     """ Do set up before running tests. """
-    set_known_state(PORT1)
+    with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
+      with Handler(driver.read, driver.write) as link:
+        link.start()
+        setup_piksi(link, STM_FW, NAP_FW, VERBOSE)
 
   def set_btldr_mode(self, port):
     """
@@ -213,7 +127,7 @@ class TestBootloader(unittest.TestCase):
         with Bootloader(link) as piksi_bootloader:
           with Timeout(10) as timeout:
             piksi_bootloader.wait_for_handshake()
-          with flash.Flash(link, flash_type='NAP', sbp_version=piksi_bootloader.version) \
+          with flash.Flash(link, flash_type='M25', sbp_version=piksi_bootloader.version) \
               as piksi_flash:
             with Timeout(250) as timeout:
               piksi_flash.write_ihx(NAP_FW)
@@ -266,12 +180,12 @@ class TestBootloader(unittest.TestCase):
   Test if two Piksies can set eachother into bootloader mode (should fail).
   """
   def test_two_piksies_btldr_mode(self):
-    if self.link2 == None:
+    if PORT2 is None:
       return
 
   """ Test if two Piksies can simultaneously bootload. """
   def test_two_piksies_simultaneous_bootloading(self):
-    if self.link2 == None:
+    if PORT2 is None:
       return
 
   """
@@ -279,10 +193,10 @@ class TestBootloader(unittest.TestCase):
   another Piksi is sending data via another UART (should fail).
   """
   def test_uart_rx_buffer_overflow(self):
-    if self.link2 == None:
+    if PORT2 is None:
       return
 
-  """ Test if flashing Piksi is redundant to SBP packet drops. """
+  """ test if flashing Piksi is redundant to SBP packet drops. """
   def test_packet_drop(self):
     pass
 
