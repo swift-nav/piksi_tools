@@ -42,7 +42,7 @@ NAP_FW_URL = \
 STM_FW = None
 NAP_FW = None
 
-class Heartbeat():
+class Heartbeat(object):
   """
   Handle receiving heartbeat messages from Piksi. If we receive a heartbeat
   from Piksi, we know that Piksi is in the application firmware.
@@ -64,7 +64,7 @@ class Heartbeat():
 def timeout_handler(signum, frame):
   raise Exception('Timeout handler called')
 
-class Timeout():
+class Timeout(object):
   """
   Configurable timeout to raise an Exception after a certain number of seconds.
   """
