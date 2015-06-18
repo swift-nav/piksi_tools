@@ -56,43 +56,41 @@ class TestBootloader(unittest.TestCase):
         link.start()
         setup_piksi(link, STM_FW, NAP_FW, VERBOSE)
 
-  def set_btldr_mode(self, port):
+  def set_btldr_mode(self, handler):
     """
     Reset Piksi and handshake with bootloader.
 
     Parameters
     ==========
-    port : string
-      Filepath of virtual com port attached to Piksi.
+    handler : sbp.client.handler.Handler
+      handler to send/receive messages from/to Piksi.
     """
-    with serial_link.get_driver(use_ftdi=False, port=port) as driver:
-      with Handler(driver.read, driver.write) as link:
-        link.start()
 
-        # Wait until we receive a heartbeat or bootloader handshake so we
-        # know what state Piksi is in.
-        with Bootloader(link) as piksi_bootloader:
-          with Heartbeat(link) as heartbeat:
-            with Timeout(10) as timeout:
-              while not heartbeat.received and not piksi_bootloader.handshake_received:
-                time.sleep(0.1)
-            # If Piksi is in the application, reset it into the bootloader.
-            if heartbeat.received:
-              link.send(SBP_MSG_RESET, "")
+    # Wait until we receive a heartbeat or bootloader handshake so we
+    # know what state Piksi is in.
+    with Bootloader(handler) as piksi_bootloader:
+      with Heartbeat(handler) as heartbeat:
+        with Timeout(10) as timeout:
+          while not heartbeat.received and not piksi_bootloader.handshake_received:
+            time.sleep(0.1)
+        # If Piksi is in the application, reset it into the bootloader.
+        if heartbeat.received:
+          handler.send(SBP_MSG_RESET, "")
 
-        with Bootloader(link) as piksi_bootloader:
-          # Set Piksi into bootloader mode.
-          with Timeout(10) as timeout:
-            piksi_bootloader.wait_for_handshake()
-          piksi_bootloader.reply_handshake()
+    with Bootloader(handler) as piksi_bootloader:
+      # Set Piksi into bootloader mode.
+      with Timeout(10) as timeout:
+        piksi_bootloader.wait_for_handshake()
+      piksi_bootloader.reply_handshake()
 
   def test_set_btldr_mode(self):
     """ Test setting Piksi into bootloader mode. """
-    self.set_btldr_mode(PORT1)
-
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
         link.start()
+
+        self.set_btldr_mode(link)
+
         with Bootloader(link) as piksi_bootloader:
           # If the Piksi bootloader successfully received our handshake, we
           # should be able to receive handshakes from it indefinitely. Test
@@ -104,11 +102,12 @@ class TestBootloader(unittest.TestCase):
 
   def test_flash_stm_firmware(self):
     """ Test flashing STM hexfile. """
-    self.set_btldr_mode(PORT1)
-
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
         link.start()
+
+        self.set_btldr_mode(link)
+
         with Bootloader(link) as piksi_bootloader:
           with Timeout(10) as timeout:
             piksi_bootloader.wait_for_handshake()
@@ -119,11 +118,12 @@ class TestBootloader(unittest.TestCase):
 
   def test_flash_nap_firmware(self):
     """ Test flashing NAP hexfile. """
-    self.set_btldr_mode(PORT1)
-
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
         link.start()
+
+        self.set_btldr_mode(link)
+
         with Bootloader(link) as piksi_bootloader:
           with Timeout(10) as timeout:
             piksi_bootloader.wait_for_handshake()
@@ -134,10 +134,12 @@ class TestBootloader(unittest.TestCase):
 
   def test_program_btldr(self):
     """ Test programming the bootloader once its sector is locked. """
-    self.set_btldr_mode(PORT1)
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
         link.start()
+
+        self.set_btldr_mode(link)
+
         with Bootloader(link) as piksi_bootloader:
           piksi_bootloader.wait_for_handshake()
           with flash.Flash(link, flash_type='STM', sbp_version=piksi_bootloader.version) \
