@@ -393,7 +393,7 @@ class Flash():
     else:
       self.link.send(SBP_MSG_FLASH_PROGRAM, msg_buf + data)
 
-  def read(self, address, length):
+  def read(self, address, length, block=False):
     """
     Read a set of addresses of the flash.
 
@@ -403,6 +403,13 @@ class Flash():
       Starting address of length addresses to read.
     length : int
       Number of addresses to read.
+    block : bool
+      Block until addresses are read and return them.
+
+    Returns
+    =======
+    out : str
+      String of bytes (big endian) read from address.
     """
     msg_buf = struct.pack("B", self.flash_type_byte)
     msg_buf += struct.pack("<I", address)
@@ -413,6 +420,10 @@ class Flash():
       self.link.send(SBP_MSG_FLASH_READ_RESP, msg_buf)
     else:
       self.link.send(SBP_MSG_FLASH_READ_REQ, msg_buf)
+    if block:
+      while self.get_n_queued_ops() > 0:
+        time.sleep(0.001)
+      return self._read_callback_ihx.gets(address, length)
 
   def _done_callback(self, sbp_msg):
     """
