@@ -107,7 +107,6 @@ def main():
     with Handler(driver.read, driver.write) as link:
       link.add_callback(serial_link.printer, SBP_MSG_PRINT)
       acq_results = AcqResults(link)
-      link.start()
 
       try:
         while True:

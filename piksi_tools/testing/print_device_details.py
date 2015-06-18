@@ -39,7 +39,6 @@ with serial_link.get_driver(args.ftdi, port, baud) as driver:
   # Handler with context
   with Handler(driver.read, driver.write, args.verbose) as link:
     sv = settings_view.SettingsView(link, read_finished_functions=[callback], gui_mode=False)
-    link.start()
 
     # Give the firmware time to start up and possibly send settings.
     time.sleep(10)

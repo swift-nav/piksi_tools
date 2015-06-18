@@ -53,7 +53,6 @@ class TestBootloader(unittest.TestCase):
     """ Do set up before running tests. """
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
-        link.start()
         setup_piksi(link, STM_FW, NAP_FW, VERBOSE)
 
   def set_btldr_mode(self, handler):
@@ -87,7 +86,6 @@ class TestBootloader(unittest.TestCase):
     """ Test setting Piksi into bootloader mode. """
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
-        link.start()
 
         self.set_btldr_mode(link)
 
@@ -104,7 +102,6 @@ class TestBootloader(unittest.TestCase):
     """ Test flashing STM hexfile. """
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
-        link.start()
 
         self.set_btldr_mode(link)
 
@@ -120,7 +117,6 @@ class TestBootloader(unittest.TestCase):
     """ Test flashing NAP hexfile. """
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
-        link.start()
 
         self.set_btldr_mode(link)
 
@@ -136,7 +132,6 @@ class TestBootloader(unittest.TestCase):
     """ Test programming the bootloader once its sector is locked. """
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
-        link.start()
 
         self.set_btldr_mode(link)
 

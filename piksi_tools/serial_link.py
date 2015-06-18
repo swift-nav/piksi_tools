@@ -171,7 +171,6 @@ def main():
           link.add_callback(printer, SBP_MSG_PRINT)
           link.add_callback(logger)
           link.add_callback(append_logger)
-          link.start()
           # Reset device
           if args.reset:
             link.send(SBP_MSG_RESET, "")
