@@ -76,7 +76,6 @@ class TestBootloader(unittest.TestCase):
         if heartbeat.received:
           handler.send(SBP_MSG_RESET, "")
 
-    with Bootloader(handler) as piksi_bootloader:
       # Set Piksi into bootloader mode.
       with Timeout(10) as timeout:
         piksi_bootloader.wait_for_handshake()
@@ -158,10 +157,12 @@ class TestBootloader(unittest.TestCase):
             self.assertEqual('\xFF', byte_read,
                              "Bootloader sector was programmed")
 
+  @unittest.skip("Not implemented yet")
   def test_erase_btldr(self):
     """ Test erasing the bootloader once its sector is locked. """
     pass
 
+  @unittest.skip("Not implemented yet")
   def test_set_btldr_mode_wrong_sender_id(self):
     """
     Test setting Piksi into bootloader mode with an incorrect sender ID
@@ -169,50 +170,59 @@ class TestBootloader(unittest.TestCase):
     """
     pass
 
-  """ Test flashing using an incorrect sender ID (should fail). """
+  @unittest.skip("Not implemented yet")
   def test_flashing_wrong_sender_id(self):
+    """ Test flashing using an incorrect sender ID (should fail). """
     pass
 
-  """
-  Test if two Piksies can set eachother into bootloader mode (should fail).
-  """
+  @unittest.skip("Not implemented yet")
   def test_two_piksies_btldr_mode(self):
+    """
+    Test if two Piksies can set eachother into bootloader mode (should fail).
+    """
     if PORT2 is None:
       return
 
-  """ Test if two Piksies can simultaneously bootload. """
+  @unittest.skip("Not implemented yet")
   def test_two_piksies_simultaneous_bootloading(self):
+    """ Test if two Piksies can simultaneously bootload. """
     if PORT2 is None:
       return
 
-  """
-  Test if queuing too many operations causes a UART RX buffer overflow when
-  another Piksi is sending data via another UART (should fail).
-  """
+  @unittest.skip("Not implemented yet")
   def test_uart_rx_buffer_overflow(self):
+    """
+    Test if queuing too many operations causes a UART RX buffer overflow when
+    another Piksi is sending data via another UART (should fail).
+    """
     if PORT2 is None:
       return
 
-  """ test if flashing Piksi is redundant to SBP packet drops. """
+  @unittest.skip("Not implemented yet")
   def test_packet_drop(self):
+    """ test if flashing Piksi is redundant to SBP packet drops. """
     pass
 
-  """ Test if we can lock / unlock sectors. """
+  @unittest.skip("Not implemented yet")
   def test_sector_lock_unlock(self):
+    """ Test if we can lock / unlock sectors. """
     pass
 
-  """ Test if we can recover from a reset while flashing. """
+  @unittest.skip("Not implemented yet")
   def test_recover_from_reset(self):
+    """ Test if we can recover from a reset while flashing. """
     pass
 
-  """
-  Test if we can recover from aborting the bootloader script while flashing.
-  """
+  @unittest.skip("Not implemented yet")
   def test_recover_from_abort(self):
+    """
+    Test if we can recover from aborting the bootloader script while flashing.
+    """
     pass
 
-  """ Test writing an invalid firmware file and see if device will run it. """
+  @unittest.skip("Not implemented yet")
   def test_invalid_firmware(self):
+    """ Test writing an invalid firmware file and see if device will run it. """
     pass
 
 def get_args():
