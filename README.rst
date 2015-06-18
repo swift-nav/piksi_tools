@@ -30,12 +30,25 @@ Usage Examples
 Bootloader example
 ~~~~~~~~~~~~~~~~~~
 
+To load the main firmware hex file::
+
+  $ cd piksi_tools
+  $ ./bootload.py -s -p /dev/tty.usbserial-PKxxxx ~/piksi_firmware/build/piksi_firmware.hex
+
 Console example
 ~~~~~~~~~~~~~~~
 
 To use the Piksi console, binary installers (Windows and OS X) are here_.
 
 .. _here: http://downloads.swiftnav.com/piksi_console/
+
+or::
+
+  $ cd piksi_tools/console
+  $ ./console.py -p /dev/tty.usbserial-PKxxxx -l
+
+The -l flag will save a json version of the console log in the current directory.
+Omitting the -p flag will let you choose from a list of connected devices.
 
 Testing
 -------
