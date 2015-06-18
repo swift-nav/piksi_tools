@@ -14,7 +14,8 @@ import struct
 import sys
 import serial_link
 
-from sbp.flash          import SBP_MSG_STM_UNIQUE_ID_DEVICE
+from sbp.flash          import *
+from sbp.system         import *
 from sbp.client.handler import *
 
 class STMUniqueID:
@@ -31,7 +32,8 @@ class STMUniqueID:
 
   def receive_heartbeat(self, sbp_msg):
     self.heartbeat_received = True
-    self.sbp_version = ((sbp_msg.flags >> 8) & 0xF, sbp_msg.flags & 0xF)
+    self.sbp_version = ((MsgHeartbeat(sbp_msg).flags >> 16) & 0xF,
+                        (MsgHeartbeat(sbp_msg).flags >> 8)  & 0xF)
 
   def receive_stm_unique_id_callback(self,sbp_msg):
     self.unique_id_returned = True
