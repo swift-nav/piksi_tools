@@ -259,7 +259,11 @@ def main():
    # Delete args used in main() before calling unittest.main()
   sys.argv[1:] = args.unittest_args
 
-  unittest.main()
+  # Don't run if this is running in Travis-CI, as it requires a physical
+  # Piksi connected on a COM port to test with.
+  import os
+  if os.environ.get('TRAVIS') is not None:
+    unittest.main()
 
 if __name__ == "__main__":
   main()
