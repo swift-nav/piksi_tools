@@ -227,91 +227,91 @@ class TestBootloader(unittest.TestCase):
             with Timeout(250) as timeout:
               piksi_flash.write_ihx(NAP_FW)
 
-#  def test_program_btldr(self):
-#    """ Test programming the bootloader once its sector is locked. """
-#    self.set_btldr_mode(PORT1)
-#    with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
-#      with Handler(driver.read, driver.write) as link:
-#        link.start()
-#        with Bootloader(link) as piksi_bootloader:
-#          piksi_bootloader.wait_for_handshake()
-#          with flash.Flash(link, flash_type='STM', sbp_version=piksi_bootloader.version) \
-#              as piksi_flash:
-#            # Make sure the bootloader sector is locked.
-#            piksi_flash.lock_sector(0)
-#            # Make sure the address to test isn't already programmed.
-#            piksi_flash.read(0x08003FFF, 1)
-#            waiting_for_read = piksi_flash.get_n_queued_ops() > 0
-#            while waiting_for_read:
-#              waiting_for_read = piksi_flash.get_n_queued_ops() > 0
-#            byte_read = piksi_flash._read_callback_ihx.gets(0x08003FFF, 1)
-#            self.assertEqual('\xFF', byte_read,
-#                             "Address to program is already programmed")
-#            # Attempt to write 0x00 to last address of the sector.
-#            piksi_flash.program(0x08003FFF, '\x00')
-#            waiting_for_read = piksi_flash.get_n_queued_ops() > 0
-#            while waiting_for_read:
-#              waiting_for_read = piksi_flash.get_n_queued_ops() > 0
-#            byte_read = piksi_flash._read_callback_ihx.gets(0x08003FFF, 1)
-#            self.assertEqual('\xFF', byte_read,
-#                             "Bootloader sector was programmed")
-#
-#  def test_erase_btldr(self):
-#    """ Test erasing the bootloader once its sector is locked. """
-#    pass
-#
-#  def test_set_btldr_mode_wrong_sender_id(self):
-#    """
-#    Test setting Piksi into bootloader mode with an incorrect sender ID
-#    (should fail).
-#    """
-#    pass
-#
-#  """ Test flashing using an incorrect sender ID (should fail). """
-#  def test_flashing_wrong_sender_id(self):
-#    pass
-#
-#  """
-#  Test if two Piksies can set eachother into bootloader mode (should fail).
-#  """
-#  def test_two_piksies_btldr_mode(self):
-#    if self.link2 == None:
-#      return
-#
-#  """ Test if two Piksies can simultaneously bootload. """
-#  def test_two_piksies_simultaneous_bootloading(self):
-#    if self.link2 == None:
-#      return
-#
-#  """
-#  Test if queuing too many operations causes a UART RX buffer overflow when
-#  another Piksi is sending data via another UART (should fail).
-#  """
-#  def test_uart_rx_buffer_overflow(self):
-#    if self.link2 == None:
-#      return
-#
-#  """ Test if flashing Piksi is redundant to SBP packet drops. """
-#  def test_packet_drop(self):
-#    pass
-#
-#  """ Test if we can lock / unlock sectors. """
-#  def test_sector_lock_unlock(self):
-#    pass
-#
-#  """ Test if we can recover from a reset while flashing. """
-#  def test_recover_from_reset(self):
-#    pass
-#
-#  """
-#  Test if we can recover from aborting the bootloader script while flashing.
-#  """
-#  def test_recover_from_abort(self):
-#    pass
-#
-#  """ Test writing an invalid firmware file and see if device will run it. """
-#  def test_invalid_firmware(self):
-#    pass
+  def test_program_btldr(self):
+    """ Test programming the bootloader once its sector is locked. """
+    self.set_btldr_mode(PORT1)
+    with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
+      with Handler(driver.read, driver.write) as link:
+        link.start()
+        with Bootloader(link) as piksi_bootloader:
+          piksi_bootloader.wait_for_handshake()
+          with flash.Flash(link, flash_type='STM', sbp_version=piksi_bootloader.version) \
+              as piksi_flash:
+            # Make sure the bootloader sector is locked.
+            piksi_flash.lock_sector(0)
+            # Make sure the address to test isn't already programmed.
+            piksi_flash.read(0x08003FFF, 1)
+            waiting_for_read = piksi_flash.get_n_queued_ops() > 0
+            while waiting_for_read:
+              waiting_for_read = piksi_flash.get_n_queued_ops() > 0
+            byte_read = piksi_flash._read_callback_ihx.gets(0x08003FFF, 1)
+            self.assertEqual('\xFF', byte_read,
+                             "Address to program is already programmed")
+            # Attempt to write 0x00 to last address of the sector.
+            piksi_flash.program(0x08003FFF, '\x00')
+            waiting_for_read = piksi_flash.get_n_queued_ops() > 0
+            while waiting_for_read:
+              waiting_for_read = piksi_flash.get_n_queued_ops() > 0
+            byte_read = piksi_flash._read_callback_ihx.gets(0x08003FFF, 1)
+            self.assertEqual('\xFF', byte_read,
+                             "Bootloader sector was programmed")
+
+  def test_erase_btldr(self):
+    """ Test erasing the bootloader once its sector is locked. """
+    pass
+
+  def test_set_btldr_mode_wrong_sender_id(self):
+    """
+    Test setting Piksi into bootloader mode with an incorrect sender ID
+    (should fail).
+    """
+    pass
+
+  """ Test flashing using an incorrect sender ID (should fail). """
+  def test_flashing_wrong_sender_id(self):
+    pass
+
+  """
+  Test if two Piksies can set eachother into bootloader mode (should fail).
+  """
+  def test_two_piksies_btldr_mode(self):
+    if self.link2 == None:
+      return
+
+  """ Test if two Piksies can simultaneously bootload. """
+  def test_two_piksies_simultaneous_bootloading(self):
+    if self.link2 == None:
+      return
+
+  """
+  Test if queuing too many operations causes a UART RX buffer overflow when
+  another Piksi is sending data via another UART (should fail).
+  """
+  def test_uart_rx_buffer_overflow(self):
+    if self.link2 == None:
+      return
+
+  """ Test if flashing Piksi is redundant to SBP packet drops. """
+  def test_packet_drop(self):
+    pass
+
+  """ Test if we can lock / unlock sectors. """
+  def test_sector_lock_unlock(self):
+    pass
+
+  """ Test if we can recover from a reset while flashing. """
+  def test_recover_from_reset(self):
+    pass
+
+  """
+  Test if we can recover from aborting the bootloader script while flashing.
+  """
+  def test_recover_from_abort(self):
+    pass
+
+  """ Test writing an invalid firmware file and see if device will run it. """
+  def test_invalid_firmware(self):
+    pass
 
 def get_args():
   """
