@@ -262,6 +262,8 @@ def main():
   # Don't run if this is running in Travis-CI, as it requires a physical
   # Piksi connected on a COM port to test with.
   import os
+  print "os.environ.get('TRAVIS'):", os.environ.get('TRAVIS')
+  print "type(os.environ.get('TRAVIS')):", type(os.environ.get('TRAVIS'))
   if os.environ.get('TRAVIS') is not None:
     unittest.main()
 
