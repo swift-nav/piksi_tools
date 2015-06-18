@@ -20,7 +20,7 @@ from piksi_tools import serial_link
 from piksi_tools import flash
 from piksi_tools.bootload import Bootloader
 from piksi_tools.heartbeat import Heartbeat
-from piksi_tools.utils import Timeout, setup_piksi
+from piksi_tools.utils import *
 from piksi_tools.console.update_downloader import UpdateDownloader
 
 from sbp.client.handler import Handler
@@ -39,7 +39,7 @@ STM_FW_URL = \
   "http://downloads.swiftnav.com/piksi_v2.3.1/stm_fw/piksi_firmware_v0.17.hex"
 NAP_FW_URL = \
   "http://downloads.swiftnav.com/piksi_v2.3.1/nap_fw/swift_nap_v0.13.hex"
-with Timeout(30) as timeout:
+with Timeout(TIMEOUT_FW_DOWNLOAD) as timeout:
   update_downloader = UpdateDownloader()
   if VERBOSE: print "Downloading STM firmware"
   STM_FW = IntelHex(update_downloader._download_file_from_url(STM_FW_URL))
@@ -74,7 +74,7 @@ class TestBootloader(unittest.TestCase):
     # know what state Piksi is in.
     with Bootloader(handler) as piksi_bootloader:
       with Heartbeat(handler) as heartbeat:
-        with Timeout(10) as timeout:
+        with Timeout(TIMEOUT_HANDSHAKE) as timeout:
           while not heartbeat.received and not piksi_bootloader.handshake_received:
             time.sleep(0.1)
         # If Piksi is in the application, reset it into the bootloader.
@@ -82,7 +82,7 @@ class TestBootloader(unittest.TestCase):
           handler.send(SBP_MSG_RESET, "")
 
       # Set Piksi into bootloader mode.
-      with Timeout(10) as timeout:
+      with Timeout(TIMEOUT_HANDSHAKE) as timeout:
         piksi_bootloader.wait_for_handshake()
       piksi_bootloader.reply_handshake()
 
@@ -99,7 +99,7 @@ class TestBootloader(unittest.TestCase):
           # this a few times.
           for i in range(10):
             time.sleep(1)
-            with Timeout(10) as timeout:
+            with Timeout(TIMEOUT_HANDSHAKE) as timeout:
               piksi_bootloader.wait_for_handshake()
 
   def test_flash_stm_firmware(self):
@@ -110,11 +110,11 @@ class TestBootloader(unittest.TestCase):
         self.set_btldr_mode(link)
 
         with Bootloader(link) as piksi_bootloader:
-          with Timeout(10) as timeout:
+          with Timeout(TIMEOUT_HANDSHAKE) as timeout:
             piksi_bootloader.wait_for_handshake()
           with flash.Flash(link, flash_type='STM', sbp_version=piksi_bootloader.version) \
               as piksi_flash:
-            with Timeout(130) as timeout:
+            with Timeout(TIMEOUT_WRITE_STM) as timeout:
               piksi_flash.write_ihx(STM_FW)
 
   def test_flash_nap_firmware(self):
@@ -125,11 +125,11 @@ class TestBootloader(unittest.TestCase):
         self.set_btldr_mode(link)
 
         with Bootloader(link) as piksi_bootloader:
-          with Timeout(10) as timeout:
+          with Timeout(TIMEOUT_HANDSHAKE) as timeout:
             piksi_bootloader.wait_for_handshake()
           with flash.Flash(link, flash_type='M25', sbp_version=piksi_bootloader.version) \
               as piksi_flash:
-            with Timeout(250) as timeout:
+            with Timeout(TIMEOUT_WRITE_NAP) as timeout:
               piksi_flash.write_ihx(NAP_FW)
 
   def test_program_btldr(self):
