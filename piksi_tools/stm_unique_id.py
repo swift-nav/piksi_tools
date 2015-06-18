@@ -44,6 +44,10 @@ class STMUniqueID(object):
     self.link.remove_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_DEVICE)
 
   def receive_stm_unique_id_callback(self,sbp_msg):
+    """
+    Registered as a callback for the Heartbeat message
+    with sbp.client.handler.Handler.
+    """
     self.unique_id = struct.unpack('<12B',sbp_msg.payload)
     self.unique_id_returned = True
 
@@ -88,7 +92,7 @@ def main():
   baud = args.baud[0]
   # Driver with context
   with serial_link.get_driver(args.ftdi, port, baud) as driver:
-    with Handler(driver.read, driver.write) as link:=
+    with Handler(driver.read, driver.write) as link:
       with STMUniqueID(link) as stm_unique_id:
         unique_id = stm_unique_id.get_id()
       print "STM Unique ID =", "0x" + ''.join(["%02x" % (b) for b in unique_id])
