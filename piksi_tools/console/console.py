@@ -237,7 +237,6 @@ class SwiftConsole(HasTraits):
       self.link.add_callback(self.print_message_callback, SBP_MSG_PRINT)
       self.link.add_callback(self.debug_var_callback, SBP_MSG_DEBUG_VAR)
       self.link.add_callback(self.ext_event_callback, SBP_MSG_EXT_EVENT)
-      self.link.start()
 
       settings_read_finished_functions = []
 
