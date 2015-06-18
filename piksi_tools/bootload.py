@@ -65,20 +65,20 @@ class Bootloader():
 
   def _deprecated_callback(self, sbp_msg):
     """ Bootloader handshake for deprecated message ID. """
-    hs = MsgBootloaderHandshakeDeprecated(sbp_msg)
-    if len(hs.handshake)==1 and hs.handshake[0]==0:
+    hs_device = MsgBootloaderHandshakeDeprecated(sbp_msg)
+    if len(hs_device.handshake)==1 and hs_device.handshake[0]==0:
       # == v0.1 of the bootloader, returns hardcoded version number 0.
       self.version = "v0.1"
     else:
       # > v0.1 of the bootloader, returns git commit string.
-      self.version = ''.join([chr(i) for i in hs.handshake])
+      self.version = ''.join([chr(i) for i in hs_device.handshake])
     self.handshake_received = True
 
   def _handshake_callback(self, sbp_msg):
     """ Bootloader handshake callback. """
-    hs = MsgBootloaderHandshakeDevice(sbp_msg)
-    self.version = hs.version
-    self.sbp_version = ((hs.flags >> 8) & 0xF, hs.flags & 0xF)
+    hs_device = MsgBootloaderHandshakeDevice(sbp_msg)
+    self.version = hs_device.version
+    self.sbp_version = ((hs_device.flags >> 8) & 0xF, hs_device.flags & 0xF)
     self.handshake_received = True
 
   def wait_for_handshake(self, timeout=None):
@@ -113,13 +113,14 @@ class Bootloader():
     """
     # < 0.45 of SBP protocol, reuse single handshake message.
     if self.sbp_version < (0, 45):
-      self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED, '\x00')
+      hs_host = MsgBootloaderHandshakeDeprecated(handshake='\x00')
     else:
-      self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_HOST, '\x00')
+      hs_host = MsgBootloaderHandshakeHost(handshake='\x00')
+    self.link.send_msg(hs_host)
 
   def jump_to_app(self):
     """ Request Piksi bootloader jump to application. """
-    self.link.send(SBP_MSG_BOOTLOADER_JUMP_TO_APP, '\x00')
+    self.link.send_msg(MsgBootloaderJumpToApp(jump='\x00'))
 
 def get_args():
   """
