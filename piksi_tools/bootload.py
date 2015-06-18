@@ -63,13 +63,14 @@ class Bootloader():
     self.link.remove_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_RESP)
 
   def _deprecated_callback(self, sbp_msg):
-    """ Bootloader handshake callback for deprecated message ID. """
-    if len(sbp_msg.payload)==1 and struct.unpack('B', sbp_msg.payload[0])==0:
+    """ Bootloader handshake for deprecated message ID. """
+    hs = MsgBootloaderHandshakeDeprecated(sbp_msg)
+    if len(hs.handshake)==1 and hs.handshake[0]==0:
       # == v0.1 of the bootloader, returns hardcoded version number 0.
       self.version = "v0.1"
     else:
       # > v0.1 of the bootloader, returns git commit string.
-      self.version = sbp_msg.payload[:]
+      self.version = ''.join([chr(i) for i in hs.handshake])
     self.handshake_received = True
 
   def _handshake_callback(self, sbp_msg):
