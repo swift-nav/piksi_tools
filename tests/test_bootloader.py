@@ -20,12 +20,12 @@ from intelhex import IntelHex
 from piksi_tools import serial_link
 from piksi_tools import flash
 from piksi_tools.bootload import Bootloader
+from piksi_tools.heartbeat import Heartbeat
 from piksi_tools.console.update_downloader import UpdateDownloader
 
 from sbp.client.handler import Handler
 
 from sbp.piksi  import SBP_MSG_RESET
-from sbp.system import SBP_MSG_HEARTBEAT
 
 # VCP to communicate with Piksi Under Test.
 PORT1 = None
@@ -41,25 +41,6 @@ NAP_FW_URL = \
   "http://downloads.swiftnav.com/piksi_v2.3.1/nap_fw/swift_nap_v0.13.hex"
 STM_FW = None
 NAP_FW = None
-
-class Heartbeat(object):
-  """
-  Handle receiving heartbeat messages from Piksi. If we receive a heartbeat
-  from Piksi, we know that Piksi is in the application firmware.
-  """
-  def __init__(self, link):
-    self.received = False
-    self.link = link
-    self.link.add_callback(self.heartbeat_callback, SBP_MSG_HEARTBEAT)
-
-  def __enter__(self):
-    return self
-
-  def __exit__(self, *args):
-    self.link.remove_callback(self.heartbeat_callback, SBP_MSG_HEARTBEAT)
-
-  def heartbeat_callback(self, sbp_msg):
-    self.received = True
 
 def timeout_handler(signum, frame):
   raise Exception('Timeout handler called')

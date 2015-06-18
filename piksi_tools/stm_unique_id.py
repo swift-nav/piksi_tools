@@ -14,33 +14,42 @@ import struct
 import sys
 import serial_link
 
-from sbp.flash          import *
-from sbp.system         import *
+from piksi_tools.heartbeat import Heartbeat
+
+from sbp.flash          import SBP_MSG_STM_UNIQUE_ID_DEVICE
 from sbp.client.handler import *
 
-class STMUniqueID:
+class STMUniqueID(object):
+  """
+  Retrieve the STM Unique ID from Piksi.
+  """
 
   def __init__(self, link):
-    self.heartbeat_received = False
+    """
+    Parameters
+    ==========
+    link : sbp.client.handler.Handler
+      link to register Heartbeat message callback with
+    """
     self.unique_id_returned = False
-    # SBP version is unset in older devices.
-    self.sbp_version = (0, 0)
     self.unique_id = None
     self.link = link
-    link.add_callback(self.receive_heartbeat, SBP_MSG_HEARTBEAT)
-    link.add_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_RESP)
+    self.heartbeat = Heartbeat(link)
+    link.add_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_DEVICE)
 
-  def receive_heartbeat(self, sbp_msg):
-    msg = MsgHeartbeat(sbp_msg)
-    self.sbp_version = ((msg.flags >> 16) & 0xFF, (msg.flags >> 8) & 0xFF)
-    self.heartbeat_received = True
+  def __enter__(self):
+    return self
+
+  def __exit__(self, *args):
+    self.link.remove_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_DEVICE)
 
   def receive_stm_unique_id_callback(self,sbp_msg):
     self.unique_id = struct.unpack('<12B',sbp_msg.payload)
     self.unique_id_returned = True
 
   def get_id(self):
-    while not self.heartbeat_received:
+    """ Retrieve the STM Unique ID. Blocks until it has received the ID. """
+    while not self.heartbeat.received:
       time.sleep(0.1)
     self.unique_id_returned = False
     self.unique_id = None
@@ -79,8 +88,9 @@ def main():
   baud = args.baud[0]
   # Driver with context
   with serial_link.get_driver(args.ftdi, port, baud) as driver:
-    with Handler(driver.read, driver.write) as link:
-      unique_id = STMUniqueID(link).get_id()
+    with Handler(driver.read, driver.write) as link:=
+      with STMUniqueID(link) as stm_unique_id:
+        unique_id = stm_unique_id.get_id()
       print "STM Unique ID =", "0x" + ''.join(["%02x" % (b) for b in unique_id])
 
 if __name__ == "__main__":
