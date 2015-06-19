@@ -25,7 +25,7 @@ from version import VERSION as CONSOLE_VERSION
 
 # Shut chaco up for now
 import warnings
-import time
+
 warnings.simplefilter(action = "ignore", category = FutureWarning)
 
 def get_args():
