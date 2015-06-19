@@ -14,6 +14,7 @@ import time
 
 from piksi_tools.bootload import Bootloader
 from piksi_tools.heartbeat import Heartbeat
+from sbp.system import SBP_MSG_HEARTBEAT
 from piksi_tools.flash import Flash
 
 # Seconds to use for various timeouts.
@@ -74,13 +75,18 @@ def set_btldr_mode(handler):
   # Wait until we receive a heartbeat or bootloader handshake so we
   # know what state Piksi is in.
   with Bootloader(handler) as piksi_bootloader:
-    with Heartbeat(handler) as heartbeat:
-      with Timeout(TIMEOUT_BOOT) as timeout:
-        while not heartbeat.received and not piksi_bootloader.handshake_received:
-          time.sleep(0.1)
-      # If Piksi is in the application, reset it into the bootloader.
-      if heartbeat.received:
-        handler.send(SBP_MSG_RESET, "")
+
+    heartbeat = Heartbeat()
+    handler.add_callback(heartbeat, SBP_MSG_HEARTBEAT)
+
+    with Timeout(TIMEOUT_BOOT) as timeout:
+      while not heartbeat.received and not piksi_bootloader.handshake_received:
+        time.sleep(0.1)
+    # If Piksi is in the application, reset it into the bootloader.
+    if heartbeat.received:
+      handler.send(SBP_MSG_RESET, "")
+
+    handler.remove_callback(heartbeat, SBP_MSG_HEARTBEAT)
 
     # Set Piksi into bootloader mode.
     with Timeout(TIMEOUT_BOOT) as timeout:
@@ -110,18 +116,22 @@ def setup_piksi(handler, stm_fw, nap_fw, verbose=False):
   # know what state Piksi is in.
   with Bootloader(handler) as piksi_bootloader:
 
-    with Heartbeat(handler) as heartbeat:
-      # Throw an exception if a heartbeat or handshake
-      # is not received for 5 seconds.
-      with Timeout(TIMEOUT_BOOT) as timeout:
-        if verbose: print "Waiting for Heartbeat or Bootloader Handshake"
-        while not heartbeat.received and not piksi_bootloader.handshake_received:
-          time.sleep(0.1)
-      # If Piksi is in the application, reset it into the bootloader.
-      if heartbeat.received:
-        if verbose: print "Received Heartbeat, resetting Piksi"
-        if verbose: print "Resetting Piksi"
-        handler.send(SBP_MSG_RESET, "")
+    heartbeat = Heartbeat()
+    handler.add_callback(heartbeat, SBP_MSG_HEARTBEAT)
+
+    # Throw an exception if a heartbeat or handshake
+    # is not received for 5 seconds.
+    with Timeout(TIMEOUT_BOOT) as timeout:
+      if verbose: print "Waiting for Heartbeat or Bootloader Handshake"
+      while not heartbeat.received and not piksi_bootloader.handshake_received:
+        time.sleep(0.1)
+    # If Piksi is in the application, reset it into the bootloader.
+    if heartbeat.received:
+      if verbose: print "Received Heartbeat, resetting Piksi"
+      if verbose: print "Resetting Piksi"
+      handler.send(SBP_MSG_RESET, "")
+
+    handler.remove_callback(heartbeat, SBP_MSG_HEARTBEAT)
 
     with Timeout(TIMEOUT_BOOT) as timeout:
       piksi_bootloader.wait_for_handshake()

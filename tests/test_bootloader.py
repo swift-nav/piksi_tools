@@ -20,6 +20,7 @@ from piksi_tools import serial_link
 from piksi_tools.flash import Flash
 from piksi_tools.bootload import Bootloader
 from piksi_tools.heartbeat import Heartbeat
+from sbp.system import SBP_MSG_HEARTBEAT
 from piksi_tools.utils import *
 from piksi_tools.console.update_downloader import UpdateDownloader
 
@@ -168,9 +169,14 @@ class TestBootloader(unittest.TestCase):
         # If we succesfully jump to the application, we should receive
         # Heartbeat messages.
         with Timeout(TIMEOUT_BOOT) as timeout:
-          with Heartbeat(link) as heartbeat:
-            while not heartbeat.received:
-              time.sleep(0.1)
+
+          heartbeat = Heartbeat()
+          handler.add_callback(heartbeat, SBP_MSG_HEARTBEAT)
+
+          while not heartbeat.received:
+            time.sleep(0.1)
+
+          handler.remove_callback(heartbeat, SBP_MSG_HEARTBEAT)
 
   @unittest.skip("Not implemented yet")
   def test_set_btldr_mode_wrong_sender_id(self):
