@@ -27,8 +27,11 @@ TIMEOUT_LOCK_SECTOR    = 5
 TIMEOUT_READ_STM       = 5
 
 
+class TimeoutError(Exception):
+  pass
+
 def timeout_handler(signum, frame):
-  raise Exception('Timeout handler called')
+  raise TimeoutError
 
 class Timeout(object):
   """
@@ -57,6 +60,32 @@ class Timeout(object):
     """ Cancel scheduled Exception. """
     signal.alarm(0)
 
+def set_btldr_mode(handler):
+  """
+  Reset Piksi (if necessary) and handshake with bootloader. Will raise a
+  TimeoutError if operations appear to have hung.
+
+  Parameters
+  ==========
+  handler : sbp.client.handler.Handler
+    handler to send/receive messages from/to Piksi.
+  """
+
+  # Wait until we receive a heartbeat or bootloader handshake so we
+  # know what state Piksi is in.
+  with Bootloader(handler) as piksi_bootloader:
+    with Heartbeat(handler) as heartbeat:
+      with Timeout(TIMEOUT_BOOT) as timeout:
+        while not heartbeat.received and not piksi_bootloader.handshake_received:
+          time.sleep(0.1)
+      # If Piksi is in the application, reset it into the bootloader.
+      if heartbeat.received:
+        handler.send(SBP_MSG_RESET, "")
+
+    # Set Piksi into bootloader mode.
+    with Timeout(TIMEOUT_BOOT) as timeout:
+      piksi_bootloader.wait_for_handshake()
+    piksi_bootloader.reply_handshake()
 
 def setup_piksi(handler, stm_fw, nap_fw, verbose=False):
   """
