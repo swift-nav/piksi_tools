@@ -16,6 +16,7 @@ from piksi_tools.flash import Flash
 from piksi_tools.timeout import *
 from piksi_tools.heartbeat import Heartbeat
 from sbp.system import SBP_MSG_HEARTBEAT
+from sbp.piksi import SBP_MSG_RESET
 
 def set_btldr_mode(handler):
   """
