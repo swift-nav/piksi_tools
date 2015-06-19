@@ -14,6 +14,8 @@ import time
 from piksi_tools.bootload import Bootloader
 from piksi_tools.flash import Flash
 from piksi_tools.timeout import *
+from piksi_tools.heartbeat import Heartbeat
+from sbp.system import SBP_MSG_HEARTBEAT
 
 def set_btldr_mode(handler):
   """
