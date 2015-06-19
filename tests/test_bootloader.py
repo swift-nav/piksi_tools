@@ -40,7 +40,6 @@ NAP_FW_URL = \
 STM_FW = None
 NAP_FW = None
 
-
 # Skip TestBootloader class if running in Travis-CI, as we need to be
 # connected to a Piksi over a COM port.
 import os
@@ -58,38 +57,12 @@ class TestBootloader(unittest.TestCase):
       with Handler(driver.read, driver.write) as link:
         setup_piksi(link, STM_FW, NAP_FW, VERBOSE)
 
-  def set_btldr_mode(self, handler):
-    """
-    Reset Piksi and handshake with bootloader.
-
-    Parameters
-    ==========
-    handler : sbp.client.handler.Handler
-      handler to send/receive messages from/to Piksi.
-    """
-
-    # Wait until we receive a heartbeat or bootloader handshake so we
-    # know what state Piksi is in.
-    with Bootloader(handler) as piksi_bootloader:
-      with Heartbeat(handler) as heartbeat:
-        with Timeout(TIMEOUT_BOOT) as timeout:
-          while not heartbeat.received and not piksi_bootloader.handshake_received:
-            time.sleep(0.1)
-        # If Piksi is in the application, reset it into the bootloader.
-        if heartbeat.received:
-          handler.send(SBP_MSG_RESET, "")
-
-      # Set Piksi into bootloader mode.
-      with Timeout(TIMEOUT_BOOT) as timeout:
-        piksi_bootloader.wait_for_handshake()
-      piksi_bootloader.reply_handshake()
-
   def test_set_btldr_mode(self):
     """ Test setting Piksi into bootloader mode. """
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
 
-        self.set_btldr_mode(link)
+        set_btldr_mode(link)
 
         with Bootloader(link) as piksi_bootloader:
           # If the Piksi bootloader successfully received our handshake, we
@@ -105,7 +78,7 @@ class TestBootloader(unittest.TestCase):
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
 
-        self.set_btldr_mode(link)
+        set_btldr_mode(link)
 
         with Bootloader(link) as piksi_bootloader:
           with Timeout(TIMEOUT_BOOT) as timeout:
@@ -120,7 +93,7 @@ class TestBootloader(unittest.TestCase):
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
 
-        self.set_btldr_mode(link)
+        set_btldr_mode(link)
 
         with Bootloader(link) as piksi_bootloader:
           with Timeout(TIMEOUT_BOOT) as timeout:
@@ -135,7 +108,7 @@ class TestBootloader(unittest.TestCase):
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
 
-        self.set_btldr_mode(link)
+        set_btldr_mode(link)
 
         with Bootloader(link) as piksi_bootloader:
           piksi_bootloader.wait_for_handshake()
@@ -161,7 +134,7 @@ class TestBootloader(unittest.TestCase):
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
 
-        self.set_btldr_mode(link)
+        set_btldr_mode(link)
 
         with Bootloader(link) as piksi_bootloader:
           piksi_bootloader.wait_for_handshake()
@@ -187,7 +160,7 @@ class TestBootloader(unittest.TestCase):
         # Make sure Piksi has valid STM / NAP firmware, and set into
         # bootloader mode.
         setup_piksi(link, STM_FW, NAP_FW, VERBOSE)
-        self.set_btldr_mode(link)
+        set_btldr_mode(link)
 
         with Bootloader(link) as piksi_bootloader:
           piksi_bootloader.jump_to_app()
