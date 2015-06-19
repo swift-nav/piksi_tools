@@ -47,7 +47,11 @@ with Timeout(TIMEOUT_FW_DOWNLOAD) as timeout:
   NAP_FW = IntelHex(update_downloader._download_file_from_url(NAP_FW_URL))
   if VERBOSE: print ""
 
-
+# Skip TestBootloader class if running in Travis-CI, as we need to be
+# connected to a Piksi over a COM port.
+import os
+@unittest.skipIf(os.environ.get('TRAVIS'),
+                 "Running in Travis, skipping TestBooloader")
 class TestBootloader(unittest.TestCase):
   """
   Piksi bootloader tests.
@@ -261,11 +265,7 @@ def main():
 
   # Don't run if this is running in Travis-CI, as it requires a physical
   # Piksi connected on a COM port to test with.
-  import os
-  print "os.environ.get('TRAVIS'):", os.environ.get('TRAVIS')
-  print "type(os.environ.get('TRAVIS')):", type(os.environ.get('TRAVIS'))
-  if os.environ.get('TRAVIS') is not None:
-    unittest.main()
+  unittest.main()
 
 if __name__ == "__main__":
   main()
