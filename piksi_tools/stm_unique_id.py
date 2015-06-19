@@ -15,6 +15,7 @@ import sys
 import serial_link
 
 from piksi_tools.heartbeat import Heartbeat
+from sbp.system import SBP_MSG_HEARTBEAT
 
 from sbp.flash          import SBP_MSG_STM_UNIQUE_ID_DEVICE
 from sbp.client.handler import *
@@ -34,13 +35,15 @@ class STMUniqueID(object):
     self.unique_id_returned = False
     self.unique_id = None
     self.link = link
-    self.heartbeat = Heartbeat(link)
+    self.heartbeat = Heartbeat()
+    link.add_callback(self.heartbeat, SBP_MSG_HEARTBEAT)
     link.add_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_DEVICE)
 
   def __enter__(self):
     return self
 
   def __exit__(self, *args):
+    self.link.remove_callback(self.heartbeat, SBP_MSG_HEARTBEAT)
     self.link.remove_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_DEVICE)
 
   def receive_stm_unique_id_callback(self,sbp_msg):
