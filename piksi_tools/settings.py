@@ -12,14 +12,14 @@
 import serial_link
 import time
 import struct
-import json
+import yaml
 
 from sbp.client.handler import *
 from sbp.settings       import *
 from sbp.msg            import *
 from sbp.logging        import SBP_MSG_PRINT
 
-SETTINGS_FILENAME = "settings.json"
+SETTINGS_FILENAME = "settings.yaml"
 
 class Settings(object):
   """
@@ -81,7 +81,7 @@ def main():
     with Handler(driver.read, driver.write) as link:
       settings = Settings(link).settings
       with open(settings_filename, 'w') as settings_file:
-        json.dump(settings, settings_file, sort_keys=True, indent=2, separators=(',', ': '))
+        yaml.dump(settings, settings_file, default_flow_style=False)
 
 if __name__ == "__main__":
   main()
