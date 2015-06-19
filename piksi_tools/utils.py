@@ -64,7 +64,7 @@ class Timeout(object):
 def set_btldr_mode(handler):
   """
   Reset Piksi (if necessary) and handshake with bootloader. Will raise a
-  TimeoutError if operations appear to have hung.
+  TimeoutError if Piksi responses appear to have hung.
 
   Parameters
   ==========
@@ -97,7 +97,8 @@ def setup_piksi(handler, stm_fw, nap_fw, verbose=False):
   """
   Set Piksi into a known state (STM / NAP firmware). Erases entire STM flash
   (except for bootloader sector). Requires Piksi have a valid STM firmware
-  sending heartbeat messages and with the reset callback registered.
+  sending heartbeat messages and with the reset callback registered. Will raise
+  a TimeoutError if Piksi responses appear to have hung.
 
   Parameters
   ==========
