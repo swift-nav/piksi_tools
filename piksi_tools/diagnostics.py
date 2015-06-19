@@ -28,7 +28,8 @@ class Diagnostics(object):
   The :class:`Diagnostics` class collects devices diagnostics.
   """
   def __init__(self, link):
-    self.settings = {}
+    self.diagnostics = {}
+    self.diagnostics['settings'] = {}
     self.settings_received = False
     self.link = link
     self.link.add_callback(self._read_callback, SBP_MSG_SETTINGS_READ_BY_INDEX)
@@ -41,9 +42,9 @@ class Diagnostics(object):
       self.settings_received = True
     else:
       section, setting, value, format_type = sbp_msg.payload[2:].split('\0')[:4]
-      if not self.settings.has_key(section):
-        self.settings[section] = {}
-      self.settings[section][setting] = value
+      if not self.diagnostics['settings'].has_key(section):
+        self.diagnostics['settings'][section] = {}
+      self.diagnostics['settings'][section][setting] = value
 
       index = struct.unpack('<H', sbp_msg.payload[:2])[0]
       self.link.send_msg(MsgSettingsReadByIndex(index=index+1))
@@ -79,9 +80,9 @@ def main():
   # Driver with context
   with serial_link.get_driver(args.ftdi, port, baud) as driver:
     with Handler(driver.read, driver.write) as link:
-      settings = Diagnostics(link).settings
+      diagnostics = Diagnostics(link).diagnostics
       with open(diagnostics_filename, 'w') as diagnostics_file:
-        yaml.dump(settings, diagnostics_file, default_flow_style=False)
+        yaml.dump(diagnostics, diagnostics_file, default_flow_style=False)
 
 if __name__ == "__main__":
   main()
