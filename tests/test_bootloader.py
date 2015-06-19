@@ -22,6 +22,7 @@ from piksi_tools.bootload import Bootloader
 from piksi_tools.heartbeat import Heartbeat
 from sbp.system import SBP_MSG_HEARTBEAT
 from piksi_tools.utils import *
+from piksi_tools.timeout import *
 from piksi_tools.console.update_downloader import UpdateDownloader
 
 from sbp.client.handler import Handler

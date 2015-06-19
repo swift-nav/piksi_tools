@@ -9,62 +9,16 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-import signal
 import time
 
 from piksi_tools.bootload import Bootloader
-from piksi_tools.heartbeat import Heartbeat
-from sbp.system import SBP_MSG_HEARTBEAT
 from piksi_tools.flash import Flash
-
-# Seconds to use for various timeouts.
-TIMEOUT_FW_DOWNLOAD    = 30
-TIMEOUT_BOOT           = 10
-TIMEOUT_ERASE_STM      = 30
-TIMEOUT_PROGRAM_STM    = 100
-TIMEOUT_WRITE_STM      = TIMEOUT_ERASE_STM + TIMEOUT_PROGRAM_STM
-TIMEOUT_WRITE_NAP      = 250
-TIMEOUT_LOCK_SECTOR    = 5
-TIMEOUT_READ_STM       = 5
-
-
-class TimeoutError(Exception):
-  pass
-
-def timeout_handler(signum, frame):
-  raise TimeoutError
-
-class Timeout(object):
-  """
-  Configurable timeout to raise an Exception after a certain number of seconds.
-
-  Note: Will not work on Windows: uses SIGALRM.
-  """
-
-  def __init__(self, seconds):
-    """
-    Parameters
-    ==========
-    seconds : int
-      Number of seconds before Exception is raised.
-    """
-    signal.signal(signal.SIGALRM, timeout_handler)
-    signal.alarm(seconds)
-
-  def __enter__(self):
-    return self
-
-  def __exit__(self, *args):
-    self.cancel()
-
-  def cancel(self):
-    """ Cancel scheduled Exception. """
-    signal.alarm(0)
+from piksi_tools.timeout import *
 
 def set_btldr_mode(handler):
   """
   Reset Piksi (if necessary) and handshake with bootloader. Will raise a
-  TimeoutError if Piksi responses appear to have hung.
+  timeout.TimeoutError if Piksi responses appear to have hung.
 
   Parameters
   ==========
@@ -98,7 +52,7 @@ def setup_piksi(handler, stm_fw, nap_fw, verbose=False):
   Set Piksi into a known state (STM / NAP firmware). Erases entire STM flash
   (except for bootloader sector). Requires Piksi have a valid STM firmware
   sending heartbeat messages and with the reset callback registered. Will raise
-  a TimeoutError if Piksi responses appear to have hung.
+  a timeout.TimeoutError if Piksi responses appear to have hung.
 
   Parameters
   ==========
