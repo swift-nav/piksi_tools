@@ -19,13 +19,13 @@ from sbp.settings       import *
 from sbp.msg            import *
 from sbp.logging        import SBP_MSG_PRINT
 
-SETTINGS_FILENAME = "settings.yaml"
+DIAGNOSTICS_FILENAME = "diagnostics.yaml"
 
-class Settings(object):
+class Diagnostics(object):
   """
-  Settings
+  Diagnostics
 
-  The :class:`Settings` class collects devices settings.
+  The :class:`Diagnostics` class collects devices diagnostics.
   """
   def __init__(self, link):
     self.settings = {}
@@ -63,9 +63,9 @@ def get_args():
   parser.add_argument("-b", "--baud",
                       default=[serial_link.SERIAL_BAUD], nargs=1,
                       help="specify the baud rate to use.")
-  parser.add_argument("-o", "--settings-filename",
-                      default=[SETTINGS_FILENAME], nargs=1,
-                      help="file to write settings to.")
+  parser.add_argument("-o", "--diagnostics-filename",
+                      default=[DIAGNOSTICS_FILENAME], nargs=1,
+                      help="file to write diagnostics to.")
   return parser.parse_args()
 
 def main():
@@ -75,13 +75,13 @@ def main():
   args = get_args()
   port = args.port[0]
   baud = args.baud[0]
-  settings_filename = args.settings_filename[0]
+  diagnostics_filename = args.diagnostics_filename[0]
   # Driver with context
   with serial_link.get_driver(args.ftdi, port, baud) as driver:
     with Handler(driver.read, driver.write) as link:
-      settings = Settings(link).settings
-      with open(settings_filename, 'w') as settings_file:
-        yaml.dump(settings, settings_file, default_flow_style=False)
+      settings = Diagnostics(link).settings
+      with open(diagnostics_filename, 'w') as diagnostics_file:
+        yaml.dump(settings, diagnostics_file, default_flow_style=False)
 
 if __name__ == "__main__":
   main()
