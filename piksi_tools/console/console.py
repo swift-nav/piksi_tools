@@ -116,6 +116,7 @@ from almanac_view import AlmanacView
 from solution_view import SolutionView
 from baseline_view import BaselineView
 from observation_view import ObservationView
+from sbp_relay_view import SbpRelayView
 from system_monitor_view import SystemMonitorView
 from settings_view import SettingsView
 from update_view import UpdateView
@@ -150,6 +151,7 @@ class SwiftConsole(HasTraits):
   solution_view = Instance(SolutionView)
   baseline_view = Instance(BaselineView)
   observation_view = Instance(ObservationView)
+  sbp_relay_view = Instance(SbpRelayView)
   observation_view_base = Instance(ObservationView)
   system_monitor_view = Instance(SystemMonitorView)
   settings_view = Instance(SettingsView)
@@ -180,11 +182,17 @@ class SwiftConsole(HasTraits):
         ),
         Item('settings_view', style='custom', label='Settings'),
         Item('update_view', style='custom', label='Firmware Update'),
-        Item('system_monitor_view', style='custom', label='System Monitor'),
-        Item(
-          'python_console_env', style='custom',
-          label='Python Console', editor=ShellEditor()
-        ),
+        Tabbed(
+
+          Item('system_monitor_view', style='custom', label='System Monitor'),
+          Item('sbp_relay_view', label='SBP Relay', style='custom',
+               show_label=False),
+
+          Item(
+            'python_console_env', style='custom',
+            label='Python Console', editor=ShellEditor()),
+          label='Advanced',
+          ),
         show_labels=False
       ),
       VGroup(
@@ -252,6 +260,7 @@ class SwiftConsole(HasTraits):
                                               name='Rover', relay=False)
       self.observation_view_base = ObservationView(self.link,
                                               name='Base', relay=True)
+      self.sbp_relay_view = SbpRelayView(self.link)
       self.system_monitor_view = SystemMonitorView(self.link)
 
       self.update_view = UpdateView(self.link, prompt=update)
@@ -276,6 +285,7 @@ class SwiftConsole(HasTraits):
       self.python_console_env.update(self.solution_view.python_console_cmds)
       self.python_console_env.update(self.baseline_view.python_console_cmds)
       self.python_console_env.update(self.observation_view.python_console_cmds)
+      self.python_console_env.update(self.sbp_relay_view.python_console_cmds)
       self.python_console_env.update(self.system_monitor_view.python_console_cmds)
       self.python_console_env.update(self.update_view.python_console_cmds)
       self.python_console_env.update(self.settings_view.python_console_cmds)
