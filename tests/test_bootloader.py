@@ -72,7 +72,7 @@ class TestBootloader(unittest.TestCase):
     # know what state Piksi is in.
     with Bootloader(handler) as piksi_bootloader:
       with Heartbeat(handler) as heartbeat:
-        with Timeout(TIMEOUT_HANDSHAKE) as timeout:
+        with Timeout(TIMEOUT_BOOT) as timeout:
           while not heartbeat.received and not piksi_bootloader.handshake_received:
             time.sleep(0.1)
         # If Piksi is in the application, reset it into the bootloader.
@@ -80,7 +80,7 @@ class TestBootloader(unittest.TestCase):
           handler.send(SBP_MSG_RESET, "")
 
       # Set Piksi into bootloader mode.
-      with Timeout(TIMEOUT_HANDSHAKE) as timeout:
+      with Timeout(TIMEOUT_BOOT) as timeout:
         piksi_bootloader.wait_for_handshake()
       piksi_bootloader.reply_handshake()
 
@@ -97,7 +97,7 @@ class TestBootloader(unittest.TestCase):
           # this a few times.
           for i in range(10):
             time.sleep(1)
-            with Timeout(TIMEOUT_HANDSHAKE) as timeout:
+            with Timeout(TIMEOUT_BOOT) as timeout:
               piksi_bootloader.wait_for_handshake()
 
   def test_flash_stm_firmware(self):
@@ -108,7 +108,7 @@ class TestBootloader(unittest.TestCase):
         self.set_btldr_mode(link)
 
         with Bootloader(link) as piksi_bootloader:
-          with Timeout(TIMEOUT_HANDSHAKE) as timeout:
+          with Timeout(TIMEOUT_BOOT) as timeout:
             piksi_bootloader.wait_for_handshake()
           with Flash(link, flash_type='STM',
                      sbp_version=piksi_bootloader.version) as piksi_flash:
@@ -123,7 +123,7 @@ class TestBootloader(unittest.TestCase):
         self.set_btldr_mode(link)
 
         with Bootloader(link) as piksi_bootloader:
-          with Timeout(TIMEOUT_HANDSHAKE) as timeout:
+          with Timeout(TIMEOUT_BOOT) as timeout:
             piksi_bootloader.wait_for_handshake()
           with Flash(link, flash_type='M25',
                      sbp_version=piksi_bootloader.version) as piksi_flash:
@@ -156,10 +156,48 @@ class TestBootloader(unittest.TestCase):
             self.assertEqual('\xFF', byte_read,
                              "Bootloader sector was programmed")
 
-  @unittest.skip("Not implemented yet")
   def test_erase_btldr(self):
     """ Test erasing the bootloader once its sector is locked. """
-    pass
+    with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
+      with Handler(driver.read, driver.write) as link:
+
+        self.set_btldr_mode(link)
+
+        with Bootloader(link) as piksi_bootloader:
+          piksi_bootloader.wait_for_handshake()
+          with Flash(link, flash_type='STM',
+                     sbp_version=piksi_bootloader.version) as piksi_flash:
+            # Make sure the bootloader sector is locked.
+            with Timeout(TIMEOUT_LOCK_SECTOR) as timeout:
+              piksi_flash.lock_sector(0)
+            # Attempt to erase the sector.
+            piksi_flash.erase_sector(0, warn=False)
+            # Allow time to erase.
+            time.sleep(5)
+            # If the sector was successfully erased, we should timeout here
+            # as the bootloade will stop sending handshakes.
+            with Timeout(TIMEOUT_BOOT) as timeout:
+              piksi_bootloader.wait_for_handshake()
+
+  def test_jump_to_app(self):
+    """ Test that we can jump to the application after programming. """
+    with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
+      with Handler(driver.read, driver.write) as link:
+
+        # Make sure Piksi has valid STM / NAP firmware, and set into
+        # bootloader mode.
+        setup_piksi(link, STM_FW, NAP_FW, VERBOSE)
+        self.set_btldr_mode(link)
+
+        with Bootloader(link) as piksi_bootloader:
+          piksi_bootloader.jump_to_app()
+
+        # If we succesfully jump to the application, we should receive
+        # Heartbeat messages.
+        with Timeout(TIMEOUT_BOOT) as timeout:
+          with Heartbeat(link) as heartbeat:
+            while not heartbeat.received:
+              time.sleep(0.1)
 
   @unittest.skip("Not implemented yet")
   def test_set_btldr_mode_wrong_sender_id(self):
