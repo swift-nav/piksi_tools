@@ -32,20 +32,14 @@ PORT1 = None
 # VCP to communicate with second Piksi connected via UART to Piksi Under Test.
 PORT2 = None
 
-VERBOSE = False
-
-# Firmware to flash in tests.
+# Firmware to use in tests.
 STM_FW_URL = \
   "http://downloads.swiftnav.com/piksi_v2.3.1/stm_fw/piksi_firmware_v0.17.hex"
 NAP_FW_URL = \
   "http://downloads.swiftnav.com/piksi_v2.3.1/nap_fw/swift_nap_v0.13.hex"
-with Timeout(TIMEOUT_FW_DOWNLOAD) as timeout:
-  update_downloader = UpdateDownloader()
-  if VERBOSE: print "Downloading STM firmware"
-  STM_FW = IntelHex(update_downloader._download_file_from_url(STM_FW_URL))
-  if VERBOSE: print "Downloading NAP firmware"
-  NAP_FW = IntelHex(update_downloader._download_file_from_url(NAP_FW_URL))
-  if VERBOSE: print ""
+STM_FW = None
+NAP_FW = None
+
 
 # Skip TestBootloader class if running in Travis-CI, as we need to be
 # connected to a Piksi over a COM port.
@@ -259,6 +253,17 @@ def main():
 
   global VERBOSE
   VERBOSE = args.verbose
+
+  # Download firmware for use in tests.
+  global STM_FW
+  global NAP_FW
+  with Timeout(TIMEOUT_FW_DOWNLOAD) as timeout:
+    update_downloader = UpdateDownloader()
+    if VERBOSE: print "Downloading STM firmware"
+    STM_FW = IntelHex(update_downloader._download_file_from_url(STM_FW_URL))
+    if VERBOSE: print "Downloading NAP firmware"
+    NAP_FW = IntelHex(update_downloader._download_file_from_url(NAP_FW_URL))
+    if VERBOSE: print ""
 
    # Delete args used in main() before calling unittest.main()
   sys.argv[1:] = args.unittest_args
