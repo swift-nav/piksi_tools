@@ -76,6 +76,7 @@ class Bootloader():
         self.version = "Unknown"
     self.handshake_received = True
 
+
   def _handshake_callback(self, sbp_msg):
     """ Bootloader handshake callback. """
     hs_device = MsgBootloaderHandshakeDevice(sbp_msg)
@@ -115,10 +116,10 @@ class Bootloader():
     """
     # < 0.45 of SBP protocol, reuse single handshake message.
     if self.sbp_version < (0, 45):
-      hs_host = MsgBootloaderHandshakeDeprecated(handshake='\x00')
+      self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED, '\x00')
     else:
-      hs_host = MsgBootloaderHandshakeHost(handshake='\x00')
-    self.link.send_msg(hs_host)
+      self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_HOST, '\x00')
+
 
   def jump_to_app(self):
     """ Request Piksi bootloader jump to application. """
