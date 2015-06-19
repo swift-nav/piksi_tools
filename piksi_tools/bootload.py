@@ -72,7 +72,7 @@ class Bootloader():
     else:
       # > v0.1 of the bootloader, returns git commit string.
       self.version = ''.join([chr(i) for i in hs_device.handshake])
-      if self.version = '':
+      if self.version == '':
         self.version = "Unknown"
     self.handshake_received = True
 
