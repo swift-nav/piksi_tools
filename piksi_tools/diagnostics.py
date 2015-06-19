@@ -15,9 +15,11 @@ import struct
 import yaml
 
 from sbp.client.handler import *
+from sbp.bootload       import *
+from sbp.deprecated     import *
+from sbp.piksi          import *
 from sbp.settings       import *
-from sbp.msg            import *
-from sbp.logging        import SBP_MSG_PRINT
+from sbp.system         import *
 
 DIAGNOSTICS_FILENAME = "diagnostics.yaml"
 
@@ -29,15 +31,41 @@ class Diagnostics(object):
   """
   def __init__(self, link):
     self.diagnostics = {}
+    self.diagnostics['versions'] = {}
     self.diagnostics['settings'] = {}
     self.settings_received = False
+    self.heartbeat_received = False
+    self.handshake_received = False
     self.link = link
-    self.link.add_callback(self._read_callback, SBP_MSG_SETTINGS_READ_BY_INDEX)
+    self.link.add_callback(self._settings_callback, SBP_MSG_SETTINGS_READ_BY_INDEX)
+    self.link.add_callback(self._heartbeat_callback, SBP_MSG_HEARTBEAT)
+    self.link.add_callback(self._deprecated_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED)
+    self.link.add_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEVICE)
     self.link.send_msg(MsgSettingsReadByIndex(index=0))
-    while not self.settings_received:
+    while not self.settings_received or not self.heartbeat_received:
+      time.sleep(0.1)
+    self.link.send(SBP_MSG_RESET, '')
+    while not self.handshake_received:
       time.sleep(0.1)
 
-  def _read_callback(self, sbp_msg):
+  def _deprecated_callback(self, sbp_msg):
+    if len(sbp_msg.payload)==1 and struct.unpack('B', sbp_msg.payload[0]) == 0:
+      self.diagnostics['versions']['bootloader'] = "v0.1"
+    else:
+      self.diagnostics['versions']['bootloader'] = sbp_msg.payload
+    self.handshake_received = True
+    self.link.send(SBP_MSG_BOOTLOADER_JUMP_TO_APP, '\x00')
+
+  def _handshake_callback(self, sbp_msg):
+    self.diagnostics['versions']['bootloader'] = MsgBootloaderHandshakeDevice(sbp_msg).version
+    self.handshake_received = True
+    self.link.send(SBP_MSG_BOOTLOADER_JUMP_TO_APP, '\x00')
+
+  def _heartbeat_callback(self, sbp_msg):
+    self.diagnostics['versions']['sbp'] = (MsgHeartbeat(sbp_msg).flags >> 8) & 0xFF
+    self.heartbeat_received = True
+
+  def _settings_callback(self, sbp_msg):
     if not sbp_msg.payload:
       self.settings_received = True
     else:
