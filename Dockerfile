@@ -9,13 +9,7 @@ RUN apt-get update && apt-get -y --force-yes install \
   python-setuptools \
   python-pip \
   python-virtualenv \
-  swig
-
-RUN pip install \
-  'pip>=1.5.6' \
-  'setuptools>=5.3'
-
-RUN apt-get update && apt-get -y --force-yes install \
+  swig \
   libicu-dev \
   libqt4-scripttools \
   python-enable \
@@ -29,6 +23,8 @@ RUN apt-get update && apt-get -y --force-yes install \
   python-software-properties
 
 RUN pip install \
+  'pip>=1.5.6' \
+  'setuptools>=5.3' \
   traits \
   traitsui \
   pyserial \
