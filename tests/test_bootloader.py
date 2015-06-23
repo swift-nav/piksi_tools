@@ -34,6 +34,9 @@ PORT1 = None
 # VCP to communicate with second Piksi connected via UART to Piksi Under Test.
 PORT2 = None
 
+# Level of verbosity in print output.
+VERBOSE = False
+
 # Firmware to use in tests.
 STM_FW_URL = \
   "http://downloads.swiftnav.com/piksi_v2.3.1/stm_fw/piksi_firmware_v0.17.hex"
