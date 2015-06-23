@@ -36,14 +36,26 @@ class Diagnostics(object):
     self.settings_received = False
     self.heartbeat_received = False
     self.handshake_received = False
+    self.sbp_version = (0, 0)
     self.link = link
-    self.link.add_callback(self._settings_callback, SBP_MSG_SETTINGS_READ_BY_INDEX)
+    self.link.add_callback(self._settings_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_REQUEST)
+    self.link.add_callback(self._settings_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_RESPONSE)
+    self.link.add_callback(self._settings_done_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_DONE)
     self.link.add_callback(self._heartbeat_callback, SBP_MSG_HEARTBEAT)
-    self.link.add_callback(self._deprecated_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED)
+    self.link.add_callback(self._deprecated_handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED)
     self.link.add_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_RESPONSE)
-    self.link.send_msg(MsgSettingsReadByIndex(index=0))
-    while not self.settings_received or not self.heartbeat_received:
+    # Wait for the heartbeat
+    while not self.heartbeat_received:
       time.sleep(0.1)
+    # Wait for the settings
+    expire = time.time() + 15.0
+    self.link.send_msg(MsgSettingsReadByIndexRequest(index=0))
+    while not self.settings_received:
+      time.sleep(0.1)
+      if time.time() > expire:
+        expire = time.time() + 15.0
+        self.link.send_msg(MsgSettingsReadByIndexRequest(index=0))
+    # Wait for the handshake
     expire = time.time() + 10.0
     self.link.send(SBP_MSG_RESET, '')
     while not self.handshake_received:
@@ -52,7 +64,7 @@ class Diagnostics(object):
         expire = time.time() + 10.0
         self.link.send(SBP_MSG_RESET, '')
 
-  def _deprecated_callback(self, sbp_msg):
+  def _deprecated_handshake_callback(self, sbp_msg):
     if len(sbp_msg.payload)==1 and struct.unpack('B', sbp_msg.payload[0]) == 0:
       self.diagnostics['versions']['bootloader'] = "v0.1"
     else:
@@ -61,12 +73,15 @@ class Diagnostics(object):
     self.link.send(SBP_MSG_BOOTLOADER_JUMP_TO_APP, '\x00')
 
   def _handshake_callback(self, sbp_msg):
-    self.diagnostics['versions']['bootloader'] = MsgBootloaderHandshakeDevice(sbp_msg).version
+    msg = MsgBootloaderHandshakeDevice(sbp_msg)
+    self.diagnostics['versions']['bootloader'] = msg.version
     self.handshake_received = True
     self.link.send(SBP_MSG_BOOTLOADER_JUMP_TO_APP, '\x00')
 
   def _heartbeat_callback(self, sbp_msg):
-    self.diagnostics['versions']['sbp'] = (MsgHeartbeat(sbp_msg).flags >> 8) & 0xFF
+    msg = MsgHeartbeat(sbp_msg)
+    self.sbp_version = (msg.flags >> 16) & 0xFF, (msg.flags >> 8) & 0xFF
+    self.diagnostics['versions']['sbp'] = '%d.%d' % self.sbp_version
     self.heartbeat_received = True
 
   def _settings_callback(self, sbp_msg):
@@ -78,7 +93,10 @@ class Diagnostics(object):
         self.diagnostics['settings'][section] = {}
       self.diagnostics['settings'][section][setting] = value
       index = struct.unpack('<H', sbp_msg.payload[:2])[0]
-      self.link.send_msg(MsgSettingsReadByIndex(index=index+1))
+      self.link.send_msg(MsgSettingsReadByIndexRequest(index=index+1))
+
+  def _settings_done_callback(self, sbp_msg):
+    self.settings_received = True
 
 
 def parse_device_details_yaml(device_details):

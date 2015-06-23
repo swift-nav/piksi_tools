@@ -17,11 +17,11 @@ import struct
 import argparse
 import sys
 
-from sbp.settings import SBP_MSG_SETTINGS, SBP_MSG_SETTINGS_SAVE
+from sbp.settings import *
+from sbp.client.handler import *
 
 def send_setting(link, section, name, value):
-  link.send(SBP_MSG_SETTINGS, '%s\0%s\0%s\0' % (section, name, value))
-
+  link.send(SBP_MSG_SETTINGS_WRITE, '%s\0%s\0%s\0' % (section, name, value))
 
 def get_args():
   """
@@ -44,6 +44,7 @@ def main():
   """
   Get configuration, get driver, and build handler and start it.
   """
+  args = get_args()
   port = args.port[0]
   baud = args.baud[0]
   # Driver with context

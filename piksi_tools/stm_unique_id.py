@@ -31,13 +31,13 @@ class STMUniqueID:
     link.add_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_RESPONSE)
 
   def receive_heartbeat(self, sbp_msg):
+    msg = MsgHeartbeat(sbp_msg)
+    self.sbp_version = ((msg.flags >> 16) & 0xFF, (msg.flags >> 8) & 0xFF)
     self.heartbeat_received = True
-    self.sbp_version = ((MsgHeartbeat(sbp_msg).flags >> 16) & 0xF,
-                        (MsgHeartbeat(sbp_msg).flags >> 8)  & 0xF)
 
   def receive_stm_unique_id_callback(self,sbp_msg):
-    self.unique_id_returned = True
     self.unique_id = struct.unpack('<12B',sbp_msg.payload)
+    self.unique_id_returned = True
 
   def get_id(self):
     while not self.heartbeat_received:
