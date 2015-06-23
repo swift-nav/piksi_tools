@@ -49,7 +49,7 @@ NAP_FW = None
 # connected to a Piksi over a COM port.
 import os
 @unittest.skipIf(os.environ.get('TRAVIS'),
-                 "Running in Travis, skipping TestBooloader")
+                 "Running in Travis, skipping TestBootloader")
 class TestBootloader(unittest.TestCase):
   """
   Piksi bootloader tests.
