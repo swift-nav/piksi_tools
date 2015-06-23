@@ -34,7 +34,6 @@ import datetime
 from piksi_tools.fileio import FileIO
 import callback_prompt as prompt
 
-from sbp.deprecated import *
 from sbp.piksi      import *
 from sbp.settings   import *
 from sbp.system     import *
@@ -195,14 +194,10 @@ class SettingsView(HasTraits):
     )
   )
 
-  def _send_settings_read_by_index(self):
-    msg_id = SBP_MSG_SETTINGS_READ_BY_INDEX_DEPRECATED if self.sbp_version < (0, 47) else SBP_MSG_SETTINGS_READ_BY_INDEX_REQUEST
-    self.link.send(msg_id, u16_to_str(self.enumindex))
-
   def _settings_read_button_fired(self):
     self.enumindex = 0
     self.ordering_counter = 0
-    self._send_settings_read_by_index()
+    self.link.send(SBP_MSG_SETTINGS_READ_BY_INDEX_REQUEST, u16_to_str(self.enumindex))
 
   def _settings_save_button_fired(self):
     self.link.send(SBP_MSG_SETTINGS_SAVE, "")
@@ -287,9 +282,9 @@ class SettingsView(HasTraits):
                                                  )
 
     self.enumindex += 1
-    self._send_settings_read_by_index()
+    self.link.send(SBP_MSG_SETTINGS_READ_BY_INDEX_REQUEST, u16_to_str(self.enumindex))
 
-  def deprecated_settings_read_callback(self, sbp_msg):
+  def settings_read_callback(self, sbp_msg):
     section, setting, value = sbp_msg.payload.split('\0')[:3]
     # Hack to prevent an infinite loop of setting settings
     self.settings[section][setting].value = Undefined
@@ -299,13 +294,7 @@ class SettingsView(HasTraits):
     self._settings_read_button_fired()
 
   def set(self, section, name, value):
-    msg_id = SBP_MSG_SETTINGS_DEPRECATED if self.sbp_version < (0, 47) else SBP_MSG_SETTINGS_WRITE
-    self.link.send(msg_id, '%s\0%s\0%s\0' % (section, name, value))
-
-  def version(self):
-    sbp_msg = self.link.wait(SBP_MSG_HEARTBEAT, timeout=1.0)
-    msg = MsgHeartbeat(sbp_msg)
-    return (msg.flags >> 16) & 0xFF, (msg.flags >> 8) & 0xFF
+    self.link.send(SBP_MSG_SETTINGS_WRITE, '%s\0%s\0%s\0' % (section, name, value))
 
   def __init__(self, link, read_finished_functions=[], name_of_yaml_file="settings.yaml"):
     super(SettingsView, self).__init__()
@@ -313,14 +302,11 @@ class SettingsView(HasTraits):
     self.enumindex = 0
     self.settings = {}
     self.link = link
-    self.link.add_callback(self.deprecated_settings_read_callback, SBP_MSG_SETTINGS_DEPRECATED)
+    self.link.add_callback(self.settings_read_callback, SBP_MSG_SETTINGS_WRITE)
     self.link.add_callback(self.piksi_startup_callback, SBP_MSG_STARTUP)
-    self.link.add_callback(self.settings_read_by_index_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_DEPRECATED)
+    self.link.add_callback(self.settings_read_by_index_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_REQUEST)
     self.link.add_callback(self.settings_read_by_index_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_RESPONSE)
     self.link.add_callback(self.settings_read_by_index_done_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_DONE)
-
-    # Determine the sbp version
-    self.sbp_version = self.version()
 
     # Read in yaml file for setting metadata
     self.settings_yaml = SettingsList(name_of_yaml_file)
