@@ -120,9 +120,6 @@ def get_args():
   parser.add_argument("-b", "--baud",
                       default=[serial_link.SERIAL_BAUD], nargs=1,
                       help="specify the baud rate to use.")
-  parser.add_argument("-f", "--ftdi",
-                      help="use pylibftdi instead of pyserial.",
-                      action="store_true")
   args = parser.parse_args()
   if args.stm and args.m25:
     parser.error("Only one of -s or -m options may be chosen")
