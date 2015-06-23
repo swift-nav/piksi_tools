@@ -1,0 +1,14 @@
+settings:
+  system_info:
+    firmware_built: Jun 17 2015 23:54:08
+    firmware_version: v0.17-27-ge2c1aac
+    hw_revision: piksi_2.3.1
+    nap_channels: '11'
+    nap_fft_index_bits: '13'
+    nap_version: v0.13-rc0
+    serial_number: '1233'
+  system_monitor:
+    watchdog: 'True'
+versions:
+  bootloader: v1.2
+  sbp: 0
