@@ -17,11 +17,16 @@ import struct
 import argparse
 import sys
 
-from sbp.settings import SBP_MSG_SETTINGS, SBP_MSG_SETTINGS_SAVE
+from sbp.deprecated import *
+from sbp.settings import *
+from sbp.system import *
+from sbp.client.handler import *
+
+def send_deprecated_setting(link, section, name, value):
+  link.send(SBP_MSG_SETTINGS_DEPRECATED, '%s\0%s\0%s\0' % (section, name, value))
 
 def send_setting(link, section, name, value):
-  link.send(SBP_MSG_SETTINGS, '%s\0%s\0%s\0' % (section, name, value))
-
+  link.send(SBP_MSG_SETTINGS_WRITE, '%s\0%s\0%s\0' % (section, name, value))
 
 def get_args():
   """
@@ -44,22 +49,28 @@ def main():
   """
   Get configuration, get driver, and build handler and start it.
   """
+  args = get_args()
   port = args.port[0]
   baud = args.baud[0]
   # Driver with context
   with serial_link.get_driver(args.ftdi, port, baud) as driver:
     # Handler with context
     with Handler(driver.read, driver.write) as link:
+      sbp_msg = link.wait(SBP_MSG_HEARTBEAT, timeout=1.0)
+      msg = MsgHeartbeat(sbp_msg)
+      sbp_version = (msg.flags >> 16) & 0xFF, (msg.flags >> 8) & 0xFF
+      send = send_deprecated_setting if sbp_version < (0, 47) else send_setting
+
       print "Resetting mask to 0xff"
-      send_setting(link, "uart_ftdi", "sbp_message_mask", "65535")
+      send(link, "uart_ftdi", "sbp_message_mask", "65535")
       time.sleep(0.5)
 
       print "Resetting baudrate to 1Mbps"
-      send_setting(link, "uart_ftdi", "baudrate", "1000000")
+      send(link, "uart_ftdi", "baudrate", "1000000")
       time.sleep(0.5)
 
       print "Resetting mode to SBP"
-      send_setting(link, "uart_ftdi", "mode", "SBP")
+      send(link, "uart_ftdi", "mode", "SBP")
       time.sleep(0.5)
 
       print "Attempting to save settings"
