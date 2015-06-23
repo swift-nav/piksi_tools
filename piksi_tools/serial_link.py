@@ -189,7 +189,7 @@ def main():
                 print "Timer expired!"
                 break
               if not link.is_alive():
-                print "Thread died!"
+                sys.stderr.write("ERROR: Thread died!")
                 sys.exit(1)
           except KeyboardInterrupt:
             # Callbacks, such as the watchdog timer on SBP_HEARTBEAT call
