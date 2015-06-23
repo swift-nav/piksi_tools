@@ -48,7 +48,7 @@ class Bootloader():
     self.sbp_version = (0, 0)
     self.link = link
     self.link.add_callback(self._deprecated_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED)
-    self.link.add_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEVICE)
+    self.link.add_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_RESPONSE)
 
   def __enter__(self):
     return self
@@ -60,7 +60,7 @@ class Bootloader():
   def stop(self):
     self.stopped = True
     self.link.remove_callback(self._deprecated_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED)
-    self.link.remove_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEVICE)
+    self.link.remove_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_RESPONSE)
 
   def _deprecated_callback(self, sbp_msg):
     if len(sbp_msg.payload)==1 and struct.unpack('B', sbp_msg.payload[0])==0:
@@ -93,7 +93,7 @@ class Bootloader():
     if self.sbp_version < (0, 45):
       self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED, '\x00')
     else:
-      self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_HOST, '\x00')
+      self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_REQUEST, '\x00')
 
   def jump_to_app(self):
     self.link.send(SBP_MSG_BOOTLOADER_JUMP_TO_APP, '\x00')

@@ -40,7 +40,7 @@ class Diagnostics(object):
     self.link.add_callback(self._settings_callback, SBP_MSG_SETTINGS_READ_BY_INDEX)
     self.link.add_callback(self._heartbeat_callback, SBP_MSG_HEARTBEAT)
     self.link.add_callback(self._deprecated_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED)
-    self.link.add_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEVICE)
+    self.link.add_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_RESPONSE)
     self.link.send_msg(MsgSettingsReadByIndex(index=0))
     while not self.settings_received or not self.heartbeat_received:
       time.sleep(0.1)

@@ -28,7 +28,7 @@ class STMUniqueID:
     self.unique_id = None
     self.link = link
     link.add_callback(self.receive_heartbeat, SBP_MSG_HEARTBEAT)
-    link.add_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_DEVICE)
+    link.add_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_RESPONSE)
 
   def receive_heartbeat(self, sbp_msg):
     self.heartbeat_received = True
@@ -46,9 +46,9 @@ class STMUniqueID:
     self.unique_id = None
     # < 0.45 of the bootloader, reuse single stm message.
     if self.sbp_version < (0, 45):
-      self.link.send(SBP_MSG_STM_UNIQUE_ID_DEVICE, struct.pack("<I",0))
+      self.link.send(SBP_MSG_STM_UNIQUE_ID_RESPONSE, struct.pack("<I",0))
     else:
-      self.link.send(SBP_MSG_STM_UNIQUE_ID_HOST, struct.pack("<I",0))
+      self.link.send(SBP_MSG_STM_UNIQUE_ID_REQUEST, struct.pack("<I",0))
     while not self.unique_id_returned:
       time.sleep(0.1)
     return self.unique_id

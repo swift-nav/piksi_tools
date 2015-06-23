@@ -259,7 +259,7 @@ class Flash():
     # IntelHex object to store read flash data in that was read from device.
     self._read_callback_ihx = IntelHex()
     self.link.add_callback(self._done_callback, SBP_MSG_FLASH_DONE)
-    self.link.add_callback(self._read_callback, SBP_MSG_FLASH_READ_DEVICE)
+    self.link.add_callback(self._read_callback, SBP_MSG_FLASH_READ_RESPONSE)
     self.ihx_elapsed_ops = 0 # N operations finished in self.write_ihx
     if self.flash_type == "STM":
       self.flash_type_byte = 0
@@ -345,7 +345,7 @@ class Flash():
     """ Remove instance callbacks from sbp.client.handler.Handler. """
     self.stopped = True
     self.link.remove_callback(self._done_callback, SBP_MSG_FLASH_DONE)
-    self.link.remove_callback(self._read_callback, SBP_MSG_FLASH_READ_DEVICE)
+    self.link.remove_callback(self._read_callback, SBP_MSG_FLASH_READ_RESPONSE)
 
   def __str__(self):
     """ Return flashing status. """
@@ -410,9 +410,9 @@ class Flash():
     self.inc_n_queued_ops()
     # < 0.45 of SBP protocol, reuse single read message.
     if self.sbp_version < (0, 45):
-      self.link.send(SBP_MSG_FLASH_READ_DEVICE, msg_buf)
+      self.link.send(SBP_MSG_FLASH_READ_RESPONSE, msg_buf)
     else:
-      self.link.send(SBP_MSG_FLASH_READ_HOST, msg_buf)
+      self.link.send(SBP_MSG_FLASH_READ_REQUEST, msg_buf)
 
   def _done_callback(self, sbp_msg):
     """
