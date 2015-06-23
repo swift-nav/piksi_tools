@@ -67,7 +67,7 @@ class TestBootloader(unittest.TestCase):
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
 
-        set_btldr_mode(link)
+        set_btldr_mode(link, VERBOSE)
 
         with Bootloader(link) as piksi_bootloader:
           # If the Piksi bootloader successfully received our handshake, we
@@ -83,7 +83,7 @@ class TestBootloader(unittest.TestCase):
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
 
-        set_btldr_mode(link)
+        set_btldr_mode(link, VERBOSE)
 
         with Bootloader(link) as piksi_bootloader:
           with Timeout(TIMEOUT_BOOT) as timeout:
@@ -98,7 +98,7 @@ class TestBootloader(unittest.TestCase):
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
 
-        set_btldr_mode(link)
+        set_btldr_mode(link, VERBOSE)
 
         with Bootloader(link) as piksi_bootloader:
           with Timeout(TIMEOUT_BOOT) as timeout:
@@ -113,7 +113,7 @@ class TestBootloader(unittest.TestCase):
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
 
-        set_btldr_mode(link)
+        set_btldr_mode(link, VERBOSE)
 
         with Bootloader(link) as piksi_bootloader:
           piksi_bootloader.wait_for_handshake()
@@ -139,7 +139,7 @@ class TestBootloader(unittest.TestCase):
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as link:
 
-        set_btldr_mode(link)
+        set_btldr_mode(link, VERBOSE)
 
         with Bootloader(link) as piksi_bootloader:
           piksi_bootloader.wait_for_handshake()
@@ -165,7 +165,7 @@ class TestBootloader(unittest.TestCase):
         # Make sure Piksi has valid STM / NAP firmware, and set into
         # bootloader mode.
         setup_piksi(link, STM_FW, NAP_FW, VERBOSE)
-        set_btldr_mode(link)
+        set_btldr_mode(link, VERBOSE)
 
         with Bootloader(link) as piksi_bootloader:
           piksi_bootloader.jump_to_app()
