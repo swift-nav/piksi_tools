@@ -15,7 +15,7 @@ import sys
 
 from piksi_tools import serial_link
 import sbp.client.handler
-from sbp.logging import SBP_MSG_DEBUG_VAR, SBP_MSG_PRINT
+from sbp.logging import SBP_MSG_PRINT
 from sbp.piksi import SBP_MSG_RESET
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
@@ -231,11 +231,6 @@ class SwiftConsole(HasTraits):
       "Rising" if (e.flags & (1<<0)) else "Falling", e.pin, e.wn, e.tow,
       "good" if (e.flags & (1<<1)) else "unknown")
 
-  def debug_var_callback(self, sbp_msg):
-    x = struct.unpack('<d', sbp_msg.payload[:8])[0]
-    name = sbp_msg.payload[8:]
-    print "VAR: %s = %d" % (name, x)
-
   def _paused_button_fired(self):
     self.console_output.paused = not self.console_output.paused
 
@@ -248,7 +243,6 @@ class SwiftConsole(HasTraits):
     try:
       self.link = link
       self.link.add_callback(self.print_message_callback, SBP_MSG_PRINT)
-      self.link.add_callback(self.debug_var_callback, SBP_MSG_DEBUG_VAR)
       self.link.add_callback(self.ext_event_callback, SBP_MSG_EXT_EVENT)
 
       settings_read_finished_functions = []
