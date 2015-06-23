@@ -178,16 +178,18 @@ def main():
           if watchdog:
             link.add_callback(Watchdog(float(watchdog), watchdog_alarm), SBP_MSG_HEARTBEAT)
           try:
-            if timeout is None:
-              # Wait forever until the user presses Ctrl-C
-              while True:
-                time.sleep(0.1)
-            else:
-              # Wait until the timeout has elapsed
+            if timeout is not None:
               expire = time.time() + float(args.timeout[0])
-              while time.time() < expire:
-                time.sleep(0.1)
-              print "Timer expired!"
+
+            while True:
+              if timeout is None or time.time() < expire:
+              # Wait forever until the user presses Ctrl-C
+                time.sleep(1)
+              else:
+                print "Timer expired!"
+                break
+              if not link.receive_thread.isAlive():
+                sys.exit(1)
           except KeyboardInterrupt:
             # Callbacks, such as the watchdog timer on SBP_HEARTBEAT call
             # thread.interrupt_main(), which throw a KeyboardInterrupt
