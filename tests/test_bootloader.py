@@ -59,8 +59,8 @@ class TestBootloader(unittest.TestCase):
   def setUpClass(self):
     """ Do set up before running tests. """
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
-      with Handler(driver.read, driver.write) as link:
-        setup_piksi(link, STM_FW, NAP_FW, VERBOSE)
+      with Handler(driver.read, driver.write) as handler:
+        setup_piksi(handler, STM_FW, NAP_FW, VERBOSE)
 
   def test_set_btldr_mode(self):
     """ Test setting Piksi into bootloader mode. """
@@ -68,11 +68,11 @@ class TestBootloader(unittest.TestCase):
     if VERBOSE: print "--- test_set_btldr_mode ---"
 
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
-      with Handler(driver.read, driver.write) as link:
+      with Handler(driver.read, driver.write) as handler:
 
-        set_btldr_mode(link, VERBOSE)
+        set_btldr_mode(handler, VERBOSE)
 
-        with Bootloader(link) as piksi_bootloader:
+        with Bootloader(handler) as piksi_bootloader:
           # If the Piksi bootloader successfully received our handshake, we
           # should be able to receive handshakes from it indefinitely. Test
           # this a few times.
@@ -90,15 +90,15 @@ class TestBootloader(unittest.TestCase):
     if VERBOSE: print "--- test_flash_stm_firmware ---"
 
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
-      with Handler(driver.read, driver.write) as link:
+      with Handler(driver.read, driver.write) as handler:
 
-        set_btldr_mode(link, VERBOSE)
+        set_btldr_mode(handler, VERBOSE)
 
-        with Bootloader(link) as piksi_bootloader:
+        with Bootloader(handler) as piksi_bootloader:
           with Timeout(TIMEOUT_BOOT) as timeout:
             if VERBOSE: print "Waiting for bootloader handshake"
             piksi_bootloader.wait_for_handshake()
-          with Flash(link, flash_type='STM',
+          with Flash(handler, flash_type='STM',
                      sbp_version=piksi_bootloader.version) as piksi_flash:
             with Timeout(TIMEOUT_WRITE_STM) as timeout:
               if VERBOSE:
@@ -115,15 +115,15 @@ class TestBootloader(unittest.TestCase):
     if VERBOSE: print "--- test_flash_nap_firmware ---"
 
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
-      with Handler(driver.read, driver.write) as link:
+      with Handler(driver.read, driver.write) as handler:
 
-        set_btldr_mode(link, VERBOSE)
+        set_btldr_mode(handler, VERBOSE)
 
-        with Bootloader(link) as piksi_bootloader:
+        with Bootloader(handler) as piksi_bootloader:
           with Timeout(TIMEOUT_BOOT) as timeout:
             if VERBOSE: print "Waiting for bootloader handshake"
             piksi_bootloader.wait_for_handshake()
-          with Flash(link, flash_type='M25',
+          with Flash(handler, flash_type='M25',
                      sbp_version=piksi_bootloader.version) as piksi_flash:
             with Timeout(TIMEOUT_WRITE_NAP) as timeout:
               if VERBOSE:
@@ -142,15 +142,15 @@ class TestBootloader(unittest.TestCase):
     if VERBOSE: print "--- test_program_btldr ---"
 
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
-      with Handler(driver.read, driver.write) as link:
+      with Handler(driver.read, driver.write) as handler:
 
-        set_btldr_mode(link, VERBOSE)
+        set_btldr_mode(handler, VERBOSE)
 
-        with Bootloader(link) as piksi_bootloader:
+        with Bootloader(handler) as piksi_bootloader:
           with Timeout(TIMEOUT_BOOT) as timeout:
             if VERBOSE: print "Waiting for bootloader handshake"
             piksi_bootloader.wait_for_handshake()
-          with Flash(link, flash_type='STM',
+          with Flash(handler, flash_type='STM',
                      sbp_version=piksi_bootloader.version) as piksi_flash:
             # Make sure the bootloader sector is locked.
             with Timeout(TIMEOUT_LOCK_SECTOR) as timeout:
@@ -177,15 +177,15 @@ class TestBootloader(unittest.TestCase):
     if VERBOSE: print "--- test_erase_btldr ---"
 
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
-      with Handler(driver.read, driver.write) as link:
+      with Handler(driver.read, driver.write) as handler:
 
-        set_btldr_mode(link, VERBOSE)
+        set_btldr_mode(handler, VERBOSE)
 
-        with Bootloader(link) as piksi_bootloader:
+        with Bootloader(handler) as piksi_bootloader:
           with Timeout(TIMEOUT_BOOT) as timeout:
             if VERBOSE: print "Waiting for bootloader handshake"
             piksi_bootloader.wait_for_handshake()
-          with Flash(link, flash_type='STM',
+          with Flash(handler, flash_type='STM',
                      sbp_version=piksi_bootloader.version) as piksi_flash:
             # Make sure the bootloader sector is locked.
             with Timeout(TIMEOUT_LOCK_SECTOR) as timeout:
@@ -209,11 +209,11 @@ class TestBootloader(unittest.TestCase):
     if VERBOSE: print "--- test_jump_to_app ---"
 
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
-      with Handler(driver.read, driver.write) as link:
+      with Handler(driver.read, driver.write) as handler:
 
-        set_btldr_mode(link, VERBOSE)
+        set_btldr_mode(handler, VERBOSE)
 
-        with Bootloader(link) as piksi_bootloader:
+        with Bootloader(handler) as piksi_bootloader:
           if VERBOSE: print "Jumping to application"
           piksi_bootloader.jump_to_app()
 
