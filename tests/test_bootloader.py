@@ -56,7 +56,7 @@ import os
 class TestBootloader(unittest.TestCase):
   """
   Piksi bootloader tests. Tests assume that Piksies have a valid bootloader
-  and STM / NAP firmware, such that it sends Bootloader Handshake messages and
+  and STM / NAP firmware, such that it sends bootloader handshake messages and
   will enter bootloader mode upon receiving a bootloader handshake message,
   sends heartbeat messages, and can be reset through receiving a reset message.
   All tests should leave device in this state upon returning.
