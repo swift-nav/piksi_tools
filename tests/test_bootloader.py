@@ -16,18 +16,20 @@ import time
 
 from intelhex import IntelHex
 
+from sbp.system import SBP_MSG_HEARTBEAT
+from sbp.client.handler import Handler
+from sbp.piksi  import SBP_MSG_RESET
+
 from piksi_tools import serial_link
 from piksi_tools.flash import Flash
 from piksi_tools.bootload import Bootloader
 from piksi_tools.heartbeat import Heartbeat
-from sbp.system import SBP_MSG_HEARTBEAT
 from piksi_tools.utils import *
 from piksi_tools.timeout import *
+
 from piksi_tools.console.update_downloader import UpdateDownloader
+from piksi_tools.console.settings_view import SettingsView
 
-from sbp.client.handler import Handler
-
-from sbp.piksi  import SBP_MSG_RESET
 
 # VCP to communicate with Piksi Under Test.
 PORT1 = None
@@ -44,6 +46,8 @@ NAP_FW_URL = \
   "http://downloads.swiftnav.com/piksi_v2.3.1/nap_fw/swift_nap_v0.13.hex"
 STM_FW = None
 NAP_FW = None
+
+
 
 # Skip TestBootloader class if running in Travis-CI, as we need to be
 # connected to a Piksi over a COM port.
@@ -70,6 +74,71 @@ class TestBootloader(unittest.TestCase):
         setup_piksi(handler, STM_FW, NAP_FW, VERBOSE)
 
     print ""
+
+  def _piksi_settings_cb(self):
+    """ Callback to set flag indicating Piksi settings have been received. """
+    self.settings_received = True
+
+  def get_piksi_settings(self, handler):
+    """
+    Get settings from Piksi.
+
+    Parameters
+    ==========
+    handler : sbp.client.handler.Handler
+      Handler to send messages to Piksi over and register callbacks with.
+    """
+
+    self.settings_received = False
+
+    with SettingsView(handler, read_finished_functions=[self._piksi_settings_cb],
+                      gui_mode=False) as sv:
+      with Timeout(TIMEOUT_READ_SETTINGS) as timeout:
+        sv._settings_read_button_fired()
+        while not self.settings_received:
+          time.sleep(0.1)
+
+    return sv.settings
+
+  def test_get_versions(self):
+    """ Get Piksi bootloader/firmware/NAP version from device. """
+
+    if VERBOSE: print "--- test_get_versions ---"
+
+    with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
+      with Handler(driver.read, driver.write) as handler:
+
+        set_btldr_mode(handler, VERBOSE)
+
+        with Bootloader(handler) as piksi_bootloader:
+
+          # Get bootloader version, print, and jump to application firmware.
+          with Timeout(TIMEOUT_BOOT) as timeout:
+            if VERBOSE: print "Waiting for bootloader handshake"
+            piksi_bootloader.wait_for_handshake()
+          piksi_bootloader.reply_handshake()
+          piksi_bootloader.jump_to_app()
+          print "Piksi Bootloader Version:", piksi_bootloader.version
+
+        # Wait for heartbeat, get settings, print firmware/NAP versions.
+        heartbeat = Heartbeat()
+        handler.add_callback(heartbeat, SBP_MSG_HEARTBEAT)
+        if VERBOSE: print "Waiting to receive heartbeat"
+        while not heartbeat.received:
+          time.sleep(0.1)
+        if VERBOSE: print "Received hearbeat"
+        handler.remove_callback(heartbeat, SBP_MSG_HEARTBEAT)
+
+        if VERBOSE: print "Getting Piksi settings"
+        settings = self.get_piksi_settings(handler)
+
+        if VERBOSE: print "Piksi Firmware Version:", \
+                          settings['system_info']['firmware_version']
+
+        if VERBOSE: print "Piksi NAP Version:", \
+                          settings['system_info']['nap_version']
+
+    if VERBOSE: print ""
 
   def test_set_btldr_mode(self):
     """ Test setting Piksi into bootloader mode. """
