@@ -9,9 +9,15 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+# Hack: Skip TestBootloader class if running in Travis-CI, as we need to
+# be connected to a Piksi over a COM port.
+import sys
+import os
+if os.environ.get('TRAVIS'):
+  import pytest
+  pytest.skip("Skipping TestBootloader, as we're running in Travis")
 
 import unittest
-import sys
 import time
 
 from intelhex import IntelHex
@@ -48,11 +54,6 @@ STM_FW = None
 NAP_FW = None
 
 
-# Skip TestBootloader class if running in Travis-CI, as we need to be
-# connected to a Piksi over a COM port.
-import os
-@unittest.skipIf(os.environ.get('TRAVIS'),
-                 "Running in Travis, skipping TestBootloader")
 class TestBootloader(unittest.TestCase):
   """
   Piksi bootloader tests. Tests assume that Piksies have a valid bootloader
