@@ -61,8 +61,6 @@ def set_btldr_mode(handler, verbose=False):
     piksi_bootloader.reply_handshake()
     if verbose: print "Replying to bootloader handshake"
 
-    if verbose: print ""
-
 def setup_piksi(handler, stm_fw, nap_fw, verbose=False):
   """
   Set Piksi into a known state (STM / NAP firmware). Erases entire STM flash
@@ -137,6 +135,4 @@ def setup_piksi(handler, stm_fw, nap_fw, verbose=False):
     # Jump to the application firmware.
     if verbose: print "Jumping to application"
     piksi_bootloader.jump_to_app()
-
-    if verbose: print ""
 
