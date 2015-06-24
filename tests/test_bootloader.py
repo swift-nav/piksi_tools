@@ -65,6 +65,8 @@ class TestBootloader(unittest.TestCase):
       with Handler(driver.read, driver.write) as handler:
         setup_piksi(handler, STM_FW, NAP_FW, VERBOSE)
 
+    print ""
+
   def test_set_btldr_mode(self):
     """ Test setting Piksi into bootloader mode. """
 
@@ -227,9 +229,10 @@ class TestBootloader(unittest.TestCase):
           heartbeat = Heartbeat()
           handler.add_callback(heartbeat, SBP_MSG_HEARTBEAT)
 
+          if VERBOSE: print "Waiting to receive heartbeat"
           while not heartbeat.received:
-            if VERBOSE: print "Waiting to receive heartbeat"
             time.sleep(0.1)
+          if VERBOSE: print "Received hearbeat"
 
           handler.remove_callback(heartbeat, SBP_MSG_HEARTBEAT)
 
