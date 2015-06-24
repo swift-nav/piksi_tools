@@ -63,6 +63,9 @@ class TestBootloader(unittest.TestCase):
   All tests should leave device in this state upon returning.
   """
 
+  def __init__(self, testname):
+    super(TestBootloader, self).__init__(testname)
+
   @classmethod
   def setUpClass(self):
     """ Do set up before running tests. """
@@ -375,6 +378,32 @@ class TestBootloader(unittest.TestCase):
     """ Test writing an invalid firmware file and see if device will run it. """
     pass
 
+def get_suite():
+  """
+  Build test suite for TestBootloader.
+  """
+  suite = unittest.TestSuite()
+
+  suite.addTest(TestBootloader("test_get_versions"))
+  suite.addTest(TestBootloader("test_set_btldr_mode"))
+  suite.addTest(TestBootloader("test_flash_stm_firmware"))
+  suite.addTest(TestBootloader("test_flash_nap_firmware"))
+  suite.addTest(TestBootloader("test_program_btldr"))
+  suite.addTest(TestBootloader("test_erase_btldr"))
+  suite.addTest(TestBootloader("test_jump_to_app"))
+  suite.addTest(TestBootloader("test_set_btldr_mode_wrong_sender_id"))
+  suite.addTest(TestBootloader("test_flashing_wrong_sender_id"))
+  suite.addTest(TestBootloader("test_two_piksies_btldr_mode"))
+  suite.addTest(TestBootloader("test_two_piksies_simultaneous_bootloading"))
+  suite.addTest(TestBootloader("test_uart_rx_buffer_overflow"))
+  suite.addTest(TestBootloader("test_packet_drop"))
+  suite.addTest(TestBootloader("test_sector_lock_unlock"))
+  suite.addTest(TestBootloader("test_recover_from_reset"))
+  suite.addTest(TestBootloader("test_recover_from_abort"))
+  suite.addTest(TestBootloader("test_invalid_firmware"))
+
+  return suite
+
 def get_args():
   """
   Get and parse arguments.
@@ -416,12 +445,12 @@ def main():
     NAP_FW = IntelHex(update_downloader._download_file_from_url(NAP_FW_URL))
     if VERBOSE: print ""
 
-   # Delete args used in main() before calling unittest.main()
+   # Delete args used in main() before running unittests.
   sys.argv[1:] = args.unittest_args
 
-  # Don't run if this is running in Travis-CI, as it requires a physical
-  # Piksi connected on a COM port to test with.
-  unittest.main()
+  suite = get_suite()
+
+  unittest.TextTestRunner().run(suite)
 
 if __name__ == "__main__":
   main()
