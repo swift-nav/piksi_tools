@@ -58,6 +58,9 @@ class TestBootloader(unittest.TestCase):
   @classmethod
   def setUpClass(self):
     """ Do set up before running tests. """
+
+    if VERBOSE: print "--- Setting up device for tests ---"
+
     with serial_link.get_driver(use_ftdi=False, port=PORT1) as driver:
       with Handler(driver.read, driver.write) as handler:
         setup_piksi(handler, STM_FW, NAP_FW, VERBOSE)
