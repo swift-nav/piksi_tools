@@ -20,10 +20,7 @@ from threading import Lock
 from itertools import groupby
 from sbp.flash import *
 
-# 0.5 * ADDRS_PER_OP * MAX_QUEUED_OPS (plus SBP overhead) is how much each of
-# the STM32 TX/RX buffers will be filled by the program/read callback messages.
 ADDRS_PER_OP = 128
-MAX_QUEUED_OPS = 1
 
 M25_SR_SRWD = 1 << 7
 M25_SR_BP2  = 1 << 4
@@ -231,7 +228,7 @@ def _m25_write_status(self, sr):
 
 class Flash():
 
-  def __init__(self, link, flash_type, sbp_version):
+  def __init__(self, link, flash_type, sbp_version, max_queued_ops=1):
     """
     Object representing either of the two flashes (STM/M25) on the Piksi,
     including methods to erase, program, and read.
@@ -244,12 +241,20 @@ class Flash():
       Which Piksi flash to interact with ("M25" or "STM").
     sbp_version : (int, int)
       SBP protocol version, used to select messages to send.
+    max_queued_ops : int
+      Maximum number of Flash read/program operations to queue in device flash.
+      (0.5 * ADDRS_PER_OP + SBP packet overhead) * max_queued_ops is how much
+      of the device UART RX buffer will be filled by the program/read callback
+      messages. A higher value will significantly speed up flashing, but can
+      result in RX buffer overflows in other UARTs if the device is receiving
+      data on other UARTs.
 
     Returns
     -------
     out : Flash instance
     """
     self._n_queued_ops = 0
+    self.max_queued_ops = max_queued_ops
     self.nqo_lock = Lock()
     self.stopped = False
     self.status = ''
@@ -521,13 +526,13 @@ class Flash():
         binary = ihx.tobinstr(start=addr, size=ADDRS_PER_OP)
 
         # Program ADDRS_PER_OP addresses
-        while self.get_n_queued_ops() >= MAX_QUEUED_OPS:
+        while self.get_n_queued_ops() >= self.max_queued_ops:
           time.sleep(0.001)
         self.program(addr, binary)
         self.ihx_elapsed_ops += 1
 
         # Read ADDRS_PER_OP addresses
-        while self.get_n_queued_ops() >= MAX_QUEUED_OPS:
+        while self.get_n_queued_ops() >= self.max_queued_ops:
           time.sleep(0.001)
         self.read(addr, ADDRS_PER_OP)
         self.ihx_elapsed_ops += 1
