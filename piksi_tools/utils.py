@@ -9,6 +9,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+import sys
 import time
 
 from piksi_tools.bootload import Bootloader
@@ -98,7 +99,6 @@ def setup_piksi(handler, stm_fw, nap_fw, verbose=False):
     # If Piksi is in the application, reset it into the bootloader.
     if heartbeat.received:
       if verbose: print "Received Heartbeat, resetting Piksi"
-      if verbose: print "Resetting Piksi"
       handler.send(SBP_MSG_RESET, "")
 
     handler.remove_callback(heartbeat, SBP_MSG_HEARTBEAT)
@@ -117,16 +117,22 @@ def setup_piksi(handler, stm_fw, nap_fw, verbose=False):
         for s in range(1,12):
           piksi_flash.erase_sector(s)
       # Write STM firmware.
-      if verbose: print "Programming STM"
       with Timeout(TIMEOUT_PROGRAM_STM) as timeout:
-        piksi_flash.write_ihx(stm_fw, erase=False)
+        if verbose:
+          if verbose: print "Programming STM"
+          piksi_flash.write_ihx(stm_fw, sys.stdout, 0x10, erase=False)
+        else:
+          piksi_flash.write_ihx(stm_fw, sys.stdout, 0x10, erase=False)
 
     with Flash(handler, flash_type="M25",
              sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
       # Write NAP hexfile.
-      if verbose: print "Programming NAP"
       with Timeout(TIMEOUT_WRITE_NAP) as timeout:
-        piksi_flash.write_ihx(nap_fw)
+        if verbose:
+          if verbose: print "Programming NAP"
+          piksi_flash.write_ihx(nap_fw, sys.stdout, 0x10)
+        else:
+          piksi_flash.write_ihx(nap_fw, sys.stdout, 0x10)
 
     # Jump to the application firmware.
     if verbose: print "Jumping to application"
