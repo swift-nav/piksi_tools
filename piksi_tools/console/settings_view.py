@@ -294,6 +294,19 @@ class SettingsView(HasTraits):
   def set(self, section, name, value):
     self.link.send(SBP_MSG_SETTINGS_WRITE, '%s\0%s\0%s\0' % (section, name, value))
 
+  def cleanup(self):
+    """ Remove callbacks from serial link. """
+    self.link.remove_callback(self.piksi_startup_callback, SBP_MSG_STARTUP)
+    self.link.remove_callback(self.settings_read_by_index_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_REQUEST)
+    self.link.remove_callback(self.settings_read_by_index_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_RESPONSE)
+    self.link.remove_callback(self.settings_read_by_index_done_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_DONE)
+
+  def __enter__(self):
+    return self
+
+  def __exit__(self, *args):
+    self.cleanup()
+
   def __init__(self, link, read_finished_functions=[], name_of_yaml_file="settings.yaml", hide_expert=False):
     super(SettingsView, self).__init__()
 
