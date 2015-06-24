@@ -182,6 +182,7 @@ class TestBootloader(unittest.TestCase):
 
   def test_erase_btldr(self):
     """ Test erasing the bootloader once its sector is locked. """
+    SECTOR = 0
 
     if VERBOSE: print "--- test_erase_btldr ---"
 
