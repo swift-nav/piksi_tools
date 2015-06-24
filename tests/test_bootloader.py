@@ -176,8 +176,7 @@ class TestBootloader(unittest.TestCase):
             if VERBOSE: print "Waiting for bootloader handshake"
             piksi_bootloader.wait_for_handshake()
           with Flash(handler, flash_type='STM',
-                     sbp_version=piksi_bootloader.version,
-                     max_queued_ops=20) as piksi_flash:
+                     sbp_version=piksi_bootloader.version) as piksi_flash:
             with Timeout(TIMEOUT_WRITE_STM) as timeout:
               if VERBOSE:
                 print "Writing firmware to STM flash"
@@ -202,8 +201,7 @@ class TestBootloader(unittest.TestCase):
             if VERBOSE: print "Waiting for bootloader handshake"
             piksi_bootloader.wait_for_handshake()
           with Flash(handler, flash_type='M25',
-                     sbp_version=piksi_bootloader.version,
-                     max_queued_ops=20) as piksi_flash:
+                     sbp_version=piksi_bootloader.version) as piksi_flash:
             with Timeout(TIMEOUT_WRITE_NAP) as timeout:
               if VERBOSE:
                 print "Writing firmware to NAP flash"
@@ -230,8 +228,7 @@ class TestBootloader(unittest.TestCase):
             if VERBOSE: print "Waiting for bootloader handshake"
             piksi_bootloader.wait_for_handshake()
           with Flash(handler, flash_type='STM',
-                     sbp_version=piksi_bootloader.version,
-                     max_queued_ops=20) as piksi_flash:
+                     sbp_version=piksi_bootloader.version) as piksi_flash:
             # Make sure the bootloader sector is locked.
             with Timeout(TIMEOUT_LOCK_SECTOR) as timeout:
               if VERBOSE: print "Locking STM sector:", SECTOR
@@ -267,8 +264,7 @@ class TestBootloader(unittest.TestCase):
             if VERBOSE: print "Waiting for bootloader handshake"
             piksi_bootloader.wait_for_handshake()
           with Flash(handler, flash_type='STM',
-                     sbp_version=piksi_bootloader.version,
-                     max_queued_ops=20) as piksi_flash:
+                     sbp_version=piksi_bootloader.version) as piksi_flash:
             # Make sure the bootloader sector is locked.
             with Timeout(TIMEOUT_LOCK_SECTOR) as timeout:
               if VERBOSE: print "Locking STM sector:", SECTOR
