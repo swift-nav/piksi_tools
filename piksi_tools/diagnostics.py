@@ -73,9 +73,37 @@ class Diagnostics(object):
       if not self.diagnostics['settings'].has_key(section):
         self.diagnostics['settings'][section] = {}
       self.diagnostics['settings'][section][setting] = value
-
       index = struct.unpack('<H', sbp_msg.payload[:2])[0]
       self.link.send_msg(MsgSettingsReadByIndex(index=index+1))
+
+
+def parse_device_details_yaml(device_details):
+  """Parse from yaml string the device settings.
+
+  """
+  return yaml.load(device_details)['settings']['system_info']
+
+
+def check_diagnostics(diagnostics_filename, version):
+  """Check that Piksi's firmware/nap settings are properly set.
+
+  Given a diagnostics_filename output and an expected firmware/NAP
+  versions (via a Yaml string), returns True if expected fw/nap are
+  properly loaded.
+
+  """
+  if version is None:
+    raise Exception("Empty version string!")
+  parsed = yaml.load(version)
+  fw = parsed.get('fw', None)
+  nap = parsed.get('hdl', None)
+  with open(diagnostics_filename, 'r+') as f:
+    details = parse_device_details_yaml(f.read())
+    firmware_version = details.get('firmware_version', None)
+    nap_version = details.get('nap_version', None)
+    return (firmware_version and nap_version) \
+        and (firmware_version == fw and nap_version == nap)
+
 
 def get_args():
   """
