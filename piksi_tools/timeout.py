@@ -13,7 +13,7 @@ import signal
 
 # Seconds to use for various timeouts.
 TIMEOUT_FW_DOWNLOAD    = 30
-TIMEOUT_BOOT           = 10
+TIMEOUT_BOOT           = 20
 TIMEOUT_ERASE_STM      = 30
 TIMEOUT_PROGRAM_STM    = 100
 TIMEOUT_WRITE_STM      = TIMEOUT_ERASE_STM + TIMEOUT_PROGRAM_STM
