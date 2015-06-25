@@ -77,7 +77,7 @@ class Bootloader():
                         MsgBootloaderHandshakeDevice(sbp_msg).flags & 0xF)
     self.handshake_received = True
 
-  def wait_for_handshake(self, timeout=None):
+  def handshake(self, timeout=None):
     if timeout is not None:
       t0 = time.time()
     self.handshake_received = False
@@ -91,14 +91,12 @@ class Bootloader():
       if time.time() > expire:
         expire = time.time() + 15.0
         self.link.send(SBP_MSG_RESET, "")
-    return True
-
-  def reply_handshake(self):
     # < 0.45 of SBP protocol, reuse single handshake message.
     if self.sbp_version < (0, 45):
       self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED, '\x00')
     else:
       self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_REQUEST, '\x00')
+    return True
 
   def jump_to_app(self):
     self.link.send(SBP_MSG_BOOTLOADER_JUMP_TO_APP, '\x00')
@@ -163,10 +161,9 @@ def main():
         print "Waiting for bootloader handshake message from Piksi ...",
         sys.stdout.flush()
         try:
-          piksi_bootloader.wait_for_handshake()
+          piksi_bootloader.handshake()
         except KeyboardInterrupt:
           return
-        piksi_bootloader.reply_handshake()
         print "received."
         print "Piksi Onboard Bootloader Version:", piksi_bootloader.version
         if piksi_bootloader.sbp_version > (0, 0):
