@@ -44,9 +44,13 @@ class Diagnostics(object):
     self.link.send_msg(MsgSettingsReadByIndex(index=0))
     while not self.settings_received or not self.heartbeat_received:
       time.sleep(0.1)
+    expire = time.time() + 15.0
     self.link.send(SBP_MSG_RESET, '')
     while not self.handshake_received:
       time.sleep(0.1)
+      if time.time() > expire:
+        expire = time.time() + 15.0
+        self.link.send(SBP_MSG_RESET, '')
 
   def _deprecated_callback(self, sbp_msg):
     if len(sbp_msg.payload)==1 and struct.unpack('B', sbp_msg.payload[0]) == 0:
