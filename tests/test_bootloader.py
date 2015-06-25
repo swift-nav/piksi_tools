@@ -28,7 +28,7 @@ from sbp.piksi  import SBP_MSG_RESET
 
 from piksi_tools import serial_link
 from piksi_tools.flash import Flash
-from piksi_tools.bootload import Bootloader
+from piksi_tools.bootload import Bootloader, SBP_MSG_BOOTLOADER_HANDSHAKE_HOST
 from piksi_tools.heartbeat import Heartbeat
 from piksi_tools.utils import *
 from piksi_tools.timeout import *
@@ -329,13 +329,65 @@ class TestBootloader(unittest.TestCase):
 
           handler.remove_callback(heartbeat, SBP_MSG_HEARTBEAT)
 
-  @unittest.skip("Not implemented yet")
   def test_set_btldr_mode_wrong_sender_id(self):
     """
     Test setting Piksi into bootloader mode with an incorrect sender ID
     (should fail).
     """
-    pass
+    if self.verbose: print "--- test_set_btldr_mode_wrong_sender_id ---"
+
+    with serial_link.get_driver(use_ftdi=False, port=self.port1) as driver:
+      with Handler(driver.read, driver.write) as handler:
+
+        # Make sure device is in the application firmware.
+        set_btldr_mode(handler, self.verbose)
+
+        with Bootloader(handler) as piksi_bootloader:
+
+          with Timeout(TIMEOUT_BOOT) as timeout:
+            if self.verbose: print "Waiting for bootloader handshake"
+            piksi_bootloader.wait_for_handshake()
+          if self.verbose: print "Received bootloader handshake."
+          piksi_bootloader.reply_handshake()
+          piksi_bootloader.jump_to_app()
+
+        with Timeout(TIMEOUT_BOOT) as timeout:
+
+          heartbeat = Heartbeat()
+          handler.add_callback(heartbeat, SBP_MSG_HEARTBEAT)
+
+          if self.verbose: print "Waiting to receive heartbeat"
+          while not heartbeat.received:
+            time.sleep(0.1)
+          if self.verbose: print "Received hearbeat"
+
+          handler.remove_callback(heartbeat, SBP_MSG_HEARTBEAT)
+
+        # Reset Piksi, and attempt to handshake into bootloader mode with an
+        # incorrect sender ID.
+        if self.verbose: print "Sending reset"
+        handler.send(SBP_MSG_RESET, "")
+
+        with Bootloader(handler) as piksi_bootloader:
+          with Timeout(TIMEOUT_BOOT) as timeout:
+            if self.verbose: print "Waiting for bootloader handshake from device"
+            piksi_bootloader.wait_for_handshake()
+        if self.verbose: print "Received handshake"
+        if self.verbose: print "Sending handshake with incorrect sender ID"
+        handler.send(SBP_MSG_BOOTLOADER_HANDSHAKE_HOST, '\x00', sender=0x41)
+
+        # We should receive a heartbeat if the handshake was unsuccessful.
+        with Timeout(TIMEOUT_BOOT) as timeout:
+
+          heartbeat = Heartbeat()
+          handler.add_callback(heartbeat, SBP_MSG_HEARTBEAT)
+
+          if self.verbose: print "Waiting to receive heartbeat"
+          while not heartbeat.received:
+            time.sleep(0.1)
+          if self.verbose: print "Received hearbeat"
+
+          handler.remove_callback(heartbeat, SBP_MSG_HEARTBEAT)
 
   @unittest.skip("Not implemented yet")
   def test_flashing_wrong_sender_id(self):
@@ -367,7 +419,7 @@ class TestBootloader(unittest.TestCase):
 
   @unittest.skip("Not implemented yet")
   def test_packet_drop(self):
-    """ test if flashing Piksi is redundant to SBP packet drops. """
+    """ Test if flashing Piksi is redundant to SBP packet drops. """
     pass
 
   @unittest.skip("Not implemented yet")
