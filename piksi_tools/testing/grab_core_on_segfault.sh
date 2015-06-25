@@ -19,7 +19,7 @@ export PIKSI=`echo $1 | egrep -o "PK[0-9]{4}"`
 
 gdb-multiarch -batch -nx \
               -ex "tar ext $2" \
-              -ex "source coredump.py" \
+              -ex "source coredump3.py" \
               -ex "set gcore-file-name core-$PIKSI" \
               -ex "mon jtag 4 5 6" \
               -ex "att 1" \
