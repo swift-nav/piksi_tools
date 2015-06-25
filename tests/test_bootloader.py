@@ -76,7 +76,11 @@ class TestBootloader(unittest.TestCase):
       with Handler(driver.read, driver.write) as handler:
         setup_piksi(handler, STM_FW, NAP_FW, VERBOSE)
 
-    print ""
+  def tearDown(self):
+    """ Clean up after running each test. """
+    # Hack: Wait a bit for 'Piksi Disconnected'
+    # print from sbp.client.handler.Handler
+    time.sleep(0.1)
 
   def _piksi_settings_cb(self):
     """ Callback to set flag indicating Piksi settings have been received. """
@@ -141,8 +145,6 @@ class TestBootloader(unittest.TestCase):
         if VERBOSE: print "Piksi NAP Version:", \
                           settings['system_info']['nap_version']
 
-    if VERBOSE: print ""
-
   def test_set_btldr_mode(self):
     """ Test setting Piksi into bootloader mode. """
 
@@ -162,8 +164,6 @@ class TestBootloader(unittest.TestCase):
             time.sleep(1)
             with Timeout(TIMEOUT_BOOT) as timeout:
               piksi_bootloader.wait_for_handshake()
-
-    if VERBOSE: print ""
 
   def test_flash_stm_firmware(self):
     """ Test flashing STM hexfile. """
@@ -188,8 +188,6 @@ class TestBootloader(unittest.TestCase):
               else:
                 piksi_flash.write_ihx(STM_FW)
 
-    if VERBOSE: print ""
-
   def test_flash_nap_firmware(self):
     """ Test flashing NAP hexfile. """
 
@@ -212,8 +210,6 @@ class TestBootloader(unittest.TestCase):
                 piksi_flash.write_ihx(NAP_FW, sys.stdout, mod_print=0x10)
               else:
                 piksi_flash.write_ihx(NAP_FW)
-
-    if VERBOSE: print ""
 
   def test_program_btldr(self):
     """ Test programming the bootloader once its sector is locked. """
@@ -250,8 +246,6 @@ class TestBootloader(unittest.TestCase):
             self.assertEqual('\xFF', byte_read,
                              "Bootloader sector was programmed")
 
-    if VERBOSE: print ""
-
   def test_erase_btldr(self):
     """ Test erasing the bootloader once its sector is locked. """
     SECTOR = 0
@@ -283,8 +277,6 @@ class TestBootloader(unittest.TestCase):
               if VERBOSE: print "Waiting for bootloader handshake"
               piksi_bootloader.wait_for_handshake()
 
-    if VERBOSE: print ""
-
   def test_jump_to_app(self):
     """ Test that we can jump to the application after programming. """
 
@@ -312,8 +304,6 @@ class TestBootloader(unittest.TestCase):
           if VERBOSE: print "Received hearbeat"
 
           handler.remove_callback(heartbeat, SBP_MSG_HEARTBEAT)
-
-    if VERBOSE: print ""
 
   @unittest.skip("Not implemented yet")
   def test_set_btldr_mode_wrong_sender_id(self):
