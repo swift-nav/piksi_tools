@@ -81,11 +81,16 @@ class Bootloader():
     if timeout is not None:
       t0 = time.time()
     self.handshake_received = False
+    expire = time.time() + 15.0
+    self.link.send(SBP_MSG_RESET, "")
     while not self.handshake_received:
       time.sleep(0.1)
       if timeout is not None:
         if time.time()-timeout > t0:
           return False
+      if time.time() > expire:
+        expire = time.time() + 15.0
+        self.link.send(SBP_MSG_RESET, "")
     return True
 
   def reply_handshake(self):
@@ -151,8 +156,6 @@ def main():
   with serial_link.get_driver(use_ftdi, port, baud) as driver:
     # Handler with context
     with Handler(driver.read, driver.write) as link:
-      link.send(SBP_MSG_RESET, "")
-      time.sleep(0.2)
       link.add_callback(serial_link.printer, SBP_MSG_PRINT)
 
       # Tell Bootloader we want to write to the flash.
