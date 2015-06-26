@@ -1,7 +1,7 @@
 piksi_tools_directory=../../
 spec_file=console.spec
 pyinstaller=pyinstaller
-
+VERSION=`cat ../../RELEASE-VERSION`
 LIBS=-lm
 
 ifneq (,$(findstring /cygdrive/,$(PATH)))
@@ -26,9 +26,10 @@ console: $(spec_file)
 
 Windows:
 	makensis win_installer.nsi
+	mv piksi_console_setup.exe piksi_console_v$(VERSION)_setup.exe
 Cygwin:
 	makensis win_installer.nsi
-
+	mv piksi_console_setup.exe piksi_console_v$(VERSION)_setup.exe
 Darwin:
 	sudo ./create-dmg-installer.sh
 clean:
