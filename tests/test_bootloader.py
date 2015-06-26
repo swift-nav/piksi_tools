@@ -340,28 +340,7 @@ class TestBootloader(unittest.TestCase):
       with Handler(driver.read, driver.write) as handler:
 
         # Make sure device is in the application firmware.
-        set_btldr_mode(handler, self.verbose)
-
-        with Bootloader(handler) as piksi_bootloader:
-
-          with Timeout(TIMEOUT_BOOT) as timeout:
-            if self.verbose: print "Waiting for bootloader handshake"
-            piksi_bootloader.wait_for_handshake()
-          if self.verbose: print "Received bootloader handshake."
-          piksi_bootloader.reply_handshake()
-          piksi_bootloader.jump_to_app()
-
-        with Timeout(TIMEOUT_BOOT) as timeout:
-
-          heartbeat = Heartbeat()
-          handler.add_callback(heartbeat, SBP_MSG_HEARTBEAT)
-
-          if self.verbose: print "Waiting to receive heartbeat"
-          while not heartbeat.received:
-            time.sleep(0.1)
-          if self.verbose: print "Received hearbeat"
-
-          handler.remove_callback(heartbeat, SBP_MSG_HEARTBEAT)
+        set_app_mode(handler, verbose)
 
         # Reset Piksi, and attempt to handshake into bootloader mode with an
         # incorrect sender ID.
