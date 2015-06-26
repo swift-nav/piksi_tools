@@ -213,7 +213,7 @@ class UpdateView(HasTraits):
                enabled_when='download_fw_en'),
           Item('nap_fw', style='custom', label='NAP Firmware File', \
                enabled_when='download_fw_en'),
-          Item('erase_stm', label='Erase Entire STM flash', \
+          Item('erase_stm', label='Erase STM flash (recommended)', \
                enabled_when='erase_en'),
         ),
       ),
