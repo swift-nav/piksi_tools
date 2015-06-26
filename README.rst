@@ -14,7 +14,7 @@ Setup
 
 Install dependencies only::
 
-  $ sudo pip install -r requirements.txt
+  $ sudo ./setup.sh -x install
 
 Install from repo::
 
