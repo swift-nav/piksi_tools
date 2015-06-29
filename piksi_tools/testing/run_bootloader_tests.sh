@@ -17,18 +17,18 @@
 rm -f *.hex
 rm -f *.elf
 
-if [[ "$OSTYPE" == 'darwin14' ]]; then
+if   [[ "$OSTYPE" == 'darwin14' ]]; then
    DOWNLOAD="curl -O"
-else
+elif [[ "$OSTYPE" == 'linux-gnu' ]]; then
    DOWNLOAD="wget"
 fi
 
 # List of bootloader firmwares to test.
 declare -a btldr=(
-  "piksi_bootloader_v0.1.hex"
-  "piksi_bootloader_v1.0.hex"
-  "piksi_bootloader_v1.1.hex"
-  "piksi_bootloader_v1.2.hex"
+  "piksi_bootloader_v0.1.elf"
+  "piksi_bootloader_v1.0.elf"
+  "piksi_bootloader_v1.1.elf"
+  "piksi_bootloader_v1.2.elf"
 )
 
 # List of STM firmwares to iterate through for each bootloader test.
