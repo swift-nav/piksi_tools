@@ -23,17 +23,19 @@ import struct
 
 from intelhex import IntelHex
 
-from sbp.system import SBP_MSG_HEARTBEAT
-from sbp.client.handler import Handler
-from sbp.piksi import SBP_MSG_RESET
-from sbp.flash import *
+from sbp.system             import SBP_MSG_HEARTBEAT
+from sbp.client.handler     import Handler
+from sbp.piksi              import SBP_MSG_RESET
+from sbp.flash              import *
 
-from piksi_tools import serial_link
-from piksi_tools.flash import Flash
-from piksi_tools.bootload import Bootloader, SBP_MSG_BOOTLOADER_HANDSHAKE_REQUEST, SBP_MSG_BOOTLOADER_HANDSHAKE_RESPONSE
-from piksi_tools.heartbeat import Heartbeat
-from piksi_tools.utils import *
-from piksi_tools.timeout import *
+from piksi_tools            import serial_link
+from piksi_tools.flash      import Flash
+from piksi_tools.heartbeat  import Heartbeat
+from piksi_tools.utils      import *
+from piksi_tools.timeout    import *
+from piksi_tools.bootload   import Bootloader, \
+                                   SBP_MSG_BOOTLOADER_HANDSHAKE_REQUEST, \
+                                   SBP_MSG_BOOTLOADER_HANDSHAKE_RESPONSE
 
 from piksi_tools.console.update_downloader import UpdateDownloader
 from piksi_tools.console.settings_view import SettingsView
@@ -451,22 +453,22 @@ def get_suite(*args):
   suite = unittest.TestSuite()
 
   suite.addTest(TestBootloader("test_get_versions", *args))
-#  suite.addTest(TestBootloader("test_set_btldr_mode", *args))
-#  suite.addTest(TestBootloader("test_flash_stm_firmware", *args))
-#  suite.addTest(TestBootloader("test_flash_nap_firmware", *args))
-#  suite.addTest(TestBootloader("test_program_btldr", *args))
-#  suite.addTest(TestBootloader("test_erase_btldr", *args))
-#  suite.addTest(TestBootloader("test_jump_to_app", *args))
-#  suite.addTest(TestBootloader("test_set_btldr_mode_wrong_sender_id", *args))
+  suite.addTest(TestBootloader("test_set_btldr_mode", *args))
+  suite.addTest(TestBootloader("test_flash_stm_firmware", *args))
+  suite.addTest(TestBootloader("test_flash_nap_firmware", *args))
+  suite.addTest(TestBootloader("test_program_btldr", *args))
+  suite.addTest(TestBootloader("test_erase_btldr", *args))
+  suite.addTest(TestBootloader("test_jump_to_app", *args))
+  suite.addTest(TestBootloader("test_set_btldr_mode_wrong_sender_id", *args))
   suite.addTest(TestBootloader("test_flashing_wrong_sender_id", *args))
-#  suite.addTest(TestBootloader("test_two_piksies_btldr_mode", *args))
-#  suite.addTest(TestBootloader("test_two_piksies_simultaneous_bootload", *args))
-#  suite.addTest(TestBootloader("test_uart_rx_buffer_overflow", *args))
-#  suite.addTest(TestBootloader("test_packet_drop", *args))
-#  suite.addTest(TestBootloader("test_sector_lock_unlock", *args))
-#  suite.addTest(TestBootloader("test_recover_from_reset", *args))
-#  suite.addTest(TestBootloader("test_recover_from_abort", *args))
-#  suite.addTest(TestBootloader("test_invalid_firmware", *args))
+  suite.addTest(TestBootloader("test_two_piksies_btldr_mode", *args))
+  suite.addTest(TestBootloader("test_two_piksies_simultaneous_bootload", *args))
+  suite.addTest(TestBootloader("test_uart_rx_buffer_overflow", *args))
+  suite.addTest(TestBootloader("test_packet_drop", *args))
+  suite.addTest(TestBootloader("test_sector_lock_unlock", *args))
+  suite.addTest(TestBootloader("test_recover_from_reset", *args))
+  suite.addTest(TestBootloader("test_recover_from_abort", *args))
+  suite.addTest(TestBootloader("test_invalid_firmware", *args))
 
   return suite
 
