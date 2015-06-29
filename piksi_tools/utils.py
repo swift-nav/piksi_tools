@@ -58,7 +58,7 @@ def set_app_mode(handler, verbose=False):
     # Piksi is in the bootloader, tell Piksi to jump into the application.
     with Timeout(TIMEOUT_BOOT) as timeout:
       if verbose: print "Waiting for bootloader handshake from device"
-      piksi_bootloader.wait_for_handshake()
+      piksi_bootloader.handshake()
     piksi_bootloader.jump_to_app()
     if verbose: print "Received handshake"
     if verbose: print "Telling device to jump to application"
@@ -113,8 +113,7 @@ def set_btldr_mode(handler, verbose=False):
     # Set Piksi into bootloader mode.
     with Timeout(TIMEOUT_BOOT) as timeout:
       if verbose: print "Waiting for bootloader handshake from device"
-      piksi_bootloader.wait_for_handshake()
-    piksi_bootloader.reply_handshake()
+      piksi_bootloader.handshake()
     if verbose: print "Replying to bootloader handshake"
 
 def setup_piksi(handler, stm_fw, nap_fw, verbose=False):
@@ -158,8 +157,7 @@ def setup_piksi(handler, stm_fw, nap_fw, verbose=False):
     handler.remove_callback(heartbeat, SBP_MSG_HEARTBEAT)
 
     with Timeout(TIMEOUT_BOOT) as timeout:
-      piksi_bootloader.wait_for_handshake()
-    piksi_bootloader.reply_handshake()
+      piksi_bootloader.handshake()
     bootloader_version = piksi_bootloader.version
     if verbose: print "Received bootloader handshake"
 

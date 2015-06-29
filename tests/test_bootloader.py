@@ -28,7 +28,7 @@ from sbp.piksi  import SBP_MSG_RESET
 
 from piksi_tools import serial_link
 from piksi_tools.flash import Flash
-from piksi_tools.bootload import Bootloader, SBP_MSG_BOOTLOADER_HANDSHAKE_HOST
+from piksi_tools.bootload import Bootloader, SBP_MSG_BOOTLOADER_HANDSHAKE_REQUEST, SBP_MSG_BOOTLOADER_HANDSHAKE_RESPONSE
 from piksi_tools.heartbeat import Heartbeat
 from piksi_tools.utils import *
 from piksi_tools.timeout import *
@@ -146,8 +146,7 @@ class TestBootloader(unittest.TestCase):
           # Get bootloader version, print, and jump to application firmware.
           with Timeout(TIMEOUT_BOOT) as timeout:
             if self.verbose: print "Waiting for bootloader handshake"
-            piksi_bootloader.wait_for_handshake()
-          piksi_bootloader.reply_handshake()
+            piksi_bootloader.handshake()
           piksi_bootloader.jump_to_app()
           print "Piksi Bootloader Version:", piksi_bootloader.version
 
@@ -187,7 +186,7 @@ class TestBootloader(unittest.TestCase):
           for i in range(10):
             time.sleep(1)
             with Timeout(TIMEOUT_BOOT) as timeout:
-              piksi_bootloader.wait_for_handshake()
+              piksi_bootloader.handshake()
 
   def test_flash_stm_firmware(self):
     """ Test flashing STM hexfile. """
@@ -202,7 +201,7 @@ class TestBootloader(unittest.TestCase):
         with Bootloader(handler) as piksi_bootloader:
           with Timeout(TIMEOUT_BOOT) as timeout:
             if self.verbose: print "Waiting for bootloader handshake"
-            piksi_bootloader.wait_for_handshake()
+            piksi_bootloader.handshake()
           with Flash(handler, flash_type='STM',
                      sbp_version=piksi_bootloader.version) as piksi_flash:
             with Timeout(TIMEOUT_WRITE_STM) as timeout:
@@ -225,7 +224,7 @@ class TestBootloader(unittest.TestCase):
         with Bootloader(handler) as piksi_bootloader:
           with Timeout(TIMEOUT_BOOT) as timeout:
             if self.verbose: print "Waiting for bootloader handshake"
-            piksi_bootloader.wait_for_handshake()
+            piksi_bootloader.handshake()
           with Flash(handler, flash_type='M25',
                      sbp_version=piksi_bootloader.version) as piksi_flash:
             with Timeout(TIMEOUT_WRITE_NAP) as timeout:
@@ -250,7 +249,7 @@ class TestBootloader(unittest.TestCase):
         with Bootloader(handler) as piksi_bootloader:
           with Timeout(TIMEOUT_BOOT) as timeout:
             if self.verbose: print "Waiting for bootloader handshake"
-            piksi_bootloader.wait_for_handshake()
+            piksi_bootloader.handshake()
           with Flash(handler, flash_type='STM',
                      sbp_version=piksi_bootloader.version) as piksi_flash:
             # Make sure the bootloader sector is locked.
@@ -284,7 +283,7 @@ class TestBootloader(unittest.TestCase):
         with Bootloader(handler) as piksi_bootloader:
           with Timeout(TIMEOUT_BOOT) as timeout:
             if self.verbose: print "Waiting for bootloader handshake"
-            piksi_bootloader.wait_for_handshake()
+            piksi_bootloader.handshake()
           with Flash(handler, flash_type='STM',
                      sbp_version=piksi_bootloader.version) as piksi_flash:
             # Make sure the bootloader sector is locked.
@@ -299,7 +298,7 @@ class TestBootloader(unittest.TestCase):
             # as the bootloader will stop sending handshakes.
             with Timeout(TIMEOUT_BOOT) as timeout:
               if self.verbose: print "Waiting for bootloader handshake"
-              piksi_bootloader.wait_for_handshake()
+              piksi_bootloader.handshake()
 
   def test_jump_to_app(self):
     """ Test that we can jump to the application after programming. """
@@ -340,7 +339,7 @@ class TestBootloader(unittest.TestCase):
       with Handler(driver.read, driver.write) as handler:
 
         # Make sure device is in the application firmware.
-        set_app_mode(handler, verbose)
+        set_app_mode(handler, self.verbose)
 
         # Reset Piksi, and attempt to handshake into bootloader mode with an
         # incorrect sender ID.
@@ -350,10 +349,11 @@ class TestBootloader(unittest.TestCase):
         with Bootloader(handler) as piksi_bootloader:
           with Timeout(TIMEOUT_BOOT) as timeout:
             if self.verbose: print "Waiting for bootloader handshake from device"
-            piksi_bootloader.wait_for_handshake()
+            while not piksi_bootloader.handshake_received:
+              time.sleep(0.1)
         if self.verbose: print "Received handshake"
         if self.verbose: print "Sending handshake with incorrect sender ID"
-        handler.send(SBP_MSG_BOOTLOADER_HANDSHAKE_HOST, '\x00', sender=0x41)
+        handler.send(SBP_MSG_BOOTLOADER_HANDSHAKE_REQUEST, '\x00', sender=0x41)
 
         # We should receive a heartbeat if the handshake was unsuccessful.
         with Timeout(TIMEOUT_BOOT) as timeout:
