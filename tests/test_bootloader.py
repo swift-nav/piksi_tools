@@ -398,6 +398,94 @@ class TestBootloader(unittest.TestCase):
             except TimeoutError:
               if self.verbose: print "Timed out as expected"
 
+  def test_sector_lock_unlock(self):
+    """ Test if we can lock / unlock sectors. """
+    SECTOR = 1
+    ADDRESS = 0x08004000
+
+    if self.verbose: print "--- test_program_btldr ---"
+
+    with serial_link.get_driver(use_ftdi=False, port=self.port1) as driver:
+      with Handler(driver.read, driver.write) as handler:
+
+        set_btldr_mode(handler, self.verbose)
+
+        with Bootloader(handler) as piksi_bootloader:
+          with Timeout(TIMEOUT_BOOT) as timeout:
+            if self.verbose: print "Waiting for bootloader handshake"
+            piksi_bootloader.handshake()
+          if self.verbose: print "Handshaked with bootloader"
+
+          with Flash(handler, flash_type='STM',
+                     sbp_version=piksi_bootloader.version) as piksi_flash:
+
+            try:
+              # Erase the sector, lock it, and attempt to write to it.
+              with Timeout(TIMEOUT_ERASE_SECTOR) as timeout:
+                if self.verbose: print "Erasing STM sector:", SECTOR
+                piksi_flash.erase_sector(SECTOR)
+
+              with Timeout(TIMEOUT_LOCK_SECTOR) as timeout:
+                if self.verbose: print "Locking STM sector:", SECTOR
+                piksi_flash.lock_sector(SECTOR)
+              if self.verbose: print "Attempting to program address:", hex(ADDRESS)
+              piksi_flash.program(ADDRESS, '\x00')
+              with Timeout(TIMEOUT_READ_STM) as timeout:
+                byte_read = piksi_flash.read(ADDRESS, 1, block=True)
+              self.assertEqual('\xFF', byte_read, \
+                               "Address was programmed")
+              if self.verbose: print "Program failed as expected"
+
+              # Unlock the sector, and attempt to write to it.
+              with Timeout(TIMEOUT_LOCK_SECTOR) as timeout:
+                if self.verbose: print "Unlocking STM sector:", SECTOR
+                piksi_flash.unlock_sector(SECTOR)
+              if self.verbose: print "Attempting to program address:", hex(ADDRESS)
+              piksi_flash.program(ADDRESS, '\x00')
+              with Timeout(TIMEOUT_READ_STM) as timeout:
+                byte_read = piksi_flash.read(ADDRESS, 1, block=True)
+              self.assertEqual('\x00', byte_read, \
+                               "Address was not programmed")
+              if self.verbose: print "Program was successful as expected"
+
+            except Exception:
+              # If all else fails, make sure we unlock
+              # the sector before leaving this test.
+              with Timeout(TIMEOUT_LOCK_SECTOR) as timeout:
+                if self.verbose: print "Had exception, unlocking STM sector:", SECTOR
+                piksi_flash.unlock_sector(SECTOR)
+              raise
+
+            # Clean up - write valid STM firmware over sector that was erased.
+            with Timeout(TIMEOUT_WRITE_STM) as timeout:
+              if self.verbose:
+                print "Cleaning up, writing firmware to STM flash"
+                piksi_flash.write_ihx(self.stm_fw, sys.stdout, mod_print=0x10)
+              else:
+                piksi_flash.write_ihx(self.stm_fw)
+
+  @unittest.skip("Not implemented yet")
+  def test_packet_drop(self):
+    """ Test if flashing Piksi is redundant to SBP packet drops. """
+    pass
+
+  @unittest.skip("Not implemented yet")
+  def test_recover_from_reset(self):
+    """ Test if we can recover from a reset while flashing. """
+    pass
+
+  @unittest.skip("Not implemented yet")
+  def test_recover_from_abort(self):
+    """
+    Test if we can recover from aborting the bootloader script while flashing.
+    """
+    pass
+
+  @unittest.skip("Not implemented yet")
+  def test_invalid_firmware(self):
+    """ Test writing an invalid firmware file and see if device will run it. """
+    pass
+
   @unittest.skip("Not implemented yet")
   def test_two_piksies_btldr_mode(self):
     """
@@ -421,32 +509,6 @@ class TestBootloader(unittest.TestCase):
     if self.port2 is None:
       return
 
-  @unittest.skip("Not implemented yet")
-  def test_packet_drop(self):
-    """ Test if flashing Piksi is redundant to SBP packet drops. """
-    pass
-
-  @unittest.skip("Not implemented yet")
-  def test_sector_lock_unlock(self):
-    """ Test if we can lock / unlock sectors. """
-    pass
-
-  @unittest.skip("Not implemented yet")
-  def test_recover_from_reset(self):
-    """ Test if we can recover from a reset while flashing. """
-    pass
-
-  @unittest.skip("Not implemented yet")
-  def test_recover_from_abort(self):
-    """
-    Test if we can recover from aborting the bootloader script while flashing.
-    """
-    pass
-
-  @unittest.skip("Not implemented yet")
-  def test_invalid_firmware(self):
-    """ Test writing an invalid firmware file and see if device will run it. """
-    pass
 
 def get_suite(*args):
   """ Build test suite for TestBootloader. """
