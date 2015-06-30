@@ -57,7 +57,7 @@ class Timeout(object):
     self.cancel()
 
   def start(self):
-    signal.alarm(seconds)
+    signal.alarm(self.seconds)
 
   def cancel(self):
     """ Cancel scheduled Exception. """
