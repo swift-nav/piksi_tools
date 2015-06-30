@@ -376,6 +376,15 @@
   Notes: This sets the number of meters that the rover is Down from the
     base station when the "init known baseline" feature is used.
 
+- group: solution
+  name: pole_offset
+  type: double
+  units: meters
+  default value: '0'
+  enumerated possible values:
+  Description: This setting subtracts a constant offset from the location solution.
+  Notes: Allows you to get correct positioning when there is a known distance between the antenna and the vehicle of interest.
+
 - group: system_info
   name: serial_number
   type: integer
@@ -603,6 +612,6 @@
   type: integer
   units:
   default value: None
-  enumerated possible values: 
+  enumerated possible values:
   Description: Unused
   Notes:
