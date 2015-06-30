@@ -213,7 +213,7 @@ class UpdateView(HasTraits):
                enabled_when='download_fw_en'),
           Item('nap_fw', style='custom', label='NAP Firmware File', \
                enabled_when='download_fw_en'),
-          Item('erase_stm', label='Erase Entire STM flash', \
+          Item('erase_stm', label='Erase STM flash (recommended)', \
                enabled_when='erase_en'),
         ),
       ),
@@ -588,7 +588,7 @@ class UpdateView(HasTraits):
 
     self._write("Waiting for bootloader handshake message from Piksi ...")
     reset_prompt = None
-    handshake_received = self.pk_boot.wait_for_handshake(1)
+    handshake_received = self.pk_boot.handshake(1)
 
     # Prompt user to reset Piksi if we don't receive the handshake message
     # within a reasonable amount of tiime (firmware might be corrupted).
@@ -607,12 +607,11 @@ class UpdateView(HasTraits):
       reset_prompt.run(block=False)
 
       while not reset_prompt.closed and not handshake_received:
-        handshake_received = self.pk_boot.wait_for_handshake(1)
+        handshake_received = self.pk_boot.handshake(1)
 
       reset_prompt.kill()
       reset_prompt.wait()
 
-    self.pk_boot.reply_handshake()
     self._write("received bootloader handshake message.")
     self._write("Piksi Onboard Bootloader Version: " + self.pk_boot.version)
 

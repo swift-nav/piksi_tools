@@ -68,3 +68,4 @@ RELEASE-VERSION
 /piksi_tools/pyinstaller/dist
 
 *.csv
+diagnostics.yaml

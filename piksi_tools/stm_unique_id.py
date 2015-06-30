@@ -37,14 +37,14 @@ class STMUniqueID(object):
     self.link = link
     self.heartbeat = Heartbeat()
     link.add_callback(self.heartbeat, SBP_MSG_HEARTBEAT)
-    link.add_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_DEVICE)
+    link.add_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_RESPONSE)
 
   def __enter__(self):
     return self
 
   def __exit__(self, *args):
     self.link.remove_callback(self.heartbeat, SBP_MSG_HEARTBEAT)
-    self.link.remove_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_DEVICE)
+    self.link.remove_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_RESPONSE)
 
   def receive_stm_unique_id_callback(self, sbp_msg):
     """
@@ -60,11 +60,11 @@ class STMUniqueID(object):
       time.sleep(0.1)
     self.unique_id_returned = False
     self.unique_id = None
-    # < 0.45 of the bootloader, reuse single Call/Response STM Unique ID message.
-    if self.heartbeat.sbp_version < (0, 45):
-      self.link.send(SBP_MSG_STM_UNIQUE_ID_DEVICE, struct.pack("<I",0))
+    # < 0.45 of the bootloader, reuse single stm message.
+    if self.sbp_version < (0, 45):
+      self.link.send(SBP_MSG_STM_UNIQUE_ID_RESPONSE, struct.pack("<I",0))
     else:
-      self.link.send(SBP_MSG_STM_UNIQUE_ID_HOST, struct.pack("<I",0))
+      self.link.send(SBP_MSG_STM_UNIQUE_ID_REQUEST, struct.pack("<I",0))
     while not self.unique_id_returned:
       time.sleep(0.1)
     return self.unique_id

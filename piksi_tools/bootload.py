@@ -48,7 +48,7 @@ class Bootloader():
     self.sbp_version = (0, 0)
     self.link = link
     self.link.add_callback(self._deprecated_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED)
-    self.link.add_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEVICE)
+    self.link.add_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_RESPONSE)
 
   def __enter__(self):
     return self
@@ -61,7 +61,7 @@ class Bootloader():
     """ Remove Bootloader instance callbacks from serial link. """
     self.stopped = True
     self.link.remove_callback(self._deprecated_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED)
-    self.link.remove_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEVICE)
+    self.link.remove_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_RESPONSE)
 
   def _deprecated_callback(self, sbp_msg):
     """ Bootloader handshake for deprecated message ID. """
@@ -84,41 +84,41 @@ class Bootloader():
     self.sbp_version = ((hs_device.flags >> 8) & 0xF, hs_device.flags & 0xF)
     self.handshake_received = True
 
-  def wait_for_handshake(self, timeout=None):
+  def handshake(self, timeout=None):
     """
-    Wait for handshake message from Piksi bootloader.
+    Set Piksi into bootloader mode. Attempts to reset twice if first reset
+    doesn't appear to have worked (device could have been booting).
 
     Parameters
-    =========
-    timeout : int
-      Length of time
+    ==========
+    timeout: int
+      Number of seconds to wait for bootloader response before returning. If
+      timeout is None, will wait indefinitely.
 
     Returns
     =======
-    out : bool
-      Returns True if handshake was received, False if timeout was reached
-      before a handshake was received.
+    out: bool
+      True if bootloader mode was successfully set, False if timed out.
     """
     if timeout is not None:
       t0 = time.time()
     self.handshake_received = False
+    expire = time.time() + 15.0
+    self.link.send(SBP_MSG_RESET, "")
     while not self.handshake_received:
       time.sleep(0.1)
       if timeout is not None:
         if time.time()-timeout > t0:
           return False
-    return True
-
-  def reply_handshake(self):
-    """
-    Send a handshake to Piksi bootloader to request bootloader mode. Should be
-    sent after receiving handshake from Piksi bootloader.
-    """
+      if time.time() > expire:
+        expire = time.time() + 15.0
+        self.link.send(SBP_MSG_RESET, "")
     # < 0.45 of SBP protocol, reuse single handshake message.
     if self.sbp_version < (0, 45):
       self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED, '\x00')
     else:
-      self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_HOST, '\x00')
+      self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_REQUEST, '\x00')
+    return True
 
 
   def jump_to_app(self):
@@ -178,8 +178,6 @@ def main():
   with serial_link.get_driver(use_ftdi, port, baud) as driver:
     # Handler with context
     with Handler(driver.read, driver.write) as link:
-      link.send(SBP_MSG_RESET, "")
-      time.sleep(0.2)
       link.add_callback(serial_link.printer, SBP_MSG_PRINT)
 
       # Tell Bootloader we want to write to the flash.
@@ -187,10 +185,9 @@ def main():
         print "Waiting for bootloader handshake message from Piksi ...",
         sys.stdout.flush()
         try:
-          piksi_bootloader.wait_for_handshake()
+          piksi_bootloader.handshake()
         except KeyboardInterrupt:
           return
-        piksi_bootloader.reply_handshake()
         print "received."
         print "Piksi Onboard Bootloader Version:", piksi_bootloader.version
         if piksi_bootloader.sbp_version > (0, 0):

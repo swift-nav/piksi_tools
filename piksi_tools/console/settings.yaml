@@ -597,3 +597,12 @@
     reporting the event, including a timestamp accurate to better than
     a microsecond.
     Requires NAP firmware >= 0.12.
+
+- group: track
+  name: iq_output_mask
+  type: integer
+  units:
+  default value: None
+  enumerated possible values: 
+  Description: Unused
+  Notes:

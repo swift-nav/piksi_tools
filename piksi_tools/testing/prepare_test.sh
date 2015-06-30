@@ -42,12 +42,12 @@ cd testing
 ./cycle_device_power.py $2
 sleep 1
 cd ..
-./bootload.py -e -s -p $2 testing/$3 > testing/bootload_log1
+./bootload.py -e -s -p $2 testing/$3 > testing/bootload_log2
 cd testing
 ./cycle_device_power.py $2
 sleep 1
 cd ..
-./bootload.py -m -p $2 testing/$4  >> testing/bootload_log1
+./bootload.py -m -p $2 testing/$4  >> testing/bootload_log2
 cd testing
 
 # Sleep for a while to make sure both devices are booted up and ready to go
