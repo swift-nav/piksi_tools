@@ -73,7 +73,8 @@ def test_setup(port1, port2, stm_fw, nap_fw, verbose):
 
 class TestBootloader(unittest.TestCase):
 
-  def __init__(self, testname, port1, port2, stm_fw, nap_fw, verbose):
+  def __init__(self, testname, port1, port2, stm_fw, nap_fw, verbose, \
+               n_queue, skip_single, skip_double):
     """
     Piksi bootloader tests. Tests assume that Piksies have a valid bootloader
     and STM / NAP firmware, such that it sends bootloader handshake messages and
@@ -96,6 +97,12 @@ class TestBootloader(unittest.TestCase):
       NAP firmware to use in tests.
     verbose : bool
       Print status output.
+    n_queue : int
+      Number of flash operations to queue.
+    skip_single : bool
+      Skip single Piksi tests.
+    skip_double : bool
+      Skip double Piksi tests.
     """
     super(TestBootloader, self).__init__(testname)
     self.port1 = port1
@@ -103,6 +110,9 @@ class TestBootloader(unittest.TestCase):
     self.stm_fw = stm_fw
     self.nap_fw = nap_fw
     self.verbose = verbose
+    self.n_queue = n_queue
+    self.skip_single = skip_single
+    self.skip_double = skip_double
 
   def tearDown(self):
     """ Clean up after running each test. """
@@ -135,6 +145,7 @@ class TestBootloader(unittest.TestCase):
 
     return sv.settings
 
+  @unittest.skipIf(self.skip_single)
   def test_get_versions(self):
     """ Get Piksi bootloader/firmware/NAP version from device. """
 
@@ -172,6 +183,7 @@ class TestBootloader(unittest.TestCase):
         if self.verbose: print "Piksi NAP Version:", \
                           settings['system_info']['nap_version']
 
+  @unittest.skipIf(self.skip_single)
   def test_set_btldr_mode(self):
     """ Test setting Piksi into bootloader mode. """
 
@@ -192,6 +204,7 @@ class TestBootloader(unittest.TestCase):
             with Timeout(TIMEOUT_BOOT) as timeout:
               piksi_bootloader.handshake()
 
+  @unittest.skipIf(self.skip_single)
   def test_flash_stm_firmware(self):
     """ Test flashing STM hexfile. """
 
@@ -207,7 +220,8 @@ class TestBootloader(unittest.TestCase):
             if self.verbose: print "Waiting for bootloader handshake"
             piksi_bootloader.handshake()
           with Flash(handler, flash_type='STM',
-                     sbp_version=piksi_bootloader.version) as piksi_flash:
+                     sbp_version=piksi_bootloader.version,
+                     max_queued_ops=self.n_queue) as piksi_flash:
             with Timeout(TIMEOUT_WRITE_STM) as timeout:
               if self.verbose:
                 print "Writing firmware to STM flash"
@@ -215,6 +229,7 @@ class TestBootloader(unittest.TestCase):
               else:
                 piksi_flash.write_ihx(self.stm_fw)
 
+  @unittest.skipIf(self.skip_single)
   def test_flash_nap_firmware(self):
     """ Test flashing NAP hexfile. """
 
@@ -230,7 +245,8 @@ class TestBootloader(unittest.TestCase):
             if self.verbose: print "Waiting for bootloader handshake"
             piksi_bootloader.handshake()
           with Flash(handler, flash_type='M25',
-                     sbp_version=piksi_bootloader.version) as piksi_flash:
+                     sbp_version=piksi_bootloader.version,
+                     max_queued_ops=self.n_queue) as piksi_flash:
             with Timeout(TIMEOUT_WRITE_NAP) as timeout:
               if self.verbose:
                 print "Writing firmware to NAP flash"
@@ -238,6 +254,7 @@ class TestBootloader(unittest.TestCase):
               else:
                 piksi_flash.write_ihx(self.nap_fw)
 
+  @unittest.skipIf(self.skip_single)
   def test_program_btldr(self):
     """ Test programming the bootloader once its sector is locked. """
     SECTOR = 0
@@ -255,7 +272,8 @@ class TestBootloader(unittest.TestCase):
             if self.verbose: print "Waiting for bootloader handshake"
             piksi_bootloader.handshake()
           with Flash(handler, flash_type='STM',
-                     sbp_version=piksi_bootloader.version) as piksi_flash:
+                     sbp_version=piksi_bootloader.version,
+                     max_queued_ops=self.n_queue) as piksi_flash:
             # Make sure the bootloader sector is locked.
             with Timeout(TIMEOUT_LOCK_SECTOR) as timeout:
               if self.verbose: print "Locking STM sector:", SECTOR
@@ -273,6 +291,7 @@ class TestBootloader(unittest.TestCase):
             self.assertEqual('\xFF', byte_read,
                              "Bootloader sector was programmed")
 
+  @unittest.skipIf(self.skip_single)
   def test_erase_btldr(self):
     """ Test erasing the bootloader once its sector is locked. """
     SECTOR = 0
@@ -289,7 +308,8 @@ class TestBootloader(unittest.TestCase):
             if self.verbose: print "Waiting for bootloader handshake"
             piksi_bootloader.handshake()
           with Flash(handler, flash_type='STM',
-                     sbp_version=piksi_bootloader.version) as piksi_flash:
+                     sbp_version=piksi_bootloader.version,
+                     max_queued_ops=self.n_queue) as piksi_flash:
             # Make sure the bootloader sector is locked.
             with Timeout(TIMEOUT_LOCK_SECTOR) as timeout:
               if self.verbose: print "Locking STM sector:", SECTOR
@@ -304,6 +324,7 @@ class TestBootloader(unittest.TestCase):
               if self.verbose: print "Waiting for bootloader handshake"
               piksi_bootloader.handshake()
 
+  @unittest.skipIf(self.skip_single)
   def test_jump_to_app(self):
     """ Test that we can jump to the application after programming. """
 
@@ -332,6 +353,7 @@ class TestBootloader(unittest.TestCase):
 
           handler.remove_callback(heartbeat, SBP_MSG_HEARTBEAT)
 
+  @unittest.skipIf(self.skip_single)
   def test_set_btldr_mode_wrong_sender_id(self):
     """
     Test setting Piksi into bootloader mode with an incorrect sender ID
@@ -372,6 +394,7 @@ class TestBootloader(unittest.TestCase):
 
           handler.remove_callback(heartbeat, SBP_MSG_HEARTBEAT)
 
+  @unittest.skipIf(self.skip_single)
   def test_flashing_wrong_sender_id(self):
     """ Test flashing using an incorrect sender ID (should fail). """
     SECTOR = 1
@@ -387,7 +410,8 @@ class TestBootloader(unittest.TestCase):
         # Verify that flash erase times out when using incorrect sender ID.
         with Bootloader(handler) as piksi_bootloader:
           with Flash(handler, flash_type='STM',
-                     sbp_version=piksi_bootloader.version) as piksi_flash:
+                     sbp_version=piksi_bootloader.version,
+                     max_queued_ops=self.n_queue) as piksi_flash:
             try:
               with Timeout(TIMEOUT_ERASE_SECTOR) as timeout:
                 if self.verbose: print "Attempting to erase sector with incorrect sender ID"
@@ -398,6 +422,7 @@ class TestBootloader(unittest.TestCase):
             except TimeoutError:
               if self.verbose: print "Timed out as expected"
 
+  @unittest.skipIf(self.skip_single)
   def test_sector_lock_unlock(self):
     """ Test if we can lock / unlock sectors. """
     SECTOR = 1
@@ -417,7 +442,8 @@ class TestBootloader(unittest.TestCase):
           if self.verbose: print "Handshaked with bootloader"
 
           with Flash(handler, flash_type='STM',
-                     sbp_version=piksi_bootloader.version) as piksi_flash:
+                     sbp_version=piksi_bootloader.version,
+                     max_queued_ops=self.n_queue) as piksi_flash:
 
             try:
               # Erase the sector, lock it, and attempt to write to it.
@@ -464,16 +490,19 @@ class TestBootloader(unittest.TestCase):
               else:
                 piksi_flash.write_ihx(self.stm_fw)
 
+  @unittest.skipIf(self.skip_single)
   @unittest.skip("Not implemented yet")
   def test_packet_drop(self):
     """ Test if flashing Piksi is redundant to SBP packet drops. """
     pass
 
+  @unittest.skipIf(self.skip_single)
   @unittest.skip("Not implemented yet")
   def test_recover_from_reset(self):
     """ Test if we can recover from a reset while flashing. """
     pass
 
+  @unittest.skipIf(self.skip_single)
   @unittest.skip("Not implemented yet")
   def test_recover_from_abort(self):
     """
@@ -481,11 +510,13 @@ class TestBootloader(unittest.TestCase):
     """
     pass
 
+  @unittest.skipIf(self.skip_single)
   @unittest.skip("Not implemented yet")
   def test_invalid_firmware(self):
     """ Test writing an invalid firmware file and see if device will run it. """
     pass
 
+  @unittest.skipIf(self.skip_double)
   @unittest.skip("Not implemented yet")
   def test_two_piksies_btldr_mode(self):
     """
@@ -494,12 +525,14 @@ class TestBootloader(unittest.TestCase):
     if self.port2 is None:
       return
 
+  @unittest.skipIf(self.skip_double)
   @unittest.skip("Not implemented yet")
   def test_two_piksies_simultaneous_bootload(self):
     """ Test if two Piksies can simultaneously bootload. """
     if self.port2 is None:
       return
 
+  @unittest.skipIf(self.skip_double)
   @unittest.skip("Not implemented yet")
   def test_uart_rx_buffer_overflow(self):
     """
@@ -552,6 +585,12 @@ def get_args():
   parser.add_argument("-v", "--verbose",
                       default=False, action="store_true",
                       help="print more verbose output")
+  parser.add_argument('-n', '--n_queue', nargs=1, default=[1]
+                      help='Number of queued flash operations')
+  parser.add_argument('-o', '--skip_single', default=False,
+                      help="Don't run single Piksi tests")
+  parser.add_argument('-t', '--skip_double', default=False,
+                      help="Don't run skip_double Piksi tests")
   parser.add_argument('unittest_args', nargs='*')
   return parser.parse_args()
 
@@ -565,6 +604,9 @@ def main():
   stm_fw_fname = args.stm_fw[0]
   nap_fw_fname = args.nap_fw[0]
   verbose = args.verbose
+  n_queue = args.n_queue[0]
+  skip_single = args.skip_single[0]
+  skip_double = args.skip_double[0]
 
   # Delete args used in main() before running unittests.
   sys.argv[1:] = args.unittest_args
@@ -579,9 +621,11 @@ def main():
   # Hack: Do Piksi setup before running TestBootloader tests.
   # unittest.TestCase.setUpClass can't access the instance variables passed
   # to TestBootloader.__init__, so we do this here.
-  test_setup(port1, port2, stm_fw, nap_fw, verbose)
+  test_setup(port1, port2, stm_fw, nap_fw, verbose, n_queue, \
+             skip_single, skip_double)
 
-  suite = get_suite(port1, port2, stm_fw, nap_fw, verbose)
+  suite = get_suite(port1, port2, stm_fw, nap_fw, verbose, n_queue, \
+                    skip_single, skip_double)
 
   unittest.TextTestRunner().run(suite)
 
