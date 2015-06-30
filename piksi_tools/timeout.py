@@ -45,13 +45,17 @@ class Timeout(object):
       Number of seconds before Exception is raised.
     """
     signal.signal(signal.SIGALRM, timeout_handler)
-    signal.alarm(seconds)
+    self.seconds = seconds
 
   def __enter__(self):
+    self.start()
     return self
 
   def __exit__(self, *args):
     self.cancel()
+
+  def start(self):
+    signal.alarm(seconds)
 
   def cancel(self):
     """ Cancel scheduled Exception. """
