@@ -17,9 +17,19 @@ DEFAULT_MIN_SATS = 5 # min satellites to try and retain
 
 
 class LoopTimer(object):
-  """ Interval timer (emulated from from stack overflow)
-  This should get re-used on other actions during the log
+  """
+  The :class:`LoopTimer` calls a function at a regular interval.
+  It is intended to be instantiated from a subclass instance of TestState to call
+  TestStateSubclass.action() at a regular interval. The implementation is emulated
+  from a simliar instance submitted via stack overflow
   http://stackoverflow.com/questions/12435211/python-threading-timer-repeat-function-every-n-seconds
+
+  Parameters
+  ----------
+  interval: int
+    number of seconds between calls
+  hfunction : handle to function
+    function to call periodically
   """
   def __init__(self, interval, hfunction):
     self.interval = interval
@@ -27,20 +37,32 @@ class LoopTimer(object):
     self.thread = threading.Timer(self.interval, self.handle_function)
 
   def handle_function(self):
+    """
+    Handle function is called each time the timer trips.
+    It sets up another timer to call itself again in the future.
+    """
     self.hfunction()
     self.thread = threading.Timer(self.interval, self.handle_function)
-    self.thread.start()
+    self.start()
 
   def start(self):
+    """
+    Starts the periodic timer thread.
+    """
     self.thread.start()
 
   def cancel(self):
+    """
+    Cancels any current timer threads.
+    """
     self.thread.cancel()
 
 
 
 class TestState(object):
-  """Super class for representing state-based actions during logging
+  """
+  Super class for representing state and state-based actions during logging.
+
   Parameters
   ----------
   handler: sbp.client.handler.Handler
@@ -51,24 +73,29 @@ class TestState(object):
   def __init__(self, handler):
     self.init_time = time.time()
     self.handler = handler
+
   def process_message(self, msg):
-    """Method to process messages from device
+    """
+    Stub for processing messages from device. Should be overloaded in sublcass.
     """
     raise NotImplementedError("process_message not implemented!")
+
   def action(self):
-    """Stub for communicating with device
     """
-    pass
+    Stub for communicating with device. Should be overloaded in subclass.
+    """
+    raise NotImplementedError("action not implemented!")
 
 
 class DropSatsState(TestState):
   """
-  Instance of testState that periodically drops a random number of satellite
+  Subclass of testState that periodically drops a random number of satellite
   above some minimum value
+
   Parameters
   ----------
   handler: sbp.client.handler.Handler
-      handler for SBP transfer to/from Piksi.
+    handler for SBP transfer to/from Piksi.
   interval : int
     number of seconds between sending mask tracking message
   min sats : int
@@ -98,11 +125,12 @@ class DropSatsState(TestState):
 
   def process_message(self, msg):
     """
-    process an SBP message into State
+    Process SBP messages and encode into state information
+
     Parameters
     ----------
     msg: sbp object
-      not yet dispatchedm message received by device
+      not yet dispatched message received by device
     """
     msg = dispatch(msg)
     if isinstance(msg, MsgTrackingState):
@@ -122,7 +150,9 @@ class DropSatsState(TestState):
             del self.channel_status_dict[channel]
 
   def drop_prns(self, prns):
-    """ drop prn array via sbp MsgMaskSatellite
+    """
+    Drop Prns via sending MsgMaskSatellite to device
+
     Parameters
     ----------
     prns : int[]
@@ -135,7 +165,8 @@ class DropSatsState(TestState):
       self.handler.send_msg(msg)
 
   def get_num_sats_to_drop(self):
-    """ return number of satellites to drop.
+    """
+    Return number of satellites to drop.
     Should drop a random number of satellites above self.min_sats
     If we haven't achieved min sats, it drops zero
     """
@@ -144,7 +175,8 @@ class DropSatsState(TestState):
     return random.randint(0, max_to_drop)
 
   def drop_random_number_of_sats(self):
-    """ perform drop of satellites
+    """
+    Perform drop of satellites.
     """
     num_drop = self.get_num_sats_to_drop()
     if num_drop > 0:
@@ -156,7 +188,9 @@ class DropSatsState(TestState):
       self.drop_prns(prns_to_drop)
 
   def action(self):
-    """ overload of
+    """
+    Overload of superclass' action method.  Drops a random number of sats above
+    some minimum value.
     """
     self.drop_random_number_of_sats()
 
@@ -165,7 +199,7 @@ def get_args():
   Get and parse arguments.
   """
   import argparse
-  parser = sl.base_options()
+  parser = sl.base_cl_options()
   parser.add_argument("-i", "--interval",
                       default=[DEFAULT_POLL_INTERVAL], nargs=1,
                       help="Number of seconds between satellite drop events.")
@@ -177,6 +211,8 @@ def get_args():
 def main():
   """
   Get configuration, get driver, get logger, and build handler and start it.
+  Create relevant TestState object and perform associated actions.
+  Modeled after serial_link main function.
   """
   args = get_args()
   port = args.port[0]
@@ -189,8 +225,6 @@ def main():
   interval = int(args.interval[0])
   minsats = int(args.minsats[0])
 
-  #initialize state machines:
-
   # Driver with context
   with sl.get_driver(args.ftdi, port, baud) as driver:
     # Handler with context
@@ -199,7 +233,7 @@ def main():
       with sl.get_logger(args.log, log_filename) as logger:
         # Append logger iwth context
         with sl.get_append_logger(append_log_filename, tags) as append_logger:
-          # print out SBP_MSG_PRINT messags
+          # print out SBP_MSG_PRINT messages
           link.add_callback(sl.printer, SBP_MSG_PRINT)
           # add logger callback
           link.add_callback(logger)
@@ -211,8 +245,8 @@ def main():
           # Setup watchdog
           if watchdog:
             link.add_callback(sl.Watchdog(float(watchdog), sl.watchdog_alarm),
-                                SBP_MSG_HEARTBEAT)
-          # add list of states and test callbacks callbacks
+                              SBP_MSG_HEARTBEAT)
+          # add Teststates and associated callbacks
           with DropSatsState(link, interval, minsats, debug=args.verbose) as drop:
             link.add_callback(drop.process_message)
 

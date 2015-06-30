@@ -40,7 +40,7 @@ def get_ports():
   return [p for p in serial.tools.list_ports.comports() if p[1][0:4] != "ttyS"]
 
 
-def base_options():
+def base_cl_options():
   import argparse
   parser = argparse.ArgumentParser(description="Swift Navigation SBP Client.")
   parser.add_argument("-p", "--port",
@@ -82,7 +82,7 @@ def get_args():
   Get and parse arguments.
   """
   import argparse
-  parser = base_options()
+  parser = base_cl_options()
   return parser.parse_args()
 
 def get_driver(use_ftdi=False, port=SERIAL_PORT, baud=SERIAL_BAUD):
