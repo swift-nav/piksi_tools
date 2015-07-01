@@ -45,13 +45,13 @@ class STMUniqueID(object):
   def __exit__(self, *args):
     self.link.remove_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_RESPONSE)
 
-  def receive_stm_unique_id_callback(self,sbp_msg):
+  def receive_stm_unique_id_callback(self, sbp_msg):
     """
     Registered as a callback for the Heartbeat message
     with sbp.client.handler.Handler.
     """
-    self.unique_id = struct.unpack('<12B',sbp_msg.payload)
     self.unique_id_returned = True
+    self.unique_id = struct.unpack('<12B',sbp_msg.payload)
 
   def get_id(self):
     """ Retrieve the STM Unique ID. Blocks until it has received the ID. """
