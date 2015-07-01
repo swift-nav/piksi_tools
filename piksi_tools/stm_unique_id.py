@@ -61,7 +61,6 @@ class STMUniqueID(object):
     self.unique_id_returned = False
     self.unique_id = None
     # < SBP v0.45, reuse single message.
-    print self.sbp_version
     if self.sbp_version < (0, 45):
       self.link.send(SBP_MSG_STM_UNIQUE_ID_RESPONSE, struct.pack("<I",0))
     else:
