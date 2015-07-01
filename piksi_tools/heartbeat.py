@@ -28,5 +28,5 @@ class Heartbeat(object):
 
   def callback(self, sbp_msg):
     hb = MsgHeartbeat(sbp_msg)
-    self.sbp_version = ((hb.flags >> 8) & 0xF, hb.flags & 0xF)
+    self.sbp_version = ((hb.flags >> 16) & 0xFF, (hb.flags >> 8) & 0xFF)
     self.received = True
