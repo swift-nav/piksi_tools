@@ -24,6 +24,7 @@ TIMEOUT_READ_M25       = 5
 TIMEOUT_ERASE_SECTOR   = 5
 TIMEOUT_READ_SETTINGS  = 10
 TIMEOUT_READ_DNA       = 5
+TIMEOUT_CREATE_LINK    = 5
 
 
 class TimeoutError(Exception):
