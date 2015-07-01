@@ -17,7 +17,8 @@ import serial_link
 from piksi_tools.heartbeat import Heartbeat
 from sbp.system import SBP_MSG_HEARTBEAT
 
-from sbp.flash          import SBP_MSG_STM_UNIQUE_ID_DEVICE
+from sbp.flash          import SBP_MSG_STM_UNIQUE_ID_REQUEST, \
+                               SBP_MSG_STM_UNIQUE_ID_RESPONSE
 from sbp.client.handler import *
 
 class STMUniqueID(object):
