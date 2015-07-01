@@ -14,9 +14,7 @@ import struct
 import sys
 import serial_link
 
-from piksi_tools.heartbeat import Heartbeat
-from sbp.system import SBP_MSG_HEARTBEAT
-
+from sbp.system         import SBP_MSG_HEARTBEAT
 from sbp.flash          import SBP_MSG_STM_UNIQUE_ID_REQUEST, \
                                SBP_MSG_STM_UNIQUE_ID_RESPONSE
 from sbp.client.handler import *
@@ -26,26 +24,26 @@ class STMUniqueID(object):
   Retrieve the STM Unique ID from Piksi.
   """
 
-  def __init__(self, link):
+  def __init__(self, link, sbp_version):
     """
     Parameters
     ==========
     link : sbp.client.handler.Handler
       link to register Heartbeat message callback with
+    sbp_version : tuple (int, int)
+      SBP version to use for STM Unique ID messages.
     """
     self.unique_id_returned = False
     self.unique_id = None
     self.link = link
-    self.heartbeat = Heartbeat()
-    link.add_callback(self.heartbeat, SBP_MSG_HEARTBEAT)
-    link.add_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_DEVICE)
+    self.sbp_version = sbp_version
 
   def __enter__(self):
+    self.link.add_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_RESPONSE)
     return self
 
   def __exit__(self, *args):
-    self.link.remove_callback(self.heartbeat, SBP_MSG_HEARTBEAT)
-    self.link.remove_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_DEVICE)
+    self.link.remove_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_RESPONSE)
 
   def receive_stm_unique_id_callback(self,sbp_msg):
     """
@@ -57,8 +55,6 @@ class STMUniqueID(object):
 
   def get_id(self):
     """ Retrieve the STM Unique ID. Blocks until it has received the ID. """
-    while not self.heartbeat.received:
-      time.sleep(0.1)
     self.unique_id_returned = False
     self.unique_id = None
     # < 0.45 of the bootloader, reuse single stm message.
