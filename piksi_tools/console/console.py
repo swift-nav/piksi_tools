@@ -58,6 +58,8 @@ def get_args():
                       action="store_true")
   parser.add_argument('-t', '--toolkit', nargs=1, default=[None],
                       help="specify the TraitsUI toolkit to use, either 'wx' or 'qt4'.")
+  parser.add_argument('-e', '--expert', action='store_true',
+                      help="Show expert settings.")
   return parser.parse_args()
 
 args = get_args()
@@ -274,7 +276,8 @@ class SwiftConsole(HasTraits):
       settings_read_finished_functions.append(update_serial)
 
       self.settings_view = \
-          SettingsView(self.link, settings_read_finished_functions)
+          SettingsView(self.link, settings_read_finished_functions,
+                       hide_expert = not args.expert)
       self.update_view.settings = self.settings_view.settings
 
       self.python_console_env = {

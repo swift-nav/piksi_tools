@@ -223,11 +223,15 @@ class SettingsView(HasTraits):
 
   def settings_read_by_index_callback(self, sbp_msg):
     if not sbp_msg.payload:
+      # Settings output from Piksi is terminated by an empty message.
+      # Bundle up our list and display it.
       self.settings_list = []
 
       sections = sorted(self.settings.keys())
 
       for sec in sections:
+        if self.hide_expert and sec.startswith("expert"):
+          continue
         self.settings_list.append(SectionHeading(sec))
         for name, setting in sorted(self.settings[sec].iteritems(), key=lambda (n, s): s.ordering):
           self.settings_list.append(setting)
@@ -287,10 +291,11 @@ class SettingsView(HasTraits):
           '%s\0%s\0%s\0' % (section, name, value))
 
   def __init__(self, link, read_finished_functions=[],
-               name_of_yaml_file="settings.yaml", gui_mode=True):
+               name_of_yaml_file="settings.yaml", gui_mode=True, hide_expert=False):
 
     super(SettingsView, self).__init__()
 
+    self.hide_expert = hide_expert
     self.gui_mode = gui_mode
     self.enumindex = 0
     self.settings = {}
