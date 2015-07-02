@@ -63,6 +63,7 @@
 
 - group: float_kf
   name: phase_var
+  expert: true
   type: Double
   units: cycles^2
   default value: '0.0144'
@@ -76,6 +77,7 @@
 
 - group: float_kf
   name: code_var
+  expert: true
   type: Double
   units: meters^2
   default value: '40000'
@@ -89,6 +91,7 @@
 
 - group: float_kf
   name: amb_init_var
+  expert: true
   type: Double
   units: non dimensional
   default value: '1.00E+25'
@@ -102,6 +105,7 @@
 
 - group: float_kf
   name: new_amb_var
+  expert: true
   type: Double
   units: non dimensional
   default value: '1.00E+25'
@@ -130,6 +134,7 @@
 
 - group: iar
   name: phase_var
+  expert: true
   type: double
   units: cycles^2
   default value: '0.0144'
@@ -143,6 +148,7 @@
 
 - group: iar
   name: code_var
+  expert: true
   type: double
   units: meters^2
   default value: '40000'
@@ -337,6 +343,7 @@
 
 - group: solution
   name: dgnss_filter
+  expert: true
   type: enum
   units:
   default value: Fixed
@@ -606,3 +613,41 @@
   enumerated possible values: 
   Description: Unused
   Notes:
+
+- group: track
+  name: track_cn0_threshold
+  type: Double
+  units: db-Hz
+  default value: '33'
+  Description: C/N0 threshold for tracking and navigation.
+  Notes: If the estimated C/N0 drops below this even momentarily,
+         the integer ambiguity for that channel will be reinitialized.
+         If the estimated C/N0 drops below this for a certain duration,
+         the signal will be considered lost altogether and tracking
+         will stop.
+
+- group: track
+  name: loop_params
+  type: string
+  units: 
+  default value: '(1 ms, (1, 0.7, 1, 1540), (10, 0.7, 1, 5)), (5 ms, (1, 0.7, 1, 1540), (50, 0.7, 1, 0))'
+  Description: Tracking loop filter parameters
+  Notes: "'<LOOP_PARAMS_STAGE1>[, <LOOP_PARAMS_STAGE2>]'
+
+
+    where <LOOP_PARAMS_STAGEn> =
+
+    (<COHERENT_MS> ms, (CODE_BW, CODE_ZETA, CODE_K, CARR_TO_CODE),
+
+                       (CARR_BW, CARR_ZETA, CARR_K, FLL_AID_GAIN))
+
+
+    LOOP_PARAMS_STAGE1 will be used until navigation bit synchronization
+    is achieved, after which LOOP_PARAMS_STAGE2 will be used.
+
+
+    COHERENT_MS must be a factor of 20, and must be 1 for LOOP_PARAMS_STAGE1.
+
+
+    CARR_TO_CODE should be 0 (carrier aiding disabled) or 1540 (ratio of
+    GPS L1 C/A carrier freq to code freq)."

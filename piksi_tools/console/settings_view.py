@@ -90,6 +90,7 @@ class Setting(SettingBase):
     self.value = value
     self.ordering = ordering
     self.settings = settings
+    self.expert = settings.settings_yaml.get_field(section, name, 'expert')
     self.description = settings.settings_yaml.get_field(section,
                                                            name, 'Description')
     self.notes = settings.settings_yaml.get_field(section, name, 'Notes')
@@ -230,11 +231,14 @@ class SettingsView(HasTraits):
       sections = sorted(self.settings.keys())
 
       for sec in sections:
-        if self.hide_expert and sec.startswith("expert"):
-          continue
-        self.settings_list.append(SectionHeading(sec))
+        this_section = []
         for name, setting in sorted(self.settings[sec].iteritems(), key=lambda (n, s): s.ordering):
-          self.settings_list.append(setting)
+          if not (self.hide_expert and setting.expert):
+            this_section.append(setting)
+        if this_section:
+          self.settings_list.append(SectionHeading(sec))
+          self.settings_list += this_section
+
 
       for cb in self.read_finished_functions:
         if self.gui_mode:
