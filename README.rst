@@ -14,7 +14,7 @@ Setup
 
 Install dependencies only::
 
-  $ sudo ./setup.sh -x install
+  $ ./setup.sh -x install
 
 Install from repo::
 
