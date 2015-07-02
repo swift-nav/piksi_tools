@@ -90,6 +90,7 @@ class Setting(SettingBase):
     self.value = value
     self.ordering = ordering
     self.settings = settings
+    self.expert = settings.settings_yaml.get_field(section, name, 'expert')
     self.description = settings.settings_yaml.get_field(section,
                                                            name, 'Description')
     self.notes = settings.settings_yaml.get_field(section, name, 'Notes')
@@ -223,14 +224,21 @@ class SettingsView(HasTraits):
 
   def settings_read_by_index_callback(self, sbp_msg):
     if not sbp_msg.payload:
+      # Settings output from Piksi is terminated by an empty message.
+      # Bundle up our list and display it.
       self.settings_list = []
 
       sections = sorted(self.settings.keys())
 
       for sec in sections:
-        self.settings_list.append(SectionHeading(sec))
+        this_section = []
         for name, setting in sorted(self.settings[sec].iteritems(), key=lambda (n, s): s.ordering):
-          self.settings_list.append(setting)
+          if not (self.hide_expert and setting.expert):
+            this_section.append(setting)
+        if this_section:
+          self.settings_list.append(SectionHeading(sec))
+          self.settings_list += this_section
+
 
       for cb in self.read_finished_functions:
         if self.gui_mode:
@@ -287,10 +295,11 @@ class SettingsView(HasTraits):
           '%s\0%s\0%s\0' % (section, name, value))
 
   def __init__(self, link, read_finished_functions=[],
-               name_of_yaml_file="settings.yaml", gui_mode=True):
+               name_of_yaml_file="settings.yaml", gui_mode=True, hide_expert=False):
 
     super(SettingsView, self).__init__()
 
+    self.hide_expert = hide_expert
     self.gui_mode = gui_mode
     self.enumindex = 0
     self.settings = {}
