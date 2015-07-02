@@ -607,6 +607,7 @@
 
 - group: track
   name: iq_output_mask
+  expert: true
   type: integer
   units:
   default value: None
@@ -616,6 +617,7 @@
 
 - group: track
   name: track_cn0_threshold
+  expert: true
   type: Double
   units: db-Hz
   default value: '33'
@@ -628,6 +630,7 @@
 
 - group: track
   name: loop_params
+  expert: true
   type: string
   units: 
   default value: '(1 ms, (1, 0.7, 1, 1540), (10, 0.7, 1, 5)), (5 ms, (1, 0.7, 1, 1540), (50, 0.7, 1, 0))'
