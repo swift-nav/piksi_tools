@@ -235,7 +235,6 @@ class ParameterGCoreFileName(gdb.Parameter):
                            gdb.PARAM_STRING)
     self.value = "core"
   def get_set_string(self):
-    cm3.TPIU.ACPR = self.value
     return "Default gcore name is %r" % self.value
   def get_show_string(self, svalue):
     return "Default gcore name is %r" % self.value
