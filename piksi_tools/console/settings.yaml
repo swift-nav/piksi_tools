@@ -122,7 +122,7 @@
   type: enum
   units:
   default value: Auto
-  enumerated possible values: Auto,Patch,External
+  enumerated possible values: Auto,Patch,External,External (no bias)
   Description: Determines which antenna to use.
   Notes: This setting selects the antenna input that should be used by the Piksi.  When
     set to "Auto", if the unit senses an external antenna attached to the Piksi
