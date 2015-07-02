@@ -12,6 +12,7 @@
 import os
 import struct
 import sys
+import signal
 
 from piksi_tools import serial_link
 import sbp.client.handler
@@ -323,6 +324,10 @@ if not port:
     sys.exit(1)
   else:
     print "Using serial device '%s'" % port
+
+# Make sure that SIGINT (i.e. Ctrl-C from command line) actually stops the
+# application event loop (otherwise Qt swallows KeyboardInterrupt exceptions)
+signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 with serial_link.get_driver(args.ftdi, port, baud) as driver:
   with sbp.client.handler.Handler(driver.read, driver.write, args.verbose) as link:
