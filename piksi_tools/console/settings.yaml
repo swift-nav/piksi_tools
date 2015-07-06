@@ -654,3 +654,35 @@
 
     CARR_TO_CODE should be 0 (carrier aiding disabled) or 1540 (ratio of
     GPS L1 C/A carrier freq to code freq)."
+
+- group: nmea
+  name: gpgsv_msg_rate
+  type: integer
+  units: Ticks
+  default value: '10'
+  Description: Number of ticks between GPGV NMEA messages being sent.
+  Notes:
+
+- group: nmea
+  name: gprmc_msg_rate
+  type: integer
+  units: Ticks
+  default value: '10'
+  Description: Number of ticks between GPRMC NMEA messages being sent.
+  Notes:
+
+- group: nmea
+  name: gpvtg_msg_rate
+  type: integer
+  units: Ticks
+  default value: '10'
+  Description: Number of ticks between GPVTG NMEA messages being sent.
+  Notes:
+
+- group: nmea
+  name: gpgll_msg_rate
+  type: integer
+  units: Ticks
+  default value: '10'
+  Description: Number of ticks between GPGLL NMEA messages being sent.
+  Notes:
