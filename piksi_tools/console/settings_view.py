@@ -294,6 +294,19 @@ class SettingsView(HasTraits):
       self.link.send(SBP_MSG_SETTINGS,
           '%s\0%s\0%s\0' % (section, name, value))
 
+  def cleanup(self):
+    """ Remove callbacks from serial link. """
+    self.link.remove_callback(self.settings_read_callback, SBP_MSG_SETTINGS)
+    self.link.remove_callback(self.piksi_startup_callback, SBP_MSG_STARTUP)
+    self.link.remove_callback(self.settings_read_by_index_callback,
+      SBP_MSG_SETTINGS_READ_BY_INDEX)
+
+  def __enter__(self):
+    return self
+
+  def __exit__(self, *args):
+    self.cleanup()
+
   def __init__(self, link, read_finished_functions=[],
                name_of_yaml_file="settings.yaml", gui_mode=True, hide_expert=False):
 

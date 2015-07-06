@@ -58,26 +58,48 @@ class Bootloader():
       self.stop()
 
   def stop(self):
+    """ Remove Bootloader instance callbacks from serial link. """
     self.stopped = True
     self.link.remove_callback(self._deprecated_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED)
     self.link.remove_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_RESPONSE)
 
   def _deprecated_callback(self, sbp_msg):
-    if len(sbp_msg.payload)==1 and struct.unpack('B', sbp_msg.payload[0])==0:
+    """ Bootloader handshake for deprecated message ID. """
+    hs_device = MsgBootloaderHandshakeDeprecated(sbp_msg)
+    if len(hs_device.handshake)==1 and hs_device.handshake[0]==0:
       # == v0.1 of the bootloader, returns hardcoded version number 0.
       self.version = "v0.1"
     else:
       # > v0.1 of the bootloader, returns git commit string.
-      self.version = sbp_msg.payload[:]
+      self.version = ''.join([chr(i) for i in hs_device.handshake])
+      if self.version == '':
+        self.version = "Unknown"
     self.handshake_received = True
 
+
   def _handshake_callback(self, sbp_msg):
-    self.version = sbp_msg.version
-    self.sbp_version = ((MsgBootloaderHandshakeDevice(sbp_msg).flags >> 8) & 0xF,
-                        MsgBootloaderHandshakeDevice(sbp_msg).flags & 0xF)
+    """ Bootloader handshake callback. """
+    hs_device = MsgBootloaderHandshakeDevice(sbp_msg)
+    self.version = hs_device.version
+    self.sbp_version = ((hs_device.flags >> 8) & 0xF, hs_device.flags & 0xF)
     self.handshake_received = True
 
   def handshake(self, timeout=None):
+    """
+    Set Piksi into bootloader mode. Attempts to reset twice if first reset
+    doesn't appear to have worked (device could have been booting).
+
+    Parameters
+    ==========
+    timeout: int
+      Number of seconds to wait for bootloader response before returning. If
+      timeout is None, will wait indefinitely.
+
+    Returns
+    =======
+    out: bool
+      True if bootloader mode was successfully set, False if timed out.
+    """
     if timeout is not None:
       t0 = time.time()
     self.handshake_received = False
@@ -98,8 +120,10 @@ class Bootloader():
       self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_REQUEST, '\x00')
     return True
 
+
   def jump_to_app(self):
-    self.link.send(SBP_MSG_BOOTLOADER_JUMP_TO_APP, '\x00')
+    """ Request Piksi bootloader jump to application. """
+    self.link.send_msg(MsgBootloaderJumpToApp(jump=0))
 
 def get_args():
   """
