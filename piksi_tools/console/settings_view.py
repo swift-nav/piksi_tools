@@ -206,10 +206,13 @@ class SettingsView(HasTraits):
     )
   )
 
-  def _settings_read_button_fired(self):
+  def read_all_settings(self):
     self.enumindex = 0
     self.ordering_counter = 0
     self.link(MsgSettingsReadByIndexReq(index=self.enumindex))
+
+  def _settings_read_button_fired(self):
+    self.read_all_settings()
 
   def _settings_save_button_fired(self):
     self.link(MsgSettingsSave())
@@ -246,7 +249,7 @@ class SettingsView(HasTraits):
       blob = config_file.read()
       fio.write("config", blob)
     self.link.send(SBP_MSG_RESET, '')
-    self._settings_read_button_fired()
+    self.read_all_settings()
 
   def _settings_load_from_file_fired(self):
     dialog = FileDialog(label='Choose Location to save settings file',
@@ -334,7 +337,7 @@ class SettingsView(HasTraits):
     self.link(MsgSettingsReadByIndexReq(index=self.enumindex))
 
   def piksi_startup_callback(self, sbp_msg, **metadata):
-    self._settings_read_button_fired()
+    self.read_all_settings()
 
   def set(self, section, name, value):
     self.link(MsgSettingsWrite(setting='%s\0%s\0%s\0' % (section, name, value)))
@@ -342,6 +345,7 @@ class SettingsView(HasTraits):
   def __init__(self, link, read_finished_functions=[], name_of_yaml_file="settings.yaml", hide_expert=False):
     super(SettingsView, self).__init__()
 
+    self.ordering_counter = 0
     self.hide_expert = hide_expert
     self.enumindex = 0
     self.settings = {}
@@ -360,7 +364,7 @@ class SettingsView(HasTraits):
 
     self.setting_detail = SettingBase()
 
-    self._settings_read_button_fired()
+    self.read_all_settings()
 
     self.python_console_cmds = {
       'settings': self
