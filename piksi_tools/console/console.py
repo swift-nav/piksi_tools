@@ -81,7 +81,7 @@ logging.basicConfig()
 
 from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List
 from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
-                         InstanceEditor, EnumEditor, ShellEditor, Handler
+                         InstanceEditor, EnumEditor, ShellEditor, Handler, Spring
 
 # When bundled with pyInstaller, PythonLexer can't be found. The problem is
 # pygments.lexers is doing some crazy magic to load up all of the available
@@ -186,23 +186,22 @@ class SwiftConsole(HasTraits):
         Item('settings_view', style='custom', label='Settings'),
         Item('update_view', style='custom', label='Firmware Update'),
         Tabbed(
-
           Item('system_monitor_view', style='custom', label='System Monitor'),
           Item('sbp_relay_view', label='SBP Relay', style='custom',
                show_label=False),
-
           Item(
             'python_console_env', style='custom',
             label='Python Console', editor=ShellEditor()),
           label='Advanced',
-          ),
+          show_label=False
+         ),
         show_labels=False
       ),
       VGroup(
         HGroup(
-          Item('', show_label=False),
-          Item('paused_button', show_label=False),
-          Item('clear_button', show_label=False),
+          Spring(width=4, springy=False),
+          Item('paused_button', show_label=False, width=8, height=8),
+          Item('clear_button', show_label=False, width=8, height=8),
           Item('', label='Console Log', emphasized=True),
         ),
         Item(
