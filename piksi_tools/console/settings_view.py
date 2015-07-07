@@ -149,18 +149,6 @@ class SettingsView(HasTraits):
   settings_yaml = list()
   file_wildcard = "Piksi settings file (*.ini)|*.ini|All files|*.*"
 
-  settings_read_button = SVGButton(
-    label='Reload', tooltip='Reload settings from Piksi',
-    filename=os.path.join(os.path.dirname(__file__), 'images', 'fontawesome', 'refresh.svg'),
-    width=16, height=24
-  )
-
-  settings_save_button = SVGButton(
-    label='Save to Flash', tooltip='Save settings to Piksi\'s flash',
-    filename=os.path.join(os.path.dirname(__file__), 'images', 'fontawesome', 'save.svg'),
-    width=16, height=24
-  )
-
   settings_save_to_file = SVGButton(
     label='Save to file', tooltip='Save current device settings to local file',
     filename=os.path.join(os.path.dirname(__file__), 'images', 'fontawesome', 'download.svg'),
@@ -195,11 +183,9 @@ class SettingsView(HasTraits):
       ),
       VGroup(
         HGroup(
-          Item('settings_read_button', show_label=False),
-          Item('settings_save_button', show_label=False),
-          Item('factory_default_button', show_label=False),
-          Item('settings_save_to_file', show_label=False),
           Item('settings_load_from_file', show_label=False),
+          Item('settings_save_to_file', show_label=False),
+          Item('factory_default_button', show_label=False),
         ),
         Item('selected_setting', style='custom', show_label=False),
       ),
@@ -211,12 +197,15 @@ class SettingsView(HasTraits):
     self.ordering_counter = 0
     self.link(MsgSettingsReadByIndexReq(index=self.enumindex))
 
+<<<<<<< HEAD
   def _settings_read_button_fired(self):
     self.read_all_settings()
 
   def _settings_save_button_fired(self):
     self.link(MsgSettingsSave())
 
+=======
+>>>>>>> Keep in sync UI with Flash.
   def _factory_default_button_fired(self):
     confirm_prompt = prompt.CallbackPrompt(
                           title="Reset to Factory Defaults?",
@@ -341,6 +330,7 @@ class SettingsView(HasTraits):
 
   def set(self, section, name, value):
     self.link(MsgSettingsWrite(setting='%s\0%s\0%s\0' % (section, name, value)))
+    self.link(MsgSettingsWrite(""))
 
   def __init__(self, link, read_finished_functions=[], name_of_yaml_file="settings.yaml", hide_expert=False):
     super(SettingsView, self).__init__()
