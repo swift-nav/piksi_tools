@@ -99,6 +99,8 @@ class Setting(SettingBase):
         new is not Undefined):
       if type(self.value) == unicode:
         self.value = self.value.encode('ascii', 'replace')
+      if self.name == "baudrate":
+        print(str(self.name).upper() + " FOR " + str(self.section).upper() + " CHANGED TO " + new)
       self.settings.set(self.section, self.name, self.value)
 
 class EnumSetting(Setting):
