@@ -10,7 +10,7 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 from traits.api import Instance, Dict, HasTraits, Array, Float, on_trait_change, List, Int, Button, Bool
-from traitsui.api import Item, View, HGroup, VGroup, ArrayEditor, HSplit, TabularEditor
+from traitsui.api import Item, View, HGroup, VGroup, ArrayEditor, HSplit, TabularEditor, Spring
 from traitsui.tabular_adapter import TabularAdapter
 
 from traits.etsconfig.api import ETSConfig
@@ -75,7 +75,7 @@ class SystemMonitorView(HasTraits):
   piksi_reset_button = SVGButton(
     label='Reset Piksi', tooltip='Reset Piksi',
     filename=os.path.join(os.path.dirname(__file__), 'images', 'fontawesome', 'power27.svg'),
-    width=16, height=16
+    width=16, height=16, aligment='center'
    )
 
   traits_view = View(
@@ -87,16 +87,22 @@ class SystemMonitorView(HasTraits):
       ),
       HGroup(
         VGroup(
-          Item('msg_obs_window_latency_ms', label='Obs Latency',
-            style='readonly', format_str='%dms'),
-          Item('msg_obs_avg_latency_ms', label='Obs Latency (Avg ms)',
-            style='readonly', format_str='%dms'),
-          Item('msg_obs_min_latency_ms', label='Obs Latency (Min ms)',
-            style='readonly', format_str='%dms'),
-          Item('msg_obs_max_latency_ms', label='Obs Latency (Max ms)',
-            style='readonly', format_str='%dms'),
-          label='Connection Monitor', show_border=True,
-        ),
+          VGroup(
+            Item('msg_obs_window_latency_ms', label='Obs Latency',
+              style='readonly', format_str='%dms'),
+            Item('msg_obs_avg_latency_ms', label='Obs Latency (Avg ms)',
+              style='readonly', format_str='%dms'),
+            Item('msg_obs_min_latency_ms', label='Obs Latency (Min ms)',
+              style='readonly', format_str='%dms'),
+            Item('msg_obs_max_latency_ms', label='Obs Latency (Max ms)',
+              style='readonly', format_str='%dms'),
+            label='Connection Monitor', show_border=True,
+            ),
+           HGroup(
+            Spring(width=50, springy=False),
+            Item('piksi_reset_button', show_label=False, width=0.50),
+            ),
+          ),
         VGroup(
           Item('uart_a_crc_error_count', label='CRC Errors', style='readonly'),
           Item('uart_a_io_error_count', label='IO Errors', style='readonly'),
@@ -136,11 +142,8 @@ class SystemMonitorView(HasTraits):
                style='readonly', format_str='%.2f'),
           label='USB UART', show_border=True,
         ),
-        VGroup(
-          Item('piksi_reset_button', show_label=False),
-        ),
       ),
-    )
+    ),
   )
 
   def update_threads(self):
