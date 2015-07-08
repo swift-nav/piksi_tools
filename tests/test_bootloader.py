@@ -158,8 +158,6 @@ class TestBootloader(unittest.TestCase):
     with serial_link.get_driver(use_ftdi=False, port=self.port1) as driver:
       with Handler(driver.read, driver.write) as handler:
 
-        set_btldr_mode(handler, self.verbose)
-
         with Bootloader(handler) as piksi_bootloader:
 
           # Get bootloader version, print, and jump to application firmware.
@@ -187,21 +185,22 @@ class TestBootloader(unittest.TestCase):
         if self.verbose: print "Piksi NAP Version:", \
                           settings['system_info']['nap_version']
 
-  def test_set_btldr_mode(self):
+  def test_btldr_handshake(self):
     """ Test setting Piksi into bootloader mode. """
     unittest.skipIf(self.skip_single, 'Skipping single Piksi tests')
 
-    if self.verbose: print "--- test_set_btldr_mode ---"
+    if self.verbose: print "--- test_btldr_handshake ---"
 
     with serial_link.get_driver(use_ftdi=False, port=self.port1) as driver:
       with Handler(driver.read, driver.write) as handler:
-
-        set_btldr_mode(handler, self.verbose)
 
         with Bootloader(handler) as piksi_bootloader:
           # If the Piksi bootloader successfully received our handshake, we
           # should be able to receive handshakes from it indefinitely. Test
           # this a few times.
+          if self.verbose: print "Setting Piksi into bootloader mode"
+          with Timeout(TIMEOUT_BOOT) as timeout:
+            piksi_bootloader.handshake()
           if self.verbose: print "Testing bootloader handshake replies"
           for i in range(10):
             time.sleep(1)
@@ -217,12 +216,12 @@ class TestBootloader(unittest.TestCase):
     with serial_link.get_driver(use_ftdi=False, port=self.port1) as driver:
       with Handler(driver.read, driver.write) as handler:
 
-        set_btldr_mode(handler, self.verbose)
-
         with Bootloader(handler) as piksi_bootloader:
+
           with Timeout(TIMEOUT_BOOT) as timeout:
             if self.verbose: print "Waiting for bootloader handshake"
             piksi_bootloader.handshake()
+            if self.verbose: print "Received bootloader handshake"
           with Flash(handler, flash_type='STM',
                      sbp_version=piksi_bootloader.version,
                      max_queued_ops=self.n_queue) as piksi_flash:
@@ -241,8 +240,6 @@ class TestBootloader(unittest.TestCase):
 
     with serial_link.get_driver(use_ftdi=False, port=self.port1) as driver:
       with Handler(driver.read, driver.write) as handler:
-
-        set_btldr_mode(handler, self.verbose)
 
         with Bootloader(handler) as piksi_bootloader:
           with Timeout(TIMEOUT_BOOT) as timeout:
@@ -269,8 +266,6 @@ class TestBootloader(unittest.TestCase):
 
     with serial_link.get_driver(use_ftdi=False, port=self.port1) as driver:
       with Handler(driver.read, driver.write) as handler:
-
-        set_btldr_mode(handler, self.verbose)
 
         with Bootloader(handler) as piksi_bootloader:
           with Timeout(TIMEOUT_BOOT) as timeout:
@@ -307,8 +302,6 @@ class TestBootloader(unittest.TestCase):
     with serial_link.get_driver(use_ftdi=False, port=self.port1) as driver:
       with Handler(driver.read, driver.write) as handler:
 
-        set_btldr_mode(handler, self.verbose)
-
         with Bootloader(handler) as piksi_bootloader:
           with Timeout(TIMEOUT_BOOT) as timeout:
             if self.verbose: print "Waiting for bootloader handshake"
@@ -339,9 +332,9 @@ class TestBootloader(unittest.TestCase):
     with serial_link.get_driver(use_ftdi=False, port=self.port1) as driver:
       with Handler(driver.read, driver.write) as handler:
 
-        set_btldr_mode(handler, self.verbose)
-
         with Bootloader(handler) as piksi_bootloader:
+          if self.verbose: print "Handshaking with bootloader"
+          piksi_bootloader.handshake()
           if self.verbose: print "Jumping to application"
           piksi_bootloader.jump_to_app()
 
@@ -359,14 +352,14 @@ class TestBootloader(unittest.TestCase):
 
           handler.remove_callback(heartbeat, SBP_MSG_HEARTBEAT)
 
-  def test_set_btldr_mode_wrong_sender_id(self):
+  def test_btldr_handshake_wrong_sender_id(self):
     """
     Test setting Piksi into bootloader mode with an incorrect sender ID
     (should fail).
     """
     unittest.skipIf(self.skip_single, 'Skipping single Piksi tests')
 
-    if self.verbose: print "--- test_set_btldr_mode_wrong_sender_id ---"
+    if self.verbose: print "--- test_btldr_handshake_wrong_sender_id ---"
 
     with serial_link.get_driver(use_ftdi=False, port=self.port1) as driver:
       with Handler(driver.read, driver.write) as handler:
@@ -413,10 +406,11 @@ class TestBootloader(unittest.TestCase):
     with serial_link.get_driver(use_ftdi=False, port=self.port1) as driver:
       with Handler(driver.read, driver.write) as handler:
 
-        set_btldr_mode(handler, self.verbose)
-
         # Verify that flash erase times out when using incorrect sender ID.
         with Bootloader(handler) as piksi_bootloader:
+          with Timeout(TIMEOUT_BOOT) as timeout:
+            print "Handshaking with bootloader"
+            piksi_bootloader.handshake()
           with Flash(handler, flash_type='STM',
                      sbp_version=piksi_bootloader.version,
                      max_queued_ops=self.n_queue) as piksi_flash:
@@ -441,8 +435,6 @@ class TestBootloader(unittest.TestCase):
 
     with serial_link.get_driver(use_ftdi=False, port=self.port1) as driver:
       with Handler(driver.read, driver.write) as handler:
-
-        set_btldr_mode(handler, self.verbose)
 
         with Bootloader(handler) as piksi_bootloader:
           with Timeout(TIMEOUT_BOOT) as timeout:
@@ -553,13 +545,13 @@ def get_suite(*args):
   suite = unittest.TestSuite()
 
   suite.addTest(TestBootloader("test_get_versions", *args))
-  suite.addTest(TestBootloader("test_set_btldr_mode", *args))
+  suite.addTest(TestBootloader("test_btldr_handshake", *args))
   suite.addTest(TestBootloader("test_flash_stm_firmware", *args))
   suite.addTest(TestBootloader("test_flash_nap_firmware", *args))
   suite.addTest(TestBootloader("test_program_btldr", *args))
   suite.addTest(TestBootloader("test_erase_btldr", *args))
   suite.addTest(TestBootloader("test_jump_to_app", *args))
-  suite.addTest(TestBootloader("test_set_btldr_mode_wrong_sender_id", *args))
+  suite.addTest(TestBootloader("test_btldr_handshake_wrong_sender_id", *args))
   suite.addTest(TestBootloader("test_flashing_wrong_sender_id", *args))
   suite.addTest(TestBootloader("test_two_piksies_btldr_mode", *args))
   suite.addTest(TestBootloader("test_two_piksies_simultaneous_bootload", *args))

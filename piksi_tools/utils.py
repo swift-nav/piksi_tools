@@ -75,47 +75,6 @@ def set_app_mode(handler, verbose=False):
 
     handler.remove_callback(heartbeat, SBP_MSG_HEARTBEAT)
 
-def set_btldr_mode(handler, verbose=False):
-  """
-  Reset Piksi (if necessary) and handshake with bootloader. Will raise a
-  piksi_tools.timeout.TimeoutError if Piksi responses appear to have hung.
-
-  Parameters
-  ==========
-  handler : sbp.client.handler.Handler
-    handler to send/receive messages from/to Piksi.
-  verbose : bool
-    Print more verbose output.
-
-  """
-
-  if verbose: print "Setting device into bootloader mode"
-
-  # Wait until we receive a heartbeat or bootloader handshake so we
-  # know what state Piksi is in.
-  with Bootloader(handler) as piksi_bootloader:
-
-    heartbeat = Heartbeat()
-    handler.add_callback(heartbeat, SBP_MSG_HEARTBEAT)
-
-    if verbose: print "Waiting for bootloader handshake or heartbeat from device"
-    with Timeout(TIMEOUT_BOOT) as timeout:
-      while not heartbeat.received and not piksi_bootloader.handshake_received:
-        time.sleep(0.1)
-      if verbose: print "Received bootloader handshake or heartbeat"
-    # If Piksi is in the application, reset it into the bootloader.
-    if heartbeat.received:
-      if verbose: print "Sending reset"
-      handler.send(SBP_MSG_RESET, "")
-
-    handler.remove_callback(heartbeat, SBP_MSG_HEARTBEAT)
-
-    # Set Piksi into bootloader mode.
-    with Timeout(TIMEOUT_BOOT) as timeout:
-      if verbose: print "Waiting for bootloader handshake from device"
-      piksi_bootloader.handshake()
-    if verbose: print "Replying to bootloader handshake"
-
 def setup_piksi(handler, stm_fw, nap_fw, verbose=False):
   """
   Set Piksi into a known state (STM / NAP firmware). Erases entire STM flash
