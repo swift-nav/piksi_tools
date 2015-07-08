@@ -216,21 +216,29 @@ class TestBootloader(unittest.TestCase):
     with serial_link.get_driver(use_ftdi=False, port=self.port1) as driver:
       with Handler(driver.read, driver.write) as handler:
 
+        # Wait until we receive a heartbeat or bootloader handshake so we
+        # know what state Piksi is in.
         with Bootloader(handler) as piksi_bootloader:
 
           with Timeout(TIMEOUT_BOOT) as timeout:
             if self.verbose: print "Waiting for bootloader handshake"
             piksi_bootloader.handshake()
             if self.verbose: print "Received bootloader handshake"
-          with Flash(handler, flash_type='STM',
-                     sbp_version=piksi_bootloader.version,
-                     max_queued_ops=self.n_queue) as piksi_flash:
-            with Timeout(TIMEOUT_WRITE_STM) as timeout:
+
+          with Flash(handler, flash_type="STM",
+                     sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
+            # Erase entire STM flash (except bootloader).
+            if self.verbose: print "Erasing STM"
+            with Timeout(TIMEOUT_ERASE_STM) as timeout:
+              for s in range(1,12):
+                piksi_flash.erase_sector(s)
+            # Write STM firmware.
+            with Timeout(TIMEOUT_PROGRAM_STM) as timeout:
               if self.verbose:
-                print "Writing firmware to STM flash"
-                piksi_flash.write_ihx(self.stm_fw, sys.stdout, mod_print=0x10)
+                if self.verbose: print "Programming STM"
+                piksi_flash.write_ihx(self.stm_fw, sys.stdout, 0x10, erase=False)
               else:
-                piksi_flash.write_ihx(self.stm_fw)
+                piksi_flash.write_ihx(self.stm_fw, erase=False)
 
   def test_flash_nap_firmware(self):
     """ Test flashing NAP hexfile. """
@@ -242,12 +250,16 @@ class TestBootloader(unittest.TestCase):
       with Handler(driver.read, driver.write) as handler:
 
         with Bootloader(handler) as piksi_bootloader:
+
           with Timeout(TIMEOUT_BOOT) as timeout:
             if self.verbose: print "Waiting for bootloader handshake"
             piksi_bootloader.handshake()
+            if self.verbose: print "Received bootloader handshake"
+
           with Flash(handler, flash_type='M25',
-                     sbp_version=piksi_bootloader.version,
-                     max_queued_ops=self.n_queue) as piksi_flash:
+                     sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
+#                     sbp_version=piksi_bootloader.sbp_version,
+#                     max_queued_ops=self.n_queue) as piksi_flash:
             with Timeout(TIMEOUT_WRITE_NAP) as timeout:
               if self.verbose:
                 print "Writing firmware to NAP flash"
@@ -548,19 +560,19 @@ def get_suite(*args):
   suite.addTest(TestBootloader("test_btldr_handshake", *args))
   suite.addTest(TestBootloader("test_flash_stm_firmware", *args))
   suite.addTest(TestBootloader("test_flash_nap_firmware", *args))
-  suite.addTest(TestBootloader("test_program_btldr", *args))
-  suite.addTest(TestBootloader("test_erase_btldr", *args))
-  suite.addTest(TestBootloader("test_jump_to_app", *args))
-  suite.addTest(TestBootloader("test_btldr_handshake_wrong_sender_id", *args))
-  suite.addTest(TestBootloader("test_flashing_wrong_sender_id", *args))
-  suite.addTest(TestBootloader("test_two_piksies_btldr_mode", *args))
-  suite.addTest(TestBootloader("test_two_piksies_simultaneous_bootload", *args))
-  suite.addTest(TestBootloader("test_uart_rx_buffer_overflow", *args))
-  suite.addTest(TestBootloader("test_packet_drop", *args))
-  suite.addTest(TestBootloader("test_sector_lock_unlock", *args))
-  suite.addTest(TestBootloader("test_recover_from_reset", *args))
-  suite.addTest(TestBootloader("test_recover_from_abort", *args))
-  suite.addTest(TestBootloader("test_invalid_firmware", *args))
+#  suite.addTest(TestBootloader("test_program_btldr", *args))
+#  suite.addTest(TestBootloader("test_erase_btldr", *args))
+#  suite.addTest(TestBootloader("test_jump_to_app", *args))
+#  suite.addTest(TestBootloader("test_btldr_handshake_wrong_sender_id", *args))
+#  suite.addTest(TestBootloader("test_flashing_wrong_sender_id", *args))
+#  suite.addTest(TestBootloader("test_two_piksies_btldr_mode", *args))
+#  suite.addTest(TestBootloader("test_two_piksies_simultaneous_bootload", *args))
+#  suite.addTest(TestBootloader("test_uart_rx_buffer_overflow", *args))
+#  suite.addTest(TestBootloader("test_packet_drop", *args))
+#  suite.addTest(TestBootloader("test_sector_lock_unlock", *args))
+#  suite.addTest(TestBootloader("test_recover_from_reset", *args))
+#  suite.addTest(TestBootloader("test_recover_from_abort", *args))
+#  suite.addTest(TestBootloader("test_invalid_firmware", *args))
 
   return suite
 
