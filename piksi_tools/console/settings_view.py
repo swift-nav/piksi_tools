@@ -222,40 +222,36 @@ class SettingsView(HasTraits):
 
   ##Callbacks for receiving messages
 
-  def settings_read_by_index_done_callback(self, sbp_msg):
+  def settings_display_setup(self):
     self.settings_list = []
 
     sections = sorted(self.settings.keys())
 
     for sec in sections:
-      self.settings_list.append(SectionHeading(sec))
-      for name, setting in sorted(self.settings[sec].iteritems(), key=lambda (n, s): s.ordering):
-        self.settings_list.append(setting)
-
+      this_section = []
+      for name, setting in sorted(self.settings[sec].iteritems(),
+        key=lambda (n, s): s.ordering):
+        if not (self.hide_expert and setting.expert):
+          this_section.append(setting)
+      if this_section:
+        self.settings_list.append(SectionHeading(sec))
+        self.settings_list += this_section
+    # call read_finished_functions as needed
     for cb in self.read_finished_functions:
       GUI.invoke_later(cb)
+    return
+
+
+
+  def settings_read_by_index_done_callback(self, sbp_msg):
+    self.settings_display_setup()
     return
 
   def settings_read_by_index_callback(self, sbp_msg):
     if not sbp_msg.payload:
       # Settings output from Piksi is terminated by an empty message.
       # Bundle up our list and display it.
-      self.settings_list = []
-
-      sections = sorted(self.settings.keys())
-
-      for sec in sections:
-        this_section = []
-        for name, setting in sorted(self.settings[sec].iteritems(), key=lambda (n, s): s.ordering):
-          if not (self.hide_expert and setting.expert):
-            this_section.append(setting)
-        if this_section:
-          self.settings_list.append(SectionHeading(sec))
-          self.settings_list += this_section
-
-
-      for cb in self.read_finished_functions:
-        GUI.invoke_later(cb)
+      self.settings_display_setup()
       return
 
     section, setting, value, format_type = sbp_msg.payload[2:].split('\0')[:4]
