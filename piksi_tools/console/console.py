@@ -193,7 +193,7 @@ class SwiftConsole(HasTraits):
             'python_console_env', style='custom',
             label='Python Console', editor=ShellEditor()),
           label='Advanced',
-          show_label=False
+          show_labels=False
          ),
         show_labels=False
       ),
