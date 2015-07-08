@@ -40,7 +40,7 @@ from piksi_tools.bootload   import Bootloader, \
 from piksi_tools.console.update_downloader import UpdateDownloader
 from piksi_tools.console.settings_view import SettingsView
 
-def test_setup(port1, port2, stm_fw, nap_fw, verbose):
+def test_setup(port1, port2, stm_fw, nap_fw, verbose, n_queue):
   """
   Do set up before running tests. This should be called before running a
   suite of TestBootloader tests. This used to be in TestBootloader.setUpClass
@@ -60,12 +60,16 @@ def test_setup(port1, port2, stm_fw, nap_fw, verbose):
     NAP firmware to use in tests.
   verbose : bool
     Print status output.
+  n_queue : int
+    Number of flash operations to queue.
   """
   if verbose: print "--- Setting up device for tests ---"
 
   with serial_link.get_driver(use_ftdi=False, port=port1) as driver:
     with Handler(driver.read, driver.write) as handler:
       setup_piksi(handler, stm_fw, nap_fw, verbose)
+
+  if verbose: print ""
 
   # Hack: Wait a bit for 'Piksi Disconnected'
   # print from sbp.client.handler.Handler
@@ -145,9 +149,9 @@ class TestBootloader(unittest.TestCase):
 
     return sv.settings
 
-  @unittest.skipIf(self.skip_single)
   def test_get_versions(self):
     """ Get Piksi bootloader/firmware/NAP version from device. """
+    unittest.skipIf(self.skip_single, 'Skipping single Piksi tests')
 
     if self.verbose: print "--- test_get_versions ---"
 
@@ -183,9 +187,9 @@ class TestBootloader(unittest.TestCase):
         if self.verbose: print "Piksi NAP Version:", \
                           settings['system_info']['nap_version']
 
-  @unittest.skipIf(self.skip_single)
   def test_set_btldr_mode(self):
     """ Test setting Piksi into bootloader mode. """
+    unittest.skipIf(self.skip_single, 'Skipping single Piksi tests')
 
     if self.verbose: print "--- test_set_btldr_mode ---"
 
@@ -204,9 +208,9 @@ class TestBootloader(unittest.TestCase):
             with Timeout(TIMEOUT_BOOT) as timeout:
               piksi_bootloader.handshake()
 
-  @unittest.skipIf(self.skip_single)
   def test_flash_stm_firmware(self):
     """ Test flashing STM hexfile. """
+    unittest.skipIf(self.skip_single, 'Skipping single Piksi tests')
 
     if self.verbose: print "--- test_flash_stm_firmware ---"
 
@@ -229,9 +233,9 @@ class TestBootloader(unittest.TestCase):
               else:
                 piksi_flash.write_ihx(self.stm_fw)
 
-  @unittest.skipIf(self.skip_single)
   def test_flash_nap_firmware(self):
     """ Test flashing NAP hexfile. """
+    unittest.skipIf(self.skip_single, 'Skipping single Piksi tests')
 
     if self.verbose: print "--- test_flash_nap_firmware ---"
 
@@ -254,9 +258,10 @@ class TestBootloader(unittest.TestCase):
               else:
                 piksi_flash.write_ihx(self.nap_fw)
 
-  @unittest.skipIf(self.skip_single)
   def test_program_btldr(self):
     """ Test programming the bootloader once its sector is locked. """
+    unittest.skipIf(self.skip_single, 'Skipping single Piksi tests')
+
     SECTOR = 0
     ADDRESS = 0x08003FFF
 
@@ -291,9 +296,10 @@ class TestBootloader(unittest.TestCase):
             self.assertEqual('\xFF', byte_read,
                              "Bootloader sector was programmed")
 
-  @unittest.skipIf(self.skip_single)
   def test_erase_btldr(self):
     """ Test erasing the bootloader once its sector is locked. """
+    unittest.skipIf(self.skip_single, 'Skipping single Piksi tests')
+
     SECTOR = 0
 
     if self.verbose: print "--- test_erase_btldr ---"
@@ -324,9 +330,9 @@ class TestBootloader(unittest.TestCase):
               if self.verbose: print "Waiting for bootloader handshake"
               piksi_bootloader.handshake()
 
-  @unittest.skipIf(self.skip_single)
   def test_jump_to_app(self):
     """ Test that we can jump to the application after programming. """
+    unittest.skipIf(self.skip_single, 'Skipping single Piksi tests')
 
     if self.verbose: print "--- test_jump_to_app ---"
 
@@ -353,12 +359,13 @@ class TestBootloader(unittest.TestCase):
 
           handler.remove_callback(heartbeat, SBP_MSG_HEARTBEAT)
 
-  @unittest.skipIf(self.skip_single)
   def test_set_btldr_mode_wrong_sender_id(self):
     """
     Test setting Piksi into bootloader mode with an incorrect sender ID
     (should fail).
     """
+    unittest.skipIf(self.skip_single, 'Skipping single Piksi tests')
+
     if self.verbose: print "--- test_set_btldr_mode_wrong_sender_id ---"
 
     with serial_link.get_driver(use_ftdi=False, port=self.port1) as driver:
@@ -394,9 +401,10 @@ class TestBootloader(unittest.TestCase):
 
           handler.remove_callback(heartbeat, SBP_MSG_HEARTBEAT)
 
-  @unittest.skipIf(self.skip_single)
   def test_flashing_wrong_sender_id(self):
     """ Test flashing using an incorrect sender ID (should fail). """
+    unittest.skipIf(self.skip_single, 'Skipping single Piksi tests')
+
     SECTOR = 1
     SENDER_ID = 0x41
 
@@ -422,9 +430,10 @@ class TestBootloader(unittest.TestCase):
             except TimeoutError:
               if self.verbose: print "Timed out as expected"
 
-  @unittest.skipIf(self.skip_single)
   def test_sector_lock_unlock(self):
     """ Test if we can lock / unlock sectors. """
+    unittest.skipIf(self.skip_single, 'Skipping single Piksi tests')
+
     SECTOR = 1
     ADDRESS = 0x08004000
 
@@ -490,55 +499,51 @@ class TestBootloader(unittest.TestCase):
               else:
                 piksi_flash.write_ihx(self.stm_fw)
 
-  @unittest.skipIf(self.skip_single)
   @unittest.skip("Not implemented yet")
   def test_packet_drop(self):
     """ Test if flashing Piksi is redundant to SBP packet drops. """
-    pass
+    unittest.skipIf(self.skip_single, 'Skipping single Piksi tests')
 
-  @unittest.skipIf(self.skip_single)
   @unittest.skip("Not implemented yet")
   def test_recover_from_reset(self):
     """ Test if we can recover from a reset while flashing. """
-    pass
+    unittest.skipIf(self.skip_single, 'Skipping single Piksi tests')
 
-  @unittest.skipIf(self.skip_single)
   @unittest.skip("Not implemented yet")
   def test_recover_from_abort(self):
     """
     Test if we can recover from aborting the bootloader script while flashing.
     """
-    pass
+    unittest.skipIf(self.skip_single, 'Skipping single Piksi tests')
 
-  @unittest.skipIf(self.skip_single)
   @unittest.skip("Not implemented yet")
   def test_invalid_firmware(self):
     """ Test writing an invalid firmware file and see if device will run it. """
-    pass
+    unittest.skipIf(self.skip_single, 'Skipping single Piksi tests')
 
-  @unittest.skipIf(self.skip_double)
   @unittest.skip("Not implemented yet")
   def test_two_piksies_btldr_mode(self):
     """
     Test if two Piksies can set eachother into bootloader mode (should fail).
     """
+    unittest.skipIf(self.skip_double, 'Skipping double Piksi tests')
     if self.port2 is None:
       return
 
-  @unittest.skipIf(self.skip_double)
   @unittest.skip("Not implemented yet")
   def test_two_piksies_simultaneous_bootload(self):
     """ Test if two Piksies can simultaneously bootload. """
+    unittest.skipIf(self.skip_double, 'Skipping double Piksi tests')
     if self.port2 is None:
       return
 
-  @unittest.skipIf(self.skip_double)
   @unittest.skip("Not implemented yet")
   def test_uart_rx_buffer_overflow(self):
     """
     Test if queuing too many operations causes a UART RX buffer overflow when
     another Piksi is sending data via another UART (should fail).
     """
+    unittest.skipIf(self.skip_double, 'Skipping double Piksi tests')
     if self.port2 is None:
       return
 
@@ -574,23 +579,21 @@ def get_args():
   parser.add_argument('-p1', '--port1', nargs=1,
                       default=[serial_link.SERIAL_PORT],
                       help='serial port for the Piksi Under Test')
-  parser.add_argument("-p2", "--port2", nargs=1,
-                      default=[None],
+  parser.add_argument("-p2", "--port2", nargs=1, default=[None],
                       help="serial port for a Piksi whose UART is " \
                            "connected to the Piksi Under Test")
   parser.add_argument('-s', '--stm_fw', nargs=1,
                       help='STM firmware to use in tests')
   parser.add_argument('-m', '--nap_fw', nargs=1,
                       help='NAP firmware to use in tests')
-  parser.add_argument("-v", "--verbose",
-                      default=False, action="store_true",
-                      help="print more verbose output")
-  parser.add_argument('-n', '--n_queue', nargs=1, default=[1]
+  parser.add_argument('-n', '--n_queue', nargs=1, default=[1],
                       help='Number of queued flash operations')
-  parser.add_argument('-o', '--skip_single', default=False,
+  parser.add_argument('-o', '--skip_single', action="store_true",
                       help="Don't run single Piksi tests")
-  parser.add_argument('-t', '--skip_double', default=False,
-                      help="Don't run skip_double Piksi tests")
+  parser.add_argument('-t', '--skip_double', action="store_true",
+                      help="Don't run double Piksi tests")
+  parser.add_argument("-v", "--verbose", action="store_true",
+                      help="print more verbose output")
   parser.add_argument('unittest_args', nargs='*')
   return parser.parse_args()
 
@@ -603,10 +606,10 @@ def main():
   port2 = args.port2[0]
   stm_fw_fname = args.stm_fw[0]
   nap_fw_fname = args.nap_fw[0]
-  verbose = args.verbose
   n_queue = args.n_queue[0]
-  skip_single = args.skip_single[0]
-  skip_double = args.skip_double[0]
+  skip_single = args.skip_single
+  skip_double = args.skip_double
+  verbose = args.verbose
 
   # Delete args used in main() before running unittests.
   sys.argv[1:] = args.unittest_args
@@ -621,8 +624,7 @@ def main():
   # Hack: Do Piksi setup before running TestBootloader tests.
   # unittest.TestCase.setUpClass can't access the instance variables passed
   # to TestBootloader.__init__, so we do this here.
-  test_setup(port1, port2, stm_fw, nap_fw, verbose, n_queue, \
-             skip_single, skip_double)
+  test_setup(port1, port2, stm_fw, nap_fw, verbose, n_queue)
 
   suite = get_suite(port1, port2, stm_fw, nap_fw, verbose, n_queue, \
                     skip_single, skip_double)
