@@ -174,7 +174,7 @@ def setup_piksi(handler, stm_fw, nap_fw, verbose=False):
           if verbose: print "Programming STM"
           piksi_flash.write_ihx(stm_fw, sys.stdout, 0x10, erase=False)
         else:
-          piksi_flash.write_ihx(stm_fw, sys.stdout, 0x10, erase=False)
+          piksi_flash.write_ihx(stm_fw, erase=False)
 
     with Flash(handler, flash_type="M25",
              sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
@@ -184,7 +184,7 @@ def setup_piksi(handler, stm_fw, nap_fw, verbose=False):
           if verbose: print "Programming NAP"
           piksi_flash.write_ihx(nap_fw, sys.stdout, 0x10)
         else:
-          piksi_flash.write_ihx(nap_fw, sys.stdout, 0x10)
+          piksi_flash.write_ihx(nap_fw)
 
     # Jump to the application firmware.
     if verbose: print "Jumping to application"
