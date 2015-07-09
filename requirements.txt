@@ -3,7 +3,7 @@ coverage==3.7.1
 flake8==2.3.0
 futures==2.2.0
 pep8==1.5.7
-sbp==0.48.0
+sbp==0.48.1
 pytest==2.6.4
 pytest-cov==1.8.1
 tox==1.8.1
