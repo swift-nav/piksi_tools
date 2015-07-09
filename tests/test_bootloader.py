@@ -258,8 +258,6 @@ class TestBootloader(unittest.TestCase):
 
           with Flash(handler, flash_type='M25',
                      sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
-#                     sbp_version=piksi_bootloader.sbp_version,
-#                     max_queued_ops=self.n_queue) as piksi_flash:
             with Timeout(TIMEOUT_WRITE_NAP) as timeout:
               if self.verbose:
                 print "Writing firmware to NAP flash"
@@ -284,8 +282,7 @@ class TestBootloader(unittest.TestCase):
             if self.verbose: print "Waiting for bootloader handshake"
             piksi_bootloader.handshake()
           with Flash(handler, flash_type='STM',
-                     sbp_version=piksi_bootloader.version,
-                     max_queued_ops=self.n_queue) as piksi_flash:
+                     sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
             # Make sure the bootloader sector is locked.
             with Timeout(TIMEOUT_LOCK_SECTOR) as timeout:
               if self.verbose: print "Locking STM sector:", SECTOR
@@ -319,8 +316,7 @@ class TestBootloader(unittest.TestCase):
             if self.verbose: print "Waiting for bootloader handshake"
             piksi_bootloader.handshake()
           with Flash(handler, flash_type='STM',
-                     sbp_version=piksi_bootloader.version,
-                     max_queued_ops=self.n_queue) as piksi_flash:
+                     sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
             # Make sure the bootloader sector is locked.
             with Timeout(TIMEOUT_LOCK_SECTOR) as timeout:
               if self.verbose: print "Locking STM sector:", SECTOR
@@ -424,8 +420,7 @@ class TestBootloader(unittest.TestCase):
             print "Handshaking with bootloader"
             piksi_bootloader.handshake()
           with Flash(handler, flash_type='STM',
-                     sbp_version=piksi_bootloader.version,
-                     max_queued_ops=self.n_queue) as piksi_flash:
+                     sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
             try:
               with Timeout(TIMEOUT_ERASE_SECTOR) as timeout:
                 if self.verbose: print "Attempting to erase sector with incorrect sender ID"
@@ -455,8 +450,7 @@ class TestBootloader(unittest.TestCase):
           if self.verbose: print "Handshaked with bootloader"
 
           with Flash(handler, flash_type='STM',
-                     sbp_version=piksi_bootloader.version,
-                     max_queued_ops=self.n_queue) as piksi_flash:
+                     sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
 
             try:
               # Erase the sector, lock it, and attempt to write to it.
