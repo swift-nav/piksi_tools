@@ -43,11 +43,6 @@ class Baseline:
 class BaselineView(HasTraits):
   python_console_cmds = Dict()
 
-  ns = List()
-  es = List()
-  ds = List()
-  fixeds = List()
-
   table = List()
 
   plot = Instance(Plot)
@@ -94,7 +89,6 @@ class BaselineView(HasTraits):
           Item('reset_button', show_label=False),
           Item('reset_iar_button', show_label=False),
           Item('init_base_button', show_label=False),
-            
         ),
         Item(
           'plot',
@@ -127,10 +121,8 @@ class BaselineView(HasTraits):
     self.link.send(SBP_MSG_INIT_BASE, '')
 
   def _clear_button_fired(self):
-    self.ns = []
-    self.es = []
-    self.ds = []
-    self.fixeds = []
+    self.neds[:] = np.NAN
+    self.fixeds[:] = False
     self.plot_data.set_data('n_fixed', [])
     self.plot_data.set_data('e_fixed', [])
     self.plot_data.set_data('d_fixed', [])
@@ -212,34 +204,41 @@ class BaselineView(HasTraits):
       table.append(('Mode', 'Float'))
     table.append(('IAR Num. Hyps.', self.num_hyps))
 
-    self.ns.append(soln.n)
-    self.es.append(soln.e)
-    self.ds.append(soln.d)
-    self.fixeds.append(fixed)
-    
-    # Delete oldest entries to maintain no more than N in plot
-    self.ns = self.ns[-self.plot_history_max:]
-    self.es = self.es[-self.plot_history_max:]
-    self.ds = self.ds[-self.plot_history_max:]
-    self.fixeds = self.fixeds[-self.plot_history_max:]
+    # Rotate array, deleting oldest entries to maintain
+    # no more than N in plot
+    self.neds[1:] = self.neds[:-1]
+    self.fixeds[1:] = self.fixeds[:-1]
 
-    self.plot_data.set_data('n_fixed', np.array(self.ns)[np.where(self.fixeds)])
-    self.plot_data.set_data('e_fixed', np.array(self.es)[np.where(self.fixeds)])
-    self.plot_data.set_data('d_fixed', np.array(self.ds)[np.where(self.fixeds)])
-    floats = np.logical_not(self.fixeds)
-    self.plot_data.set_data('n_float', np.array(self.ns)[floats])
-    self.plot_data.set_data('e_float', np.array(self.es)[floats])
-    self.plot_data.set_data('d_float', np.array(self.ds)[floats])
+    # Insert latest position
+    self.neds[0][:] = [soln.n, soln.e, soln.d]
+    self.fixeds[0] = fixed
+
+    neds_fixed = self.neds[self.fixeds]
+    neds_float = self.neds[np.logical_not(self.fixeds)]
+
+    self.plot_data.set_data('n_fixed', neds_fixed[:][0])
+    self.plot_data.set_data('e_fixed', neds_fixed[:][1])
+    self.plot_data.set_data('d_fixed', neds_fixed[:][2])
+
+    self.plot_data.set_data('n_float', neds_float[:][0])
+    self.plot_data.set_data('e_float', neds_float[:][1])
+    self.plot_data.set_data('d_float', neds_float[:][2])
 
     if fixed:
-      self.plot_data.set_data('curr_n', [soln.n])
-      self.plot_data.set_data('curr_e', [soln.e])
-      self.plot_data.set_data('curr_d', [soln.d])
+      self.plot_data.set_data('cur_fixed_n', [soln.n])
+      self.plot_data.set_data('cur_fixed_e', [soln.e])
+      self.plot_data.set_data('cur_fixed_d', [soln.d])
+      self.plot_data.set_data('cur_float_n', [])
+      self.plot_data.set_data('cur_float_e', [])
+      self.plot_data.set_data('cur_float_d', [])
     else:
-      self.plot_data.set_data('curr_n', [])
-      self.plot_data.set_data('curr_e', [])
-      self.plot_data.set_data('curr_d', [])
-        
+      self.plot_data.set_data('cur_float_n', [soln.n])
+      self.plot_data.set_data('cur_float_e', [soln.e])
+      self.plot_data.set_data('cur_float_d', [soln.d])
+      self.plot_data.set_data('cur_fixed_n', [])
+      self.plot_data.set_data('cur_fixed_e', [])
+      self.plot_data.set_data('cur_fixed_d', [])
+
     self.plot_data.set_data('ref_n', [0.0])
     self.plot_data.set_data('ref_e', [0.0])
     self.plot_data.set_data('ref_d', [0.0])
@@ -265,8 +264,14 @@ class BaselineView(HasTraits):
                                    n_float=[0.0], e_float=[0.0], d_float=[0.0],
                                    t=[0.0],
                                    ref_n=[0.0], ref_e=[0.0], ref_d=[0.0],
-                                   curr_e=[0.0], curr_n=[0.0], curr_d=[0.0])
+                                   cur_fixed_e=[], cur_fixed_n=[], cur_fixed_d=[],
+                                   cur_float_e=[], cur_float_n=[], cur_float_d=[]))
     self.plot_history_max = plot_history_max
+
+    self.neds = np.empty((plot_history_max, 3))
+    self.neds[:] = np.NAN
+    self.fixeds = np.zeros(plot_history_max, dtype=bool)
+
     self.plot = Plot(self.plot_data)
     color_float = (0.5, 0.5, 1.0)
     color_fixed = 'orange'
@@ -291,14 +296,20 @@ class BaselineView(HasTraits):
         marker='plus',
         marker_size=5,
         line_width=1.5)
-    cur = self.plot.plot(('curr_e', 'curr_n'),
+    cur_fixed = self.plot.plot(('cur_fixed_e', 'cur_fixed_n'),
         type='scatter',
-        color='black',
+        color=color_fixed,
         marker='plus',
         marker_size=5,
         line_width=1.5)
-    plot_labels = ['Base Position','Rover Relative Position','RTK Fixed','RTK Float']
-    plots_legend = dict(zip(plot_labels, [ref,cur,pts_fixed,pts_float]))
+    cur_float = self.plot.plot(('cur_float_e', 'cur_float_n'),
+        type='scatter',
+        color=color_float,
+        marker='plus',
+        marker_size=5,
+        line_width=1.5)
+    plot_labels = ['Base Position','RTK Fixed','RTK Float']
+    plots_legend = dict(zip(plot_labels, [ref, cur_fixed, cur_float]))
     self.plot.legend.plots = plots_legend
     self.plot.legend.visible = True
 
