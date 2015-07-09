@@ -21,7 +21,6 @@ TIMEOUT_WRITE_NAP         = 250
 TIMEOUT_LOCK_SECTOR       = 5
 TIMEOUT_READ_STM          = 5
 TIMEOUT_READ_M25          = 5
-TIMEOUT_WRITE_STM         = 5
 TIMEOUT_WRITE_M25         = 5
 TIMEOUT_ERASE_SECTOR      = 5
 TIMEOUT_READ_SETTINGS     = 10
@@ -38,16 +37,17 @@ def timeout_handler(signum, frame):
   raise TimeoutError
 
 class Timeout(object):
+  """
+  Configurable timeout to raise an Exception after a certain number of
+  seconds.
+
+  Note: Will not work on Windows: uses SIGALRM.
+  """
 
   def __init__(self, seconds):
     """
     Parameters
     ==========
-    Configurable timeout to raise an Exception after a certain number of
-    seconds.
-
-    Note: Will not work on Windows: uses SIGALRM.
-
     seconds : int
       Number of seconds before Exception is raised.
     """
