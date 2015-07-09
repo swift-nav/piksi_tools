@@ -438,7 +438,7 @@ class TestBootloader(unittest.TestCase):
     SECTOR = 1
     ADDRESS = 0x08004000
 
-    if self.verbose: print "--- test_program_btldr ---"
+    if self.verbose: print "--- test_sector_lock_unlock ---"
 
     with serial_link.get_driver(use_ftdi=False, port=self.port1) as driver:
       with Handler(driver.read, driver.write) as handler:
@@ -554,19 +554,19 @@ def get_suite(*args):
   suite.addTest(TestBootloader("test_btldr_handshake", *args))
   suite.addTest(TestBootloader("test_flash_stm_firmware", *args))
   suite.addTest(TestBootloader("test_flash_nap_firmware", *args))
-#  suite.addTest(TestBootloader("test_program_btldr", *args))
-#  suite.addTest(TestBootloader("test_erase_btldr", *args))
-#  suite.addTest(TestBootloader("test_jump_to_app", *args))
-#  suite.addTest(TestBootloader("test_btldr_handshake_wrong_sender_id", *args))
-#  suite.addTest(TestBootloader("test_flashing_wrong_sender_id", *args))
-#  suite.addTest(TestBootloader("test_two_piksies_btldr_mode", *args))
-#  suite.addTest(TestBootloader("test_two_piksies_simultaneous_bootload", *args))
-#  suite.addTest(TestBootloader("test_uart_rx_buffer_overflow", *args))
-#  suite.addTest(TestBootloader("test_packet_drop", *args))
-#  suite.addTest(TestBootloader("test_sector_lock_unlock", *args))
-#  suite.addTest(TestBootloader("test_recover_from_reset", *args))
-#  suite.addTest(TestBootloader("test_recover_from_abort", *args))
-#  suite.addTest(TestBootloader("test_invalid_firmware", *args))
+  suite.addTest(TestBootloader("test_program_btldr", *args))
+  suite.addTest(TestBootloader("test_erase_btldr", *args))
+  suite.addTest(TestBootloader("test_jump_to_app", *args))
+  suite.addTest(TestBootloader("test_btldr_handshake_wrong_sender_id", *args))
+  suite.addTest(TestBootloader("test_flashing_wrong_sender_id", *args))
+  suite.addTest(TestBootloader("test_two_piksies_btldr_mode", *args))
+  suite.addTest(TestBootloader("test_two_piksies_simultaneous_bootload", *args))
+  suite.addTest(TestBootloader("test_uart_rx_buffer_overflow", *args))
+  suite.addTest(TestBootloader("test_packet_drop", *args))
+  suite.addTest(TestBootloader("test_sector_lock_unlock", *args))
+  suite.addTest(TestBootloader("test_recover_from_reset", *args))
+  suite.addTest(TestBootloader("test_recover_from_abort", *args))
+  suite.addTest(TestBootloader("test_invalid_firmware", *args))
 
   return suite
 
