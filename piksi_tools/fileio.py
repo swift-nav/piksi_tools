@@ -39,9 +39,9 @@ class FileIO(object):
     buf = ''
     while True:
       msg = struct.pack("<IB", len(buf), chunksize) + filename + '\0'
-      self.link.send(SBP_MSG_FILEIO_READ_REQUEST, msg)
-      data = self.link.wait([SBP_MSG_FILEIO_READ_REQUEST,
-                             SBP_MSG_FILEIO_READ_RESPONSE], timeout=1.0)
+      self.link.send(SBP_MSG_FILEIO_READ_REQ, msg)
+      data = self.link.wait([SBP_MSG_FILEIO_READ_REQ,
+                             SBP_MSG_FILEIO_READ_RESP], timeout=1.0)
       if not data:
         raise Exception("Timeout waiting for FILEIO_READ reply")
       if data.payload[:len(msg)] != msg:
@@ -68,9 +68,9 @@ class FileIO(object):
     files = []
     while True:
       msg = struct.pack("<I", len(files)) + dirname + '\0'
-      self.link.send(SBP_MSG_FILEIO_READ_DIR_REQUEST, msg)
-      data = self.link.wait([SBP_MSG_FILEIO_READ_DIR_REQUEST,
-                             SBP_MSG_FILEIO_READ_DIR_RESPONSE], timeout=1.0)
+      self.link.send(SBP_MSG_FILEIO_READ_DIR_REQ, msg)
+      data = self.link.wait([SBP_MSG_FILEIO_READ_DIR_REQ,
+                             SBP_MSG_FILEIO_READ_DIR_RESP], timeout=1.0)
       if not data:
         raise Exception("Timeout waiting for FILEIO_READ_DIR reply")
       if data.payload[:len(msg)] != msg:
@@ -121,9 +121,9 @@ class FileIO(object):
       chunk = data[:chunksize]
       data = data[chunksize:]
       header = struct.pack("<I", offset) + filename + '\0'
-      self.link.send(SBP_MSG_FILEIO_WRITE_REQUEST, header + chunk)
-      reply = self.link.wait([SBP_MSG_FILEIO_WRITE_REQUEST,
-                              SBP_MSG_FILEIO_WRITE_RESPONSE], timeout=1.0)
+      self.link.send(SBP_MSG_FILEIO_WRITE_REQ, header + chunk)
+      reply = self.link.wait([SBP_MSG_FILEIO_WRITE_REQ,
+                              SBP_MSG_FILEIO_WRITE_RESP], timeout=1.0)
       if not reply:
         raise Exception("Timeout waiting for FILEIO_WRITE reply")
       if reply.payload != header:

@@ -22,9 +22,10 @@ import struct
 
 import numpy as np
 
-from sbp.tracking import SBP_MSG_TRACKING_STATE
+from sbp.tracking import *
 
-TRACKING_STATE_BYTES_PER_CHANNEL = 6
+TRACKING_STATE_BYTES_PER_CHANNEL_DEP_A = 6
+TRACKING_STATE_BYTES_PER_CHANNEL = 9
 NUM_POINTS = 200
 
 colours_list = [
@@ -74,7 +75,8 @@ class TrackingView(HasTraits):
   )
 
   def tracking_state_callback(self, sbp_msg):
-    n_channels = len(sbp_msg.payload) / TRACKING_STATE_BYTES_PER_CHANNEL
+    channel_size = TRACKING_STATE_BYTES_PER_CHANNEL if sbp_msg.msg_type is SBP_MSG_TRACKING_STATE else TRACKING_STATE_BYTES_PER_CHANNEL_DEP_A
+    n_channels = len(sbp_msg.payload) / channel_size
     if n_channels != self.n_channels:
       # Update number of channels
       self.n_channels = n_channels
@@ -88,7 +90,7 @@ class TrackingView(HasTraits):
         self.plots.append(pl)
       print 'Number of tracking channels changed to', n_channels
 
-    fmt = '<' + n_channels * 'BBf'
+    fmt = '<' + n_channels * 'BIf'
     state_data = struct.unpack(fmt, sbp_msg.payload)
     for n, s in enumerate(self.states):
       s.update(*state_data[3*n:3*(n+1)])
@@ -131,7 +133,8 @@ class TrackingView(HasTraits):
     self.plot.legend.tools.append(LegendTool(self.plot.legend, drag_button="right"))
 
     self.link = link
-    self.link.add_callback(self.tracking_state_callback, SBP_MSG_TRACKING_STATE)
+    self.link.add_callback(self.tracking_state_callback, [SBP_MSG_TRACKING_STATE,
+                                                          SBP_MSG_TRACKING_STATE_DEP_A])
 
     self.python_console_cmds = {
       'track': self
