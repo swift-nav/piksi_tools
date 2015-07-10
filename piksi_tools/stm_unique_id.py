@@ -15,8 +15,8 @@ import sys
 import serial_link
 
 from sbp.system         import SBP_MSG_HEARTBEAT
-from sbp.flash          import SBP_MSG_STM_UNIQUE_ID_REQUEST, \
-                               SBP_MSG_STM_UNIQUE_ID_RESPONSE
+from sbp.flash          import SBP_MSG_STM_UNIQUE_ID_REQ, \
+                               SBP_MSG_STM_UNIQUE_ID_RESP
 from sbp.client.handler import *
 
 class STMUniqueID(object):
@@ -39,11 +39,11 @@ class STMUniqueID(object):
     self.sbp_version = sbp_version
 
   def __enter__(self):
-    self.link.add_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_RESPONSE)
+    self.link.add_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_RESP)
     return self
 
   def __exit__(self, *args):
-    self.link.remove_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_RESPONSE)
+    self.link.remove_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_RESP)
 
   def receive_stm_unique_id_callback(self, sbp_msg):
     """

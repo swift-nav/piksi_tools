@@ -34,8 +34,7 @@ from piksi_tools.heartbeat  import Heartbeat
 from piksi_tools.utils      import *
 from piksi_tools.timeout    import *
 from piksi_tools.bootload   import Bootloader, \
-                                   SBP_MSG_BOOTLOADER_HANDSHAKE_REQUEST, \
-                                   SBP_MSG_BOOTLOADER_HANDSHAKE_RESPONSE
+                                   SBP_MSG_BOOTLOADER_HANDSHAKE_REQ
 
 from piksi_tools.console.update_downloader import UpdateDownloader
 from piksi_tools.console.settings_view import SettingsView
@@ -388,7 +387,7 @@ class TestBootloader(unittest.TestCase):
               time.sleep(0.1)
         if self.verbose: print "Received handshake"
         if self.verbose: print "Sending handshake with incorrect sender ID"
-        handler.send(SBP_MSG_BOOTLOADER_HANDSHAKE_REQUEST, '\x00', sender=0x41)
+        handler.send(SBP_MSG_BOOTLOADER_HANDSHAKE_REQ, '\x00', sender=0x41)
 
         # We should receive a heartbeat if the handshake was unsuccessful.
         with Timeout(TIMEOUT_BOOT) as timeout:

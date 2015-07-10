@@ -300,8 +300,8 @@ class SettingsView(HasTraits):
   def cleanup(self):
     """ Remove callbacks from serial link. """
     self.link.remove_callback(self.piksi_startup_callback, SBP_MSG_STARTUP)
-    self.link.remove_callback(self.settings_read_by_index_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_REQUEST)
-    self.link.remove_callback(self.settings_read_by_index_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_RESPONSE)
+    self.link.remove_callback(self.settings_read_by_index_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_REQ)
+    self.link.remove_callback(self.settings_read_by_index_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_RESP)
     self.link.remove_callback(self.settings_read_by_index_done_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_DONE)
 
   def __enter__(self):
