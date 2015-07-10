@@ -48,12 +48,12 @@ class Diagnostics(object):
       time.sleep(0.1)
     # Wait for the settings
     expire = time.time() + 15.0
-    self.link.send_msg(MsgSettingsReadByIndexRequest(index=0))
+    self.link.send_msg(MsgSettingsReadByIndexReq(index=0))
     while not self.settings_received:
       time.sleep(0.1)
       if time.time() > expire:
         expire = time.time() + 15.0
-        self.link.send_msg(MsgSettingsReadByIndexRequest(index=0))
+        self.link.send_msg(MsgSettingsReadByIndexReq(index=0))
     # Wait for the handshake
     expire = time.time() + 10.0
     self.link.send(SBP_MSG_RESET, '')
@@ -92,7 +92,7 @@ class Diagnostics(object):
         self.diagnostics['settings'][section] = {}
       self.diagnostics['settings'][section][setting] = value
       index = struct.unpack('<H', sbp_msg.payload[:2])[0]
-      self.link.send_msg(MsgSettingsReadByIndexRequest(index=index+1))
+      self.link.send_msg(MsgSettingsReadByIndexReq(index=index+1))
 
   def _settings_done_callback(self, sbp_msg):
     self.settings_received = True
