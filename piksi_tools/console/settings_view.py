@@ -238,7 +238,10 @@ class SettingsView(HasTraits):
         self.settings_list += this_section
     # call read_finished_functions as needed
     for cb in self.read_finished_functions:
-      GUI.invoke_later(cb)
+      if self.gui_mode:
+        GUI.invoke_later(cb)
+      else:
+        cb()
     return
 
 
@@ -307,10 +310,11 @@ class SettingsView(HasTraits):
   def __exit__(self, *args):
     self.cleanup()
 
-  def __init__(self, link, read_finished_functions=[], name_of_yaml_file="settings.yaml", hide_expert=False):
+  def __init__(self, link, read_finished_functions=[], name_of_yaml_file="settings.yaml", hide_expert=False, gui_mode=True):
     super(SettingsView, self).__init__()
 
     self.hide_expert = hide_expert
+    self.gui_mode = gui_mode
     self.enumindex = 0
     self.settings = {}
     self.link = link

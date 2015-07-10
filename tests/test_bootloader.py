@@ -140,7 +140,8 @@ class TestBootloader(unittest.TestCase):
 
     self.settings_received = False
 
-    with SettingsView(handler, read_finished_functions=[self._piksi_settings_cb],
+    with SettingsView(handler,
+                      read_finished_functions=[self._piksi_settings_cb],
                       gui_mode=False) as sv:
       with Timeout(TIMEOUT_READ_SETTINGS) as timeout:
         sv._settings_read_button_fired()
