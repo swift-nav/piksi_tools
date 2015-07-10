@@ -1,0 +1,3 @@
+[submodule "piksi_tools/testing/gdb_chibios"]
+	path = piksi_tools/testing/gdb_chibios
+	url = https://github.com/gsmcmullin/gdb_chibios.git
