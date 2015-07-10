@@ -79,7 +79,7 @@ class Bootloader():
     """ Bootloader handshake callback. """
     hs_device = MsgBootloaderHandshakeResponse(sbp_msg)
     self.version = hs_device.version
-    self.sbp_version = ((hs_device.flags >> 8) & 0xF, hs_device.flags & 0xF)
+    self.sbp_version = ((hs_device.flags >> 8) & 0xFF, hs_device.flags & 0xFF)
     self.handshake_received = True
 
   def handshake(self, timeout=None):
