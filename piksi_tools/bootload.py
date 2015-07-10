@@ -64,7 +64,7 @@ class Bootloader():
 
   def _deprecated_callback(self, sbp_msg):
     """ Bootloader handshake for deprecated message ID. """
-    hs_device = MsgBootloaderHandshakeDeprecated(sbp_msg)
+    hs_device = MsgBootloaderHandshakeDepA(sbp_msg)
     if len(hs_device.handshake)==1 and hs_device.handshake[0]==0:
       # == v0.1 of the bootloader, returns hardcoded version number 0.
       self.version = "v0.1"
