@@ -29,7 +29,6 @@ import sys
 import serial_link
 
 from sbp.bootload import *
-from sbp.deprecated import *
 from sbp.logging import *
 from sbp.piksi import *
 from sbp.client.handler import Handler
@@ -47,8 +46,8 @@ class Bootloader():
     # SBP version is unset in older devices.
     self.sbp_version = (0, 0)
     self.link = link
-    self.link.add_callback(self._deprecated_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED)
-    self.link.add_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_RESPONSE)
+    self.link.add_callback(self._deprecated_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEP_A)
+    self.link.add_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_RESP)
 
   def __enter__(self):
     return self
@@ -59,8 +58,8 @@ class Bootloader():
 
   def stop(self):
     self.stopped = True
-    self.link.remove_callback(self._deprecated_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED)
-    self.link.remove_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_RESPONSE)
+    self.link.remove_callback(self._deprecated_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEP_A)
+    self.link.remove_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_RESP)
 
   def _deprecated_callback(self, sbp_msg):
     if len(sbp_msg.payload)==1 and struct.unpack('B', sbp_msg.payload[0])==0:
@@ -93,9 +92,9 @@ class Bootloader():
         self.link.send(SBP_MSG_RESET, "")
     # < 0.45 of SBP protocol, reuse single handshake message.
     if self.sbp_version < (0, 45):
-      self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED, '\x00')
+      self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_DEP_A, '\x00')
     else:
-      self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_REQUEST, '\x00')
+      self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_REQ, '\x00')
     return True
 
   def jump_to_app(self):

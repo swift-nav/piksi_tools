@@ -198,7 +198,7 @@ class SettingsView(HasTraits):
   def _settings_read_button_fired(self):
     self.enumindex = 0
     self.ordering_counter = 0
-    self.link.send(SBP_MSG_SETTINGS_READ_BY_INDEX_REQUEST, u16_to_str(self.enumindex))
+    self.link.send(SBP_MSG_SETTINGS_READ_BY_INDEX_REQ, u16_to_str(self.enumindex))
 
   def _settings_save_button_fired(self):
     self.link.send(SBP_MSG_SETTINGS_SAVE, "")
@@ -286,7 +286,7 @@ class SettingsView(HasTraits):
                                                  )
 
     self.enumindex += 1
-    self.link.send(SBP_MSG_SETTINGS_READ_BY_INDEX_REQUEST, u16_to_str(self.enumindex))
+    self.link.send(SBP_MSG_SETTINGS_READ_BY_INDEX_REQ, u16_to_str(self.enumindex))
 
   def piksi_startup_callback(self, sbp_msg):
     self._settings_read_button_fired()
@@ -302,8 +302,8 @@ class SettingsView(HasTraits):
     self.settings = {}
     self.link = link
     self.link.add_callback(self.piksi_startup_callback, SBP_MSG_STARTUP)
-    self.link.add_callback(self.settings_read_by_index_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_REQUEST)
-    self.link.add_callback(self.settings_read_by_index_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_RESPONSE)
+    self.link.add_callback(self.settings_read_by_index_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_REQ)
+    self.link.add_callback(self.settings_read_by_index_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_RESP)
     self.link.add_callback(self.settings_read_by_index_done_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_DONE)
 
     # Read in yaml file for setting metadata

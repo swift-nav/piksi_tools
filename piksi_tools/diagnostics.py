@@ -16,7 +16,6 @@ import yaml
 
 from sbp.client.handler import *
 from sbp.bootload       import *
-from sbp.deprecated     import *
 from sbp.piksi          import *
 from sbp.settings       import *
 from sbp.system         import *
@@ -38,12 +37,12 @@ class Diagnostics(object):
     self.handshake_received = False
     self.sbp_version = (0, 0)
     self.link = link
-    self.link.add_callback(self._settings_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_REQUEST)
-    self.link.add_callback(self._settings_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_RESPONSE)
+    self.link.add_callback(self._settings_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_REQ)
+    self.link.add_callback(self._settings_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_RESP)
     self.link.add_callback(self._settings_done_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_DONE)
     self.link.add_callback(self._heartbeat_callback, SBP_MSG_HEARTBEAT)
-    self.link.add_callback(self._deprecated_handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEPRECATED)
-    self.link.add_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_RESPONSE)
+    self.link.add_callback(self._deprecated_handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEP_A)
+    self.link.add_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_RESP)
     # Wait for the heartbeat
     while not self.heartbeat_received:
       time.sleep(0.1)

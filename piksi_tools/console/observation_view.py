@@ -24,8 +24,7 @@ import os
 import numpy as np
 import datetime
 
-from sbp.observation import SBP_MSG_OBS, SBP_MSG_EPHEMERIS
-from sbp.deprecated  import SBP_MSG_EPHEMERIS_DEPRECATED
+from sbp.observation import *
 
 class SimpleAdapter(TabularAdapter):
     columns = [('PRN', 0), ('Pseudorange',  1), ('Carrier Phase',  2), ('C/N0', 3)]
@@ -143,7 +142,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     total = seq >> 4
     count = seq & ((1 << 4) - 1)
 
-    obs_fmt = '<IiBBHB'
+    obs_fmt = '<IiBBHI' if sbp_msg.msg_type is SBP_MSG_OBS else '<IiBBHB'
     obs_size = struct.calcsize(obs_fmt)
     n_obs = (len(sbp_msg.payload) - hdr_size) / obs_size
     obs_data = sbp_msg.payload[hdr_size:]
@@ -190,7 +189,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
 
   def ephemeris_callback(self, sbp_msg):
     gps_time_fmt = "dH"
-    eph_fmt = "<" + "d"*19 + gps_time_fmt*2 + "BBB"
+    eph_fmt = "<" + "d"*19 + gps_time_fmt*2 + ("BBI" if sbp_msg.msg_type is SBP_MSG_EPHEMERIS else "BBB")
     eph_size = struct.calcsize(eph_fmt)
     tgd, \
     crs, crc, cuc, cus, cic, cis, \
@@ -243,9 +242,11 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     self.eph_file   = None
 
     self.link = link
-    self.link.add_callback(self.obs_packed_callback, SBP_MSG_OBS)
-    self.link.add_callback(self.ephemeris_callback, SBP_MSG_EPHEMERIS)
-    self.link.add_callback(self.ephemeris_callback, SBP_MSG_EPHEMERIS_DEPRECATED)
+    self.link.add_callback(self.obs_packed_callback, [SBP_MSG_OBS,
+                                                      SBP_MSG_OBS_DEP_A])
+    self.link.add_callback(self.ephemeris_callback, [SBP_MSG_EPHEMERIS,
+                                                     SBP_MSG_EPHEMERIS_DEP_A,
+                                                     SBP_MSG_EPHEMERIS_DEP_B])
 
     self.python_console_cmds = {
       'obs': self
