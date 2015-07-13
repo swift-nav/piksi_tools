@@ -77,11 +77,11 @@ else:
 # Logging
 import logging
 logging.basicConfig()
-from output_list import OutputList, LogItem
-from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List
+from output_list import OutputList, LogItem, SYSLOG_LEVELS
+from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List, Enum
 from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
                          InstanceEditor, EnumEditor, ShellEditor, Handler, Spring, \
-                         TableEditor
+                         TableEditor, UItem
 from traitsui.table_filter \
     import EvalFilterTemplate, MenuFilterTemplate, RuleFilterTemplate, \
            EvalTableFilter
@@ -166,6 +166,7 @@ class SwiftConsole(HasTraits):
   system_monitor_view = Instance(SystemMonitorView)
   settings_view = Instance(SettingsView)
   update_view = Instance(UpdateView)
+  log_level_filter = log_level_filter = Enum(list(SYSLOG_LEVELS.itervalues()))
 
   paused_button = SVGButton(
     label='', tooltip='Pause console update', toggle_tooltip='Resume console update', toggle=True,
@@ -210,6 +211,8 @@ class SwiftConsole(HasTraits):
           Item('paused_button', show_label=False, width=8, height=8),
           Item('clear_button', show_label=False, width=8, height=8),
           Item('', label='Console Log', emphasized=True),
+          Spring(),
+          UItem('log_level_filter', style='simple', padding=0, height=8),
         ),
         Item(
           'console_output',
@@ -230,14 +233,13 @@ class SwiftConsole(HasTraits):
 
   def print_message_callback(self, sbp_msg, **metadata):
     try:
-      item = LogItem(sbp_msg.payload.encode('ascii'))
-      self.console_output.write(item)
+      self.console_output.write(sbp_msg.payload.encode('ascii'))
     except UnicodeDecodeError:
       print "Critical Error encoding the serial stream as ascii."
 
   def log_message_callback(self, sbp_msg, **metadata):
     try:
-      self.console_output.write(MsgLog(sbp_msg).text.encode('ascii', 'ignore'))
+      self.console_output.write_level(MsgLog(sbp_msg).text.encode('ascii', 'ignore'), MsgLog(sbp_msg).level)
     except UnicodeDecodeError:
       print "Critical Error encoding the serial stream as ascii."
 
@@ -250,10 +252,17 @@ class SwiftConsole(HasTraits):
   #def _paused_button_fired(self):
   #  self.console_output.paused = not self.console_output.paused
 
+  def _log_level_filter_changed(self):
+    for key, value in SYSLOG_LEVELS.iteritems():
+      if value == self.log_level_filter:
+        self.console_output.log_level_filter = key
+
   def _clear_button_fired(self):
     self.console_output.clear()
+
   def __init__(self, link, update):
-    self.console_output = OutputList(text=[LogItem(msg="Console: starting...")])
+    self.console_output = OutputList()
+    self.console_output.write("Console: starting...")
     #sys.stdout = self.console_output
     #sys.stderr = self.console_output
     try:
