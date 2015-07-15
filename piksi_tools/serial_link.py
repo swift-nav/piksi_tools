@@ -21,11 +21,14 @@ from sbp.logging                        import *
 from sbp.piksi                          import SBP_MSG_RESET
 from sbp.system                         import SBP_MSG_HEARTBEAT
 from sbp.client.drivers.pyserial_driver import PySerialDriver
+from sbp.client.drivers.network_drivers import TCPDriver
 from sbp.client.drivers.pyftdi_driver   import PyFTDIDriver
 from sbp.client.loggers.json_logger     import JSONLogger
 from sbp.client.loggers.null_logger     import NullLogger
 from sbp.client.handler                 import Handler
+from sbp.client.handler                 import LoggerDriver
 from sbp.client.watchdog                import Watchdog
+from urlparse import urlparse
 
 LOG_FILENAME = time.strftime("serial-link-%Y%m%d-%H%M%S.log.json")
 
@@ -76,7 +79,11 @@ def base_cl_options():
   parser.add_argument("-d", "--tags",
                       default=[None], nargs=1,
                       help="tags to decorate logs with.")
+  parser.add_argument("-s", "--base",
+                      default=[None], nargs=1,
+                      help="Base station URI (optional).")
   return parser
+
 def get_args():
   """
   Get and parse arguments.
@@ -85,6 +92,26 @@ def get_args():
   parser = base_cl_options()
   return parser.parse_args()
 
+def get_base(base_uri):
+  """
+  Instantiate a base station driver.
+  """
+  if not base_uri:
+    return NullLogger()
+  o = urlparse(base_uri)
+  protocol = o.scheme
+  hostname = o.hostname
+  port = o.port
+  if protocol == "ntrip":
+    raise NotImplementedError("ntrip base station URI not yet supported.")
+  elif protocol == "http":
+    raise NotImplementedError("http base station URI not yet supported.")
+  elif protocol == "socket":
+    print "Source base station from %s." % base_uri
+    return TCPDriver(hostname, port)
+  else:
+    raise NotImplementedError("%s base station URI not yet supported." % protocol)
+
 def get_driver(use_ftdi=False, port=SERIAL_PORT, baud=SERIAL_BAUD):
   """
   Get a driver based on configuration options
@@ -92,11 +119,13 @@ def get_driver(use_ftdi=False, port=SERIAL_PORT, baud=SERIAL_BAUD):
   Parameters
   ----------
   use_ftdi : bool
-    For serial driver, use the pyftdi driver, otherwise use the pyserial driver.
+    For serial driver, use the pyftdi driver, otherwise use the
+    pyserial driver.
   port : string
     Serial port to read.
   baud : int
     Serial port baud rate to set.
+
   """
   if use_ftdi:
     return PyFTDIDriver(baud)
@@ -177,45 +206,47 @@ def main():
   append_log_filename = args.append_log_filename[0]
   watchdog = args.watchdog[0]
   tags = args.tags[0]
+  base = args.base[0]
   # Driver with context
   with get_driver(args.ftdi, port, baud) as driver:
-    # Handler with context
-    with Handler(driver.read, driver.write, args.verbose) as link:
-      # Logger with context
-      with get_logger(args.log, log_filename) as logger:
-        with get_append_logger(append_log_filename, tags) as append_logger:
-          link.add_callback(printer, SBP_MSG_PRINT_DEP)
-          link.add_callback(log_printer, SBP_MSG_LOG)
-          link.add_callback(logger)
-          link.add_callback(append_logger)
-          # Reset device
-          if args.reset:
-            link.send(SBP_MSG_RESET, "")
-          # Setup watchdog
-          if watchdog:
-            link.add_callback(Watchdog(float(watchdog), watchdog_alarm), SBP_MSG_HEARTBEAT)
-          try:
-            if timeout is not None:
-              expire = time.time() + float(args.timeout[0])
-
-            while True:
-              if timeout is None or time.time() < expire:
-              # Wait forever until the user presses Ctrl-C
-                time.sleep(1)
-              else:
-                print "Timer expired!"
-                break
-              if not link.is_alive():
-                sys.stderr.write("ERROR: Thread died!")
+    with get_base(base) as base_station:
+      with LoggerDriver(base_station, driver) as ld:
+        # Handler with context
+        with Handler(ld.read, ld.write, args.verbose) as link:
+          # Logger with context
+          with get_logger(args.log, log_filename) as logger:
+            with get_append_logger(append_log_filename, tags) as append_logger:
+              link.add_callback(printer, SBP_MSG_PRINT_DEP)
+              link.add_callback(log_printer, SBP_MSG_LOG)
+              link.add_callback(logger)
+              link.add_callback(append_logger)
+              # Reset device
+              if args.reset:
+                link.send(SBP_MSG_RESET, "")
+              # Setup watchdog
+              if watchdog:
+                link.add_callback(Watchdog(float(watchdog), watchdog_alarm),
+                                  SBP_MSG_HEARTBEAT)
+              try:
+                if timeout is not None:
+                  expire = time.time() + float(args.timeout[0])
+                while True:
+                  if timeout is None or time.time() < expire:
+                    # Wait forever until the user presses Ctrl-C
+                    time.sleep(1)
+                  else:
+                    print "Timer expired!"
+                    break
+                  if not link.is_alive():
+                    sys.stderr.write("ERROR: Thread died!")
+                    sys.exit(1)
+              except KeyboardInterrupt:
+                # Callbacks, such as the watchdog timer on SBP_HEARTBEAT call
+                # thread.interrupt_main(), which throw a KeyboardInterrupt
+                # exception. To get the proper error condition, return exit code
+                # of 1. Note that the finally block does get caught since exit
+                # itself throws a SystemExit exception.
                 sys.exit(1)
-          except KeyboardInterrupt:
-            # Callbacks, such as the watchdog timer on SBP_HEARTBEAT call
-            # thread.interrupt_main(), which throw a KeyboardInterrupt
-            # exception. To get the proper error condition, return exit code
-            # of 1. Note that the finally block does get caught since exit
-            # itself throws a SystemExit exception.
-            sys.exit(1)
 
 if __name__ == "__main__":
   main()
-
