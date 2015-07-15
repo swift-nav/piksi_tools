@@ -2,7 +2,7 @@
 import piksi_tools.serial_link as sl
 from sbp.client.handler import Handler
 from sbp.logging import SBP_MSG_PRINT
-from sbp.tracking import MsgTrackingState
+from sbp.tracking import MsgTrackingState, MsgTrackingStateDepA
 from sbp.piksi import MsgMaskSatellite, SBP_MSG_RESET
 from sbp.system import SBP_MSG_HEARTBEAT
 from sbp.table import dispatch
@@ -133,12 +133,17 @@ class DropSatsState(TestState):
       not yet dispatched message received by device
     """
     msg = dispatch(msg)
-    if isinstance(msg, MsgTrackingState):
+    if isinstance(msg, MsgTrackingState) or isinstance(msg, MsgTrackingStateDepA):
       if self.debug:
         print "currently tracking {0} sats".format(self.num_tracked_sats)
       self.num_tracked_sats = 0
       for channel, track_state in enumerate(msg.states):
-        prn = track_state.prn + 1
+        try:
+          # MsgTrackingState
+          prn = track_state.sid + 1
+        except AttributeError:
+          # MsgTrackingStateDepA
+          prn = track_state.prn + 1
         if track_state.state == 1:
           self.num_tracked_sats += 1
           self.prn_status_dict[prn] = channel
@@ -161,7 +166,7 @@ class DropSatsState(TestState):
     if self.debug:
       print "Dropping the following prns {0}".format(prns)
     for prn in prns:
-      msg = MsgMaskSatellite(mask=2, prn=int(prn)-1)
+      msg = MsgMaskSatellite(mask=2, sid=int(prn)-1)
       self.handler.send_msg(msg)
 
   def get_num_sats_to_drop(self):
