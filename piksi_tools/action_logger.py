@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 import piksi_tools.serial_link as sl
+import piksi_tools.diagnostics as ptd
 from sbp.client.handler import Handler
 from sbp.logging import SBP_MSG_PRINT
 from sbp.tracking import MsgTrackingState, MsgTrackingStateDepA
-from sbp.piksi import MsgMaskSatellite, SBP_MSG_RESET
+from sbp.piksi import SBP_MSG_MASK_SATELLITE, SBP_MSG_RESET, MsgMaskSatellite
 from sbp.system import SBP_MSG_HEARTBEAT
 from sbp.table import dispatch
 
@@ -11,6 +12,7 @@ import time
 import sys
 import random
 import threading
+import struct
 
 DEFAULT_POLL_INTERVAL = 60 # Seconds
 DEFAULT_MIN_SATS = 5 # min satellites to try and retain
@@ -96,6 +98,8 @@ class DropSatsState(TestState):
   ----------
   handler: sbp.client.handler.Handler
     handler for SBP transfer to/from Piksi.
+  sbpv: (int, int)
+    tuple of SBP major/minor version.
   interval : int
     number of seconds between sending mask tracking message
   min sats : int
@@ -103,8 +107,9 @@ class DropSatsState(TestState):
   debug : bool
     Print out extra info?
   """
-  def __init__(self, handler, interval, min_sats, debug=False):
+  def __init__(self, handler, sbpv, interval, min_sats, debug=False):
     super(DropSatsState, self).__init__(handler)
+    self.sbpv = sbpv
     self.min_sats = min_sats
     self.debug = debug
 
@@ -163,11 +168,18 @@ class DropSatsState(TestState):
     prns : int[]
       list of prns to drop
     """
+    FLAGS = 0x02 # Drop from tracking, don't mask acquisition.
     if self.debug:
       print "Dropping the following prns {0}".format(prns)
     for prn in prns:
-      msg = MsgMaskSatellite(mask=2, sid=int(prn)-1)
-      self.handler.send_msg(msg)
+      if self.sbpv < (0, 49):
+        # Use pre SID widening Mask Message - have to pack manually.
+        msg = struct.pack('BB', FLAGS, prn-1)
+        self.handler.send(SBP_MSG_MASK_SATELLITE, msg)
+      else:
+        # Use post SID widening Mask Message.
+        msg = MsgMaskSatellite(mask=FLAGS, sid=int(prn)-1)
+        self.handler.send_msg(msg)
 
   def get_num_sats_to_drop(self):
     """
@@ -251,11 +263,16 @@ def main():
           if watchdog:
             link.add_callback(sl.Watchdog(float(watchdog), sl.watchdog_alarm),
                               SBP_MSG_HEARTBEAT)
-          # add Teststates and associated callbacks
-          with DropSatsState(link, interval, minsats, debug=args.verbose) as drop:
-            link.add_callback(drop.process_message)
+          try:
+            # Get device info
+            piksi_diag = ptd.Diagnostics(link)
+            while not piksi_diag.heartbeat_received:
+              time.sleep(0.1)
+            # add Teststates and associated callbacks
+            with DropSatsState(link, piksi_diag.sbp_version, interval,
+                               minsats, debug=args.verbose) as drop:
+              link.add_callback(drop.process_message)
 
-            try:
               if timeout is not None:
                 expire = time.time() + float(args.timeout[0])
 
@@ -269,13 +286,13 @@ def main():
                 if not link.is_alive():
                   sys.stderr.write("ERROR: Thread died!")
                   sys.exit(1)
-            except KeyboardInterrupt:
-              # Callbacks, such as the watchdog timer on SBP_HEARTBEAT call
-              # thread.interrupt_main(), which throw a KeyboardInterrupt
-              # exception. To get the proper error condition, return exit code
-              # of 1. Note that the finally block does get caught since exit
-              # itself throws a SystemExit exception.
-              sys.exit(1)
+          except KeyboardInterrupt:
+            # Callbacks, such as the watchdog timer on SBP_HEARTBEAT call
+            # thread.interrupt_main(), which throw a KeyboardInterrupt
+            # exception. To get the proper error condition, return exit code
+            # of 1. Note that the finally block does get caught since exit
+            # itself throws a SystemExit exception.
+            sys.exit(1)
 
 if __name__ == "__main__":
   main()
