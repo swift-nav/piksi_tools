@@ -383,6 +383,26 @@
   Notes: This sets the number of meters that the rover is Down from the
     base station when the "init known baseline" feature is used.
 
+- group: solution
+  name: elevation_mask
+  type: float
+  units: degrees
+  default value: '5'
+  enumerated possible values:
+  Description: SPP / RTK elevation mask
+  Notes: Satellites must be above the horizon by at least this angle before they
+    will be used in a solution.
+
+- group: solution
+  name: disable_raim
+  type: boolean
+  expert: true
+  units:
+  default value: False
+  enumerated possible values: True,False
+  Description: Receiver Autonomous Integrity Monitoring
+  Notes: If True, RAIM checks will not be performed.
+
 - group: system_info
   name: serial_number
   type: integer
@@ -610,23 +630,32 @@
   expert: true
   type: integer
   units:
-  default value: None
+  default value: 0
   enumerated possible values: 
-  Description: Unused
-  Notes:
+  Description: Output raw I/Q correlations
+  Notes: Bitmask of channel IDs (not PRNs)
 
 - group: track
-  name: track_cn0_threshold
+  name: cn0_drop
   expert: true
   type: Double
   units: db-Hz
-  default value: '33'
-  Description: C/N0 threshold for tracking and navigation.
+  default value: '30'
+  Description: C/N0 threshold for tracking.
+  Notes: If the estimated C/N0 for a satellite drops below this for more than
+         5 seconds, the signal will be considered lost and the channel reset.
+
+- group: track
+  name: cn0_use
+  expert: true
+  type: Double
+  units: db-Hz
+  default value: '31'
+  Description: C/N0 threshold for navigation.
   Notes: If the estimated C/N0 drops below this even momentarily,
+         the satellite will not be used for SPP or RTK solutions and
          the integer ambiguity for that channel will be reinitialized.
-         If the estimated C/N0 drops below this for a certain duration,
-         the signal will be considered lost altogether and tracking
-         will stop.
+         This is in addition to PLL lock detection.
 
 - group: track
   name: loop_params
@@ -655,12 +684,42 @@
     CARR_TO_CODE should be 0 (carrier aiding disabled) or 1540 (ratio of
     GPS L1 C/A carrier freq to code freq)."
 
+- group: track
+  name: lock_detect_params
+  expert: true
+  type: string
+  units:
+  default value: '0.02, 1.4, 150, 50'
+  Description: PLL lock detector parameters
+  Notes: "<k1>, <k2>, <lp>, <lo>
+
+
+    where
+
+      k1 = LPF coefficient (@ 1 ms)
+
+      k2 = I arm divisor
+
+      lp = Pessimistic lock count threshold
+
+      lo = Optimistic lock count threshold"
+
+- group: track
+  name: alias_detect
+  expert: true
+  type: boolean
+  units:
+  default value: 'True'
+  enumerated possible values: True,False
+  Description: Use phase-lock alias detection + correction
+  Notes:
+
 - group: nmea
   name: gpgsv_msg_rate
   type: integer
   units: Ticks
   default value: '10'
-  Description: Number of ticks between GPGV NMEA messages being sent.
+  Description: Number of ticks between GPGSV NMEA messages being sent.
   Notes:
 
 - group: nmea
