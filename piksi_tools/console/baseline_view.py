@@ -43,10 +43,6 @@ class Baseline:
 class BaselineView(HasTraits):
   python_console_cmds = Dict()
 
-  ns = List()
-  es = List()
-  ds = List()
-
   table = List()
 
   plot = Instance(Plot)
@@ -125,12 +121,14 @@ class BaselineView(HasTraits):
     self.link.send(SBP_MSG_INIT_BASE, '')
 
   def _clear_button_fired(self):
-    self.ns = []
-    self.es = []
-    self.ds = []
-    self.plot_data.set_data('n', [])
-    self.plot_data.set_data('e', [])
-    self.plot_data.set_data('d', [])
+    self.neds[:] = np.NAN
+    self.fixeds[:] = False
+    self.plot_data.set_data('n_fixed', [])
+    self.plot_data.set_data('e_fixed', [])
+    self.plot_data.set_data('d_fixed', [])
+    self.plot_data.set_data('n_float', [])
+    self.plot_data.set_data('e_float', [])
+    self.plot_data.set_data('d_float', [])
     self.plot_data.set_data('t', [])
     self.plot_data.set_data('curr_n', [])
     self.plot_data.set_data('curr_e', [])
@@ -199,32 +197,53 @@ class BaselineView(HasTraits):
     table.append(('Dist.', dist))
     table.append(('Num. Sats.', soln.n_sats))
     table.append(('Flags', '0x%02x' % soln.flags))
-    if soln.flags & 1:
+    fixed = (soln.flags & 1) == 1
+    if fixed:
       table.append(('Mode', 'Fixed RTK'))
     else:
       table.append(('Mode', 'Float'))
     table.append(('IAR Num. Hyps.', self.num_hyps))
 
-    self.ns.append(soln.n)
-    self.es.append(soln.e)
-    self.ds.append(soln.d)
+    # Rotate array, deleting oldest entries to maintain
+    # no more than N in plot
+    self.neds[1:] = self.neds[:-1]
+    self.fixeds[1:] = self.fixeds[:-1]
 
-    self.ns = self.ns[-1000:]
-    self.es = self.es[-1000:]
-    self.ds = self.ds[-1000:]
+    # Insert latest position
+    self.neds[0][:] = [soln.n, soln.e, soln.d]
+    self.fixeds[0] = fixed
 
-    self.plot_data.set_data('n', self.ns)
-    self.plot_data.set_data('e', self.es)
-    self.plot_data.set_data('d', self.ds)
-    self.plot_data.set_data('curr_n', [soln.n])
-    self.plot_data.set_data('curr_e', [soln.e])
-    self.plot_data.set_data('curr_d', [soln.d])
+    neds_fixed = self.neds[self.fixeds]
+    neds_float = self.neds[np.logical_not(self.fixeds)]
+
+    self.plot_data.set_data('n_fixed', neds_fixed[:][0])
+    self.plot_data.set_data('e_fixed', neds_fixed[:][1])
+    self.plot_data.set_data('d_fixed', neds_fixed[:][2])
+
+    self.plot_data.set_data('n_float', neds_float[:][0])
+    self.plot_data.set_data('e_float', neds_float[:][1])
+    self.plot_data.set_data('d_float', neds_float[:][2])
+
+    if fixed:
+      self.plot_data.set_data('cur_fixed_n', [soln.n])
+      self.plot_data.set_data('cur_fixed_e', [soln.e])
+      self.plot_data.set_data('cur_fixed_d', [soln.d])
+      self.plot_data.set_data('cur_float_n', [])
+      self.plot_data.set_data('cur_float_e', [])
+      self.plot_data.set_data('cur_float_d', [])
+    else:
+      self.plot_data.set_data('cur_float_n', [soln.n])
+      self.plot_data.set_data('cur_float_e', [soln.e])
+      self.plot_data.set_data('cur_float_d', [soln.d])
+      self.plot_data.set_data('cur_fixed_n', [])
+      self.plot_data.set_data('cur_fixed_e', [])
+      self.plot_data.set_data('cur_fixed_d', [])
+
     self.plot_data.set_data('ref_n', [0.0])
     self.plot_data.set_data('ref_e', [0.0])
     self.plot_data.set_data('ref_d', [0.0])
 
     t = range(len(self.ns))
-    self.plot_data.set_data('t', t)
 
     if self.position_centered:
       d = (self.plot.index_range.high - self.plot.index_range.low) / 2.
@@ -234,39 +253,63 @@ class BaselineView(HasTraits):
 
     self.table = table
 
-  def __init__(self, link):
+  def __init__(self, link, plot_history_max=1000):
     super(BaselineView, self).__init__()
 
     self.log_file = None
 
     self.num_hyps = 0
 
-    self.plot_data = ArrayPlotData(n=[0.0], e=[0.0], d=[0.0], t=[0.0], ref_n=[0.0],
-                     ref_e=[0.0], ref_d=[0.0], curr_e=[0.0], curr_n=[0.0], curr_d=[0.0])
+    self.plot_data = ArrayPlotData(n_fixed=[0.0], e_fixed=[0.0], d_fixed=[0.0],
+                                   n_float=[0.0], e_float=[0.0], d_float=[0.0],
+                                   t=[0.0],
+                                   ref_n=[0.0], ref_e=[0.0], ref_d=[0.0],
+                                   cur_fixed_e=[], cur_fixed_n=[], cur_fixed_d=[],
+                                   cur_float_e=[], cur_float_n=[], cur_float_d=[]))
+    self.plot_history_max = plot_history_max
+
+    self.neds = np.empty((plot_history_max, 3))
+    self.neds[:] = np.NAN
+    self.fixeds = np.zeros(plot_history_max, dtype=bool)
+
     self.plot = Plot(self.plot_data)
-    lin = self.plot.plot(('e', 'n'),
-        type='line',
-        color=(0, 0, 1, 0.1))
-    pts = self.plot.plot(('e', 'n'),
+    color_float = (0.5, 0.5, 1.0)
+    color_fixed = 'orange'
+    pts_float = self.plot.plot(('e_float', 'n_float'),
         type='scatter',
-        color='blue',
+        color=color_float,
         marker='dot',
         line_width=0.0,
         marker_size=1.0)
+    pts_fixed = self.plot.plot(('e_fixed', 'n_fixed'),
+        type='scatter',
+        color=color_fixed,
+        marker='dot',
+        line_width=0.0,
+        marker_size=1.0)
+    lin = self.plot.plot(('e_fixed', 'n_fixed'),
+        type='line',
+        color=(1, 0.65, 0, 0.1))
     ref = self.plot.plot(('ref_e', 'ref_n'),
         type='scatter',
         color='red',
         marker='plus',
         marker_size=5,
         line_width=1.5)
-    cur = self.plot.plot(('curr_e', 'curr_n'),
+    cur_fixed = self.plot.plot(('cur_fixed_e', 'cur_fixed_n'),
         type='scatter',
-        color='orange',
+        color=color_fixed,
         marker='plus',
         marker_size=5,
         line_width=1.5)
-    plot_labels = ['Base Position','Rover Relative Position','Rover Path']
-    plots_legend = dict(zip(plot_labels, [ref,cur,pts]))
+    cur_float = self.plot.plot(('cur_float_e', 'cur_float_n'),
+        type='scatter',
+        color=color_float,
+        marker='plus',
+        marker_size=5,
+        line_width=1.5)
+    plot_labels = ['Base Position','RTK Fixed','RTK Float']
+    plots_legend = dict(zip(plot_labels, [ref, cur_fixed, cur_float]))
     self.plot.legend.plots = plots_legend
     self.plot.legend.visible = True
 
