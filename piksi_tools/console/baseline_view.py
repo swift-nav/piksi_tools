@@ -130,9 +130,12 @@ class BaselineView(HasTraits):
     self.plot_data.set_data('e_float', [])
     self.plot_data.set_data('d_float', [])
     self.plot_data.set_data('t', [])
-    self.plot_data.set_data('curr_n', [])
-    self.plot_data.set_data('curr_e', [])
-    self.plot_data.set_data('curr_d', [])
+    self.plot_data.set_data('cur_fixed_n', [])
+    self.plot_data.set_data('cur_fixed_e', [])
+    self.plot_data.set_data('cur_fixed_d', [])
+    self.plot_data.set_data('cur_float_n', [])
+    self.plot_data.set_data('cur_float_e', [])
+    self.plot_data.set_data('cur_float_d', [])
 
   def _baseline_callback_ecef(self, data):
     #Don't do anything for ECEF currently
@@ -265,7 +268,7 @@ class BaselineView(HasTraits):
                                    t=[0.0],
                                    ref_n=[0.0], ref_e=[0.0], ref_d=[0.0],
                                    cur_fixed_e=[], cur_fixed_n=[], cur_fixed_d=[],
-                                   cur_float_e=[], cur_float_n=[], cur_float_d=[]))
+                                   cur_float_e=[], cur_float_n=[], cur_float_d=[])
     self.plot_history_max = plot_history_max
 
     self.neds = np.empty((plot_history_max, 3))
