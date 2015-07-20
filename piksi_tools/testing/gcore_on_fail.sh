@@ -27,6 +27,7 @@ gdb-multiarch -batch -nx \
               -ex "set gcore-file-name core-$PIKSI" \
               -ex "mon jtag 4 5 6" \
               -ex "att 1" \
+              -ex "mon vect disable reset" \
               -ex "run" \
               $1 \
               &>gdblog.$PIKSI &
