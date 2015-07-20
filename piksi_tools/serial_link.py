@@ -17,7 +17,7 @@ setting up and running SBP message handling.
 import sys
 import time
 
-from sbp.logging                        import SBP_MSG_PRINT
+from sbp.logging                        import SBP_MSG_PRINT_DEP
 from sbp.piksi                          import SBP_MSG_RESET
 from sbp.system                         import SBP_MSG_HEARTBEAT
 from sbp.client.drivers.pyserial_driver import PySerialDriver
@@ -173,7 +173,7 @@ def main():
       # Logger with context
       with get_logger(args.log, log_filename) as logger:
         with get_append_logger(append_log_filename, tags) as append_logger:
-          link.add_callback(printer, SBP_MSG_PRINT)
+          link.add_callback(printer, SBP_MSG_PRINT_DEP)
           link.add_callback(logger)
           link.add_callback(append_logger)
           # Reset device
