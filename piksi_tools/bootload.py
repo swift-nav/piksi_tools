@@ -153,7 +153,7 @@ def main():
   with serial_link.get_driver(use_ftdi, port, baud) as driver:
     # Handler with context
     with Handler(driver.read, driver.write) as link:
-      link.add_callback(serial_link.printer, SBP_MSG_PRINT)
+      link.add_callback(serial_link.printer, SBP_MSG_PRINT_DEP)
 
       # Tell Bootloader we want to write to the flash.
       with Bootloader(link) as piksi_bootloader:
