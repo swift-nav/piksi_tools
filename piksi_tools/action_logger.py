@@ -256,15 +256,13 @@ def main():
           link.add_callback(logger)
           # ad append logger callback
           link.add_callback(append_logger)
-          # Reset device
-          if args.reset:
-            link.send(SBP_MSG_RESET, "")
           # Setup watchdog
           if watchdog:
             link.add_callback(sl.Watchdog(float(watchdog), sl.watchdog_alarm),
                               SBP_MSG_HEARTBEAT)
           try:
             # Get device info
+            # Diagnostics reads out the device settings and resets the Piksi
             piksi_diag = ptd.Diagnostics(link)
             while not piksi_diag.heartbeat_received:
               time.sleep(0.1)
