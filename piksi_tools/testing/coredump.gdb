@@ -21,3 +21,5 @@ command
 run
 end
 
+mon vect disable reset
+
