@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# Usage: ./grab_core_on_segfault.sh <firmeare.elf> \
+# Usage: ./gcore_on_fail.sh <firmeare.elf> \
 #                                   <piksi_dev> <bmp_dev> \
 #                                   <seconds-to-sleep>
 #
 # Intended to be called from HITL log capture:
 # if [ -e $MD_EXTERNAL_RESOURCES_LOCKED_BMP1 ]; then
-#   ./grab_core_on_segfault.sh ../../piksi_firmware_$GIT_DESCRIBE.elf \
-#                              $MD_EXTERNAL_RESOURCES_LOCKED_PORT1 \
-#                              $MD_EXTERNAL_RESOURCES_LOCKED_BMP1 \
-#                              $SECONDS
+#   ./gcore_on_fail.sh ../../piksi_firmware_$GIT_DESCRIBE.elf \
+#                      $MD_EXTERNAL_RESOURCES_LOCKED_PORT1 \
+#                      $MD_EXTERNAL_RESOURCES_LOCKED_BMP1 \
+#                      $SECONDS
 # fi
 
 set -e
@@ -23,7 +23,7 @@ export PIKSI=`echo $2 | egrep -o "PK[0-9]{4}"`
 
 gdb-multiarch -batch -nx \
               -ex "tar ext $3" \
-              -ex "source coredump3.py" \
+              -x coredump.gdb \
               -ex "set gcore-file-name core-$PIKSI" \
               -ex "mon jtag 4 5 6" \
               -ex "att 1" \
