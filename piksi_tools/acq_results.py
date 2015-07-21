@@ -22,7 +22,7 @@ import struct
 
 from numpy              import mean
 from sbp.acquisition    import SBP_MSG_ACQ_RESULT, MsgAcqResult
-from sbp.logging        import SBP_MSG_PRINT_DEP
+from sbp.logging        import *
 from sbp.client.handler import *
 
 N_RECORD = 0 # Number of results to keep in memory, 0 = no limit.
@@ -105,6 +105,7 @@ def main():
   with serial_link.get_driver(use_ftdi, port, baud) as driver:
     # Handler with context
     with Handler(driver.read, driver.write) as link:
+      link.add_callback(serial_link.log_printer, SBP_MSG_LOG)
       link.add_callback(serial_link.printer, SBP_MSG_PRINT_DEP)
       acq_results = AcqResults(link)
 
