@@ -2,7 +2,7 @@
 import piksi_tools.serial_link as sl
 import piksi_tools.diagnostics as ptd
 from sbp.client.handler import Handler
-from sbp.logging import SBP_MSG_PRINT_DEP
+from sbp.logging import *
 from sbp.tracking import MsgTrackingState, MsgTrackingStateDepA
 from sbp.piksi import SBP_MSG_MASK_SATELLITE, SBP_MSG_RESET, MsgMaskSatellite
 from sbp.system import SBP_MSG_HEARTBEAT
@@ -252,6 +252,7 @@ def main():
         with sl.get_append_logger(append_log_filename, tags) as append_logger:
           # print out SBP_MSG_PRINT_DEP messages
           link.add_callback(sl.printer, SBP_MSG_PRINT_DEP)
+          link.add_callback(sl.log_printer, SBP_MSG_LOG)
           # add logger callback
           link.add_callback(logger)
           # ad append logger callback
