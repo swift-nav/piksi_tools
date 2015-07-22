@@ -45,7 +45,7 @@ class AcqResults():
   def __str__(self):
     tmp = "Last %d acquisitions:\n" % len(self.acqs[-N_PRINT:])
     for a in self.acqs[-N_PRINT:]:
-      tmp += "PRN %2d, SNR: %3.2f\n" % (a.prn, a.snr)
+      tmp += "PRN %2d, SNR: %3.2f\n" % (a.sid, a.snr)
     tmp += "Max SNR         : %3.2f\n" % (self.max_snr())
     tmp += "Mean of max SNRs: %3.2f\n" % (self.mean_max_snrs(SNR_THRESHOLD))
     return tmp
@@ -61,8 +61,8 @@ class AcqResults():
   def mean_max_snrs(self, snr_threshold):
     snrs = []
     # Get the max SNR for each PRN.
-    for prn in set([a.prn for a in self.acqs]):
-      acqs_prn = filter(lambda x: x.prn == prn, self.acqs)
+    for prn in set([a.sid for a in self.acqs]):
+      acqs_prn = filter(lambda x: x.sid == prn, self.acqs)
       acqs_prn_max_snr = max([a.snr for a in acqs_prn])
       if acqs_prn_max_snr >= snr_threshold:
         snrs += [max([a.snr for a in acqs_prn])]
