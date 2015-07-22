@@ -246,8 +246,6 @@ class BaselineView(HasTraits):
     self.plot_data.set_data('ref_e', [0.0])
     self.plot_data.set_data('ref_d', [0.0])
 
-    t = range(len(self.ns))
-
     if self.position_centered:
       d = (self.plot.index_range.high - self.plot.index_range.low) / 2.
       self.plot.index_range.set_bounds(soln.e - d, soln.e + d)
