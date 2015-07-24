@@ -16,6 +16,7 @@ from chaco.tools.api import ZoomTool, PanTool
 from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.api import GUI
+from utils import plot_square_axes
 
 import struct
 import math
@@ -49,6 +50,7 @@ class BaselineView(HasTraits):
   plot_data = Instance(ArrayPlotData)
 
   running = Bool(True)
+  zoomall = Bool(False)
   position_centered = Bool(False)
 
   clear_button = SVGButton(
@@ -57,7 +59,7 @@ class BaselineView(HasTraits):
     width=16, height=16
   )
   zoomall_button = SVGButton(
-    label='', tooltip='Zoom All',
+    label='', tooltip='Zoom All', toggle=True,
     filename=os.path.join(os.path.dirname(__file__), 'images', 'iconic', 'fullscreen.svg'),
     width=16, height=16
   )
@@ -100,10 +102,7 @@ class BaselineView(HasTraits):
   )
 
   def _zoomall_button_fired(self):
-    self.plot.index_range.low_setting = 'auto'
-    self.plot.index_range.high_setting = 'auto'
-    self.plot.value_range.low_setting = 'auto'
-    self.plot.value_range.high_setting = 'auto'
+    self.zoomall = not self.zoomall
 
   def _center_button_fired(self):
     self.position_centered = not self.position_centered
@@ -253,6 +252,8 @@ class BaselineView(HasTraits):
       d = (self.plot.value_range.high - self.plot.value_range.low) / 2.
       self.plot.value_range.set_bounds(soln.n - d, soln.n + d)
 
+    if self.zoomall:
+      plot_square_axes(self.plot, ('e_fixed', 'e_float'), ('n_fixed', 'n_float'))
     self.table = table
 
   def __init__(self, link, plot_history_max=1000):
