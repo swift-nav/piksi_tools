@@ -107,14 +107,14 @@ function check_device_settings () {
 }
 
 function start_scenario () {
-    # Invoke a USRP testing scenario from the USRP machine.
+    # Invoke a USRP testing scenario from the USRP machine (off of the SSD)
     set +x
     ssh jenkins@nala timeout "$PLAYBACK_DURATION" \
         python -u ~henry/swift/peregrine/peregrine/stream_usrp.py -1 -u \
         name=b200_{1,2} \
         -g 30 \
         -p \
-        /data/sky/{leica,novatel}-20150707-070000.1bit
+        /home/swift/scenarios/{leica,novatel}-20150707-070000.1bit
 }
 
 function start_recording () {
