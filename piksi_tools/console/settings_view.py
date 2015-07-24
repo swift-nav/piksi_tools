@@ -74,6 +74,7 @@ class Setting(SettingBase):
       Item('full_name', label='Name', style='readonly'),
       Item('value', editor=TextEditor(auto_set=False, enter_set=True)),
       Item('description', style='readonly'),
+      Item('units', style='readonly'),
       Item('default_value', style='readonly'),
       UItem('notes', label="Notes", height=-1,
             editor=MyTextEditor(TextEditor(multi_line=True)), style='readonly',
@@ -93,6 +94,7 @@ class Setting(SettingBase):
     self.expert = settings.settings_yaml.get_field(section, name, 'expert')
     self.description = settings.settings_yaml.get_field(section,
                                                            name, 'Description')
+    self.units = settings.settings_yaml.get_field(section, name, 'units')
     self.notes = settings.settings_yaml.get_field(section, name, 'Notes')
     self.default_value = settings.settings_yaml.get_field(section, name,
                                                              'default value')
