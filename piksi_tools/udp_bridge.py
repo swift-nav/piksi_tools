@@ -17,14 +17,15 @@ to a mavproxy instance or Mission Planner for transmission to an ArduCopter quad
 
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.handler import Handler
-from sbp.observation import SBP_MSG_OBS, SBP_MSG_BASE_POS
+from sbp.observation import SBP_MSG_OBS, SBP_MSG_BASE_POS, SBP_MSG_OBS_DEP_A
 from sbp.client.loggers.udp_logger import UdpLogger
 
 import socket
 import time
 
 OBS_MSGS = [SBP_MSG_OBS,
-            SBP_MSG_BASE_POS]
+            SBP_MSG_BASE_POS,
+            SBP_MSG_OBS_DEP_A]
 
 DEFAULT_SERIAL_PORT = "/dev/ttyUSB0"
 DEFAULT_SERIAL_BAUD = 1000000
