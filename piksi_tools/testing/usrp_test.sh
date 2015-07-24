@@ -23,7 +23,7 @@
 #   persisted to S3 and cleaned up between sessions.
 #
 # Invoke this script via:
-# GIT_DESCRIBE=v0.19-rc0-52-gd7f62c0 HDL_GIT_DESCRIBE=v0.15-rc0 bash piksi_tools/testing/usrp_test.sh -x run
+# PLAYBACK_DURATION=300 GIT_DESCRIBE=v0.19-rc0-52-gd7f62c0 HDL_GIT_DESCRIBE=v0.15-rc0 bash piksi_tools/testing/usrp_test.sh -x run
 
 CWD=$(pwd)
 TEST=$CWD/piksi_tools/testing
@@ -32,7 +32,7 @@ DEVICES=$TEST/devices.txt
 VENV_NAME=testing_env
 VENV_PATH=$VENV_NAME/bin
 
-PLAYBACK_DURATION=300
+# Bootload/programming/diagnostics timeout of 2 minutes.
 BOOTLOAD_TIMEOUT=120
 
 set -x
