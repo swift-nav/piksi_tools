@@ -219,13 +219,14 @@ class BaselineView(HasTraits):
     neds_fixed = self.neds[self.fixeds]
     neds_float = self.neds[np.logical_not(self.fixeds)]
 
-    self.plot_data.set_data('n_fixed', neds_fixed[:][0])
-    self.plot_data.set_data('e_fixed', neds_fixed[:][1])
-    self.plot_data.set_data('d_fixed', neds_fixed[:][2])
-
-    self.plot_data.set_data('n_float', neds_float[:][0])
-    self.plot_data.set_data('e_float', neds_float[:][1])
-    self.plot_data.set_data('d_float', neds_float[:][2])
+    if not all(map(any, np.isnan(neds_fixed))):
+      self.plot_data.set_data('n_fixed', neds_fixed.T[0])
+      self.plot_data.set_data('e_fixed', neds_fixed.T[1])
+      self.plot_data.set_data('d_fixed', neds_fixed.T[2])
+    if not all(map(any, np.isnan(neds_float))):
+      self.plot_data.set_data('n_float', neds_float.T[0])
+      self.plot_data.set_data('e_float', neds_float.T[1])
+      self.plot_data.set_data('d_float', neds_float.T[2])
 
     if fixed:
       self.plot_data.set_data('cur_fixed_n', [soln.n])
