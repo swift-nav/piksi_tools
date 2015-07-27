@@ -68,9 +68,9 @@ function setup_shit () {
     echo "Setting up environment...."
     virtualenv "$VENV_NAME"
     source "$VENV_PATH"/activate
-    pip install -r requirements.txt
-    python setup.py install
-    pip install pyudev
+    pip install -r requirements.txt \
+      && python setup.py install \
+      && pip install pyudev > /dev/null
     cd "$TEST"
     make hub_ctrl
     cd "$CWD"
