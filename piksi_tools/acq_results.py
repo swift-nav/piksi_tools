@@ -21,7 +21,7 @@ import time
 import struct
 
 from numpy              import mean
-from sbp.acquisition    import SBP_MSG_ACQ_RESULT, MsgAcqResult
+from sbp.acquisition    import *
 from sbp.logging        import *
 from sbp.client.handler import *
 
@@ -39,13 +39,16 @@ class AcqResults():
   def __init__(self, link):
     self.acqs = []
     self.link = link
-    self.link.add_callback(self._receive_acq_result, SBP_MSG_ACQ_RESULT)
+    self.link.add_callback(self._receive_acq_result, [SBP_MSG_ACQ_RESULT, SBP_MSG_ACQ_RESULT_DEP_A])
     self.max_corr = 0
+
+  def _sid_or_prn(self, o):
+    return o.sid if o.msg_type is SBP_MSG_ACQ_RESULT else o.prn
 
   def __str__(self):
     tmp = "Last %d acquisitions:\n" % len(self.acqs[-N_PRINT:])
     for a in self.acqs[-N_PRINT:]:
-      tmp += "PRN %2d, SNR: %3.2f\n" % (a.sid, a.snr)
+      tmp += "PRN %2d, SNR: %3.2f\n" % (self._sid_or_prn(a), a.snr)
     tmp += "Max SNR         : %3.2f\n" % (self.max_snr())
     tmp += "Mean of max SNRs: %3.2f\n" % (self.mean_max_snrs(SNR_THRESHOLD))
     return tmp
@@ -61,8 +64,8 @@ class AcqResults():
   def mean_max_snrs(self, snr_threshold):
     snrs = []
     # Get the max SNR for each PRN.
-    for prn in set([a.sid for a in self.acqs]):
-      acqs_prn = filter(lambda x: x.sid == prn, self.acqs)
+    for prn in set([self._sid_or_prn(a) for a in self.acqs]):
+      acqs_prn = filter(lambda x: self._sid_or_prn(x) == prn, self.acqs)
       acqs_prn_max_snr = max([a.snr for a in acqs_prn])
       if acqs_prn_max_snr >= snr_threshold:
         snrs += [max([a.snr for a in acqs_prn])]
@@ -74,7 +77,12 @@ class AcqResults():
   def _receive_acq_result(self, sbp_msg):
     while N_RECORD > 0 and len(self.acqs) >= N_RECORD:
       self.acqs.pop(0)
-    self.acqs.append(MsgAcqResult(sbp_msg))
+    self.acqs.append(MsgAcqResult(sbp_msg) if sbp_msg.msg_type is SBP_MSG_ACQ_RESULT else MsgAcqResultDepA(sbp_msg))
+
+  def _receive_acq_result_dep_a(self, sbp_msg):
+    while N_RECORD > 0 and len(self.acqs) >= N_RECORD:
+      self.acqs.pop(0)
+    self.acqs.append(MsgAcqResultDepA(sbp_msg))
 
 def get_args():
   """
