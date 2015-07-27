@@ -53,6 +53,14 @@ class STMUniqueID:
       time.sleep(0.1)
     return self.unique_id
 
+  def __enter__(self):
+    return self
+
+  def __exit__(self, *args):
+    self.link.remove_callback(self.receive_heartbeat, SBP_MSG_HEARTBEAT)
+    self.link.remove_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_RESP)
+
+
 def get_args():
   """
   Get and parse arguments.
