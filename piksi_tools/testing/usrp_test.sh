@@ -24,6 +24,9 @@
 #
 # Invoke this script via:
 # PLAYBACK_DURATION=300 GIT_DESCRIBE=v0.19-rc0-52-gd7f62c0 HDL_GIT_DESCRIBE=v0.15-rc0 bash piksi_tools/testing/usrp_test.sh -x run
+#
+# If making changes, please be sure to use shellcheck locally:
+#   shellcheck piksi_tools/testing/usrp_test.sh
 
 CWD=$(pwd)
 TEST=$CWD/piksi_tools/testing
@@ -47,9 +50,17 @@ function cleanup () {
 
 trap cleanup SIGINT
 
+function assert_exists () {
+    if [ ! -e "$1" ]; then
+        echo "$1" " does not exist!"
+        exit 1
+    fi
+}
+
 function check_args () {
-    [ -e piksi_firmware_"$GIT_DESCRIBE".hex ]
-    [ -e swift_nap_"$HDL_GIT_DESCRIBE".hex ]
+    rm -f version.yaml
+    assert_exists piksi_firmware_"$GIT_DESCRIBE".hex
+    assert_exists swift_nap_"$HDL_GIT_DESCRIBE".hex
 }
 
 function setup_shit () {
@@ -84,37 +95,40 @@ function program_device () {
 
 function make_full_version () {
     # Make parseable file for expected firmware and nap versions.
-    [ -e VERSION ]
-    [ -e HDL_VERSION ]
+    assert_exists VERSION
+    assert_exists HDL_VERSION
     echo "GIT_DESCRIBE=fw:$(egrep -o "[^=]+$" VERSION) hdl:$(egrep -o "[^=]+$" HDL_VERSION)" > FULL_VERSION
-    echo "$(egrep -o "[^=]+$" FULL_VERSION)" > version.yaml
+    echo "$(egrep -o "[^=]+$" FULL_VERSION)" | tr " " "\n" | sed 's/:/: /' > version.yaml
+    assert_exists version.yaml
+    cat version.yaml
 }
 
 function check_device_settings () {
     # After the devices have been programmed, asserts that the devices
     # have been programmed with the right firmware and nap versions by
     # reading their settings.
+    echo "Checking device settings on" "$1"
     export HDL_"$(cat HDL_VERSION)"
     cd "$CWD"
     timeout "$BOOTLOAD_TIMEOUT" python piksi_tools/diagnostics.py -p "$1" -o "$2"
-    cat version.yaml
+    assert_exists "$2"
     cd "$TEST"
-    ../../$VENV_PATH/python check_device_details.py -d ../../"$2" -v ../../version.yaml
-    if [[ $? -eq 1 ]]
-    then
-        echo "Check device details failed!"
-    fi
+    python check_device_details.py \
+           -d ../../"$2" \
+           -v ../../version.yaml || { echo "Check settings failed!"; exit 1; }
+    echo "Check device settings finished!"
 }
 
 function start_scenario () {
     # Invoke a USRP testing scenario from the USRP machine (off of the SSD)
     set +x
-    ssh jenkins@nala timeout "$PLAYBACK_DURATION" \
+    ssh jenkins@nala timeout --preserve-status "$PLAYBACK_DURATION" \
         python -u ~henry/swift/peregrine/peregrine/stream_usrp.py -1 -u \
         name=b200_{1,2} \
         -g 30 \
         -p \
         /home/swift/scenarios/{leica,novatel}-20150707-070000.1bit
+    # TODO (Buro): Log name of scenario into a scenario.yaml.
 }
 
 function start_recording () {
@@ -129,7 +143,6 @@ function prep_logs () {
     # Create a per-device session logs and cleanup stuff if it's
     # already there.
     mkdir -p "$3"
-    rm -f version.yaml
     rm -f "$3"/*
 }
 
