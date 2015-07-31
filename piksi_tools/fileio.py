@@ -14,7 +14,7 @@ import random
 import array
 
 from sbp.file_io import *
-from sbp.client.handler import *
+from sbp.client import *
 
 MAX_PAYLOAD_SIZE = 255
 
@@ -49,7 +49,7 @@ class FileIO(object):
                              offset=len(buf),
                              chunk_size=chunksize,
                              filename=filename)
-      self.link.send_msg(msg)
+      self.link(msg)
       reply = self.link.wait(SBP_MSG_FILEIO_READ_RESP, timeout=1.0)
       if not reply:
         raise Exception("Timeout waiting for FILEIO_READ reply")
@@ -82,7 +82,7 @@ class FileIO(object):
       msg = MsgFileioReadDirReq(sequence=seq,
                                 offset=len(files),
                                 dirname=dirname)
-      self.link.send_msg(msg)
+      self.link(msg)
       reply = self.link.wait(SBP_MSG_FILEIO_READ_DIR_RESP, timeout=1.0)
       if not reply:
         raise Exception("Timeout waiting for FILEIO_READ_DIR reply")
@@ -105,7 +105,7 @@ class FileIO(object):
         Name of the file to delete.
     """
     msg = MsgFileioRemove(filename=filename)
-    self.link.send_msg(msg)
+    self.link(msg)
 
   def write(self, filename, data, offset=0, trunc=True):
     """
@@ -141,7 +141,7 @@ class FileIO(object):
       msg = MsgFileioWriteReq(sequence=seq,
                               filename=(filename + '\0' + chunk),
                               offset=offset)
-      self.link.send_msg(msg)
+      self.link(msg)
       reply = self.link.wait(SBP_MSG_FILEIO_WRITE_RESP, timeout=1.0)
       if not reply:
         raise Exception("Timeout waiting for FILEIO_WRITE reply")
@@ -225,7 +225,7 @@ def main():
   # Driver with context
   with serial_link.get_driver(args.ftdi, port, baud) as driver:
     # Handler with context
-    with Handler(driver.read, driver.write, args.verbose) as link:
+    with Handler(Framer(driver.read, driver.write, args.verbose)) as link:
       f = FileIO(link)
 
       try:

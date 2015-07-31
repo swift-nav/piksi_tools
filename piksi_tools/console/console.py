@@ -15,7 +15,7 @@ import sys
 import signal
 
 from piksi_tools import serial_link
-import sbp.client.handler
+import sbp.client
 from sbp.logging import *
 from sbp.piksi import SBP_MSG_RESET
 from sbp.client.drivers.pyserial_driver import PySerialDriver
@@ -144,7 +144,7 @@ class ConsoleHandler(Handler):
       info.ui.title = CONSOLE_TITLE + ' : ' + info.object.device_serial
 
 class SwiftConsole(HasTraits):
-  link = Instance(sbp.client.handler.Handler)
+  link = Instance(sbp.client.Handler)
   console_output = Instance(OutputStream)
   python_console_env = Dict
   device_serial = Str('')
@@ -221,19 +221,19 @@ class SwiftConsole(HasTraits):
     title = CONSOLE_TITLE
   )
 
-  def print_message_callback(self, sbp_msg):
+  def print_message_callback(self, sbp_msg, **metadata):
     try:
       self.console_output.write(sbp_msg.payload.encode('ascii', 'ignore'))
     except UnicodeDecodeError:
       print "Critical Error encoding the serial stream as ascii."
 
-  def log_message_callback(self, sbp_msg):
+  def log_message_callback(self, sbp_msg, **metadata):
     try:
       self.console_output.write(MsgLog(sbp_msg).text.encode('ascii', 'ignore'))
     except UnicodeDecodeError:
       print "Critical Error encoding the serial stream as ascii."
 
-  def ext_event_callback(self, sbp_msg):
+  def ext_event_callback(self, sbp_msg, **metadata):
     e = MsgExtEvent(sbp_msg)
     print 'External event: %s edge on pin %d at wn=%d, tow=%d, time qual=%s' % (
       "Rising" if (e.flags & (1<<0)) else "Falling", e.pin, e.wn, e.tow,
@@ -282,7 +282,7 @@ class SwiftConsole(HasTraits):
       self.update_view.settings = self.settings_view.settings
 
       self.python_console_env = {
-          'send_message': self.link.send,
+          'send_message': self.link,
           'link': self.link,
       }
       self.python_console_env.update(self.tracking_view.python_console_cmds)
@@ -333,11 +333,11 @@ if not port:
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 with serial_link.get_driver(args.ftdi, port, baud) as driver:
-  with sbp.client.handler.Handler(driver.read, driver.write, args.verbose) as link:
+  with sbp.client.Handler(sbp.client.Framer(driver.read, driver.write, args.verbose)) as link:
     with serial_link.get_logger(args.log, log_filename) as logger:
       link.add_callback(logger)
       if args.reset:
-        link.send(SBP_MSG_RESET, "")
+        link(MsgReset())
       console = SwiftConsole(link, update=args.update)
       console.configure_traits()
 

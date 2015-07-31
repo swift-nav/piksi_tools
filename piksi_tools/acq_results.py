@@ -23,7 +23,7 @@ import struct
 from numpy              import mean
 from sbp.acquisition    import *
 from sbp.logging        import *
-from sbp.client.handler import *
+from sbp.client         import *
 
 N_RECORD = 0 # Number of results to keep in memory, 0 = no limit.
 N_PRINT = 32
@@ -74,12 +74,12 @@ class AcqResults():
     else:
       return 0
 
-  def _receive_acq_result(self, sbp_msg):
+  def _receive_acq_result(self, sbp_msg, **metadata):
     while N_RECORD > 0 and len(self.acqs) >= N_RECORD:
       self.acqs.pop(0)
     self.acqs.append(MsgAcqResult(sbp_msg) if sbp_msg.msg_type is SBP_MSG_ACQ_RESULT else MsgAcqResultDepA(sbp_msg))
 
-  def _receive_acq_result_dep_a(self, sbp_msg):
+  def _receive_acq_result_dep_a(self, sbp_msg, **metadata):
     while N_RECORD > 0 and len(self.acqs) >= N_RECORD:
       self.acqs.pop(0)
     self.acqs.append(MsgAcqResultDepA(sbp_msg))
@@ -112,7 +112,7 @@ def main():
   # Driver with context
   with serial_link.get_driver(use_ftdi, port, baud) as driver:
     # Handler with context
-    with Handler(driver.read, driver.write) as link:
+    with Handler(Framer(driver.read, driver.write)) as link:
       link.add_callback(serial_link.log_printer, SBP_MSG_LOG)
       link.add_callback(serial_link.printer, SBP_MSG_PRINT_DEP)
       acq_results = AcqResults(link)

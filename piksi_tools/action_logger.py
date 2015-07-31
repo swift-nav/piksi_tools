@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import piksi_tools.serial_link as sl
 import piksi_tools.diagnostics as ptd
-from sbp.client.handler import Handler
+from sbp.client import Handler, Framer, Forwarder
 from sbp.logging import *
 from sbp.tracking import MsgTrackingState, MsgTrackingStateDepA
 from sbp.piksi import SBP_MSG_MASK_SATELLITE, SBP_MSG_RESET, MsgMaskSatellite
@@ -128,7 +128,7 @@ class DropSatsState(TestState):
   def __exit__(self, *args):
     self.timer.cancel()
 
-  def process_message(self, msg):
+  def process_message(self, msg, **metadata):
     """
     Process SBP messages and encode into state information
 
@@ -179,7 +179,7 @@ class DropSatsState(TestState):
       else:
         # Use post SID widening Mask Message.
         msg = MsgMaskSatellite(mask=FLAGS, sid=int(prn)-1)
-        self.handler.send_msg(msg)
+        self.handler(msg)
 
   def get_num_sats_to_drop(self):
     """
@@ -245,7 +245,7 @@ def main():
   # Driver with context
   with sl.get_driver(args.ftdi, port, baud) as driver:
     # Handler with context
-    with Handler(driver.read, driver.write, args.verbose) as link:
+    with Handler(Framer(driver.read, driver.write, args.verbose)) as link:
       # Logger with context
       with sl.get_logger(args.log, log_filename) as logger:
         # Append logger iwth context
@@ -254,9 +254,9 @@ def main():
           link.add_callback(sl.printer, SBP_MSG_PRINT_DEP)
           link.add_callback(sl.log_printer, SBP_MSG_LOG)
           # add logger callback
-          link.add_callback(logger)
+          Forwarder(link, logger).start()
           # ad append logger callback
-          link.add_callback(append_logger)
+          Forwarder(link, append_logger).start()
           # Setup watchdog
           if watchdog:
             link.add_callback(sl.Watchdog(float(watchdog), sl.watchdog_alarm),

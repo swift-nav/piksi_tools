@@ -112,13 +112,13 @@ class BaselineView(HasTraits):
     self.running = not self.running
 
   def _reset_button_fired(self):
-    self.link.send(SBP_MSG_RESET_FILTERS, '\x00')
+    self.link(MsgResetFilters(filter=0))
 
   def _reset_iar_button_fired(self):
-    self.link.send(SBP_MSG_RESET_FILTERS, '\x01')
+    self.link(MsgResetFilters(filter=1))
 
   def _init_base_button_fired(self):
-    self.link.send(SBP_MSG_INIT_BASE, '')
+    self.link(MsgInitBase())
 
   def _clear_button_fired(self):
     self.neds[:] = np.NAN
@@ -137,14 +137,14 @@ class BaselineView(HasTraits):
     self.plot_data.set_data('cur_float_e', [])
     self.plot_data.set_data('cur_float_d', [])
 
-  def _baseline_callback_ecef(self, data):
+  def _baseline_callback_ecef(self, data, **metadata):
     #Don't do anything for ECEF currently
     return
 
-  def iar_state_callback(self, sbp_msg):
+  def iar_state_callback(self, sbp_msg, **metadata):
     self.num_hyps = struct.unpack('<I', sbp_msg.payload)[0]
 
-  def _baseline_callback_ned(self, sbp_msg):
+  def _baseline_callback_ned(self, sbp_msg, **metadata):
     # Updating an ArrayPlotData isn't thread safe (see chaco issue #9), so
     # actually perform the update in the UI thread.
     if self.running:
@@ -153,7 +153,7 @@ class BaselineView(HasTraits):
   def update_table(self):
     self._table_list = self.table.items()
 
-  def gps_time_callback(self, sbp_msg):
+  def gps_time_callback(self, sbp_msg, **metadata):
     self.week = MsgGPSTime(sbp_msg).wn
     self.nsec = MsgGPSTime(sbp_msg).ns
 

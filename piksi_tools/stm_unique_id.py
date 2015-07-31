@@ -16,7 +16,7 @@ import serial_link
 
 from sbp.flash          import *
 from sbp.system         import *
-from sbp.client.handler import *
+from sbp.client         import *
 
 class STMUniqueID:
 
@@ -30,12 +30,12 @@ class STMUniqueID:
     link.add_callback(self.receive_heartbeat, SBP_MSG_HEARTBEAT)
     link.add_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_RESP)
 
-  def receive_heartbeat(self, sbp_msg):
+  def receive_heartbeat(self, sbp_msg, **metadata):
     msg = MsgHeartbeat(sbp_msg)
     self.sbp_version = ((msg.flags >> 16) & 0xFF, (msg.flags >> 8) & 0xFF)
     self.heartbeat_received = True
 
-  def receive_stm_unique_id_callback(self,sbp_msg):
+  def receive_stm_unique_id_callback(self,sbp_msg, **metadata):
     self.unique_id = struct.unpack('<12B',sbp_msg.payload)
     self.unique_id_returned = True
 
@@ -46,9 +46,9 @@ class STMUniqueID:
     self.unique_id = None
     # < 0.45 of the bootloader, reuse single stm message.
     if self.sbp_version < (0, 45):
-      self.link.send(SBP_MSG_STM_UNIQUE_ID_RESP, struct.pack("<I",0))
+      self.link(MsgStmUniqueIdResp())
     else:
-      self.link.send(SBP_MSG_STM_UNIQUE_ID_REQ, struct.pack("<I",0))
+      self.link(MsgStmUniqueIdReq())
     while not self.unique_id_returned:
       time.sleep(0.1)
     return self.unique_id
@@ -79,7 +79,7 @@ def main():
   baud = args.baud[0]
   # Driver with context
   with serial_link.get_driver(args.ftdi, port, baud) as driver:
-    with Handler(driver.read, driver.write) as link:
+    with Handler(Framer(driver.read, driver.write)) as link:
       unique_id = STMUniqueID(link).get_id()
       print "STM Unique ID =", "0x" + ''.join(["%02x" % (b) for b in unique_id])
 

@@ -15,8 +15,8 @@ from time import sleep
 from intelhex import IntelHex, HexRecordError, HexReaderError
 from pkg_resources import parse_version
 
-from sbp.bootload import SBP_MSG_BOOTLOADER_JUMP_TO_APP
-from sbp.piksi import SBP_MSG_RESET
+from sbp.bootload import MsgBootloaderJumpToApp
+from sbp.piksi import MsgReset
 
 from threading import Thread
 
@@ -565,7 +565,7 @@ class UpdateView(HasTraits):
       progress_dialog.close()
 
     # Must tell Piksi to jump to application after updating firmware.
-    self.link.send(SBP_MSG_BOOTLOADER_JUMP_TO_APP, '\x00')
+    self.link(MsgBootloaderJumpToApp(jump=0))
     self._write("Firmware updates finished.")
     self._write("")
 
@@ -582,7 +582,7 @@ class UpdateView(HasTraits):
       Either "STM" or "M25".
     """
     # Reset device if the application is running to put into bootloader mode.
-    self.link.send(SBP_MSG_RESET, '')
+    self.link(MsgReset())
 
     self.pk_boot = bootload.Bootloader(self.link)
 

@@ -24,12 +24,10 @@ else:
   SVGButton = dict
 from pyface.api import GUI
 
-import struct
 import math
 import os
 import numpy as np
 import datetime
-
 
 from piksi_tools.fileio import FileIO
 import callback_prompt as prompt
@@ -39,10 +37,6 @@ from sbp.settings   import *
 from sbp.system     import *
 
 from settings_list import SettingsList
-
-
-def u16_to_str(i):
-  return chr(i & 0xff) + chr(i >> 8)
 
 class SettingBase(HasTraits):
   name = Str()
@@ -200,10 +194,10 @@ class SettingsView(HasTraits):
   def _settings_read_button_fired(self):
     self.enumindex = 0
     self.ordering_counter = 0
-    self.link.send(SBP_MSG_SETTINGS_READ_BY_INDEX_REQ, u16_to_str(self.enumindex))
+    self.link(MsgSettingsReadByIndexReq(index=self.enumindex))
 
   def _settings_save_button_fired(self):
-    self.link.send(SBP_MSG_SETTINGS_SAVE, "")
+    self.link(MsgSettingsSave())
 
   def _factory_default_button_fired(self):
     confirm_prompt = prompt.CallbackPrompt(
@@ -220,7 +214,7 @@ class SettingsView(HasTraits):
     fio = FileIO(self.link)
     fio.remove('config')
     # Reset the Piksi
-    self.link.send(SBP_MSG_RESET, '')
+    self.link(MsgReset())
 
   ##Callbacks for receiving messages
 
@@ -245,11 +239,11 @@ class SettingsView(HasTraits):
 
 
 
-  def settings_read_by_index_done_callback(self, sbp_msg):
+  def settings_read_by_index_done_callback(self, sbp_msg, **metadata):
     self.settings_display_setup()
     return
 
-  def settings_read_by_index_callback(self, sbp_msg):
+  def settings_read_by_index_callback(self, sbp_msg, **metadata):
     if not sbp_msg.payload:
       # Settings output from Piksi is terminated by an empty message.
       # Bundle up our list and display it.
@@ -288,13 +282,13 @@ class SettingsView(HasTraits):
                                                  )
 
     self.enumindex += 1
-    self.link.send(SBP_MSG_SETTINGS_READ_BY_INDEX_REQ, u16_to_str(self.enumindex))
+    self.link(MsgSettingsReadByIndexReq(index=self.enumindex))
 
-  def piksi_startup_callback(self, sbp_msg):
+  def piksi_startup_callback(self, sbp_msg, **metadata):
     self._settings_read_button_fired()
 
   def set(self, section, name, value):
-    self.link.send(SBP_MSG_SETTINGS_WRITE, '%s\0%s\0%s\0' % (section, name, value))
+    self.link(MsgSettingsWrite(setting='%s\0%s\0%s\0' % (section, name, value)))
 
   def __init__(self, link, read_finished_functions=[], name_of_yaml_file="settings.yaml", hide_expert=False):
     super(SettingsView, self).__init__()
