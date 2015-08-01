@@ -18,7 +18,7 @@ import sys
 import time
 
 from sbp.logging                        import *
-from sbp.piksi                          import SBP_MSG_RESET
+from sbp.piksi                          import MsgReset
 from sbp.system                         import SBP_MSG_HEARTBEAT
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.pyftdi_driver   import PyFTDIDriver
@@ -190,7 +190,7 @@ def main():
           Forwarder(link, append_logger).start()
           # Reset device
           if args.reset:
-            link.send(SBP_MSG_RESET, "")
+            link(MsgReset())
           # Setup watchdog
           if watchdog:
             link.add_callback(Watchdog(float(watchdog), watchdog_alarm), SBP_MSG_HEARTBEAT)

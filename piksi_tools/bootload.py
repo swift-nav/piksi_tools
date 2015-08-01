@@ -89,7 +89,7 @@ class Bootloader():
           return False
       if time.time() > expire:
         expire = time.time() + 15.0
-        self.link.send(SBP_MSG_RESET, "")
+        self.link(MsgReset())
     # < 0.45 of SBP protocol, reuse single handshake message.
     if self.sbp_version < (0, 45):
       self.link(MsgBootloaderHandshakeDepA(handshake=''))
