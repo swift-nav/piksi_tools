@@ -184,8 +184,13 @@ class UpdateView(HasTraits):
   erase_stm = Bool(True)
   erase_en = Bool(True)
 
-  update_firmware = Button(label='Update Piksi Firmware')
+  update_stm_firmware = Button(label='Update Piksi STM Firmware')
+  update_nap_firmware = Button(label='Update Piksi NAP Firmware')
+  update_full_firmware = Button(label='Update Piksi STM and NAP Firmwares')
+
   updating = Bool(False)
+  update_stm_en = Bool(False)
+  update_nap_en = Bool(False)
   update_en = Bool(False)
 
   download_firmware = Button(label='Download Newest Firmware Files')
@@ -218,7 +223,9 @@ class UpdateView(HasTraits):
         ),
       ),
       UItem('download_firmware', enabled_when='download_fw_en'),
-      UItem('update_firmware', enabled_when='update_en'),
+      UItem('update_stm_firmware', enabled_when='update_stm_en'),
+      UItem('update_nap_firmware', enabled_when='update_nap_en'),
+      UItem('update_full_firmware', enabled_when='update_en'),
       Item(
         'stream',
         style='custom',
@@ -257,15 +264,24 @@ class UpdateView(HasTraits):
   def _manage_enables(self):
     """ Manages whether traits widgets are enabled in the UI or not. """
     if self.updating == True or self.downloading == True:
+      self.update_stm_en = False
+      self.update_nap_en = False
       self.update_en = False
       self.download_fw_en = False
     else:
       self.download_fw_en = True
-      if self.stm_fw.ihx != None and self.nap_fw.ihx != None:
-        self.update_en = True
+      if self.stm_fw.ihx is not None:
+        self.update_stm_en = True
       else:
+        self.update_stm_en = False
         self.update_en = False
-
+      if self.nap_fw.ihx is not None:
+        self.update_nap_en = True
+      else:
+        self.update_nap_en = False
+        self.update_en = False
+      if self.nap_fw.ihx is not None and self.stm_fw.ihx is not None:
+        self.update_en = True
     if self.updating == True:
       self.erase_en = False
     else:
@@ -293,9 +309,9 @@ class UpdateView(HasTraits):
     self.stream.write('\n')
     self.stream.flush()
 
-  def _update_firmware_fired(self):
+  def _update_stm_firmware_fired(self):
     """
-    Handle update_firmware button. Starts thread so as not to block the GUI
+    Handle update_stm_firmware button. Starts thread so as not to block the GUI
     thread.
     """
     try:
@@ -304,7 +320,38 @@ class UpdateView(HasTraits):
     except AttributeError:
       pass
 
-    self._firmware_update_thread = Thread(target=self.manage_firmware_updates)
+    self._firmware_update_thread = Thread(target=self.manage_firmware_updates,
+                                          args=("STM",))
+    self._firmware_update_thread.start()
+
+  def _update_nap_firmware_fired(self):
+    """
+    Handle update_nap_firmware button. Starts thread so as not to block the GUI
+    thread.
+    """
+    try:
+      if self._firmware_update_thread.is_alive():
+        return
+    except AttributeError:
+      pass
+
+    self._firmware_update_thread = Thread(target=self.manage_firmware_updates,
+                                          args=("M25",))
+    self._firmware_update_thread.start()
+
+  def _update_full_firmware_fired(self):
+    """
+    Handle update_full_firmware button. Starts thread so as not to block the GUI
+    thread.
+    """
+    try:
+      if self._firmware_update_thread.is_alive():
+        return
+    except AttributeError:
+      pass
+
+    self._firmware_update_thread = Thread(target=self.manage_firmware_updates,
+                                          args=("ALL",))
     self._firmware_update_thread.start()
 
   def _download_firmware(self):
@@ -496,16 +543,7 @@ class UpdateView(HasTraits):
       self._write("\nError: Index downloaded from Swift Navigation's website (%s) doesn't contain all keys. Please contact Swift Navigation.\n" % INDEX_URL)
       return
 
-  # Executed in GUI thread, called from Handler.
-  def manage_firmware_updates(self):
-    """
-    Update Piksi firmware. Erase entire STM flash (other than bootloader)
-    if so directed. Flash NAP only if new firmware is available.
-    """
-    self.updating = True
-
-    self._write('')
-
+  def manage_stm_firmware_update(self):
     # Erase all of STM's flash (other than bootloader) if box is checked.
     if self.erase_stm:
       text = "Erasing STM"
@@ -542,6 +580,7 @@ class UpdateView(HasTraits):
     self._write("")
     progress_dialog.close()
 
+  def manage_nap_firmware_update(self):
     # Flash NAP if out of date.
     try:
       local_nap_version = parse_version(
@@ -563,11 +602,36 @@ class UpdateView(HasTraits):
       self.stop_flash()
       self._write("")
       progress_dialog.close()
+      return True
+    else:
+      text = "NAP is already to latest version, not updating!"
+      self._write(text)
+      self._write("")
+      return False
+
+  # Executed in GUI thread, called from Handler.
+  def manage_firmware_updates(self, device):
+    """
+    Update Piksi firmware. Erase entire STM flash (other than bootloader)
+    if so directed. Flash NAP only if new firmware is available.
+    """
+    self.updating = True
+    update_nap = False
+    self._write('')
+
+    if device == "STM":
+      self.manage_stm_firmware_update()
+    elif device == "M25":
+      update_nap = self.manage_nap_firmware_update()
+    else:
+      self.manage_stm_firmware_update()
+      update_nap = self.manage_nap_firmware_update()
 
     # Must tell Piksi to jump to application after updating firmware.
-    self.link.send(SBP_MSG_BOOTLOADER_JUMP_TO_APP, '\x00')
-    self._write("Firmware updates finished.")
-    self._write("")
+    if device == "STM" or update_nap:
+        self.link.send(SBP_MSG_BOOTLOADER_JUMP_TO_APP, '\x00')
+        self._write("Firmware update finished.")
+        self._write("")
 
     self.updating = False
 
