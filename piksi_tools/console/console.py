@@ -115,7 +115,6 @@ icon = ImageResource('icon', search_path=['images', os.path.join(basedir, 'image
 
 from output_stream import OutputStream
 from tracking_view import TrackingView
-from almanac_view import AlmanacView
 from solution_view import SolutionView
 from baseline_view import BaselineView
 from observation_view import ObservationView
