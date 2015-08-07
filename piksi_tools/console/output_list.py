@@ -12,14 +12,10 @@
 """Contains the class OutputStream, a HasTraits file-like text buffer."""
 
 from traits.api import HasTraits, Str, Bool, Trait, Int, List, Font, Float, Enum, Property
-from traitsui.api import View, UItem, Handler, TableEditor, TabularEditor
-from traits.etsconfig.api import ETSConfig
+from traitsui.api import View, UItem, TabularEditor
 from pyface.api import GUI
-from traitsui.table_column import ObjectColumn
 from traitsui.tabular_adapter import TabularAdapter
 import time
-import re
-
 
 # These levels are identical to sys.log levels
 LOG_EMERG      = 0       # system is unusable
@@ -36,9 +32,18 @@ LOG_DEBUG      = 7       # debug-level messages
 LOG_STD_ERR    = 8       # Python Std Error
 LOG_STD_OUT    = 9       # Special Placeholder for Standard Output messages from Python
 
-LOG_LEVEL_DEFAULT = -1
+LOG_LEVEL_CONSOLE = -1
+LOG_LEVEL_DEFAULT = -2
 
 # This maps the numbers to a human readable string
+# The unused log levels are commented out of the dict
+# Because the filter drop-down uses all values in the dict.
+# We may need these if we extend loglevels
+
+# These log levels will be unmaskable
+OTHERLOG_LEVELS  = {
+                    LOG_LEVEL_CONSOLE: "CONSOLE",
+                    }
 
 SYSLOG_LEVELS = {#LOG_EMERG : "EMERG",
                  #LOG_ALERT : "ALERT",
@@ -54,41 +59,60 @@ SYSLOG_LEVELS = {#LOG_EMERG : "EMERG",
                  #LOG_STD_OUT: "PYTHON_STD_OUTPUT"
                  }
 
+ALL_LOG_LEVELS = SYSLOG_LEVELS.copy()
+ALL_LOG_LEVELS.update(OTHERLOG_LEVELS)
+DEFAULT_LOG_LEVEL_FILTER = "WARNING"
 
 DEFAULT_MAX_LEN = 250
 
 class LogItemOutputListAdapter(TabularAdapter):
-  columns = [('timestamp','timestamp'),('log_level_str','log_level_str'),('msg','msg')]
+  """
+  Tabular adapter for table of log iteritems
+  """
+  columns = [('Timestamp', 'timestamp'), ('Log level', 'log_level_str'), ('Message', 'msg')]
   font = Font('12')
   can_edit = Bool(False)
-  timestamp_width = Float(0.12)
-  log_level_width = Float(0.08)
-  msg_width = Float(0.8)
+  timestamp_width = Float(0.18)
+  log_level_width = Float(0.07)
+  msg_width = Float(0.75)
+  can_drop = Bool(False)
 
 class LogItem(HasTraits):
   log_level = Int
   timestamp = Str
   msg = Str
-  # surname is displayed in qt-only row label:
-  log_level_str = Property(fget=lambda self: SYSLOG_LEVELS.get(self.log_level, "NA"),
+  # log level string maps the int into a the string via the global SYSLOG_LEVELS dict
+  # If we can't find the int in the dict, we assume it is of type "CONSOLE" from standard out/ err
+  log_level_str = Property(fget=lambda self: ALL_LOG_LEVELS.get(self.log_level, "UNKNOWN"),
                    depends_on='log_level')
   def __init__(self, msg, level=None):
-    self.log_level=LOG_LEVEL_DEFAULT
-    if level==None: #try to infer log level if an old message
+    self.log_level = LOG_LEVEL_DEFAULT
+    if level == None: # try to infer log level if an old message
       split_colons = msg.split(":")
-      print split_colons[0]
-      for key,value in SYSLOG_LEVELS.iteritems():
-        print key
-        print value
+      # print split_colons[0]
+      for key, value in SYSLOG_LEVELS.iteritems():
+        # print key
+        # print value
         if split_colons[0].lower() == value.lower():
           self.log_level = key
     else:
-      self.log_level=level
+      self.log_level = level
     self.msg = msg.rstrip('\n')
     self.timestamp = time.strftime("%b %d %Y %H:%M:%S")
 
   def matches_log_level_filter(self, log_level):
-    if self.log_level<=log_level:
+    """
+    Function to perform filtering of a message based upon the loglevel passed
+    Parameters
+    ----------
+    log_level : int
+      Log level on which to filter
+    Returns
+    ----------
+    True if message passes filter
+    False otherewise
+    """
+    if self.log_level <= log_level:
       return True
     else:
       return False
@@ -101,7 +125,7 @@ class OutputList(HasTraits):
   the object.  `max_len` may be set to None.
 
   The `paused` attribute is a bool; when True, text written to the
-  OutputStream is saved in a separate buffer, and the display (if there is
+  OutputList is saved in a separate buffer, and the display (if there is
   one) does not update.  When `paused` returns is set to False, the data is
   copied from the paused buffer to the main text string.
   """
@@ -121,24 +145,14 @@ class OutputList(HasTraits):
   # String that holds text written while self.paused is True.
   _paused_buffer = List(LogItem)
 
-  table_editor = TableEditor(
-  columns=[ObjectColumn(name='timestamp', width=0.15),
-           ObjectColumn(name='log_level', width=0.1),
-           ObjectColumn(name='msg', width=0.75),
-           ],
-  auto_size=False,
-  rows=50,
-  row_height=4,
-  cell_font='helvetica 8',
-  deletable=False,
-  sortable=False,
-  editable=False,
-  show_lines=False,
-  )
-
   def write(self, s):
+    """
+    Write to the list, this method exist to allow STDERR and STDOUT to be redirected to the list
+    Assumption this is only called when writing to STDOUT and STDERR
+    """
+
     if not s.isspace():
-      log = LogItem(s)
+      log = LogItem(s, LOG_LEVEL_CONSOLE)
       if self.paused:
         self.append_truncate(self._paused_buffer, log)
       else:
@@ -146,7 +160,7 @@ class OutputList(HasTraits):
         if log.matches_log_level_filter(self.log_level_filter):
           self.append_truncate(self.filtered_list, log)
 
-  def write_level(self, s, level):
+  def write_level(self, s, level=None):
     log = LogItem(s, level)
     if self.paused:
       self.append_truncate(self._paused_buffer, log)
@@ -162,19 +176,15 @@ class OutputList(HasTraits):
     buffer.insert(0, s)
 
   def clear(self):
-    self.filtered_list=[]
-    self.unfiltered_list=[]
+    self._paused_buffer = []
+    self.filtered_list = []
+    self.unfiltered_list = []
 
   def flush(self):
     GUI.process_events()
 
   def close(self):
     pass
-
-  def reset(self):
-    self._paused_buffer = ''
-    self.paused = False
-    self.text = []
 
   def _log_level_filter_changed(self):
     self.filtered_list = [item for item in self.unfiltered_list if item.matches_log_level_filter(self.log_level_filter)]
@@ -190,13 +200,15 @@ class OutputList(HasTraits):
       # No longer paused, so copy the _paused_buffer to the displayed text, and
       # reset _paused_buffer.
       self.unfiltered_list = self._paused_buffer
-      self._paused_buffer = ''
+      # have to refilter the filtered list too
+      self._log_level_filter_changed()
+      self._paused_buffer = []
 
   def traits_view(self):
     view = \
       View(
           UItem('filtered_list',
-                editor = TabularEditor(adapter=LogItemOutputListAdapter()))
+                editor = TabularEditor(adapter=LogItemOutputListAdapter(), editable=False))
         )
     return view
 

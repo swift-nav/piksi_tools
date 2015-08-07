@@ -77,7 +77,7 @@ else:
 # Logging
 import logging
 logging.basicConfig()
-from output_list import OutputList, LogItem, SYSLOG_LEVELS
+from output_list import OutputList, LogItem, SYSLOG_LEVELS, DEFAULT_LOG_LEVEL_FILTER
 from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List, Enum
 from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
                          InstanceEditor, EnumEditor, ShellEditor, Handler, Spring, \
@@ -166,7 +166,7 @@ class SwiftConsole(HasTraits):
   system_monitor_view = Instance(SystemMonitorView)
   settings_view = Instance(SettingsView)
   update_view = Instance(UpdateView)
-  log_level_filter = log_level_filter = Enum(list(SYSLOG_LEVELS.itervalues()))
+  log_level_filter = Enum(list(SYSLOG_LEVELS.itervalues()))
 
   paused_button = SVGButton(
     label='', tooltip='Pause console update', toggle_tooltip='Resume console update', toggle=True,
@@ -233,7 +233,7 @@ class SwiftConsole(HasTraits):
 
   def print_message_callback(self, sbp_msg, **metadata):
     try:
-      self.console_output.write(sbp_msg.payload.encode('ascii'))
+      self.console_output.write_level(sbp_msg.payload.encode('ascii'))
     except UnicodeDecodeError:
       print "Critical Error encoding the serial stream as ascii."
 
@@ -249,8 +249,8 @@ class SwiftConsole(HasTraits):
       "Rising" if (e.flags & (1<<0)) else "Falling", e.pin, e.wn, e.tow,
       "good" if (e.flags & (1<<1)) else "unknown")
 
-  #def _paused_button_fired(self):
-  #  self.console_output.paused = not self.console_output.paused
+  def _paused_button_fired(self):
+    self.console_output.paused = not self.console_output.paused
 
   def _log_level_filter_changed(self):
     for key, value in SYSLOG_LEVELS.iteritems():
@@ -263,8 +263,9 @@ class SwiftConsole(HasTraits):
   def __init__(self, link, update):
     self.console_output = OutputList()
     self.console_output.write("Console: starting...")
-    #sys.stdout = self.console_output
-    #sys.stderr = self.console_output
+    sys.stdout = self.console_output
+    sys.stderr = self.console_output
+    self.log_level_filter = DEFAULT_LOG_LEVEL_FILTER
     try:
       self.link = link
       self.link.add_callback(self.print_message_callback, SBP_MSG_PRINT_DEP)
