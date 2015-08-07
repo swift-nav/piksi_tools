@@ -16,11 +16,14 @@ import signal
 
 from piksi_tools import serial_link
 import sbp.client.handler
+from sbp.client.drivers.network_drivers import TCPDriver
+from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
+from sbp.client.drivers.pyserial_driver import PySerialDriver
+from sbp.client.handler import LoggerDriver
+from sbp.ext_events import *
 from sbp.logging import *
 from sbp.piksi import SBP_MSG_RESET
-from sbp.client.drivers.pyserial_driver import PySerialDriver
-from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
-from sbp.ext_events import *
+import sbp.client.handler
 
 from piksi_tools.version import VERSION as CONSOLE_VERSION
 
@@ -61,12 +64,16 @@ def get_args():
                       help="specify the TraitsUI toolkit to use, either 'wx' or 'qt4'.")
   parser.add_argument('-e', '--expert', action='store_true',
                       help="Show expert settings.")
+  parser.add_argument("-s", "--base",
+                      default=[None], nargs=1,
+                      help="Base station URI (optional).")
   return parser.parse_args()
 
 args = get_args()
 port = args.port[0]
 baud = args.baud[0]
 log_filename = args.log_filename[0]
+base = args.base[0]
 
 # Toolkit
 from traits.etsconfig.api import ETSConfig
@@ -333,13 +340,15 @@ if not port:
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 with serial_link.get_driver(args.ftdi, port, baud) as driver:
-  with sbp.client.handler.Handler(driver.read, driver.write, args.verbose) as link:
-    with serial_link.get_logger(args.log, log_filename) as logger:
-      link.add_callback(logger)
-      if args.reset:
-        link.send(SBP_MSG_RESET, "")
-      console = SwiftConsole(link, update=args.update)
-      console.configure_traits()
+  with serial_link.get_base(base) as base_station:
+      with LoggerDriver(base_station, driver) as ld:
+        with sbp.client.handler.Handler(ld.read, ld.write, args.verbose) as link:
+          with serial_link.get_logger(args.log, log_filename) as logger:
+            link.add_callback(logger)
+            if args.reset:
+              link.send(SBP_MSG_RESET, "")
+            console = SwiftConsole(link, update=args.update)
+            console.configure_traits()
 
 # Force exit, even if threads haven't joined
 try:
