@@ -236,7 +236,7 @@ class UpdateView(HasTraits):
         'stream',
         style='custom',
         editor=InstanceEditor(),
-        label='Update Status',
+        show_label=False, 
       ),
     )
   )
