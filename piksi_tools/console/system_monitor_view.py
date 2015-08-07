@@ -23,7 +23,7 @@ import os
 import numpy as np
 import datetime
 
-from sbp.piksi  import SBP_MSG_THREAD_STATE, SBP_MSG_UART_STATE, SBP_MSG_RESET
+from sbp.piksi  import SBP_MSG_THREAD_STATE, SBP_MSG_UART_STATE, MsgReset
 from sbp.system import SBP_MSG_HEARTBEAT
 
 class SimpleAdapter(TabularAdapter):
@@ -151,19 +151,19 @@ class SystemMonitorView(HasTraits):
       for thread_name, state in sorted(
         self.threads, key=lambda x: x[1].cpu, reverse=True)]
 
-  def heartbeat_callback(self, sbp_msg):
+  def heartbeat_callback(self, sbp_msg, **metadata):
     self.update_threads()
     self.threads = []
 
-  def thread_state_callback(self, sbp_msg):
+  def thread_state_callback(self, sbp_msg, **metadata):
     th = ThreadState()
     th.from_binary(sbp_msg.payload)
     self.threads.append((th.name, th))
 
   def _piksi_reset_button_fired(self):
-    self.link.send(SBP_MSG_RESET, '')
+    self.link(MsgReset())
 
-  def uart_state_callback(self, sbp_msg):
+  def uart_state_callback(self, sbp_msg, **metadata):
     state = struct.unpack('<ffHHBBffHHBBffHHBBiiii', sbp_msg.payload)
     uarta = state[0:6]
     uartb = state[6:12]

@@ -31,7 +31,7 @@ import serial_link
 from sbp.bootload import *
 from sbp.logging import *
 from sbp.piksi import *
-from sbp.client.handler import Handler
+from sbp.client import Handler, Framer
 
 class Bootloader():
   """
@@ -61,7 +61,7 @@ class Bootloader():
     self.link.remove_callback(self._deprecated_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEP_A)
     self.link.remove_callback(self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_RESP)
 
-  def _deprecated_callback(self, sbp_msg):
+  def _deprecated_callback(self, sbp_msg, **metadata):
     if len(sbp_msg.payload)==1 and struct.unpack('B', sbp_msg.payload[0])==0:
       # == v0.1 of the bootloader, returns hardcoded version number 0.
       self.version = "v0.1"
@@ -70,7 +70,7 @@ class Bootloader():
       self.version = sbp_msg.payload[:]
     self.handshake_received = True
 
-  def _handshake_callback(self, sbp_msg):
+  def _handshake_callback(self, sbp_msg, **metadata):
     msg = MsgBootloaderHandshakeDevice(sbp_msg)
     self.version = msg.version
     self.sbp_version = ((msg.flags >> 8) & 0xFF, msg.flags & 0xFF)
@@ -81,7 +81,7 @@ class Bootloader():
       t0 = time.time()
     self.handshake_received = False
     expire = time.time() + 15.0
-    self.link.send(SBP_MSG_RESET, "")
+    self.link(MsgReset())
     while not self.handshake_received:
       time.sleep(0.1)
       if timeout is not None:
@@ -89,16 +89,16 @@ class Bootloader():
           return False
       if time.time() > expire:
         expire = time.time() + 15.0
-        self.link.send(SBP_MSG_RESET, "")
+        self.link(MsgReset())
     # < 0.45 of SBP protocol, reuse single handshake message.
     if self.sbp_version < (0, 45):
-      self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_DEP_A, '\x00')
+      self.link(MsgBootloaderHandshakeDepA(handshake=''))
     else:
-      self.link.send(SBP_MSG_BOOTLOADER_HANDSHAKE_REQ, '\x00')
+      self.link(MsgBootloaderHandshakeReq())
     return True
 
   def jump_to_app(self):
-    self.link.send(SBP_MSG_BOOTLOADER_JUMP_TO_APP, '\x00')
+    self.link(MsgBootloaderJumpToApp(jump=0))
 
 def get_args():
   """
@@ -152,7 +152,7 @@ def main():
   # Driver with context
   with serial_link.get_driver(use_ftdi, port, baud) as driver:
     # Handler with context
-    with Handler(driver.read, driver.write) as link:
+    with Handler(Framer(driver.read, driver.write)) as link:
       link.add_callback(serial_link.log_printer, SBP_MSG_LOG)
       link.add_callback(serial_link.printer, SBP_MSG_PRINT_DEP)
 

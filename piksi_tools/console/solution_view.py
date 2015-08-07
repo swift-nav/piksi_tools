@@ -136,7 +136,7 @@ class SolutionView(HasTraits):
     self.plot_data.set_data('alt_ps', [])
     self.plot_data.set_data('t_ps', [])
 
-  def _pos_llh_callback(self, sbp_msg):
+  def _pos_llh_callback(self, sbp_msg, **metadata):
     # Updating an ArrayPlotData isn't thread safe (see chaco issue #9), so
     # actually perform the update in the UI thread.
     if self.running:
@@ -145,7 +145,7 @@ class SolutionView(HasTraits):
   def update_table(self):
     self._table_list = self.table_spp.items()
 
-  def pos_llh_callback(self, sbp_msg):
+  def pos_llh_callback(self, sbp_msg, **metadata):
     soln = MsgPosLLH(sbp_msg)
     masked_flag = soln.flags & 0x7
     if masked_flag == 0:
@@ -243,7 +243,7 @@ class SolutionView(HasTraits):
         self.plot.value_range.set_bounds(soln.lat - d, soln.lat + d)
 
 
-  def dops_callback(self, sbp_msg):
+  def dops_callback(self, sbp_msg, **metadata):
     dops = MsgDops(sbp_msg)
     self.dops_table = [
       ('PDOP', '%.1f' % (dops.pdop * 0.01)),
@@ -254,7 +254,7 @@ class SolutionView(HasTraits):
     ]
     self.table_spp = self.pos_table_spp + self.vel_table + self.dops_table
 
-  def vel_ned_callback(self, sbp_msg):
+  def vel_ned_callback(self, sbp_msg, **metadata):
     vel_ned = MsgVelNED(sbp_msg)
 
     if self.vel_log_file is None:
@@ -285,7 +285,7 @@ class SolutionView(HasTraits):
     ]
     self.table_spp = self.pos_table_spp + self.vel_table + self.dops_table
 
-  def gps_time_callback(self, sbp_msg):
+  def gps_time_callback(self, sbp_msg, **metadata):
     self.week = MsgGPSTime(sbp_msg).wn
     self.nsec = MsgGPSTime(sbp_msg).ns
 

@@ -189,9 +189,8 @@ def _stm_lock_sector(self, sector):
   """
   if not 0 <= sector <+ 11:
     raise ValueError("Must have 0 <= sector <= 11, received %d" % sector)
-  msg_buf = struct.pack("B", sector)
   self.inc_n_queued_ops()
-  self.link.send(SBP_MSG_STM_FLASH_LOCK_SECTOR, msg_buf)
+  self.link(MsgStmFlashLockSector(sector=sector))
   while self.get_n_queued_ops() > 0:
     time.sleep(0.001)
 
@@ -206,9 +205,8 @@ def _stm_unlock_sector(self, sector):
   """
   if not 0 <= sector <= 11:
     raise ValueError("Must have 0 <= sector <= 11, received %d" % sector)
-  msg_buf = struct.pack("B", sector)
   self.inc_n_queued_ops()
-  self.link.send(SBP_MSG_STM_FLASH_UNLOCK_SECTOR, msg_buf)
+  self.link.send(MsgStmFlashUnlockSector(sector=sector))
   while self.get_n_queued_ops() > 0:
     time.sleep(0.001)
 
@@ -368,7 +366,7 @@ class Flash():
       raise Warning(text)
     msg_buf = struct.pack("BB", self.flash_type_byte, sector)
     self.inc_n_queued_ops()
-    self.link.send(SBP_MSG_FLASH_ERASE, msg_buf)
+    self.link(MsgFlashErase(target=self.flash_type_byte, sector_num=sector))
     while self.get_n_queued_ops() > 0:
       time.sleep(0.001)
 
@@ -389,9 +387,12 @@ class Flash():
     self.inc_n_queued_ops()
     # < 0.45 of SBP protocol, reuse single flash message.
     if self.sbp_version < (0, 45):
-      self.link.send(SBP_MSG_FLASH_DONE, msg_buf + data)
+      self.link(SBP(SBP_MSG_FLASH_DONE, payload=msg_buf+data))
     else:
-      self.link.send(SBP_MSG_FLASH_PROGRAM, msg_buf + data)
+      self.link(MsgFlashProgram(target=self.flash_type_byte,
+                                addr_start=address,
+                                addr_len=len(data),
+                                data=data))
 
   def read(self, address, length):
     """
@@ -410,11 +411,13 @@ class Flash():
     self.inc_n_queued_ops()
     # < 0.45 of SBP protocol, reuse single read message.
     if self.sbp_version < (0, 45):
-      self.link.send(SBP_MSG_FLASH_READ_RESP, msg_buf)
+      self.link(SBP(SBP_MSG_FLASH_READ_RESP, payload=msg_buf))
     else:
-      self.link.send(SBP_MSG_FLASH_READ_REQ, msg_buf)
+      self.link(MsgFlashReadReq(target=self.flash_type_byte,
+                                addr_start=address,
+                                addr_len=length))
 
-  def _done_callback(self, sbp_msg):
+  def _done_callback(self, sbp_msg, **metadata):
     """
     Handles flash done message sent from device.
 
@@ -432,7 +435,7 @@ class Flash():
     assert self.get_n_queued_ops() >= 0, \
       "Number of queued flash operations is negative"
 
-  def _read_callback(self, sbp_msg):
+  def _read_callback(self, sbp_msg, **metadata):
     """
     Handles flash read message sent from device.
 

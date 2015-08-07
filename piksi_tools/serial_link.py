@@ -18,13 +18,13 @@ import sys
 import time
 
 from sbp.logging                        import *
-from sbp.piksi                          import SBP_MSG_RESET
+from sbp.piksi                          import MsgReset
 from sbp.system                         import SBP_MSG_HEARTBEAT
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.pyftdi_driver   import PyFTDIDriver
 from sbp.client.loggers.json_logger     import JSONLogger
 from sbp.client.loggers.null_logger     import NullLogger
-from sbp.client.handler                 import Handler
+from sbp.client                         import Handler, Framer, Forwarder
 from sbp.client.watchdog                import Watchdog
 
 LOG_FILENAME = time.strftime("serial-link-%Y%m%d-%H%M%S.log.json")
@@ -134,7 +134,7 @@ def get_append_logger(filename, tags):
   print "Append logging at %s." % filename
   return JSONLogger(filename, "a", tags)
 
-def printer(sbp_msg):
+def printer(sbp_msg, **metadata):
   """
   Default print callback
 
@@ -145,7 +145,7 @@ def printer(sbp_msg):
   """
   sys.stdout.write(sbp_msg.payload)
 
-def log_printer(sbp_msg):
+def log_printer(sbp_msg, **metadata):
   """
   Default log callback
 
@@ -180,17 +180,17 @@ def main():
   # Driver with context
   with get_driver(args.ftdi, port, baud) as driver:
     # Handler with context
-    with Handler(driver.read, driver.write, args.verbose) as link:
+    with Handler(Framer(driver.read, driver.write, args.verbose)) as link:
       # Logger with context
       with get_logger(args.log, log_filename) as logger:
         with get_append_logger(append_log_filename, tags) as append_logger:
           link.add_callback(printer, SBP_MSG_PRINT_DEP)
           link.add_callback(log_printer, SBP_MSG_LOG)
-          link.add_callback(logger)
-          link.add_callback(append_logger)
+          Forwarder(link, logger).start()
+          Forwarder(link, append_logger).start()
           # Reset device
           if args.reset:
-            link.send(SBP_MSG_RESET, "")
+            link(MsgReset())
           # Setup watchdog
           if watchdog:
             link.add_callback(Watchdog(float(watchdog), watchdog_alarm), SBP_MSG_HEARTBEAT)

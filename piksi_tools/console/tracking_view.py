@@ -74,7 +74,7 @@ class TrackingView(HasTraits):
     )
   )
 
-  def tracking_state_callback(self, sbp_msg):
+  def tracking_state_callback(self, sbp_msg, **metadata):
     channel_size = TRACKING_STATE_BYTES_PER_CHANNEL if sbp_msg.msg_type is SBP_MSG_TRACKING_STATE else TRACKING_STATE_BYTES_PER_CHANNEL_DEP_A
     n_channels = len(sbp_msg.payload) / channel_size
     if n_channels != self.n_channels:
