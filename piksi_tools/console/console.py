@@ -77,10 +77,17 @@ else:
 # Logging
 import logging
 logging.basicConfig()
-
+from output_list import OutputList, LogItem
 from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List
 from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
-                         InstanceEditor, EnumEditor, ShellEditor, Handler, Spring
+                         InstanceEditor, EnumEditor, ShellEditor, Handler, Spring, \
+                         TableEditor
+from traitsui.table_filter \
+    import EvalFilterTemplate, MenuFilterTemplate, RuleFilterTemplate, \
+           EvalTableFilter
+from traitsui.table_column \
+    import ObjectColumn, ExpressionColumn
+
 
 # When bundled with pyInstaller, PythonLexer can't be found. The problem is
 # pygments.lexers is doing some crazy magic to load up all of the available
@@ -124,6 +131,8 @@ from update_view import UpdateView
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 
 CONSOLE_TITLE = 'Piksi Console, Version: ' + CONSOLE_VERSION
+
+
 class ConsoleHandler(Handler):
   """
   Handler that updates the window title with the device serial number
@@ -143,7 +152,7 @@ class ConsoleHandler(Handler):
 
 class SwiftConsole(HasTraits):
   link = Instance(sbp.client.Handler)
-  console_output = Instance(OutputStream)
+  console_output = Instance(OutputList())
   python_console_env = Dict
   device_serial = Str('')
   a = Int
@@ -221,7 +230,8 @@ class SwiftConsole(HasTraits):
 
   def print_message_callback(self, sbp_msg, **metadata):
     try:
-      self.console_output.write(sbp_msg.payload.encode('ascii', 'ignore'))
+      item = LogItem(sbp_msg.payload.encode('ascii'))
+      self.console_output.write(item)
     except UnicodeDecodeError:
       print "Critical Error encoding the serial stream as ascii."
 
@@ -237,15 +247,15 @@ class SwiftConsole(HasTraits):
       "Rising" if (e.flags & (1<<0)) else "Falling", e.pin, e.wn, e.tow,
       "good" if (e.flags & (1<<1)) else "unknown")
 
-  def _paused_button_fired(self):
-    self.console_output.paused = not self.console_output.paused
+  #def _paused_button_fired(self):
+  #  self.console_output.paused = not self.console_output.paused
 
   def _clear_button_fired(self):
-    self.console_output.reset()
+    self.console_output.clear()
   def __init__(self, link, update):
-    self.console_output = OutputStream()
-    sys.stdout = self.console_output
-    sys.stderr = self.console_output
+    self.console_output = OutputList(text=[LogItem(msg="Console: starting...")])
+    #sys.stdout = self.console_output
+    #sys.stderr = self.console_output
     try:
       self.link = link
       self.link.add_callback(self.print_message_callback, SBP_MSG_PRINT_DEP)
@@ -338,6 +348,7 @@ with serial_link.get_driver(args.ftdi, port, baud) as driver:
         link(MsgReset())
       console = SwiftConsole(link, update=args.update)
       console.configure_traits()
+
 
 # Force exit, even if threads haven't joined
 try:
