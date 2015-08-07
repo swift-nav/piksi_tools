@@ -17,8 +17,8 @@ import struct
 import argparse
 import sys
 
+from sbp.client import Handler, Framer
 from sbp.settings import *
-from sbp.client.handler import *
 
 def send_setting(link, section, name, value):
   link.send(SBP_MSG_SETTINGS_WRITE, '%s\0%s\0%s\0' % (section, name, value))
@@ -50,7 +50,7 @@ def main():
   # Driver with context
   with serial_link.get_driver(args.ftdi, port, baud) as driver:
     # Handler with context
-    with Handler(driver.read, driver.write) as link:
+    with Handler(Framer(driver.read, driver.write)) as link:
       print "Resetting mask to 0xff"
       send_setting(link, "uart_ftdi", "sbp_message_mask", "65535")
       time.sleep(0.5)
