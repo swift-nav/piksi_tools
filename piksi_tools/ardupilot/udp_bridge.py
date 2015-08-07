@@ -15,10 +15,11 @@ messages from a serial port, filtering for observations, and sending them over u
 to a mavproxy instance or Mission Planner for transmission to an ArduCopter quad.
 """
 
+from sbp.client import Handler, Framer
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.handler import Handler
-from sbp.observation import SBP_MSG_OBS, SBP_MSG_BASE_POS, SBP_MSG_OBS_DEP_A
 from sbp.client.loggers.udp_logger import UdpLogger
+from sbp.observation import SBP_MSG_OBS, SBP_MSG_BASE_POS, SBP_MSG_OBS_DEP_A
 
 import socket
 import time
@@ -54,15 +55,15 @@ def get_args():
   return parser.parse_args()
 
 def main():
-  """
-  Simple command line interface for running the udp bridge to forward observation messages
+  """Simple command line interface for running the udp bridge to
+  forward observation messages
 
   """
   args = get_args()
   port = int(args.udp_port[0])
   address = args.address[0]
   with PySerialDriver(args.serial_port[0], args.baud[0]) as driver:
-    with Handler(driver.read, driver.write) as handler:
+    with Handler(Framer(driver.read, driver.write)) as handler:
       with UdpLogger(address, port) as udp:
         handler.add_callback(udp,  OBS_MSGS)
         # Note, we may want to send the ephemeris message in the future
@@ -75,4 +76,3 @@ def main():
 
 if __name__ == "__main__":
   main()
-
