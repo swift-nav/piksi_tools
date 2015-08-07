@@ -10,7 +10,6 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 import os
-import struct
 import sys
 import signal
 
