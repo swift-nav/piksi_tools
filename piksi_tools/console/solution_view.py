@@ -18,7 +18,6 @@ from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.api import GUI
 
-import struct
 import math
 import os
 import numpy as np

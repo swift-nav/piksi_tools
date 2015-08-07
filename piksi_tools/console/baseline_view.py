@@ -17,7 +17,6 @@ from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.api import GUI
 
-import struct
 import math
 import os
 import numpy as np
@@ -30,15 +29,6 @@ from sbp.navigation import *
 class SimpleAdapter(TabularAdapter):
     columns = [('Item', 0), ('Value',  1)]
     width = 80
-
-class Baseline:
-  def from_binary(self, data):
-    soln = struct.unpack('<3ddHHB', data)
-    self.ned = np.array([soln[0], soln[1], soln[2]])
-    self.tow = soln[3] / 1e3
-    self.wn = soln[4]
-    self.flags = soln[5]
-    self.n_sats = soln[6]
 
 class BaselineView(HasTraits):
   python_console_cmds = Dict()
@@ -142,7 +132,7 @@ class BaselineView(HasTraits):
     return
 
   def iar_state_callback(self, sbp_msg, **metadata):
-    self.num_hyps = struct.unpack('<I', sbp_msg.payload)[0]
+    self.num_hyps = sbp_msg.num_hyps
 
   def _baseline_callback_ned(self, sbp_msg, **metadata):
     # Updating an ArrayPlotData isn't thread safe (see chaco issue #9), so
