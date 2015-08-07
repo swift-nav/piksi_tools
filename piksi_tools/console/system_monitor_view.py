@@ -17,7 +17,6 @@ from traits.etsconfig.api import ETSConfig
 if ETSConfig.toolkit != 'null':
   from enable.savage.trait_defs.ui.svg_button import SVGButton
 
-import struct
 import math
 import os
 import numpy as np
@@ -28,16 +27,6 @@ from sbp.system import SBP_MSG_HEARTBEAT
 
 class SimpleAdapter(TabularAdapter):
     columns = [('Thread Name', 0), ('CPU %',  1), ('Stack Free',  2)]
-
-class ThreadState:
-  def from_binary(self, data):
-    state = struct.unpack('<20sHI', data)
-    self.name = state[0].rstrip('\0')
-    if self.name == '':
-      self.name = '(no name)'
-    self.cpu = 100 * state[1] / 1000.
-    self.stack_free = state[2]
-
 
 class SystemMonitorView(HasTraits):
   python_console_cmds = Dict()
@@ -156,41 +145,37 @@ class SystemMonitorView(HasTraits):
     self.threads = []
 
   def thread_state_callback(self, sbp_msg, **metadata):
-    th = ThreadState()
-    th.from_binary(sbp_msg.payload)
-    self.threads.append((th.name, th))
+    self.threads.append((sbp_msg.name, sbp_msg))
 
   def _piksi_reset_button_fired(self):
     self.link(MsgReset())
 
-  def uart_state_callback(self, sbp_msg, **metadata):
-    state = struct.unpack('<ffHHBBffHHBBffHHBBiiii', sbp_msg.payload)
-    uarta = state[0:6]
-    uartb = state[6:12]
-    ftdi = state[12:18]
+  def uart_state_callback(self, m, **metadata):
+    self.uart_a_tx_KBps = m.uart_a.tx_throughput
+    self.uart_a_rx_KBps = m.uart_a.rx_throughput
+    self.uart_a_crc_error_count = m.uart_a.crc_error_count
+    self.uart_a_io_error_count = m.uart_a.io_error_count
+    self.uart_a_tx_buffer = 100 * m.uart_a.tx_buffer_level / 255.0
+    self.uart_a_rx_buffer = 100 * m.uart_a.rx_buffer_level / 255.0
 
-    self.uart_a_tx_KBps, self.uart_a_rx_KBps = uarta[0:2]
-    self.uart_a_crc_error_count = uarta[2]
-    self.uart_a_io_error_count = uarta[3]
-    self.uart_a_tx_buffer, self.uart_a_rx_buffer = map(
-      lambda x: 100.0 * x / 255.0, uarta[4:6])
+    self.uart_b_tx_KBps = m.uart_b.tx_throughput
+    self.uart_b_rx_KBps = m.uart_b.rx_throughput
+    self.uart_b_crc_error_count = m.uart_b.crc_error_count
+    self.uart_b_io_error_count = m.uart_b.io_error_count
+    self.uart_b_tx_buffer = 100 * m.uart_b.tx_buffer_level / 255.0
+    self.uart_b_rx_buffer = 100 * m.uart_b.rx_buffer_level / 255.0
 
-    self.uart_b_tx_KBps, self.uart_b_rx_KBps = uartb[0:2]
-    self.uart_b_crc_error_count = uartb[2]
-    self.uart_b_io_error_count = uartb[3]
-    self.uart_b_tx_buffer, self.uart_b_rx_buffer = map(
-      lambda x: 100.0 * x / 255.0, uartb[4:6])
+    self.uart_ftdi_tx_KBps = m.uart_ftdi.tx_throughput
+    self.uart_ftdi_rx_KBps = m.uart_ftdi.rx_throughput
+    self.uart_ftdi_crc_error_count = m.uart_ftdi.crc_error_count
+    self.uart_ftdi_io_error_count = m.uart_ftdi.io_error_count
+    self.uart_ftdi_tx_buffer = 100 * m.uart_ftdi.tx_buffer_level / 255.0
+    self.uart_ftdi_rx_buffer = 100 * m.uart_ftdi.rx_buffer_level / 255.0
 
-    self.ftdi_tx_KBps, self.ftdi_rx_KBps = ftdi[0:2]
-    self.ftdi_crc_error_count = ftdi[2]
-    self.ftdi_io_error_count = ftdi[3]
-    self.ftdi_tx_buffer, self.ftdi_rx_buffer = map(
-      lambda x: 100.0 * x / 255.0, ftdi[4:6])
-
-    self.msg_obs_avg_latency_ms = state[-4]
-    self.msg_obs_min_latency_ms = state[-3]
-    self.msg_obs_max_latency_ms = state[-2]
-    self.msg_obs_window_latency_ms = state[-1]
+    self.msg_obs_avg_latency_ms = m.latency.avg
+    self.msg_obs_min_latency_ms = m.latency.lmin
+    self.msg_obs_max_latency_ms = m.latency.lmax
+    self.msg_obs_window_latency_ms = m.latency.current
 
 
   def __init__(self, link):
