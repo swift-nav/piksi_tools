@@ -18,7 +18,6 @@ from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.api import GUI
 
-import struct
 import math
 import os
 import numpy as np
@@ -28,22 +27,6 @@ from sbp.observation import *
 
 class SimpleAdapter(TabularAdapter):
     columns = [('PRN', 0), ('Pseudorange',  1), ('Carrier Phase',  2), ('C/N0', 3)]
-
-class Observation:
-  def from_binary(self, data):
-    soln = struct.unpack('<3d3d3d3d7ddddHBB', data)
-    self.pos_llh = [soln[0]*(180/math.pi), soln[1]*(180/math.pi), soln[2]]
-    self.pos_ecef = soln[3:6]
-    self.vel_ned = soln[6:9]
-    self.vel_ecef = soln[9:12]
-    self.err_cov = soln[12:19]
-    self.clock_offset = soln[19]
-    self.clock_bias = soln[20]
-    self.gps_tow = soln[21]
-    self.gps_week = soln[22]
-    self.soln_valid = soln[23]
-    self.n_used = soln[24]
-
 
 class ObservationView(HasTraits):
   python_console_cmds = Dict()
@@ -133,19 +116,14 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
         (self.relay ^ (sbp_msg.sender == 0))):
       return
 
-    hdr_fmt = "<IHB"
-    hdr_size = struct.calcsize(hdr_fmt)
-    tow, wn, seq = struct.unpack(hdr_fmt, sbp_msg.payload[:hdr_size])
+    tow = sbp_msg.header.t.tow
+    wn = sbp_msg.header.t.wn
+    seq = sbp_msg.header.n_obs
 
     tow = float(tow) / 1000.0
 
     total = seq >> 4
     count = seq & ((1 << 4) - 1)
-
-    obs_fmt = '<IiBBHI' if sbp_msg.msg_type is SBP_MSG_OBS else '<IiBBHB'
-    obs_size = struct.calcsize(obs_fmt)
-    n_obs = (len(sbp_msg.payload) - hdr_size) / obs_size
-    obs_data = sbp_msg.payload[hdr_size:]
 
     # Confirm this packet is good.
     # Assumes no out-of-order packets
@@ -169,13 +147,15 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
 
     # Save this packet
     # See sbp_piksi.h for format
-    for i in range(n_obs):
-      P, Li, Lf, snr, lock, prn = struct.unpack(obs_fmt, obs_data[:obs_size])
-      obs_data = obs_data[obs_size:]
+    for o in sbp_msg.obs:
+      try:
+        prn = o.sid
+      except:
+        prn = o.prn
       self.obs[prn] = (
-        float(P) / 1e2,
-        float(Li) + float(Lf) / (1<<8),
-        float(snr) / 4)
+        float(o.P) / 1e2,
+        float(o.L.i) + float(o.L.f) / (1<<8),
+        float(o.cn0) / 4)
 
     if (count == total - 1):
       self.t = datetime.datetime(1980, 1, 6) + \
@@ -187,18 +167,11 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
 
     return
 
-  def ephemeris_callback(self, sbp_msg, **metadata):
-    gps_time_fmt = "dH"
-    eph_fmt = "<" + "d"*19 + gps_time_fmt*2 + ("BBI" if sbp_msg.msg_type is SBP_MSG_EPHEMERIS else "BBB")
-    eph_size = struct.calcsize(eph_fmt)
-    tgd, \
-    crs, crc, cuc, cus, cic, cis, \
-    dn, m0, ecc, sqrta, omega0, omegadot, w, inc, inc_dot, \
-    af0, af1, af2, \
-    toe_tow, toe_wn, toc_tow, toc_wn, \
-    valid, \
-    healthy, \
-    prn = struct.unpack(eph_fmt, sbp_msg.payload[:eph_size])
+  def ephemeris_callback(self, m, **metadata):
+    try:
+      prn = m.prn
+    except:
+      prn = m.sid
     if self.recording:
       if self.eph_file is None:
         self.eph_file = open(self.name+self.t.strftime("-%Y%m%d-%H%M%S.eph"),  'w')
@@ -215,13 +188,14 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
 
       strout = "%s %10.7f" % (self.t.strftime(" %y %m %d %H %M"),
                               self.t.second + self.t.microsecond*1e-6)
-      strout += "," + str([tgd, \
-                           crs, crc, cuc, cus, cic, cis, \
-                           dn, m0, ecc, sqrta, omega0, omegadot, w, inc, inc_dot, \
-                           af0, af1, af2, \
-                           toe_tow, toe_wn, toc_tow, toc_wn, \
-                           valid, \
-                           healthy, \
+      strout += "," + str([m.tgd, \
+                           m.c_rs, m.c_rc, m.c_uc, m.c_us, m.c_ic, m.c_is, \
+                           m.dn, m.m0, m.ecc, m.sqrta, m.omega0, m.omegadot,
+                           m.w, m.inc, m.inc_dot, \
+                           m.af0, m.af1, m.af2, \
+                           m.toe_tow, m.toe_wn, m.toc_tow, m.toc_wn, \
+                           m.valid, \
+                           m.healthy, \
                            prn+1])[1: -1] + "\n"
       self.eph_file.write(strout)
       self.eph_file.flush()
