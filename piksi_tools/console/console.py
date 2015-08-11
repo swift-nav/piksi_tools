@@ -77,7 +77,7 @@ else:
 # Logging
 import logging
 logging.basicConfig()
-from output_list import OutputList, LogItem, SYSLOG_LEVELS, DEFAULT_LOG_LEVEL_FILTER
+from output_list import OutputList, LogItem, str_to_log_level, SYSLOG_LEVELS, DEFAULT_LOG_LEVEL_FILTER
 from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List, Enum
 from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
                          InstanceEditor, EnumEditor, ShellEditor, Handler, Spring, \
@@ -231,9 +231,11 @@ class SwiftConsole(HasTraits):
     title = CONSOLE_TITLE
   )
 
+
   def print_message_callback(self, sbp_msg, **metadata):
     try:
-      self.console_output.write_level(sbp_msg.payload.encode('ascii'))
+      self.console_output.write_level(sbp_msg.payload.encode('ascii'),
+                                      str_to_log_level(msg.split(':')[0]))
     except UnicodeDecodeError:
       print "Critical Error encoding the serial stream as ascii."
 
@@ -253,9 +255,11 @@ class SwiftConsole(HasTraits):
     self.console_output.paused = not self.console_output.paused
 
   def _log_level_filter_changed(self):
-    for key, value in SYSLOG_LEVELS.iteritems():
-      if value == self.log_level_filter:
-        self.console_output.log_level_filter = key
+    """
+    Takes log level enum and translates into the mapped integer.
+    Integer stores the current filter value inside OutputList.
+    """
+    self.console_output.log_level_filter = str_to_log_level(self.log_level_filter)
 
   def _clear_button_fired(self):
     self.console_output.clear()

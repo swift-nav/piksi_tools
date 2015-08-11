@@ -9,7 +9,10 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-"""Contains the class OutputStream, a HasTraits file-like text buffer."""
+"""
+Contains the class OutputList
+Displays Device Log messages and STDOUT/STDERR.
+"""
 
 from traits.api import HasTraits, Str, Bool, Trait, Int, List, Font, Float, \
                        Enum, Property
@@ -33,17 +36,17 @@ LOG_DEBUG      = 7       # debug-level messages
 # An unknown log level will end up with - 2
 # A python stdout or stderr should come in as - 1
 
-LOG_LEVEL_CONSOLE = -1
-LOG_LEVEL_DEFAULT = -2
+CONSOLE_LOG_LEVEL = -1
+DEFAULT_LOG_LEVEL = -2
 
 # This maps the log level numbers to a human readable string
 # The unused log levels are commented out of the dict until used
 
 # OTHERLOG_LEVELS will be unmaskable
 OTHERLOG_LEVELS  = {
-                    LOG_LEVEL_CONSOLE: "CONSOLE",
+                    CONSOLE_LOG_LEVEL: "CONSOLE",
                     }
-# SYSLOG_LEVELS will be maskable
+# SYSLOG_LEVELS can be filtered
 
 SYSLOG_LEVELS = {#LOG_EMERG : "EMERG",
                  #LOG_ALERT : "ALERT",
@@ -63,6 +66,16 @@ ALL_LOG_LEVELS.update(OTHERLOG_LEVELS)
 DEFAULT_LOG_LEVEL_FILTER = "WARNING"
 
 DEFAULT_MAX_LEN = 250
+
+def str_to_log_level(level_str):
+  """
+  Maps a string into an integer log level
+  If none can be found, uses the default
+  """
+  for key, value in SYSLOG_LEVELS.iteritems():
+    if value.lower() == level_str.lower():
+      return key
+  return DEFAULT_LOG_LEVEL
 
 class LogItemOutputListAdapter(TabularAdapter):
   """
@@ -97,27 +110,15 @@ class LogItem(HasTraits):
   # If we can't find the int in the dict, we print "UNKNOWN"
   log_level_str = Property(fget=lambda self: ALL_LOG_LEVELS.get(self.log_level, "UNKNOWN"),
                    depends_on='log_level')
-  def __init__(self, msg, level=None):
+  def __init__(self, msg, level):
     """
     Constructor for logitem
     Notes:
     ----------
     Timestamp initailzies to current system time
     msg is passed in by the user
-    If level is passed in as NONE, an attempt is made to infer a log level
-    from the msg
     """
-    self.log_level = LOG_LEVEL_DEFAULT
-    if level == None: # try to infer log level if an old message
-      split_colons = msg.split(":")
-      # print split_colons[0]
-      for key, value in SYSLOG_LEVELS.iteritems():
-        # print key
-        # print value
-        if split_colons[0].lower() == value.lower():
-          self.log_level = key
-    else:
-      self.log_level = level
+    self.log_level = level
     # remove line breaks from the message
     self.msg = msg.rstrip('\n')
     # set timestamp
@@ -173,9 +174,10 @@ class OutputList(HasTraits):
 
   def write(self, s):
     """
-    Write to the lists OutputList as STDOUt or STDERR.
+    Write to the lists OutputList as STDOUT or STDERR.
     This method exist to allow STDERR and STDOUT to be redirected into this
     display. It should only be called when writing to STDOUT and STDERR.
+    Any log levels from this method will be LOG_LEVEL_CONSOLE
     Ignores spaces.
 
     Parameters
@@ -185,7 +187,7 @@ class OutputList(HasTraits):
     """
 
     if not s.isspace():
-      log = LogItem(s, LOG_LEVEL_CONSOLE)
+      log = LogItem(s, CONSOLE_LOG_LEVEL)
       if self.paused:
         self.append_truncate(self._paused_buffer, log)
       else:
@@ -193,7 +195,7 @@ class OutputList(HasTraits):
         if log.matches_log_level_filter(self.log_level_filter):
           self.append_truncate(self.filtered_list, log)
 
-  def write_level(self, s, level=None):
+  def write_level(self, s, level):
     """
     Write to the lists in OutputList from device or user space.
 
@@ -202,8 +204,7 @@ class OutputList(HasTraits):
     s : str
       string to cast as LogItem and write to tables
     level : int
-      Integer log level to use when creating log item.  If this is none, LogItem
-      constructer will attempt to infer a log level from the string.
+      Integer log level to use when creating log item.
     """
     log = LogItem(s, level)
     if self.paused:
