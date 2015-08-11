@@ -82,7 +82,7 @@ def str_to_log_level(level_str):
 
 class LogItemOutputListAdapter(TabularAdapter):
   """
-  Tabular adapter for table of log iteritems
+  Tabular adapter for table of LogItems
   """
   columns = [('Timestamp', 'timestamp'), ('Log level', 'log_level_str'),
              ('Message', 'msg')]
@@ -94,6 +94,11 @@ class LogItemOutputListAdapter(TabularAdapter):
   can_drop = Bool(False)
 
   def get_tooltip(self, obj, name, row, column):
+    """
+    Define the tooltip messages for user mouse-over. Depends on column.
+    Column is an integer with 0 index starting from left.
+    No tooltip for the "message" column.  Parameters omitted as the
+    """
     if column == 0:
       return TIMESTAMP_TOOLTIP
     if column == 1:
@@ -107,7 +112,7 @@ class LogItem(HasTraits):
   Parameters
   ----------
   log_level  : int
-    integer representing the log leve
+    integer representing the log level
   timestamp : str
     the time that the console read the log item
   msg : str
@@ -119,8 +124,9 @@ class LogItem(HasTraits):
 
   # log level string maps the int into a the string via the global ALL_LOG_LEVELS dict
   # If we can't find the int in the dict, we print "UNKNOWN"
-  log_level_str = Property(fget=lambda self: ALL_LOG_LEVELS.get(self.log_level, "UNKNOWN"),
-                   depends_on='log_level')
+  log_level_str = Property(fget=lambda self:
+                           ALL_LOG_LEVELS.get(self.log_level, "UNKNOWN"),
+                           depends_on='log_level')
   def __init__(self, msg, level):
     """
     Constructor for logitem
@@ -226,12 +232,25 @@ class OutputList(HasTraits):
         self.append_truncate(self.filtered_list, log)
 
   def append_truncate(self, buffer, s):
+    """
+    Append to a front of buffer, keeping overall size less than max_len
+
+    Parameters
+    ----------
+    s : List
+      Buffer to append
+    s : LogItem
+      Log Item to add
+    """
     if len(buffer) > self.max_len:
       assert (len(buffer) - self.max_len) == 1, "Output list buffer is too long"
       buffer.pop()
     buffer.insert(0, s)
 
   def clear(self):
+    """
+    Clear all Output_list buffers
+    """
     self._paused_buffer = []
     self.filtered_list = []
     self.unfiltered_list = []
@@ -243,14 +262,16 @@ class OutputList(HasTraits):
     pass
 
   def _log_level_filter_changed(self):
+    """
+    Copy items from unfiltered list into filtered list
+    """
     self.filtered_list = [item for item in self.unfiltered_list \
                           if item.matches_log_level_filter(self.log_level_filter)]
 
 
   def _paused_changed(self):
     """
-    Method to call when the paused boolean changes state.
-    We need to handle the multiple copies of the buffers.
+    Swap buffers around when the paused boolean changes state.
     """
     if self.paused:
       # Copy the current list to _paused_buffer.  While the OutputStream
