@@ -22,6 +22,7 @@ from sbp.piksi                          import MsgReset
 from sbp.system                         import SBP_MSG_HEARTBEAT
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.pyftdi_driver   import PyFTDIDriver
+from sbp.client.drivers.skylark_driver  import SkylarkDriver
 from sbp.client.loggers.json_logger     import JSONLogger
 from sbp.client.loggers.null_logger     import NullLogger
 from sbp.client                         import Handler, Framer, Forwarder
@@ -156,6 +157,11 @@ def log_printer(sbp_msg, **metadata):
   """
   sys.stdout.write(MsgLog(sbp_msg).text)
 
+def swriter(link):
+  def scallback(sbp_msg, **metadata):
+    link(sbp_msg)
+  return scallback
+
 def watchdog_alarm():
   """
   Called when the watchdog timer alarms. Will raise a KeyboardInterrupt to the
@@ -184,37 +190,40 @@ def main():
       # Logger with context
       with get_logger(args.log, log_filename) as logger:
         with get_append_logger(append_log_filename, tags) as append_logger:
-          link.add_callback(printer, SBP_MSG_PRINT_DEP)
-          link.add_callback(log_printer, SBP_MSG_LOG)
-          Forwarder(link, logger).start()
-          Forwarder(link, append_logger).start()
-          # Reset device
-          if args.reset:
-            link(MsgReset())
-          # Setup watchdog
-          if watchdog:
-            link.add_callback(Watchdog(float(watchdog), watchdog_alarm), SBP_MSG_HEARTBEAT)
-          try:
-            if timeout is not None:
-              expire = time.time() + float(args.timeout[0])
+          sdriver = SkylarkDriver('d570b9f2-a145-5de5-9134-62b212eb63b9')
+          with Handler(Framer(sdriver.read, None)) as slink:
+            slink.add_callback(swriter(link))
+            link.add_callback(printer, SBP_MSG_PRINT_DEP)
+            link.add_callback(log_printer, SBP_MSG_LOG)
+            Forwarder(link, logger).start()
+            Forwarder(link, append_logger).start()
+            # Reset device
+            if args.reset:
+              link(MsgReset())
+            # Setup watchdog
+            if watchdog:
+              link.add_callback(Watchdog(float(watchdog), watchdog_alarm), SBP_MSG_HEARTBEAT)
+            try:
+              if timeout is not None:
+                expire = time.time() + float(args.timeout[0])
 
-            while True:
-              if timeout is None or time.time() < expire:
-              # Wait forever until the user presses Ctrl-C
-                time.sleep(1)
-              else:
-                print "Timer expired!"
-                break
-              if not link.is_alive():
-                sys.stderr.write("ERROR: Thread died!")
-                sys.exit(1)
-          except KeyboardInterrupt:
-            # Callbacks, such as the watchdog timer on SBP_HEARTBEAT call
-            # thread.interrupt_main(), which throw a KeyboardInterrupt
-            # exception. To get the proper error condition, return exit code
-            # of 1. Note that the finally block does get caught since exit
-            # itself throws a SystemExit exception.
-            sys.exit(1)
+              while True:
+                if timeout is None or time.time() < expire:
+                # Wait forever until the user presses Ctrl-C
+                  time.sleep(1)
+                else:
+                  print "Timer expired!"
+                  break
+                if not link.is_alive():
+                  sys.stderr.write("ERROR: Thread died!")
+                  sys.exit(1)
+            except KeyboardInterrupt:
+              # Callbacks, such as the watchdog timer on SBP_HEARTBEAT call
+              # thread.interrupt_main(), which throw a KeyboardInterrupt
+              # exception. To get the proper error condition, return exit code
+              # of 1. Note that the finally block does get caught since exit
+              # itself throws a SystemExit exception.
+              sys.exit(1)
 
 if __name__ == "__main__":
   main()

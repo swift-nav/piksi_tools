@@ -19,6 +19,7 @@ from sbp.logging import *
 from sbp.piksi import SBP_MSG_RESET
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
+from sbp.client.drivers.skylark_driver  import SkylarkDriver
 from sbp.ext_events import *
 
 from piksi_tools.version import VERSION as CONSOLE_VERSION
@@ -333,11 +334,14 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 with serial_link.get_driver(args.ftdi, port, baud) as driver:
   with sbp.client.Handler(sbp.client.Framer(driver.read, driver.write, args.verbose)) as link:
     with serial_link.get_logger(args.log, log_filename) as logger:
-      link.add_callback(logger)
-      if args.reset:
-        link(MsgReset())
-      console = SwiftConsole(link, update=args.update)
-      console.configure_traits()
+      sdriver = SkylarkDriver('d570b9f2-a145-5de5-9134-62b212eb63b9')
+      with sbp.client.Handler(sbp.client.Framer(sdriver.read, None)) as slink:
+        slink.add_callback(serial_link.swriter(link))
+        link.add_callback(logger)
+        if args.reset:
+          link(MsgReset())
+        console = SwiftConsole(link, update=args.update)
+        console.configure_traits()
 
 # Force exit, even if threads haven't joined
 try:
