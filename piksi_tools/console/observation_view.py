@@ -149,7 +149,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     # See sbp_piksi.h for format
     for o in sbp_msg.obs:
       try:
-        prn = o.sid
+        prn = o.sid.prn
       except:
         prn = o.prn
       self.obs[prn] = (
@@ -171,7 +171,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     try:
       prn = m.prn
     except:
-      prn = m.sid
+      prn = m.sid.prn
     if self.recording:
       if self.eph_file is None:
         self.eph_file = open(self.name+self.t.strftime("-%Y%m%d-%H%M%S.eph"),  'w')
