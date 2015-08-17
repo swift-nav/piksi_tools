@@ -237,7 +237,6 @@ def main():
   timeout = args.timeout[0]
   log_filename = args.log_filename[0]
   append_log_filename = args.append_log_filename[0]
-  watchdog = args.watchdog[0]
   tags = args.tags[0]
   interval = int(args.interval[0])
   minsats = int(args.minsats[0])
@@ -257,10 +256,6 @@ def main():
           Forwarder(link, logger).start()
           # ad append logger callback
           Forwarder(link, append_logger).start()
-          # Setup watchdog
-          if watchdog:
-            link.add_callback(sl.Watchdog(float(watchdog), sl.watchdog_alarm),
-                              SBP_MSG_HEARTBEAT)
           try:
             # Get device info
             # Diagnostics reads out the device settings and resets the Piksi
@@ -286,8 +281,7 @@ def main():
                   sys.stderr.write("ERROR: Thread died!")
                   sys.exit(1)
           except KeyboardInterrupt:
-            # Callbacks, such as the watchdog timer on SBP_HEARTBEAT call
-            # thread.interrupt_main(), which throw a KeyboardInterrupt
+            # Callbacks call thread.interrupt_main(), which throw a KeyboardInterrupt
             # exception. To get the proper error condition, return exit code
             # of 1. Note that the finally block does get caught since exit
             # itself throws a SystemExit exception.

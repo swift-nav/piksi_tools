@@ -25,7 +25,6 @@ from sbp.client.drivers.pyftdi_driver   import PyFTDIDriver
 from sbp.client.loggers.json_logger     import JSONLogger
 from sbp.client.loggers.null_logger     import NullLogger
 from sbp.client                         import Handler, Framer, Forwarder
-from sbp.client.watchdog                import Watchdog
 
 LOG_FILENAME = time.strftime("serial-link-%Y%m%d-%H%M%S.log.json")
 
@@ -61,9 +60,6 @@ def base_cl_options():
   parser.add_argument("-t", "--timeout",
                       default=[None], nargs=1,
                       help="exit after TIMEOUT seconds have elapsed.")
-  parser.add_argument("-w", "--watchdog",
-                      default=[None], nargs=1,
-                      help="alarm after WATCHDOG seconds have elapsed without heartbeat.")
   parser.add_argument("-r", "--reset",
                       action="store_true",
                       help="reset device after connection.")
@@ -156,15 +152,6 @@ def log_printer(sbp_msg, **metadata):
   """
   sys.stdout.write(MsgLog(sbp_msg).text)
 
-def watchdog_alarm():
-  """
-  Called when the watchdog timer alarms. Will raise a KeyboardInterrupt to the
-  main thread and exit the process.
-  """
-  sys.stderr.write("ERROR: Watchdog expired!")
-  import thread
-  thread.interrupt_main()
-
 def main():
   """
   Get configuration, get driver, get logger, and build handler and start it.
@@ -175,7 +162,6 @@ def main():
   timeout = args.timeout[0]
   log_filename = args.log_filename[0]
   append_log_filename = args.append_log_filename[0]
-  watchdog = args.watchdog[0]
   tags = args.tags[0]
   # Driver with context
   with get_driver(args.ftdi, port, baud) as driver:
@@ -191,9 +177,6 @@ def main():
           # Reset device
           if args.reset:
             link(MsgReset())
-          # Setup watchdog
-          if watchdog:
-            link.add_callback(Watchdog(float(watchdog), watchdog_alarm), SBP_MSG_HEARTBEAT)
           try:
             if timeout is not None:
               expire = time.time() + float(args.timeout[0])
@@ -209,8 +192,7 @@ def main():
                 sys.stderr.write("ERROR: Thread died!")
                 sys.exit(1)
           except KeyboardInterrupt:
-            # Callbacks, such as the watchdog timer on SBP_HEARTBEAT call
-            # thread.interrupt_main(), which throw a KeyboardInterrupt
+            # Callbacks call thread.interrupt_main(), which throw a KeyboardInterrupt
             # exception. To get the proper error condition, return exit code
             # of 1. Note that the finally block does get caught since exit
             # itself throws a SystemExit exception.
