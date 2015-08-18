@@ -14,16 +14,17 @@ import struct
 import sys
 import serial_link
 
-from sbp.flash          import *
-from sbp.system         import *
-from sbp.client         import *
+from piksi_tools.heartbeat import *
+from sbp.flash             import *
+from sbp.system            import *
+from sbp.client            import *
 
 class STMUniqueID(object):
   """
   Retrieve the STM Unique ID from Piksi.
   """
 
-  def __init__(self, link, sbp_version):
+  def __init__(self, link):
     """
     Parameters
     ==========
@@ -35,13 +36,15 @@ class STMUniqueID(object):
     self.unique_id_returned = False
     self.unique_id = None
     self.link = link
-    self.sbp_version = sbp_version
+    self.heartbeat = Heartbeat()
 
   def __enter__(self):
+    self.link.add_callback(self.heartbeat, SBP_MSG_HEARTBEAT)
     self.link.add_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_RESP)
     return self
 
   def __exit__(self, *args):
+    self.link.remove_callback(self.heartbeat, SBP_MSG_HEARTBEAT)
     self.link.remove_callback(self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_RESP)
 
   def receive_stm_unique_id_callback(self, sbp_msg, **metadata):
@@ -54,10 +57,12 @@ class STMUniqueID(object):
 
   def get_id(self):
     """ Retrieve the STM Unique ID. Blocks until it has received the ID. """
+    while not self.heartbeat.received:
+      time.sleep(0.1)
     self.unique_id_returned = False
     self.unique_id = None
     # < 0.45 of the bootloader, reuse single stm message.
-    if self.sbp_version < (0, 45):
+    if self.heartbeat.sbp_version < (0, 45):
       self.link(MsgStmUniqueIdResp())
     else:
       self.link(MsgStmUniqueIdReq())

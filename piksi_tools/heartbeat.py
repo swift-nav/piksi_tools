@@ -23,10 +23,7 @@ class Heartbeat(object):
     # SBP version is unset in older devices
     self.sbp_version = (0, 0)
 
-  def __call__(self, *args):
-    self.callback(*args)
-
-  def callback(self, sbp_msg, **metadata):
+  def __call__(self, sbp_msg, **metadata):
     hb = MsgHeartbeat(sbp_msg)
     self.sbp_version = ((hb.flags >> 16) & 0xFF, (hb.flags >> 8) & 0xFF)
     self.received = True
