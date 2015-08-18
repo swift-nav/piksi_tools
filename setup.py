@@ -19,6 +19,7 @@ CLASSIFIERS = [
 PACKAGES = [
   'piksi_tools',
   'piksi_tools.console',
+  'piksi_tools.ardupilot'
 ]
 
 PLATFORMS = [
