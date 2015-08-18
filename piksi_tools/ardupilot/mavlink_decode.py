@@ -152,6 +152,6 @@ def main():
   f = extractSBP(filename)
   g = rewrite(f, outfile)
   print "JSON SBP log succesfully written to {0}.".format(outfile)
-
+  return 0
 if __name__ == "__main__":
   main()
