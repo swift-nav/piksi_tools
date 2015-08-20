@@ -84,13 +84,13 @@ class LogItemOutputListAdapter(TabularAdapter):
   """
   Tabular adapter for table of LogItems
   """
-  columns = [('Timestamp', 'timestamp'), ('Log level', 'log_level_str'),
+  columns = [('Host timestamp', 'timestamp'), ('Log level', 'log_level_str'),
              ('Message', 'msg')]
   font = Font('12')
   can_edit = Bool(False)
-  timestamp_width = Float(0.18)
+  timestamp_width = Float(0.21)
   log_level_width = Float(0.07)
-  msg_width = Float(0.75)
+  msg_width = Float(0.72)
   can_drop = Bool(False)
 
   def get_tooltip(self, obj, name, row, column):

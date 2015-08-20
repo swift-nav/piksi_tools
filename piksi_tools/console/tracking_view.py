@@ -88,7 +88,7 @@ class TrackingView(HasTraits):
         self.plot_data.set_data('ch'+str(n), [0.0])
         pl = self.plot.plot(('t', 'ch'+str(n)), type='line', color='auto', name='ch'+str(n))
         self.plots.append(pl)
-      print 'Number of tracking channels changed to', n_channels
+      print 'Number of tracking channels changed to {0}'.format(n_channels)
 
     fmt = '<' + n_channels * ('BIf' if sbp_msg.msg_type is SBP_MSG_TRACKING_STATE else 'BBf')
     state_data = struct.unpack(fmt, sbp_msg.payload)
