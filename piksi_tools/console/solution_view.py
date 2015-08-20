@@ -17,6 +17,7 @@ from chaco.tools.api import ZoomTool, PanTool
 from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.api import GUI
+from utils import plot_square_axes
 
 import math
 import os
@@ -53,6 +54,7 @@ class SolutionView(HasTraits):
   # Store plots we care about for legend
 
   running = Bool(True)
+  zoomall = Bool(False)
   position_centered = Bool(False)
 
   clear_button = SVGButton(
@@ -61,7 +63,7 @@ class SolutionView(HasTraits):
     width=16, height=16
   )
   zoomall_button = SVGButton(
-    label='', tooltip='Zoom All',
+    label='', tooltip='Zoom All', toggle=True,
     filename=os.path.join(os.path.dirname(__file__), 'images', 'iconic', 'fullscreen.svg'),
     width=16, height=16
   )
@@ -108,10 +110,7 @@ class SolutionView(HasTraits):
   )
 
   def _zoomall_button_fired(self):
-    self.plot.index_range.low_setting = 'auto'
-    self.plot.index_range.high_setting = 'auto'
-    self.plot.value_range.low_setting = 'auto'
-    self.plot.value_range.high_setting = 'auto'
+    self.zoomall = not self.zoomall
 
   def _center_button_fired(self):
     self.position_centered = not self.position_centered
@@ -240,7 +239,8 @@ class SolutionView(HasTraits):
         self.plot.index_range.set_bounds(soln.lon - d, soln.lon + d)
         d = (self.plot.value_range.high - self.plot.value_range.low) / 2.
         self.plot.value_range.set_bounds(soln.lat - d, soln.lat + d)
-
+    if self.zoomall:
+      plot_square_axes(self.plot, 'lng', 'lat')
 
   def dops_callback(self, sbp_msg, **metadata):
     dops = MsgDops(sbp_msg)
