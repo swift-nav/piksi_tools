@@ -234,7 +234,10 @@ class SettingsView(HasTraits):
         self.settings_list += this_section
     # call read_finished_functions as needed
     for cb in self.read_finished_functions:
-      GUI.invoke_later(cb)
+      if self.gui_mode:
+        GUI.invoke_later(cb)
+      else:
+        cb()
     return
 
 
@@ -290,10 +293,24 @@ class SettingsView(HasTraits):
   def set(self, section, name, value):
     self.link(MsgSettingsWrite(setting='%s\0%s\0%s\0' % (section, name, value)))
 
-  def __init__(self, link, read_finished_functions=[], name_of_yaml_file="settings.yaml", hide_expert=False):
+  def cleanup(self):
+    """ Remove callbacks from serial link. """
+    self.link.remove_callback(self.piksi_startup_callback, SBP_MSG_STARTUP)
+    self.link.remove_callback(self.settings_read_by_index_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_REQ)
+    self.link.remove_callback(self.settings_read_by_index_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_RESP)
+    self.link.remove_callback(self.settings_read_by_index_done_callback, SBP_MSG_SETTINGS_READ_BY_INDEX_DONE)
+
+  def __enter__(self):
+    return self
+
+  def __exit__(self, *args):
+    self.cleanup()
+
+  def __init__(self, link, read_finished_functions=[], name_of_yaml_file="settings.yaml", hide_expert=False, gui_mode=True):
     super(SettingsView, self).__init__()
 
     self.hide_expert = hide_expert
+    self.gui_mode = gui_mode
     self.enumindex = 0
     self.settings = {}
     self.link = link
