@@ -139,7 +139,7 @@ def printer(sbp_msg, **metadata):
   sbp_msg: SBP
     SBP Message to print out.
   """
-  sys.stdout.write(sbp_msg.payload)
+  print sbp_msg.payload,
 
 def log_printer(sbp_msg, **metadata):
   """
@@ -150,7 +150,16 @@ def log_printer(sbp_msg, **metadata):
   sbp_msg: SBP
     SBP Message to print out.
   """
-  sys.stdout.write(MsgLog(sbp_msg).text)
+  levels = {0: 'EMERG',
+            1: 'ALERT',
+            2: 'CRIT',
+            3: 'ERROR',
+            4: 'WARN',
+            5: 'NOTICE',
+            6: 'INFO',
+            7: 'DEBUG'}
+  m = MsgLog(sbp_msg)
+  print levels[m.level], m.text
 
 def main():
   """
