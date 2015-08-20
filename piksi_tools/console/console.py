@@ -77,10 +77,17 @@ else:
 # Logging
 import logging
 logging.basicConfig()
-
-from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List
+from output_list import OutputList, LogItem, str_to_log_level, SYSLOG_LEVELS, DEFAULT_LOG_LEVEL_FILTER
+from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List, Enum
 from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
-                         InstanceEditor, EnumEditor, ShellEditor, Handler, Spring
+                         InstanceEditor, EnumEditor, ShellEditor, Handler, Spring, \
+                         TableEditor, UItem
+from traitsui.table_filter \
+    import EvalFilterTemplate, MenuFilterTemplate, RuleFilterTemplate, \
+           EvalTableFilter
+from traitsui.table_column \
+    import ObjectColumn, ExpressionColumn
+
 
 # When bundled with pyInstaller, PythonLexer can't be found. The problem is
 # pygments.lexers is doing some crazy magic to load up all of the available
@@ -124,6 +131,8 @@ from update_view import UpdateView
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 
 CONSOLE_TITLE = 'Piksi Console, Version: ' + CONSOLE_VERSION
+
+
 class ConsoleHandler(Handler):
   """
   Handler that updates the window title with the device serial number
@@ -143,7 +152,7 @@ class ConsoleHandler(Handler):
 
 class SwiftConsole(HasTraits):
   link = Instance(sbp.client.Handler)
-  console_output = Instance(OutputStream)
+  console_output = Instance(OutputList())
   python_console_env = Dict
   device_serial = Str('')
   a = Int
@@ -157,6 +166,7 @@ class SwiftConsole(HasTraits):
   system_monitor_view = Instance(SystemMonitorView)
   settings_view = Instance(SettingsView)
   update_view = Instance(UpdateView)
+  log_level_filter = Enum(list(SYSLOG_LEVELS.itervalues()))
 
   paused_button = SVGButton(
     label='', tooltip='Pause console update', toggle_tooltip='Resume console update', toggle=True,
@@ -201,6 +211,8 @@ class SwiftConsole(HasTraits):
           Item('paused_button', show_label=False, width=8, height=8),
           Item('clear_button', show_label=False, width=8, height=8),
           Item('', label='Console Log', emphasized=True),
+          Spring(),
+          UItem('log_level_filter', style='simple', padding=0, height=8),
         ),
         Item(
           'console_output',
@@ -219,15 +231,17 @@ class SwiftConsole(HasTraits):
     title = CONSOLE_TITLE
   )
 
+
   def print_message_callback(self, sbp_msg, **metadata):
     try:
-      self.console_output.write(sbp_msg.payload.encode('ascii', 'ignore'))
+      self.console_output.write_level(sbp_msg.payload.encode('ascii', 'ignore'),
+                                      str_to_log_level(msg.split(':')[0]))
     except UnicodeDecodeError:
       print "Critical Error encoding the serial stream as ascii."
 
   def log_message_callback(self, sbp_msg, **metadata):
     try:
-      self.console_output.write(MsgLog(sbp_msg).text.encode('ascii', 'ignore'))
+      self.console_output.write_level(sbp_msg.text.encode('ascii', 'ignore'), sbp_msg.level)
     except UnicodeDecodeError:
       print "Critical Error encoding the serial stream as ascii."
 
@@ -240,12 +254,22 @@ class SwiftConsole(HasTraits):
   def _paused_button_fired(self):
     self.console_output.paused = not self.console_output.paused
 
+  def _log_level_filter_changed(self):
+    """
+    Takes log level enum and translates into the mapped integer.
+    Integer stores the current filter value inside OutputList.
+    """
+    self.console_output.log_level_filter = str_to_log_level(self.log_level_filter)
+
   def _clear_button_fired(self):
-    self.console_output.reset()
+    self.console_output.clear()
+
   def __init__(self, link, update):
-    self.console_output = OutputStream()
+    self.console_output = OutputList()
+    self.console_output.write("Console: starting...")
     sys.stdout = self.console_output
     sys.stderr = self.console_output
+    self.log_level_filter = DEFAULT_LOG_LEVEL_FILTER
     try:
       self.link = link
       self.link.add_callback(self.print_message_callback, SBP_MSG_PRINT_DEP)
@@ -338,6 +362,7 @@ with serial_link.get_driver(args.ftdi, port, baud) as driver:
         link(MsgReset())
       console = SwiftConsole(link, update=args.update)
       console.configure_traits()
+
 
 # Force exit, even if threads haven't joined
 try:
