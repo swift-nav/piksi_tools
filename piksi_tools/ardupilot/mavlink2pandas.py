@@ -25,7 +25,7 @@ def extractMAVLINK(filename, outfile, msg_types_to_save):
       if first:
         init_time = timestamp
       delta = timestamp - init_time
-      dt = datetime.datetime.utcfromtimestamp(timestamp)
+      dt = datetime.datetime.utcfromtimestamp(timestamp + 17)
       msg_timestamp_dict = out_dict.get(m.get_type(),{})
       msg_timestamp_dict[dt] = m.to_dict()
       # print msg_timestamp_dict
