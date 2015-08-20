@@ -218,7 +218,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     self.link = link
     self.link.add_callback(self.obs_packed_callback, [SBP_MSG_OBS,
                                                       SBP_MSG_OBS_DEP_A])
-    self.link.add_callback(self.ephemeris_callback, [SBP_MSG_EPHEMERIS,
+    self.link.add_callback(self.ephemeris_callback, [SBP_MSG_EPHEMERIS_KEPLER,
                                                      SBP_MSG_EPHEMERIS_DEP_A,
                                                      SBP_MSG_EPHEMERIS_DEP_B])
 
