@@ -43,7 +43,7 @@ DEFAULT_LOG_LEVEL = -2
 # The unused log levels are commented out of the dict until used
 
 # OTHERLOG_LEVELS will be unmaskable
-OTHERLOG_LEVELS  = {
+UNMASKABLE_LEVELS  = {
                     CONSOLE_LOG_LEVEL: "CONSOLE",
                     }
 # SYSLOG_LEVELS can be filtered
@@ -60,8 +60,11 @@ SYSLOG_LEVELS = {#LOG_EMERG : "EMERG",
 
 # Combine the log levels into one dict
 ALL_LOG_LEVELS = SYSLOG_LEVELS.copy()
-ALL_LOG_LEVELS.update(OTHERLOG_LEVELS)
+ALL_LOG_LEVELS.update(UNMASKABLE_LEVELS)
 
+SYSLOG_LEVELS_INVERSE = {}
+for key, value in SYSLOG_LEVELS.iteritems():
+  SYSLOG_LEVELS_INVERSE[value.lower()] = key
 # Set default filter level
 DEFAULT_LOG_LEVEL_FILTER = "WARNING"
 
@@ -75,10 +78,7 @@ def str_to_log_level(level_str):
   Maps a string into an integer log level
   If none can be found, uses the default
   """
-  for key, value in SYSLOG_LEVELS.iteritems():
-    if value.lower() == level_str.lower():
-      return key
-  return DEFAULT_LOG_LEVEL
+  return SYSLOG_LEVELS_INVERSE.get(level_str.lower(), DEFAULT_LOG_LEVEL)
 
 class LogItemOutputListAdapter(TabularAdapter):
   """
@@ -127,6 +127,7 @@ class LogItem(HasTraits):
   log_level_str = Property(fget=lambda self:
                            ALL_LOG_LEVELS.get(self.log_level, "UNKNOWN"),
                            depends_on='log_level')
+
   def __init__(self, msg, level):
     """
     Constructor for logitem
@@ -144,19 +145,19 @@ class LogItem(HasTraits):
   def matches_log_level_filter(self, log_level):
     """
     Function to perform filtering of a message based upon the loglevel passed
+
     Parameters
     ----------
     log_level : int
       Log level on which to filter
+
     Returns
     ----------
     True if message passes filter
-    False otherewise
+    False otherwise
     """
-    if self.log_level <= log_level:
-      return True
-    else:
-      return False
+    return self.log_level <= log_level
+
 
 
 class OutputList(HasTraits):
@@ -192,6 +193,7 @@ class OutputList(HasTraits):
   def write(self, s):
     """
     Write to the lists OutputList as STDOUT or STDERR.
+
     This method exist to allow STDERR and STDOUT to be redirected into this
     display. It should only be called when writing to STDOUT and STDERR.
     Any log levels from this method will be LOG_LEVEL_CONSOLE
