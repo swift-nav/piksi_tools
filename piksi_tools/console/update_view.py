@@ -10,9 +10,8 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 from urllib2 import URLError
-from json import load as jsonload
 from time import sleep
-from intelhex import IntelHex, HexRecordError, HexReaderError
+from intelhex import IntelHex, HexRecordError
 from pkg_resources import parse_version
 
 from sbp.bootload import MsgBootloaderJumpToApp
@@ -20,11 +19,8 @@ from sbp.piksi import MsgReset
 
 from threading import Thread
 
-from traits.api import HasTraits, Event, String, Button, Instance, Int, Bool, \
-                       on_trait_change
-from traitsui.api import View, Handler, Action, Item, TextEditor, VGroup, \
-                         UItem, InstanceEditor, VSplit, HSplit, HGroup, \
-                         BooleanEditor
+from traits.api import HasTraits, String, Button, Instance, Bool
+from traitsui.api import View, Item, UItem, VGroup, HGroup, InstanceEditor
 from pyface.api import GUI, FileDialog, OK, ProgressDialog
 
 from piksi_tools.version import VERSION as CONSOLE_VERSION
@@ -47,17 +43,18 @@ icon = ImageResource('icon',
          search_path=['images', os.path.join(basedir, 'images')])
 
 INDEX_URL = 'http://downloads.swiftnav.com/index.json'
-
+HT = 8
+COLUMN_WIDTH = 100
 
 class IntelHexFileDialog(HasTraits):
 
   file_wildcard = String("Intel HEX File (*.hex)|*.hex|All files|*")
 
   status = String('Please choose a file')
-  choose_fw = Button(label='Choose Firmware File')
+  choose_fw = Button(label='...', padding=-1)
   view = View(
-               UItem('status'),
-               UItem('choose_fw')
+               HGroup(UItem('status', resizable=True),
+                      UItem('choose_fw', width=-0.1)),
              )
 
   def __init__(self, flash_type):
@@ -70,7 +67,7 @@ class IntelHexFileDialog(HasTraits):
     flash_type : string
       Which Piksi flash to interact with ("M25" or "STM").
     """
-    if not flash_type=='M25' and not flash_type=='STM':
+    if not flash_type == 'M25' and not flash_type == 'STM':
       raise ValueError("flash_type must be 'M25' or 'STM'")
     self._flash_type = flash_type
     self.ihx = None
@@ -174,7 +171,7 @@ class PulsableProgressDialog(ProgressDialog):
 
 class UpdateView(HasTraits):
 
-  piksi_stm_vers = String('Waiting for Piksi to send settings...')
+  piksi_stm_vers = String('Waiting for Piksi to send settings...', width=COLUMN_WIDTH)
   newest_stm_vers = String('Downloading Newest Firmware info...')
   piksi_nap_vers = String('Waiting for Piksi to send settings...')
   newest_nap_vers = String('Downloading Newest Firmware info...')
@@ -184,11 +181,18 @@ class UpdateView(HasTraits):
   erase_stm = Bool(True)
   erase_en = Bool(True)
 
-  update_firmware = Button(label='Update Piksi Firmware')
+  update_stm_firmware = Button(label='Update STM')
+  update_nap_firmware = Button(label='Update NAP')
+  update_full_firmware = Button(label='Update Piksi STM and NAP Firmware')
+
   updating = Bool(False)
+  update_stm_en = Bool(False)
+  update_nap_en = Bool(False)
   update_en = Bool(False)
 
   download_firmware = Button(label='Download Newest Firmware Files')
+  download_stm = Button(label='Download', height=HT)
+  download_nap = Button(label='Download', height=HT)
   downloading = Bool(False)
   download_fw_en = Bool(True)
 
@@ -201,29 +205,38 @@ class UpdateView(HasTraits):
     VGroup(
       HGroup(
         VGroup(
-          Item('piksi_stm_vers', label='Piksi STM Firmware Version'),
-          Item('newest_stm_vers', label='Newest STM Firmware Version'),
-          Item('piksi_nap_vers', label='Piksi NAP Firmware Version'),
-          Item('newest_nap_vers', label='Newest NAP Firmware Version'),
-          Item('local_console_vers', label='Local Piksi Console Version'),
-          Item('newest_console_vers', label='Newest Piksi Console Version'),
+          Item('piksi_stm_vers', label='Current', resizable=True),
+          Item('newest_stm_vers', label='Latest', resizable=True),
+          Item('stm_fw', style='custom', show_label=True, \
+               label="Local File", enabled_when='download_fw_en'),
+          HGroup(Item('update_stm_firmware', show_label=False, \
+                     enabled_when='update_stm_en'),
+                Item('erase_stm', label='Erase STM flash\n(recommended)', \
+                      enabled_when='erase_en', show_label=True)),
+          show_border=True, label="STM Firmware Version"
         ),
         VGroup(
-          Item('stm_fw', style='custom', label='STM Firmware File', \
-               enabled_when='download_fw_en'),
-          Item('nap_fw', style='custom', label='NAP Firmware File', \
-               enabled_when='download_fw_en'),
-          Item('erase_stm', label='Erase STM flash (recommended)', \
-               enabled_when='erase_en'),
-        ),
-      ),
+          Item('piksi_nap_vers', label='Current', resizable=True),
+          Item('newest_nap_vers', label='Latest', resizable=True),
+          Item('nap_fw', style='custom', show_label=True, \
+               label="Local File", enabled_when='download_fw_en'),
+          HGroup(Item('update_nap_firmware', show_label=False, \
+                      enabled_when='update_nap_en'),
+                 Item(width=50, label="                  ")),
+          show_border=True, label="NAP Firmware Version"
+          ),
+        VGroup(
+          Item('local_console_vers', label='Current', resizable=True),
+          Item('newest_console_vers', label='Latest'),
+          label="Piksi Console Version", show_border=True),
+          ),
       UItem('download_firmware', enabled_when='download_fw_en'),
-      UItem('update_firmware', enabled_when='update_en'),
+      UItem('update_full_firmware', enabled_when='update_en'),
       Item(
         'stream',
         style='custom',
         editor=InstanceEditor(),
-        label='Update Status',
+        show_label=False, 
       ),
     )
   )
@@ -257,15 +270,24 @@ class UpdateView(HasTraits):
   def _manage_enables(self):
     """ Manages whether traits widgets are enabled in the UI or not. """
     if self.updating == True or self.downloading == True:
+      self.update_stm_en = False
+      self.update_nap_en = False
       self.update_en = False
       self.download_fw_en = False
     else:
       self.download_fw_en = True
-      if self.stm_fw.ihx != None and self.nap_fw.ihx != None:
-        self.update_en = True
+      if self.stm_fw.ihx is not None:
+        self.update_stm_en = True
       else:
+        self.update_stm_en = False
         self.update_en = False
-
+      if self.nap_fw.ihx is not None:
+        self.update_nap_en = True
+      else:
+        self.update_nap_en = False
+        self.update_en = False
+      if self.nap_fw.ihx is not None and self.stm_fw.ihx is not None:
+        self.update_en = True
     if self.updating == True:
       self.erase_en = False
     else:
@@ -293,9 +315,9 @@ class UpdateView(HasTraits):
     self.stream.write('\n')
     self.stream.flush()
 
-  def _update_firmware_fired(self):
+  def _update_stm_firmware_fired(self):
     """
-    Handle update_firmware button. Starts thread so as not to block the GUI
+    Handle update_stm_firmware button. Starts thread so as not to block the GUI
     thread.
     """
     try:
@@ -304,7 +326,38 @@ class UpdateView(HasTraits):
     except AttributeError:
       pass
 
-    self._firmware_update_thread = Thread(target=self.manage_firmware_updates)
+    self._firmware_update_thread = Thread(target=self.manage_firmware_updates,
+                                          args=("STM",))
+    self._firmware_update_thread.start()
+
+  def _update_nap_firmware_fired(self):
+    """
+    Handle update_nap_firmware button. Starts thread so as not to block the GUI
+    thread.
+    """
+    try:
+      if self._firmware_update_thread.is_alive():
+        return
+    except AttributeError:
+      pass
+
+    self._firmware_update_thread = Thread(target=self.manage_firmware_updates,
+                                          args=("M25",))
+    self._firmware_update_thread.start()
+
+  def _update_full_firmware_fired(self):
+    """
+    Handle update_full_firmware button. Starts thread so as not to block the GUI
+    thread.
+    """
+    try:
+      if self._firmware_update_thread.is_alive():
+        return
+    except AttributeError:
+      pass
+
+    self._firmware_update_thread = Thread(target=self.manage_firmware_updates,
+                                          args=("ALL",))
     self._firmware_update_thread.start()
 
   def _download_firmware(self):
@@ -496,16 +549,7 @@ class UpdateView(HasTraits):
       self._write("\nError: Index downloaded from Swift Navigation's website (%s) doesn't contain all keys. Please contact Swift Navigation.\n" % INDEX_URL)
       return
 
-  # Executed in GUI thread, called from Handler.
-  def manage_firmware_updates(self):
-    """
-    Update Piksi firmware. Erase entire STM flash (other than bootloader)
-    if so directed. Flash NAP only if new firmware is available.
-    """
-    self.updating = True
-
-    self._write('')
-
+  def manage_stm_firmware_update(self):
     # Erase all of STM's flash (other than bootloader) if box is checked.
     if self.erase_stm:
       text = "Erasing STM"
@@ -542,6 +586,7 @@ class UpdateView(HasTraits):
     self._write("")
     progress_dialog.close()
 
+  def manage_nap_firmware_update(self):
     # Flash NAP if out of date.
     try:
       local_nap_version = parse_version(
@@ -563,11 +608,36 @@ class UpdateView(HasTraits):
       self.stop_flash()
       self._write("")
       progress_dialog.close()
+      return True
+    else:
+      text = "NAP is already to latest version, not updating!"
+      self._write(text)
+      self._write("")
+      return False
+
+  # Executed in GUI thread, called from Handler.
+  def manage_firmware_updates(self, device):
+    """
+    Update Piksi firmware. Erase entire STM flash (other than bootloader)
+    if so directed. Flash NAP only if new firmware is available.
+    """
+    self.updating = True
+    update_nap = False
+    self._write('')
+
+    if device == "STM":
+      self.manage_stm_firmware_update()
+    elif device == "M25":
+      update_nap = self.manage_nap_firmware_update()
+    else:
+      self.manage_stm_firmware_update()
+      update_nap = self.manage_nap_firmware_update()
 
     # Must tell Piksi to jump to application after updating firmware.
-    self.link(MsgBootloaderJumpToApp(jump=0))
-    self._write("Firmware updates finished.")
-    self._write("")
+    if device == "STM" or update_nap:
+        self.link(MsgBootloaderJumpToApp(jump=0))
+        self._write("Firmware update finished.")
+        self._write("")
 
     self.updating = False
 
