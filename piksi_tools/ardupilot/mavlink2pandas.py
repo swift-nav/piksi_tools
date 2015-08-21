@@ -5,10 +5,20 @@ import tempfile
 from pymavlink.DFReader import DFReader_binary, DFMessage
 import datetime
 
+NUMLEAPSECONDS = 17
+
 def extractMAVLINK(filename, outfile, msg_types_to_save):
   """
-  From dataflashfile create a dict of PANDAS dataframes for each msg
+  From dataflash file save an HDF5 store of PANDAS dataframes for each msg
 
+  Parameters
+    ----------
+    filename : str
+      Name of the file to split.
+    outfile: str
+      Name of the output file
+    msg_types_to_save: list
+      list of string identifiers of Mavlink Messages to put in Pandas Frame
   """
   log = DFReader_binary(filename)
   last_m = None
@@ -20,15 +30,13 @@ def extractMAVLINK(filename, outfile, msg_types_to_save):
     # we use mavlinks recv_match function to iterate through logs
     m = log.recv_match(type=msg_types_to_save)
     if m:
-      #print type(m)
       timestamp = m._timestamp
       if first:
         init_time = timestamp
       delta = timestamp - init_time
-      dt = datetime.datetime.utcfromtimestamp(timestamp + 17)
+      dt = datetime.datetime.utcfromtimestamp(timestamp + NUMLEAPSECONDS)
       msg_timestamp_dict = out_dict.get(m.get_type(),{})
       msg_timestamp_dict[dt] = m.to_dict()
-      # print msg_timestamp_dict
       out_dict[m.get_type()] = msg_timestamp_dict
     else:
       if os.path.exists(outfile):
@@ -45,7 +53,6 @@ def extractMAVLINK(filename, outfile, msg_types_to_save):
       finally:
         f.close()
       break
-    #print out_dict[m.get_type()]
 
 
 def get_args():
