@@ -291,7 +291,8 @@ class OutputList(HasTraits):
     view = \
       View(
           UItem('filtered_list',
-                editor = TabularEditor(adapter=LogItemOutputListAdapter(), editable=False))
+                editor = TabularEditor(adapter=LogItemOutputListAdapter(), editable=False,
+                                       vertical_lines=False, horizontal_lines=False))
         )
     return view
 
