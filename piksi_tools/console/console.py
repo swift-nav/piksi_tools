@@ -238,14 +238,18 @@ class SwiftConsole(HasTraits):
 
   def print_message_callback(self, sbp_msg, **metadata):
     try:
-      self.console_output.write_level(sbp_msg.payload.encode('ascii', 'ignore'),
-                                      str_to_log_level(msg.split(':')[0]))
+      encoded = sbp_msg.payload.encode('ascii', 'ignore')
+      for eachline in reversed(encoded.split('\n')):
+        self.console_output.write_level(eachline,
+                                        str_to_log_level(msg.split(':')[0]))
     except UnicodeDecodeError:
       print "Critical Error encoding the serial stream as ascii."
 
   def log_message_callback(self, sbp_msg, **metadata):
     try:
-      self.console_output.write_level(sbp_msg.text.encode('ascii', 'ignore'), sbp_msg.level)
+      encoded = sbp_msg.text.encode('ascii', 'ignore')
+      for eachline in reversed(encoded.split('\n')):
+        self.console_output.write_level(eachline, sbp_msg.level)
     except UnicodeDecodeError:
       print "Critical Error encoding the serial stream as ascii."
 

@@ -136,9 +136,9 @@ class LogItem(HasTraits):
     Timestamp initailzies to current system time
     msg is passed in by the user
     """
+    # set constructor params
     self.log_level = level
-    # remove line breaks from the message
-    self.msg = msg.rstrip('\n')
+    self.msg = msg
     # set timestamp
     self.timestamp = time.strftime("%b %d %Y %H:%M:%S")
 
@@ -205,7 +205,7 @@ class OutputList(HasTraits):
       string to cast as LogItem and write to tables
     """
 
-    if not s.isspace():
+    if s and not s.isspace():
       log = LogItem(s, CONSOLE_LOG_LEVEL)
       if self.paused:
         self.append_truncate(self._paused_buffer, log)
@@ -225,13 +225,14 @@ class OutputList(HasTraits):
     level : int
       Integer log level to use when creating log item.
     """
-    log = LogItem(s, level)
-    if self.paused:
-      self.append_truncate(self._paused_buffer, log)
-    else:
-      self.append_truncate(self.unfiltered_list, log)
-      if log.matches_log_level_filter(self.log_level_filter):
-        self.append_truncate(self.filtered_list, log)
+    if s and not s.isspace():
+      log = LogItem(s, level)
+      if self.paused:
+        self.append_truncate(self._paused_buffer, log)
+      else:
+        self.append_truncate(self.unfiltered_list, log)
+        if log.matches_log_level_filter(self.log_level_filter):
+          self.append_truncate(self.filtered_list, log)
 
   def append_truncate(self, buffer, s):
     """
