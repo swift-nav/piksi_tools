@@ -47,6 +47,9 @@ def get_args():
   parser.add_argument("-o", "--log-filename",
                       default=[serial_link.LOG_FILENAME], nargs=1,
                       help="file to log output to.")
+  parser.add_argument("-i", "--initloglevel",
+                      default=[None], nargs=1,
+                      help="Set log level filter.")
   parser.add_argument("-r", "--reset",
                       action="store_true",
                       help="reset device after connection.")
@@ -265,12 +268,13 @@ class SwiftConsole(HasTraits):
   def _clear_button_fired(self):
     self.console_output.clear()
 
-  def __init__(self, link, update):
+  def __init__(self, link, update, log_level_filter):
     self.console_output = OutputList()
     self.console_output.write("Console: starting...")
     sys.stdout = self.console_output
     sys.stderr = self.console_output
-    self.log_level_filter = DEFAULT_LOG_LEVEL_FILTER
+    self.log_level_filter = log_level_filter
+    self.console_output.log_level_filter = str_to_log_level(log_level_filter)
     try:
       self.link = link
       self.link.add_callback(self.print_message_callback, SBP_MSG_PRINT_DEP)
@@ -361,7 +365,10 @@ with serial_link.get_driver(args.ftdi, port, baud) as driver:
       link.add_callback(logger)
       if args.reset:
         link(MsgReset())
-      console = SwiftConsole(link, update=args.update)
+      log_level_filter = DEFAULT_LOG_LEVEL_FILTER
+      if args.initloglevel[0]:
+        log_level_filter = args.initloglevel[0]
+      console = SwiftConsole(link, update=args.update, log_level_filter=log_level_filter)
       console.configure_traits()
 
 
