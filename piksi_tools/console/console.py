@@ -212,7 +212,8 @@ class SwiftConsole(HasTraits):
           Item('clear_button', show_label=False, width=8, height=8),
           Item('', label='Console Log', emphasized=True),
           Spring(),
-          UItem('log_level_filter', style='simple', padding=0, height=8),
+          UItem('log_level_filter', style='simple', padding=0, height=8, show_label=True,
+                tooltip='Shows log levels up to and including the selected level of severity.'),
         ),
         Item(
           'console_output',
