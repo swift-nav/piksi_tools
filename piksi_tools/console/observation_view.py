@@ -149,7 +149,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     # See sbp_piksi.h for format
     for o in sbp_msg.obs:
       try:
-        prn = o.sid.prn
+        prn = o.sid
       except:
         prn = o.prn
       self.obs[prn] = (
@@ -171,7 +171,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     try:
       prn = m.prn
     except:
-      prn = m.sid.prn
+      prn = m.sid
     if self.recording:
       if self.eph_file is None:
         self.eph_file = open(self.name+self.t.strftime("-%Y%m%d-%H%M%S.eph"),  'w')
@@ -218,7 +218,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     self.link = link
     self.link.add_callback(self.obs_packed_callback, [SBP_MSG_OBS,
                                                       SBP_MSG_OBS_DEP_A])
-    self.link.add_callback(self.ephemeris_callback, [SBP_MSG_EPHEMERIS_KEPLER,
+    self.link.add_callback(self.ephemeris_callback, [SBP_MSG_EPHEMERIS,
                                                      SBP_MSG_EPHEMERIS_DEP_A,
                                                      SBP_MSG_EPHEMERIS_DEP_B])
 

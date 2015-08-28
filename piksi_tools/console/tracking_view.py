@@ -10,7 +10,7 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 from traits.api import Str, Instance, Dict, HasTraits, Array, Float, Bool, on_trait_change, List, Int
-from traitsui.api import Item, View, HGroup, HSplit
+from traitsui.api import Item, View, HGroup, ArrayEditor, HSplit
 
 from chaco.api import BarPlot, ArrayDataSource, DataRange1D, LinearMapper, OverlayPlotContainer, LabelAxis, PlotAxis, ArrayPlotData, Plot, Legend
 from chaco.tools.api import LegendTool
@@ -42,17 +42,18 @@ colours_list = [
 class TrackingState(HasTraits):
   state = Int()
   cn0 = Float()
+  prn = Int()
 
   def __init__(self, *args, **kwargs):
     self.update(*args, **kwargs)
 
-  def update(self, state, sid, cn0):
+  def update(self, state, prn, cn0):
     self.state = state
     self.cn0 = 0 if cn0 == -1 else cn0
-    self.sid = sid
+    self.prn = prn
 
   def __repr__(self):
-    return "TS: %s %f" % (self.sid, self.cn0)
+    return "TS: %d %f" % (self.prn, self.cn0)
 
 class TrackingView(HasTraits):
   python_console_cmds = Dict()
@@ -89,13 +90,10 @@ class TrackingView(HasTraits):
         self.plots.append(pl)
       print 'Number of tracking channels changed to {0}'.format(n_channels)
 
-    for channel, track_state in enumerate(sbp_msg.states):
-      if sbp_msg.msg_type is SBP_MSG_TRACKING_STATE:
-        prn = track_state.sid.prn + 1
-        sid = "GPS/L1 PRN " + str(prn) if track_state.sid.constellation == 0 else "WAAS PRN " + str(prn)
-      else:
-        sid = "PRN" + str(track_state.prn + 1)
-      self.states[channel].update(track_state.state, sid, track_state.cn0)
+    fmt = '<' + n_channels * ('BIf' if sbp_msg.msg_type is SBP_MSG_TRACKING_STATE else 'BBf')
+    state_data = struct.unpack(fmt, sbp_msg.payload)
+    for n, s in enumerate(self.states):
+      s.update(*state_data[3*n:3*(n+1)])
     GUI.invoke_later(self.update_plot)
 
   def update_plot(self):
@@ -109,7 +107,7 @@ class TrackingView(HasTraits):
       if self.states[n].state == 0:
         plot_labels.append('Ch %02d (Disabled)' % n)
       else:
-        plot_labels.append('Ch %02d (%s)' % (n, self.states[n].sid))
+        plot_labels.append('Ch %02d (PRN%02d)' % (n, self.states[n].prn+1))
     plots = dict(zip(plot_labels, self.plots))
     self.plot.legend.plots = plots
 

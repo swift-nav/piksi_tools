@@ -43,7 +43,7 @@ class AcqResults():
     self.max_corr = 0
 
   def _sid_or_prn(self, o):
-    return o.sid.prn if o.msg_type is SBP_MSG_ACQ_RESULT else o.prn
+    return o.sid if o.msg_type is SBP_MSG_ACQ_RESULT else o.prn
 
   def __str__(self):
     tmp = "Last %d acquisitions:\n" % len(self.acqs[-N_PRINT:])
