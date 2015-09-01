@@ -216,7 +216,7 @@ class SwiftConsole(HasTraits):
           Item('', label='Console Log', emphasized=True),
           Spring(),
           UItem('log_level_filter', style='simple', padding=0, height=8, show_label=True,
-                tooltip='Shows log levels up to and including the selected level of severity.'),
+                tooltip='Show log levels up to and including the selected level of severity.\nThe CONSOLE log level is always visible.'),
         ),
         Item(
           'console_output',
