@@ -22,7 +22,7 @@ if ETSConfig.toolkit != 'null':
   from enable.savage.trait_defs.ui.svg_button import SVGButton
 else:
   SVGButton = dict
-from pyface.api import GUI
+from pyface.api import GUI, FileDialog, OK
 
 import math
 import os
@@ -99,6 +99,8 @@ class Setting(SettingBase):
         new is not Undefined):
       if type(self.value) == unicode:
         self.value = self.value.encode('ascii', 'replace')
+      if self.name == "baudrate":
+        print(str(self.name).upper() + " FOR " + str(self.section).upper() + " CHANGED TO " + new)
       self.settings.set(self.section, self.name, self.value)
 
 class EnumSetting(Setting):
@@ -147,23 +149,24 @@ class SimpleAdapter(TabularAdapter):
 class SettingsView(HasTraits):
 
   settings_yaml = list()
+  file_wildcard = "Piksi settings file (*.ini)|*.ini|All files|*.*"
 
-  settings_read_button = SVGButton(
-    label='Reload', tooltip='Reload settings from Piksi',
-    filename=os.path.join(os.path.dirname(__file__), 'images', 'fontawesome', 'refresh.svg'),
-    width=16, height=16
+  settings_save_to_file = SVGButton(
+    label='Save to file', tooltip='Save current device settings to local file',
+    filename=os.path.join(os.path.dirname(__file__), 'images', 'fontawesome', 'download.svg'),
+    width=16, height=24
   )
 
-  settings_save_button = SVGButton(
-    label='Save to Flash', tooltip='Save settings to Flash',
-    filename=os.path.join(os.path.dirname(__file__), 'images', 'fontawesome', 'download.svg'),
-    width=16, height=16
+  settings_load_from_file = SVGButton(
+    label='Load from file', tooltip='Load settings onto Piksi from a saved file',
+    filename=os.path.join(os.path.dirname(__file__), 'images', 'fontawesome', 'upload.svg'),
+    width=16, height=24
   )
 
   factory_default_button = SVGButton(
     label='Reset to Defaults', tooltip='Reset to Factory Defaults',
     filename=os.path.join(os.path.dirname(__file__), 'images', 'fontawesome', 'exclamation-triangle.svg'),
-    width=16, height=16
+    width=16, height=24
   )
 
   settings_list = List(SettingBase)
@@ -182,8 +185,8 @@ class SettingsView(HasTraits):
       ),
       VGroup(
         HGroup(
-          Item('settings_read_button', show_label=False),
-          Item('settings_save_button', show_label=False),
+          Item('settings_load_from_file', show_label=False),
+          Item('settings_save_to_file', show_label=False),
           Item('factory_default_button', show_label=False),
         ),
         Item('selected_setting', style='custom', show_label=False),
@@ -191,14 +194,20 @@ class SettingsView(HasTraits):
     )
   )
 
-  def _settings_read_button_fired(self):
+  def read_all_settings(self):
     self.enumindex = 0
     self.ordering_counter = 0
     self.link(MsgSettingsReadByIndexReq(index=self.enumindex))
 
+<<<<<<< HEAD
+  def _settings_read_button_fired(self):
+    self.read_all_settings()
+
   def _settings_save_button_fired(self):
     self.link(MsgSettingsSave())
 
+=======
+>>>>>>> Keep in sync UI with Flash.
   def _factory_default_button_fired(self):
     confirm_prompt = prompt.CallbackPrompt(
                           title="Reset to Factory Defaults?",
@@ -208,6 +217,40 @@ class SettingsView(HasTraits):
     confirm_prompt.text = "This will erase all settings and then reset the device.\n" \
                         + "Are you sure you want to reset to factory defaults?"
     confirm_prompt.run(block=False)
+
+  def _settings_save_to_file_fired(self):
+    dialog = FileDialog(label='Choose Location to save settings file',
+                        action='save as', wildcard=self.file_wildcard)
+    dialog.open()
+    if dialog.return_code == OK:
+      filepath = os.path.join(dialog.directory, dialog.filename)
+      self.save_settings_to_file(filepath)
+    else:
+      print 'Unable to save file'
+
+  def save_settings_to_file(self, filepath):
+    fio = FileIO(self.link)
+    with open(filepath, 'w') as config_file:
+      blob = fio.read("config")
+      config_file.write(blob)
+
+  def load_settings_from_file(self, filepath):
+    fio = FileIO(self.link)
+    with open(filepath, 'r') as config_file:
+      blob = config_file.read()
+      fio.write("config", blob)
+    self.link.send(SBP_MSG_RESET, '')
+    self.read_all_settings()
+
+  def _settings_load_from_file_fired(self):
+    dialog = FileDialog(label='Choose Location to save settings file',
+                        action='open', wildcard=self.file_wildcard)
+    dialog.open()
+    if dialog.return_code == OK:
+      filepath = os.path.join(dialog.directory, dialog.filename)
+      self.load_settings_from_file(filepath)
+    else:
+      print 'Unable to load file.'
 
   def reset_factory_defaults(self):
     # Delete settings file
@@ -288,10 +331,11 @@ class SettingsView(HasTraits):
     self.link(MsgSettingsReadByIndexReq(index=self.enumindex))
 
   def piksi_startup_callback(self, sbp_msg, **metadata):
-    self._settings_read_button_fired()
+    self.read_all_settings()
 
   def set(self, section, name, value):
     self.link(MsgSettingsWrite(setting='%s\0%s\0%s\0' % (section, name, value)))
+    self.link(MsgSettingsWrite(""))
 
   def cleanup(self):
     """ Remove callbacks from serial link. """
@@ -309,6 +353,7 @@ class SettingsView(HasTraits):
   def __init__(self, link, read_finished_functions=[], name_of_yaml_file="settings.yaml", hide_expert=False, gui_mode=True):
     super(SettingsView, self).__init__()
 
+    self.ordering_counter = 0
     self.hide_expert = hide_expert
     self.gui_mode = gui_mode
     self.enumindex = 0
@@ -328,7 +373,7 @@ class SettingsView(HasTraits):
 
     self.setting_detail = SettingBase()
 
-    self._settings_read_button_fired()
+    self.read_all_settings()
 
     self.python_console_cmds = {
       'settings': self
