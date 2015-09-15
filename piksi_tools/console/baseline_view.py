@@ -157,8 +157,6 @@ class BaselineView(HasTraits):
     dist = np.sqrt(soln.n**2 + soln.e**2 + soln.d**2)
 
     tow = soln.tow * 1e-3
-    if self.nsec is not None:
-      tow += self.nsec * 1e-9
 
     if self.week is not None:
       t = datetime.datetime(1980, 1, 6) + \
