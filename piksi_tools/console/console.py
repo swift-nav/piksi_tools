@@ -241,7 +241,7 @@ class SwiftConsole(HasTraits):
       encoded = sbp_msg.payload.encode('ascii', 'ignore')
       for eachline in reversed(encoded.split('\n')):
         self.console_output.write_level(eachline,
-                                        str_to_log_level(msg.split(':')[0]))
+                                        str_to_log_level(eachline.split(':')[0]))
     except UnicodeDecodeError:
       print "Critical Error encoding the serial stream as ascii."
 
