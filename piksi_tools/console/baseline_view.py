@@ -146,6 +146,10 @@ class BaselineView(HasTraits):
     self.week = MsgGPSTime(sbp_msg).wn
     self.nsec = MsgGPSTime(sbp_msg).ns
 
+  def heading_callback(self, sbp_msg, **metadata):
+    headingMsg = MsgBaselineHeading(sbp_msg)
+    self.heading = headingMsg.heading * 1e-3
+
   def baseline_callback(self, sbp_msg):
     soln = MsgBaselineNED(sbp_msg)
     table = []
@@ -195,6 +199,7 @@ class BaselineView(HasTraits):
     else:
       table.append(('Mode', 'Float'))
     table.append(('IAR Num. Hyps.', self.num_hyps))
+    table.append(('Heading', self.heading))
 
     # Rotate array, deleting oldest entries to maintain
     # no more than N in plot
@@ -252,6 +257,7 @@ class BaselineView(HasTraits):
     self.log_file = None
 
     self.num_hyps = 0
+    self.heading = np.NAN
 
     self.plot_data = ArrayPlotData(n_fixed=[0.0], e_fixed=[0.0], d_fixed=[0.0],
                                    n_float=[0.0], e_float=[0.0], d_float=[0.0],
@@ -330,7 +336,8 @@ class BaselineView(HasTraits):
     self.link.add_callback(self._baseline_callback_ecef, SBP_MSG_BASELINE_ECEF)
     self.link.add_callback(self.iar_state_callback, SBP_MSG_IAR_STATE)
     self.link.add_callback(self.gps_time_callback, SBP_MSG_GPS_TIME)
-
+    self.link.add_callback(self.heading_callback, SBP_MSG_BASELINE_HEADING)
+    
     self.python_console_cmds = {
       'baseline': self
     }
