@@ -19,6 +19,7 @@ from sbp.client         import Handler, Framer
 from sbp.piksi          import *
 from sbp.settings       import *
 from sbp.system         import *
+from sbp.logging        import *
 
 DIAGNOSTICS_FILENAME = "diagnostics.yaml"
 
@@ -48,10 +49,13 @@ class Diagnostics(object):
                            SBP_MSG_BOOTLOADER_HANDSHAKE_DEP_A)
     self.link.add_callback(self._handshake_callback,
                            SBP_MSG_BOOTLOADER_HANDSHAKE_RESP)
+    self.link.add_callback(self._print_callback,
+                           [SBP_MSG_LOG, SBP_MSG_PRINT_DEP])
     # Wait for the heartbeat
     while not self.heartbeat_received:
       time.sleep(0.1)
     # Wait for the settings
+    print "received hearbeat"
     expire = time.time() + 15.0
     self.link(MsgSettingsReadByIndexReq(index=0))
     while not self.settings_received:
@@ -60,6 +64,7 @@ class Diagnostics(object):
         expire = time.time() + 15.0
         self.link(MsgSettingsReadByIndexReq(index=0))
     # Wait for the handshake
+    print "received settings"
     expire = time.time() + 10.0
     self.link(MsgReset())
     while not self.handshake_received:
@@ -67,6 +72,10 @@ class Diagnostics(object):
       if time.time() > expire:
         expire = time.time() + 10.0
         self.link(MsgReset())
+    print "received bootloader handshake"
+
+  def _print_callback(self, msg, **metadata):
+    print msg.text
 
   def _deprecated_handshake_callback(self, sbp_msg, **metadata):
     if len(sbp_msg.payload)==1 and struct.unpack('B', sbp_msg.payload[0]) == 0:
@@ -165,6 +174,7 @@ def main():
       diagnostics = Diagnostics(link).diagnostics
       with open(diagnostics_filename, 'w') as diagnostics_file:
         yaml.dump(diagnostics, diagnostics_file, default_flow_style=False)
+        print "wrote diagnostics file"
 
 if __name__ == "__main__":
   main()
