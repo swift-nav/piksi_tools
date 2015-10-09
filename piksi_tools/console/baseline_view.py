@@ -39,6 +39,9 @@ class BaselineView(HasTraits):
   plot = Instance(Plot)
   plot_data = Instance(ArrayPlotData)
 
+  heading_plot = Instance(Plot)
+  heading_plotdata = Instance(ArrayPlotData)
+
   running = Bool(True)
   zoomall = Bool(False)
   position_centered = Bool(False)
@@ -71,7 +74,7 @@ class BaselineView(HasTraits):
 
   traits_view = View(
     HSplit(
-      Item('table', style = 'readonly', editor = TabularEditor(adapter=SimpleAdapter()), show_label=False, width=0.3),
+      Item('table', style = 'readonly', editor = TabularEditor(adapter=SimpleAdapter()), show_label=False, width=200),
       VGroup(
         HGroup(
           Item('paused_button', show_label=False),
@@ -86,7 +89,14 @@ class BaselineView(HasTraits):
           'plot',
           show_label = False,
           editor = ComponentEditor(bgcolor = (0.8,0.8,0.8)),
-        )
+        ),
+      ),
+      Item(
+        'heading_plot',
+        show_label=False,
+        editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8)),
+        width=500,
+        height=500,
       )
     )
   )
@@ -149,6 +159,17 @@ class BaselineView(HasTraits):
   def heading_callback(self, sbp_msg, **metadata):
     headingMsg = MsgBaselineHeading(sbp_msg)
     self.heading = headingMsg.heading * 1e-3
+
+    headingRadians = np.deg2rad(self.heading)
+    x = np.array([0, np.sin(headingRadians)])
+    y = np.array([0, np.cos(headingRadians)])
+    self.heading_plotdata.set_data('x', x)
+    self.heading_plotdata.set_data('y', y)
+    self.heading_plotdata.set_data('x_opp', -1 * x)
+    self.heading_plotdata.set_data('y_opp', -1 * y)
+    self.heading_plotdata.set_data('x_dot', [x[1]])
+    self.heading_plotdata.set_data('y_dot', [y[1]])
+
 
   def baseline_callback(self, sbp_msg):
     soln = MsgBaselineNED(sbp_msg)
@@ -327,6 +348,28 @@ class BaselineView(HasTraits):
     self.plot.tools.append(PanTool(self.plot))
     zt = ZoomTool(self.plot, zoom_factor=1.1, tool_mode="box", always_on=False)
     self.plot.overlays.append(zt)
+
+    x = [0, 0]
+    y = [0, 1]
+    x_opp = [0, 0]
+    y_opp = [0, -1]
+    self.heading_plotdata = ArrayPlotData(x=x, y=y, x_opp=x_opp, y_opp=y_opp, x_dot=[x[1]], y_dot=[y[1]])
+    self.heading_plot = Plot(self.heading_plotdata)
+    self.heading_plot.plot(('x', 'y'), type='line', color='red', line_width=10)
+    self.heading_plot.plot(('x_opp', 'y_opp'), type='line', color='blue', line_width=10)
+    self.heading_plot.plot(('x_dot', 'y_dot'), type='scatter', color='black', marker_size=6)
+    self.heading_plot.index_axis.tick_visible = False
+    self.heading_plot.value_axis.tick_visible = False
+    self.heading_plot.index_axis.tick_label_formatter = lambda label_in: ''
+    self.heading_plot.value_axis.tick_label_formatter = lambda label_in: ''
+    self.heading_plot.x_grid.visible = False
+    self.heading_plot.y_grid.visible = False
+    self.heading_plot.range2d.x_range.low = -1.5
+    self.heading_plot.range2d.x_range.high = 1.5
+    self.heading_plot.range2d.y_range.low = -1.5
+    self.heading_plot.range2d.y_range.high = 1.5
+    self.heading_plot.title = 'Heading\n  North'
+    self.heading_plot.index_axis.title = 'South'
 
     self.week = None
     self.nsec = 0
