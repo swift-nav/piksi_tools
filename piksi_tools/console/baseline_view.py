@@ -353,11 +353,24 @@ class BaselineView(HasTraits):
     y = [0, 1]
     x_opp = [0, 0]
     y_opp = [0, -1]
-    self.heading_plotdata = ArrayPlotData(x=x, y=y, x_opp=x_opp, y_opp=y_opp, x_dot=[x[1]], y_dot=[y[1]])
+    line1 = [[-1, 1], [0, 0]]
+    line2 = [[0, 0], [-1, 1]]
+    CIRCLE_RADIUS = 0.9
+    x_circle = np.linspace(-CIRCLE_RADIUS, CIRCLE_RADIUS, 100)
+    y_circle_pos = np.sqrt(CIRCLE_RADIUS**2 - np.square(x_circle))
+    y_circle_neg = -1 * y_circle_pos
+    self.heading_plotdata = ArrayPlotData(x=x, y=y, x_opp=x_opp, y_opp=y_opp, x_dot=[x[1]], y_dot=[y[1]],
+                                          x_circle=x_circle, y_circle_pos=y_circle_pos, y_circle_neg=y_circle_neg,
+                                          line10=line1[0], line11=line1[1], line20=line2[0], line21=line2[1])
     self.heading_plot = Plot(self.heading_plotdata)
+    self.heading_plot.plot(('x_circle', 'y_circle_pos'), type='line', color='black')
+    self.heading_plot.plot(('x_circle', 'y_circle_neg'), type='line', color='black')
+    self.heading_plot.plot(('line10', 'line11'), type='line', color='black')
+    self.heading_plot.plot(('line20', 'line21'), type='line', color='black')
+    self.heading_plot.plot(('x', 'y'), type='line', color='black')
     self.heading_plot.plot(('x', 'y'), type='line', color='red', line_width=10)
     self.heading_plot.plot(('x_opp', 'y_opp'), type='line', color='blue', line_width=10)
-    self.heading_plot.plot(('x_dot', 'y_dot'), type='scatter', color='black', marker_size=6)
+    self.heading_plot.plot(('x_dot', 'y_dot'), type='scatter', color='black', marker_size=5)
     self.heading_plot.index_axis.tick_visible = False
     self.heading_plot.value_axis.tick_visible = False
     self.heading_plot.index_axis.tick_label_formatter = lambda label_in: ''
