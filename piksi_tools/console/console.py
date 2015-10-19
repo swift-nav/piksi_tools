@@ -10,22 +10,22 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 import os
-import sys
+import piksi_tools.serial_link as s
+import sbp.client as sbpc
 import signal
+import sys
 
-from piksi_tools import serial_link
-import sbp.client
+from piksi_tools.version import VERSION as CONSOLE_VERSION
+from piksi_tools.serial_link import swriter, get_uuid
 from sbp.logging import *
-from sbp.piksi import SBP_MSG_RESET
+from sbp.piksi import SBP_MSG_RESET, MsgReset
+from sbp.client.drivers.network_drivers import HTTPDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
 from sbp.ext_events import *
 
-from piksi_tools.version import VERSION as CONSOLE_VERSION
-
 # Shut chaco up for now
 import warnings
-
 warnings.simplefilter(action = "ignore", category = FutureWarning)
 
 def get_args():
@@ -36,7 +36,7 @@ def get_args():
   parser = argparse.ArgumentParser(description='Swift Nav Console.')
   parser.add_argument('-p', '--port', nargs=1, default=[None],
                       help='specify the serial port to use.')
-  parser.add_argument('-b', '--baud', nargs=1, default=[serial_link.SERIAL_BAUD],
+  parser.add_argument('-b', '--baud', nargs=1, default=[s.SERIAL_BAUD],
                       help='specify the baud rate to use.')
   parser.add_argument("-v", "--verbose",
                       help="print extra debugging information.",
@@ -45,7 +45,7 @@ def get_args():
                       action="store_true",
                       help="serialize SBP messages to log file.")
   parser.add_argument("-o", "--log-filename",
-                      default=[serial_link.LOG_FILENAME], nargs=1,
+                      default=[s.LOG_FILENAME], nargs=1,
                       help="file to log output to.")
   parser.add_argument("-i", "--initloglevel",
                       default=[None], nargs=1,
@@ -63,12 +63,24 @@ def get_args():
                       help="specify the TraitsUI toolkit to use, either 'wx' or 'qt4'.")
   parser.add_argument('-e', '--expert', action='store_true',
                       help="Show expert settings.")
+  parser.add_argument("-a", "--base", default=[None], nargs=1,
+                      help="Base station URI.")
+  parser.add_argument("-c", "--channel_id",
+                      default=[s.CHANNEL_UUID], nargs=1,
+                      help="Networking channel ID.")
+  parser.add_argument("-s", "--serial_id",
+                      default=[None], nargs=1,
+                      help="Device ID.")
   return parser.parse_args()
 
 args = get_args()
 port = args.port[0]
 baud = args.baud[0]
 log_filename = args.log_filename[0]
+# State for handling a networked base stations.
+channel = args.channel_id[0]
+serial_id = int(args.serial_id[0]) if args.serial_id[0] is not None else None
+base = args.base[0]
 
 # Toolkit
 from traits.etsconfig.api import ETSConfig
@@ -153,8 +165,22 @@ class ConsoleHandler(Handler):
     if info.initialized:
       info.ui.title = CONSOLE_TITLE + ' : ' + info.object.device_serial
 
+
 class SwiftConsole(HasTraits):
-  link = Instance(sbp.client.Handler)
+  """Traits-defined Swift Console.
+
+  link : object
+    Serial driver
+  update : bool
+    Update the firmware
+  log_level_filter : str
+    Syslog string, one of "ERROR", "WARNING", "INFO", "DEBUG".
+  skip_settings : bool
+    Don't read the device settings. Set to False when the console is reading
+    from a network connection only.
+  """
+
+  link = Instance(sbpc.Handler)
   console_output = Instance(OutputList())
   python_console_env = Dict
   device_serial = Str('')
@@ -235,7 +261,6 @@ class SwiftConsole(HasTraits):
     title = CONSOLE_TITLE
   )
 
-
   def print_message_callback(self, sbp_msg, **metadata):
     try:
       encoded = sbp_msg.payload.encode('ascii', 'ignore')
@@ -272,7 +297,7 @@ class SwiftConsole(HasTraits):
   def _clear_button_fired(self):
     self.console_output.clear()
 
-  def __init__(self, link, update, log_level_filter):
+  def __init__(self, link, update, log_level_filter, skip_settings=False):
     self.console_output = OutputList()
     self.console_output.write("Console: starting...")
     sys.stdout = self.console_output
@@ -284,9 +309,7 @@ class SwiftConsole(HasTraits):
       self.link.add_callback(self.print_message_callback, SBP_MSG_PRINT_DEP)
       self.link.add_callback(self.log_message_callback, SBP_MSG_LOG)
       self.link.add_callback(self.ext_event_callback, SBP_MSG_EXT_EVENT)
-
       settings_read_finished_functions = []
-
       self.tracking_view = TrackingView(self.link)
       self.solution_view = SolutionView(self.link)
       self.baseline_view = BaselineView(self.link)
@@ -296,26 +319,22 @@ class SwiftConsole(HasTraits):
                                               name='Base', relay=True)
       self.sbp_relay_view = SbpRelayView(self.link)
       self.system_monitor_view = SystemMonitorView(self.link)
-
       self.update_view = UpdateView(self.link, prompt=update)
       settings_read_finished_functions.append(self.update_view.compare_versions)
-
       # Once we have received the settings, update device_serial with the Piksi
       # serial number which will be displayed in the window title
       def update_serial():
         serial_string = self.settings_view.settings['system_info']['serial_number'].value
         self.device_serial = 'PK%04d' % int(serial_string)
       settings_read_finished_functions.append(update_serial)
-
       self.settings_view = \
-          SettingsView(self.link, settings_read_finished_functions,
-                       hide_expert = not args.expert)
+          SettingsView(self.link,
+                       settings_read_finished_functions,
+                       hide_expert = not args.expert,
+                       skip=skip_settings)
       self.update_view.settings = self.settings_view.settings
-
-      self.python_console_env = {
-          'send_message': self.link,
-          'link': self.link,
-      }
+      self.python_console_env = { 'send_message': self.link,
+                                  'link': self.link, }
       self.python_console_env.update(self.tracking_view.python_console_cmds)
       self.python_console_env.update(self.solution_view.python_console_cmds)
       self.python_console_env.update(self.baseline_view.python_console_cmds)
@@ -328,6 +347,33 @@ class SwiftConsole(HasTraits):
       import traceback
       traceback.print_exc()
 
+# Make sure that SIGINT (i.e. Ctrl-C from command line) actually stops the
+# application event loop (otherwise Qt swallows KeyboardInterrupt exceptions)
+signal.signal(signal.SIGINT, signal.SIG_DFL)
+
+# Passing only a base station argument, we just want to display the
+# base station data in the console. Otherwise, continue, assuming a
+# rover connected to the serial port.
+if port is None and base is None:
+  sys.stderr.write("ERROR: No data source specified!")
+  sys.exit(1)
+if port is None and base:
+  device_id = get_uuid(channel, serial_id)
+  with HTTPDriver(str(device_id)) as http_driver:
+    with sbpc.Handler(sbpc.Framer(http_driver.read, None, args.verbose)) as link:
+      with s.get_logger(args.log, log_filename) as logger:
+        link.add_callback(logger)
+        log_filter = DEFAULT_LOG_LEVEL_FILTER
+        if args.initloglevel[0]:
+          log_filter = args.initloglevel[0]
+        SwiftConsole(link, args.update, log_filter, True).configure_traits()
+  try:
+    os._exit(0)
+  except:
+    pass
+
+# If using a device connected to an actual port, then invoke the
+# regular console dialog for port selection
 class PortChooser(HasTraits):
   ports = List()
   port = Str(None)
@@ -345,7 +391,7 @@ class PortChooser(HasTraits):
 
   def __init__(self):
     try:
-      self.ports = [p for p, _, _ in serial_link.get_ports()]
+      self.ports = [p for p, _, _ in s.get_ports()]
     except TypeError:
       pass
 
@@ -359,22 +405,23 @@ if not port:
   else:
     print "Using serial device '%s'" % port
 
-# Make sure that SIGINT (i.e. Ctrl-C from command line) actually stops the
-# application event loop (otherwise Qt swallows KeyboardInterrupt exceptions)
-signal.signal(signal.SIGINT, signal.SIG_DFL)
-
-with serial_link.get_driver(args.ftdi, port, baud) as driver:
-  with sbp.client.Handler(sbp.client.Framer(driver.read, driver.write, args.verbose)) as link:
-    with serial_link.get_logger(args.log, log_filename) as logger:
-      link.add_callback(logger)
+with s.get_driver(args.ftdi, port, baud) as driver:
+  with sbpc.Handler(sbpc.Framer(driver.read, driver.write, args.verbose)) as link:
+    with s.get_logger(args.log, log_filename) as logger:
       if args.reset:
         link(MsgReset())
-      log_level_filter = DEFAULT_LOG_LEVEL_FILTER
+      link.add_callback(logger)
+      log_filter = DEFAULT_LOG_LEVEL_FILTER
       if args.initloglevel[0]:
-        log_level_filter = args.initloglevel[0]
-      console = SwiftConsole(link, update=args.update, log_level_filter=log_level_filter)
-      console.configure_traits()
-
+        log_filter = args.initloglevel[0]
+      if base:
+        device_id = get_uuid(channel, serial_id)
+        with HTTPDriver(str(device_id)) as http_driver:
+          with sbpc.Handler(sbpc.Framer(http_driver.read, None, args.verbose)) as slink:
+            slink.add_callback(swriter(link))
+            SwiftConsole(link, args.update, log_filter, False).configure_traits()
+      else:
+        SwiftConsole(link, args.update, log_filter, False).configure_traits()
 
 # Force exit, even if threads haven't joined
 try:

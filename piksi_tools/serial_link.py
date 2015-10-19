@@ -16,10 +16,14 @@ setting up and running SBP message handling.
 
 import sys
 import time
+import uuid
+import warnings
 
+from sbp.bootload                       import *
 from sbp.logging                        import *
 from sbp.piksi                          import MsgReset
 from sbp.system                         import SBP_MSG_HEARTBEAT
+from sbp.client.drivers.network_drivers import HTTPDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.pyftdi_driver   import PyFTDIDriver
 from sbp.client.loggers.json_logger     import JSONLogger
@@ -30,6 +34,7 @@ LOG_FILENAME = time.strftime("serial-link-%Y%m%d-%H%M%S.log.json")
 
 SERIAL_PORT  = "/dev/ttyUSB0"
 SERIAL_BAUD  = 1000000
+CHANNEL_UUID = '118db405-b5de-4a05-87b5-605cc85af924'
 
 def get_ports():
   """
@@ -37,7 +42,6 @@ def get_ports():
   """
   import serial.tools.list_ports
   return [p for p in serial.tools.list_ports.comports() if p[1][0:4] != "ttyS"]
-
 
 def base_cl_options():
   import argparse
@@ -72,7 +76,16 @@ def base_cl_options():
   parser.add_argument("-d", "--tags",
                       default=[None], nargs=1,
                       help="tags to decorate logs with.")
+  parser.add_argument("-u", "--base", default=[None], nargs=1,
+                      help="Base station URI.")
+  parser.add_argument("-c", "--channel_id",
+                      default=[CHANNEL_UUID], nargs=1,
+                      help="Networking channel ID.")
+  parser.add_argument("-s", "--serial_id",
+                      default=[None], nargs=1,
+                      help="Device ID.")
   return parser
+
 def get_args():
   """
   Get and parse arguments.
@@ -161,17 +174,92 @@ def log_printer(sbp_msg, **metadata):
   m = MsgLog(sbp_msg)
   print levels[m.level], m.text
 
-def main():
+def swriter(link):
+  """Callback intended for reading out messages from one stream and into
+  a serial link stream.
+
+  Parameters
+  ----------
+  link : file handle
+
+  Returns
+  ----------
+  A callback function taking an SBP message.
+
+  """
+  def scallback(sbp_msg, **metadata):
+    link(sbp_msg)
+  return scallback
+
+def get_uuid(channel, serial_id):
+  """Returns a namespaced UUID based on the piksi serial number and a
+  namespace.
+
+  Parameters
+  ----------
+  channel : str
+    UUID namespace
+  serial_id : int
+    Piksi unique serial number
+
+  Returns
+  ----------
+  UUID4 string, or None on invalid input.
+
+  """
+  if isinstance(channel, str) and isinstance(serial_id, int) and serial_id > 0:
+    return uuid.uuid5(uuid.UUID(channel), str(serial_id))
+  else:
+    return None
+
+def run(args, link):
+  """Returns a namespaced UUID based on the piksi serial number and a
+  namespace.
+
+  Parameters
+  ----------
+  args : str
+    UUID namespace
+  link : int
+    Piksi unique serial number
+
+  """
+  timeout = args.timeout[0]
+  try:
+    if args.timeout[0] is not None:
+      expire = time.time() + float(args.timeout[0])
+    while True:
+      if timeout is None or time.time() < expire:
+      # Wait forever until the user presses Ctrl-C
+        time.sleep(1)
+      else:
+        print "Timer expired!"
+        break
+      if not link.is_alive():
+        sys.stderr.write("ERROR: Thread died!")
+        sys.exit(1)
+  except KeyboardInterrupt:
+    # Callbacks call thread.interrupt_main(), which throw a
+    # KeyboardInterrupt exception. To get the proper error
+    # condition, return exit code of 1. Note that the finally
+    # block does get caught since exit itself throws a
+    # SystemExit exception.
+    sys.exit(1)
+
+def main(args):
   """
   Get configuration, get driver, get logger, and build handler and start it.
   """
-  args = get_args()
   port = args.port[0]
   baud = args.baud[0]
   timeout = args.timeout[0]
   log_filename = args.log_filename[0]
   append_log_filename = args.append_log_filename[0]
   tags = args.tags[0]
+  # State for handling a networked base stations.
+  channel = args.channel_id[0]
+  serial_id = int(args.serial_id[0]) if args.serial_id[0] is not None else None
+  base = args.base[0]
   # Driver with context
   with get_driver(args.ftdi, port, baud) as driver:
     # Handler with context
@@ -183,30 +271,15 @@ def main():
           link.add_callback(log_printer, SBP_MSG_LOG)
           Forwarder(link, logger).start()
           Forwarder(link, append_logger).start()
-          # Reset device
-          if args.reset:
-            link(MsgReset())
-          try:
-            if timeout is not None:
-              expire = time.time() + float(args.timeout[0])
-
-            while True:
-              if timeout is None or time.time() < expire:
-              # Wait forever until the user presses Ctrl-C
-                time.sleep(1)
-              else:
-                print "Timer expired!"
-                break
-              if not link.is_alive():
-                sys.stderr.write("ERROR: Thread died!")
-                sys.exit(1)
-          except KeyboardInterrupt:
-            # Callbacks call thread.interrupt_main(), which throw a KeyboardInterrupt
-            # exception. To get the proper error condition, return exit code
-            # of 1. Note that the finally block does get caught since exit
-            # itself throws a SystemExit exception.
-            sys.exit(1)
+          if base and serial_id:
+            device_id = get_uuid(channel, serial_id)
+            with HTTPDriver(str(device_id)) as http_driver:
+              with Handler(Framer(http_driver.read, None, args.verbose)) as slink:
+                slink.add_callback(swriter(link))
+                run(args, link)
+          elif not serial_id:
+            warnings.warn("Device ID not available, not connecting!")
+          run(args, link)
 
 if __name__ == "__main__":
-  main()
-
+  main(get_args())

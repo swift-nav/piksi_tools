@@ -10,8 +10,8 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 import serial_link
-import time
 import struct
+import time
 import yaml
 
 from sbp.bootload       import *
@@ -138,7 +138,6 @@ def check_diagnostics(diagnostics_filename, version):
     nap_version = details.get('nap_version', None)
     return (firmware_version and nap_version) \
         and (firmware_version == fw and nap_version == nap)
-
 
 def get_args():
   """
