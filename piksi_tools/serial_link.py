@@ -35,6 +35,7 @@ LOG_FILENAME = time.strftime("serial-link-%Y%m%d-%H%M%S.log.json")
 SERIAL_PORT  = "/dev/ttyUSB0"
 SERIAL_BAUD  = 1000000
 CHANNEL_UUID = '118db405-b5de-4a05-87b5-605cc85af924'
+DEFAULT_BASE = "http://broker.testing.skylark.swiftnav.com"
 
 def get_ports():
   """
@@ -76,7 +77,7 @@ def base_cl_options():
   parser.add_argument("-d", "--tags",
                       default=[None], nargs=1,
                       help="tags to decorate logs with.")
-  parser.add_argument("-u", "--base", default=[None], nargs=1,
+  parser.add_argument("-u", "--base", default=[DEFAULT_BASE], nargs=1,
                       help="Base station URI.")
   parser.add_argument("-c", "--channel_id",
                       default=[CHANNEL_UUID], nargs=1,
@@ -84,6 +85,9 @@ def base_cl_options():
   parser.add_argument("-s", "--serial_id",
                       default=[None], nargs=1,
                       help="Device ID.")
+  parser.add_argument("-x", "--broker",
+                      action="store_true",
+                      help="Used brokered SBP data.")
   return parser
 
 def get_args():
@@ -260,6 +264,7 @@ def main(args):
   channel = args.channel_id[0]
   serial_id = int(args.serial_id[0]) if args.serial_id[0] is not None else None
   base = args.base[0]
+  use_broker = args.broker
   # Driver with context
   with get_driver(args.ftdi, port, baud) as driver:
     # Handler with context
@@ -271,14 +276,12 @@ def main(args):
           link.add_callback(log_printer, SBP_MSG_LOG)
           Forwarder(link, logger).start()
           Forwarder(link, append_logger).start()
-          if base and serial_id:
+          if use_broker and base and serial_id:
             device_id = get_uuid(channel, serial_id)
-            with HTTPDriver(str(device_id)) as http_driver:
+            with HTTPDriver(str(device_id), base) as http_driver:
               with Handler(Framer(http_driver.read, None, args.verbose)) as slink:
                 slink.add_callback(swriter(link))
                 run(args, link)
-          elif not serial_id:
-            warnings.warn("Device ID not available, not connecting!")
           run(args, link)
 
 if __name__ == "__main__":
