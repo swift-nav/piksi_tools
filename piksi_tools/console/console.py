@@ -16,7 +16,7 @@ import signal
 import sys
 
 from piksi_tools.version import VERSION as CONSOLE_VERSION
-from piksi_tools.serial_link import swriter, get_uuid
+from piksi_tools.serial_link import swriter, get_uuid, DEFAULT_BASE
 from sbp.logging import *
 from sbp.piksi import SBP_MSG_RESET, MsgReset
 from sbp.client.drivers.network_drivers import HTTPDriver
@@ -63,7 +63,7 @@ def get_args():
                       help="specify the TraitsUI toolkit to use, either 'wx' or 'qt4'.")
   parser.add_argument('-e', '--expert', action='store_true',
                       help="Show expert settings.")
-  parser.add_argument("-a", "--base", default=[None], nargs=1,
+  parser.add_argument("-a", "--base", default=[DEFAULT_BASE], nargs=1,
                       help="Base station URI.")
   parser.add_argument("-c", "--channel_id",
                       default=[s.CHANNEL_UUID], nargs=1,
@@ -71,6 +71,9 @@ def get_args():
   parser.add_argument("-s", "--serial_id",
                       default=[None], nargs=1,
                       help="Device ID.")
+  parser.add_argument("-x", "--broker",
+                      action="store_true",
+                      help="Used brokered SBP data.")
   return parser.parse_args()
 
 args = get_args()
@@ -81,6 +84,7 @@ log_filename = args.log_filename[0]
 channel = args.channel_id[0]
 serial_id = int(args.serial_id[0]) if args.serial_id[0] is not None else None
 base = args.base[0]
+use_broker = args.broker
 
 # Toolkit
 from traits.etsconfig.api import ETSConfig
@@ -357,9 +361,9 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 if port is None and base is None:
   sys.stderr.write("ERROR: No data source specified!")
   sys.exit(1)
-if port is None and base:
+if port is None and base and use_broker:
   device_id = get_uuid(channel, serial_id)
-  with HTTPDriver(str(device_id)) as http_driver:
+  with HTTPDriver(str(device_id), base) as http_driver:
     with sbpc.Handler(sbpc.Framer(http_driver.read, None, args.verbose)) as link:
       with s.get_logger(args.log, log_filename) as logger:
         link.add_callback(logger)
@@ -414,9 +418,9 @@ with s.get_driver(args.ftdi, port, baud) as driver:
       log_filter = DEFAULT_LOG_LEVEL_FILTER
       if args.initloglevel[0]:
         log_filter = args.initloglevel[0]
-      if base:
+      if base and use_broker:
         device_id = get_uuid(channel, serial_id)
-        with HTTPDriver(str(device_id)) as http_driver:
+        with HTTPDriver(str(device_id), base) as http_driver:
           with sbpc.Handler(sbpc.Framer(http_driver.read, None, args.verbose)) as slink:
             slink.add_callback(swriter(link))
             SwiftConsole(link, args.update, log_filter, False).configure_traits()
