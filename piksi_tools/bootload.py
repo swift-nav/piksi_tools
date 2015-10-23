@@ -145,6 +145,9 @@ def get_args():
   parser.add_argument("-b", "--baud",
                       default=[serial_link.SERIAL_BAUD], nargs=1,
                       help="specify the baud rate to use.")
+  parser.add_argument("-q", "--max-queued-ops",
+                      default=[1], nargs=1,
+                      help="Maximum number of queued operations.")
   parser.add_argument("-f", "--ftdi",
                       help="use pylibftdi instead of pyserial.",
                       action="store_true")
@@ -195,7 +198,7 @@ def main():
         try:
           import flash
           with flash.Flash(link, flash_type=("STM" if use_stm else "M25"),
-                           sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
+                           sbp_version=piksi_bootloader.sbp_version, max_queued_ops=args.max_queued_ops[0]) as piksi_flash:
             if erase:
               for s in range(1,12):
                 print "\rErasing STM Sector", s,
