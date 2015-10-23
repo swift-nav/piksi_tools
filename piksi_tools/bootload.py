@@ -205,7 +205,7 @@ def main():
         try:
           import flash
           with flash.Flash(link, flash_type=("STM" if use_stm else "M25"),
-                           sbp_version=piksi_bootloader.sbp_version, max_queued_ops=args.max_queued_ops[0]) as piksi_flash:
+                           sbp_version=piksi_bootloader.sbp_version, max_queued_ops=int(args.max_queued_ops[0])) as piksi_flash:
             if erase:
               for s in range(1,12):
                 print "\rErasing STM Sector", s,
