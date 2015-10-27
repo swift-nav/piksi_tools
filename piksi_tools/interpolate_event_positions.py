@@ -10,6 +10,7 @@ import csv
 def lin_interp(o, n, otow, ntow, ttow):
   """
   Linearly interpolates distance.
+  Interpolation accurate to the mm.
   
   Parameters
   ----------
@@ -30,7 +31,7 @@ def lin_interp(o, n, otow, ntow, ttow):
   return o+(v*(ttow-otow))
 
 
-def write_positions(infile, outfile, msgtype):
+def write_positions(infile, outfile, msgtype, debouncetime):
   """
   Organize and output data to log file.
 
@@ -40,29 +41,31 @@ def write_positions(infile, outfile, msgtype):
     Log file to get data from.
   outfile : string
     Output file.
+  msgtype : string
+    type of parameters to analyze and output
+  debouncetime : integer
+    time in milliseconds to compensate for switch debounce 
   """
 
   with JSONLogIterator(infile) as log:
     log = log.next()
-    lasttow = 0
-    deltalasttrigger = 0
-    positiondesplayed = 1
-    debouncetime = 1000
-    previous_msg = None
+    triggertow = 0 #< TOW of the trigger (used in interpolation function)
+    deltalasttrigger = 0 #< change in time of current trigger TOW to previous
+    dataout = True #< Boolean if interpulation of trigger TOW has happened or not
+    previous_msg = None #< Used to compare change in flag
     fileoutput = open(outfile, 'wt')
     writer = csv.writer(fileoutput)
     if msgtype == 'MsgBaselineNED' :
-      writer.writerow(("TOW (ms)","N (mm)","E (mm)","D (mm)","# of Sats",
-                     "Flags","H Accuracy (mm)","V Accuracy (mm)"))
-    if msgtype == 'MsgPosECEF' :
-      writer.writerow(("TOW (ms)","X (m)","Y (m)","Z (m)","# of Sats",
-                     "Flags","Accuracy (mm)"))
-    if msgtype == 'MsgPosLLH' :
-      writer.writerow(("TOW (ms)","Lat (deg)","Lon (deg)","Height (m)","# of Sats",
-                     "Flags","H Accuracy (mm)","V Accuracy (mm)"))
-    if msgtype == 'MsgBaselineECEF' :
-      writer.writerow(("TOW (ms)","X (mm)","Y (mm)","Z (mm)","# of Sats",
-                     "Flags","Accuracy (mm)")) 
+      indexdata = ("TOW (ms)", "N (mm)", "E (mm)", "D (mm)", 
+                    "H Accuracy (mm)", "V Accuracy (mm)") 
+    elif msgtype == 'MsgPosECEF' :
+      indexdata = ("TOW (ms)", "X (m)", "Y (m)", "Z (m)", "Accuracy (mm)")
+    elif msgtype == 'MsgPosLLH' :
+      indexdata = ("TOW (ms)", "Lat (deg)", "Lon (deg)", "Height (m)",
+                    "H Accuracy (mm)", "V Accuracy (mm)")
+    elif msgtype == 'MsgBaselineECEF' :
+      indexdata = ("TOW (ms)", "X (mm)", "Y (mm)", "Z (mm)", "Accuracy (mm)")
+    writer.writerow(indexdata+("# of Sats", "Flags"))
 
     while True:
       try:
@@ -71,43 +74,43 @@ def write_positions(infile, outfile, msgtype):
         hosttimestamp = metadata['timestamp']
         
         if msg.__class__.__name__ == "MsgExtEvent" :
-          deltalasttrigger = msg.tow - lasttow
+          deltalasttrigger = msg.tow - triggertow
           if deltalasttrigger > debouncetime:
-            lasttow = msg.tow
-            positiondesplayed = 0
+            triggertow = msg.tow
+            dataout = False
 
-        if msg.__class__.__name__ == msgtype and positiondesplayed == 0 :
+        if msg.__class__.__name__ == msgtype and dataout == False :
           if msgtype == "MsgBaselineECEF" or msgtype == "MsgPosECEF" :
             if previous_msg.flags == msg.flags: #< interpolates only if lock type didn't change.
-              trigger_x = lin_interp(previous_msg.x,msg.x,previous_msg.tow,msg.tow,lasttow)
-              trigger_y = lin_interp(previous_msg.y,msg.y,previous_msg.tow,msg.tow,lasttow)
-              trigger_z = lin_interp(previous_msg.z,msg.z,previous_msg.tow,msg.tow,lasttow)
-              writer.writerow((lasttow,trigger_x,trigger_y,trigger_z,previous_msg.n_sats,
-                               msg.flags,previous_msg.accuracy))
+              trigger_x = lin_interp(previous_msg.x, msg.x, previous_msg.tow, msg.tow, triggertow)
+              trigger_y = lin_interp(previous_msg.y, msg.y, previous_msg.tow,msg.tow, triggertow)
+              trigger_z = lin_interp(previous_msg.z, msg.z, previous_msg.tow,msg.tow, triggertow)
+              writer.writerow((triggertow, trigger_x, trigger_y, trigger_z, previous_msg.accuracy,
+                              previous_msg.n_sats, msg.flags))
             else: #< otherwise outputs previous data packet received.
-              writer.writerow((lasttow,previous_msg.x,previous_msg.y,previous_msg.z,previous_msg.n_sats,
-                               msg.flags,previous_msg.accuracy))
-          if msgtype == "MsgBaselineNED" :
+              writer.writerow((triggertow, previous_msg.x, previous_msg.y, previous_msg.z,
+                              previous_msg.accuracy, previous_msg.n_sats, previous_msg.flags))
+          elif msgtype == "MsgBaselineNED" :
             if previous_msg.flags == msg.flags: #< interpolates only if lock type didn't change.
-              trigger_n = lin_interp(previous_msg.n,msg.n,previous_msg.tow,msg.tow,lasttow)
-              trigger_e = lin_interp(previous_msg.e,msg.e,previous_msg.tow,msg.tow,lasttow)
-              trigger_d = lin_interp(previous_msg.d,msg.d,previous_msg.tow,msg.tow,lasttow)
-              writer.writerow((lasttow,trigger_n,trigger_e,trigger_d,previous_msg.n_sats,
-                               msg.flags,previous_msg.h_accuracy,previous_msg.v_accuracy))
+              trigger_n = lin_interp(previous_msg.n, msg.n, previous_msg.tow,msg.tow, triggertow)
+              trigger_e = lin_interp(previous_msg.e, msg.e, previous_msg.tow,msg.tow, triggertow)
+              trigger_d = lin_interp(previous_msg.d, msg.d, previous_msg.tow,msg.tow, triggertow)
+              writer.writerow((triggertow,trigger_n, trigger_e, trigger_d, previous_msg.h_accuracy,
+                                previous_msg.v_accuracy, previous_msg.n_sats, msg.flags))
             else: #< otherwise outputs previous data packet received.
-              writer.writerow((lasttow,previous_msg.n,previous_msg.e,previous_msg.d,previous_msg.n_sats,
-                               msg.flags,previous_msg.h_accuracy,previous_msg.v_accuracy))
-          if msgtype == "MsgPosLLH" :
+              writer.writerow((triggertow, previous_msg.n, previous_msg.e, previous_msg.d, previous_msg.h_accuracy,
+                                previous_msg.v_accuracy, previous_msg.n_sats, previous_msg.flags))
+          elif msgtype == "MsgPosLLH" :
             if previous_msg.flags == msg.flags: #< interpolates only if lock type didn't change.
-              trigger_lat = lin_interp(previous_msg.lat,msg.lat,previous_msg.tow,msg.tow,lasttow)
-              trigger_lon = lin_interp(previous_msg.lon,msg.lon,previous_msg.tow,msg.tow,lasttow)
-              trigger_height = lin_interp(previous_msg.height,msg.height,previous_msg.tow,msg.tow,lasttow)
-              writer.writerow((lasttow,trigger_lat,trigger_lon,trigger_height,previous_msg.n_sats,
-                               msg.flags,previous_msg.h_accuracy,previous_msg.v_accuracy))
+              trigger_lat = lin_interp(previous_msg.lat ,msg.lat, previous_msg.tow, msg.tow, triggertow)
+              trigger_lon = lin_interp(previous_msg.lon ,msg.lon, previous_msg.tow, msg.tow, triggertow)
+              trigger_height = lin_interp(previous_msg.height, msg.height, previous_msg.tow, msg.tow, triggertow)
+              writer.writerow((triggertow, trigger_lat, trigger_lon, trigger_height, previous_msg.h_accuracy,
+                                previous_msg.v_accuracy, previous_msg.n_sats, msg.flags))
             else: #< otherwise outputs previous data packet received.
-              writer.writerow((lasttow,previous_msg.lat,previous_msg.lon,previous_msg.height,previous_msg.n_sats,
-                               msg.flags,previous_msg.h_accuracy,previous_msg.v_accuracy))
-          positiondesplayed = 1
+              writer.writerow((triggertow, previous_msg.lat, previous_msg.lon, previous_msg.height, previous_msg.h_accuracy,
+                                previous_msg.v_accuracy, previous_msg.n_sats, previous_msg.flags))
+          dataout = True
         if msg.__class__.__name__ == msgtype :
           previous_msg = msg
       except StopIteration:
@@ -130,6 +133,9 @@ def get_args():
   parser.add_argument('-t', '--type', nargs=1,
                       default=['MsgBaselineNED'],
                       help='Type of message to interpolate')
+  parser.add_argument('-d', '--debouncetime', type=int ,
+                      default=[1000], nargs=1,
+                      help='specify the debounce time for trigger in ms')
   args = parser.parse_args()
   return args
 
@@ -137,10 +143,8 @@ if __name__ == '__main__':
   args = get_args()
   if args.type[0] == 'MsgBaselineNED' or args.type[0] == 'MsgPosECEF' or args.type[0] == 'MsgPosLLH' or args.type[0] == 'MsgBaselineECEF'  :
     if args.filename[0]:
-      write_positions(args.filename[0], args.outfile[0], args.type[0])
+      write_positions(args.filename[0], args.outfile[0], args.type[0], args.debouncetime[0])
     else :
       print "Please provide a filename argument"
   else :
     print "Incorrect Message Type!!"
-
-
