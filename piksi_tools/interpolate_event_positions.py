@@ -25,6 +25,12 @@ def lin_interp(o, n, otow, ntow, ttow):
   ttow : integer
     TOW of trigger 
   """
+
+  assert otow<ttow<ntow , 'TOW values ERROR' 
+
+  # assert to eliminate big end-point differences
+  assert (ntow-otow)<3000, "Interpolation end-points for Trigger at TOW {0} too far away".format(ttow)
+
   d = float(n-o)
   t = (ntow-otow) 
   v = d/t
@@ -49,10 +55,10 @@ def write_positions(infile, outfile, msgtype, debouncetime):
 
   with JSONLogIterator(infile) as log:
     log = log.next()
-    triggertow = 0 #< TOW of the trigger (used in interpolation function)
-    deltalasttrigger = 0 #< change in time of current trigger TOW to previous
-    dataout = True #< Boolean if interpulation of trigger TOW has happened or not
-    previous_msg = None #< Used to compare change in flag
+    triggertow = 0 # TOW of the trigger (used in interpolation function)
+    deltalasttrigger = 0 # change in time of current trigger TOW to previous
+    dataout = True # Boolean if interpulation of trigger TOW has happened or not
+    previous_msg = None # Used to compare change in flag
     fileoutput = open(outfile, 'wt')
     writer = csv.writer(fileoutput)
     if msgtype == 'MsgBaselineNED' :
@@ -65,7 +71,7 @@ def write_positions(infile, outfile, msgtype, debouncetime):
                     "H Accuracy (mm)", "V Accuracy (mm)")
     elif msgtype == 'MsgBaselineECEF' :
       indexdata = ("TOW (ms)", "X (mm)", "Y (mm)", "Z (mm)", "Accuracy (mm)")
-    writer.writerow(indexdata+("# of Sats", "Flags"))
+    writer.writerow(indexdata + ("# of Sats", "Flags"))
 
     while True:
       try:
@@ -83,8 +89,8 @@ def write_positions(infile, outfile, msgtype, debouncetime):
           if msgtype == "MsgBaselineECEF" or msgtype == "MsgPosECEF" :
             if previous_msg.flags == msg.flags: #< interpolates only if lock type didn't change.
               trigger_x = lin_interp(previous_msg.x, msg.x, previous_msg.tow, msg.tow, triggertow)
-              trigger_y = lin_interp(previous_msg.y, msg.y, previous_msg.tow,msg.tow, triggertow)
-              trigger_z = lin_interp(previous_msg.z, msg.z, previous_msg.tow,msg.tow, triggertow)
+              trigger_y = lin_interp(previous_msg.y, msg.y, previous_msg.tow, msg.tow, triggertow)
+              trigger_z = lin_interp(previous_msg.z, msg.z, previous_msg.tow, msg.tow, triggertow)
               writer.writerow((triggertow, trigger_x, trigger_y, trigger_z, previous_msg.accuracy,
                               previous_msg.n_sats, msg.flags))
             else: #< otherwise outputs previous data packet received.
@@ -92,9 +98,9 @@ def write_positions(infile, outfile, msgtype, debouncetime):
                               previous_msg.accuracy, previous_msg.n_sats, previous_msg.flags))
           elif msgtype == "MsgBaselineNED" :
             if previous_msg.flags == msg.flags: #< interpolates only if lock type didn't change.
-              trigger_n = lin_interp(previous_msg.n, msg.n, previous_msg.tow,msg.tow, triggertow)
-              trigger_e = lin_interp(previous_msg.e, msg.e, previous_msg.tow,msg.tow, triggertow)
-              trigger_d = lin_interp(previous_msg.d, msg.d, previous_msg.tow,msg.tow, triggertow)
+              trigger_n = lin_interp(previous_msg.n, msg.n, previous_msg.tow, msg.tow, triggertow)
+              trigger_e = lin_interp(previous_msg.e, msg.e, previous_msg.tow, msg.tow, triggertow)
+              trigger_d = lin_interp(previous_msg.d, msg.d, previous_msg.tow, msg.tow, triggertow)
               writer.writerow((triggertow,trigger_n, trigger_e, trigger_d, previous_msg.h_accuracy,
                                 previous_msg.v_accuracy, previous_msg.n_sats, msg.flags))
             else: #< otherwise outputs previous data packet received.
@@ -110,8 +116,11 @@ def write_positions(infile, outfile, msgtype, debouncetime):
             else: #< otherwise outputs previous data packet received.
               writer.writerow((triggertow, previous_msg.lat, previous_msg.lon, previous_msg.height, previous_msg.h_accuracy,
                                 previous_msg.v_accuracy, previous_msg.n_sats, previous_msg.flags))
-          dataout = True
-        if msg.__class__.__name__ == msgtype :
+          dataout = True # boolean to make sure next position point doesn't get interpulated before a trigger
+        if msg.__class__.__name__ == msgtype : 
+          """ 
+          stores every message being analyzed so it can be used to interpolate for next trigger.  
+          """
           previous_msg = msg
       except StopIteration:
         print "reached end of file after {0} seconds".format(hostdelta)
