@@ -4,8 +4,24 @@
 
 # Homebrew's default swig 3.x plays poorly with some of our python
 # depenencies, so install brew 2.x if needed.
-- name: HACK - install old version of swig
-  shell: brew install homebrew/versions/swig2
+- name: HACK - Checking out brew formula for swig-2.0.12
+  shell: chdir=/usr/local/ git checkout 89eafbe /usr/local/Library/Formula/swig.rb
+
+- name: HACK - Unlinking swig, in case already installed.
+  shell: chdir=/usr/local/ brew unlink swig 2> /dev/null
+  ignore_errors: yes
+
+- name: HACK - Install brew formula
+  shell: chdir=/usr/local/ brew install swig 2> /dev/null
+
+- name: HACK - Switching to swig 2.0.12
+  shell: chdir=/usr/local/ brew switch swig 2.0.12
+
+- name: HACK - Relinking swig...
+  shell: chdir=/usr/local/ brew unlink swig 2> /dev/null
+
+- name: HACK - Relinking swig...
+  shell: chdir=/usr/local/ brew link swig 2> /dev/null
 
 # http://stackoverflow.com/questions/20325473/error-installing-python-image-library-using-pip-on-mac-os-x-10-9
 - name: HACK - Checking for freetype

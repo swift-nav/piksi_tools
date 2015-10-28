@@ -10,6 +10,3 @@ pytest-cov==1.8.1
 tox==1.8.1
 virtualenv==1.11.6
 intelhex==2.0
-pyserial==2.7
-six
-construct
