@@ -31,13 +31,12 @@
                  pyface==4.4.0
                  wsgiref==0.1.2
                  pyside==1.2.2
-                 pyserial==2.7
                  pylibftdi==0.14.2
                  pyparsing==1.5.7
                  pygments==2.0.2
-                 intelhex==1.5
-                 six
-                 construct
-                 sbp==0.39
-                 --allow-external intelhex
-                 --allow-unverified intelhex
+
+- name: Install requirements.txt
+  sudo: True
+  command: >
+             echo $PWD
+             pip install -r requirements.txt
