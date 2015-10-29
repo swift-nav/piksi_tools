@@ -9,14 +9,13 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-# Hack: Skip TestBootloader class if running in Travis-CI, as we need to
-# be connected to a Piksi over a COM port.
+# Hack: Skip TestBootloader class if running in Travis-CI/pytest locally, as we need to
+# be connected to a Piksi over a COM port. This should be run only as a command-line utility.
+import pytest
+pytest.skip("Skipping TestBootloader, pytest should not run this test.")
+
 import sys
 import os
-if os.environ.get('TRAVIS'):
-  import pytest
-  pytest.skip("Skipping TestBootloader, as we're running in Travis")
-
 import unittest
 import time
 import struct

@@ -42,7 +42,7 @@ Testing
 
 To run the tests and check for coverage::
 
-  $  tox
+  $  PYTHONPATH=. tox
 
 License
 -------
