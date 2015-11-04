@@ -113,9 +113,15 @@ def get_driver(use_ftdi=False, port=SERIAL_PORT, baud=SERIAL_BAUD):
   baud : int
     Serial port baud rate to set.
   """
-  if use_ftdi:
-    return PyFTDIDriver(baud)
-  return PySerialDriver(port, baud)
+  try:
+    if use_ftdi:
+      return PyFTDIDriver(baud)
+    return PySerialDriver(port, baud)
+  # if finding the driver fails we should exit with a return code
+  # currently sbp's py serial driver raises SystemExit, so we trap it
+  # here
+  except SystemExit:
+    sys.exit(1)
 
 def get_logger(use_log=False, filename=LOG_FILENAME):
   """
