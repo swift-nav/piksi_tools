@@ -190,7 +190,7 @@ def main():
           handshake_received = piksi_bootloader.handshake(args.timeout[0])
         except KeyboardInterrupt:
           return
-        if not handshake_received:
+        if not (handshake_received and piksi_bootloader.handshake_received):
           print "No handshake received."
           return 1
         print "received."
