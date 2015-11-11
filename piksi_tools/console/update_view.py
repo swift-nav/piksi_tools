@@ -236,7 +236,7 @@ class UpdateView(HasTraits):
         'stream',
         style='custom',
         editor=InstanceEditor(),
-        show_label=False, 
+        show_label=False,
       ),
     )
   )
@@ -587,15 +587,7 @@ class UpdateView(HasTraits):
     progress_dialog.close()
 
   def manage_nap_firmware_update(self):
-    # Flash NAP if out of date.
-    try:
-      local_nap_version = parse_version(
-          self.settings['system_info']['nap_version'].value)
-      remote_nap_version = parse_version(self.newest_nap_vers)
-      nap_out_of_date = local_nap_version != remote_nap_version
-    except KeyError:
-      nap_out_of_date = True
-    if nap_out_of_date:
+    # Flash NAP
       text = "Updating NAP"
       self._write(text)
       self.create_flash("M25")
@@ -609,11 +601,6 @@ class UpdateView(HasTraits):
       self._write("")
       progress_dialog.close()
       return True
-    else:
-      text = "NAP is already to latest version, not updating!"
-      self._write(text)
-      self._write("")
-      return False
 
   # Executed in GUI thread, called from Handler.
   def manage_firmware_updates(self, device):
