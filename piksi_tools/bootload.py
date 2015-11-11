@@ -148,6 +148,10 @@ def get_args():
   parser.add_argument("-f", "--ftdi",
                       help="use pylibftdi instead of pyserial.",
                       action="store_true")
+  parser.add_argument("-t", "--timeout", nargs=1, type=int,
+                      default=[None], 
+                      help="Specify Timeout for which to wait for handshake.",
+                      )
   args = parser.parse_args()
   if args.stm and args.m25:
     parser.error("Only one of -s or -m options may be chosen")
@@ -183,9 +187,12 @@ def main():
         print "Waiting for bootloader handshake message from Piksi ...",
         sys.stdout.flush()
         try:
-          piksi_bootloader.handshake()
+          handshake_received = piksi_bootloader.handshake(args.timeout[0])
         except KeyboardInterrupt:
           return
+        if not (handshake_received and piksi_bootloader.handshake_received):
+          print "No handshake received."
+          return 1
         print "received."
         print "Piksi Onboard Bootloader Version:", piksi_bootloader.version
         if piksi_bootloader.sbp_version > (0, 0):
