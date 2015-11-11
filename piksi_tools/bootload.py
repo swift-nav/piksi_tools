@@ -192,7 +192,7 @@ def main():
           return
         if not (handshake_received and piksi_bootloader.handshake_received):
           print "No handshake received."
-          return 1
+          sys.exit(1) 
         print "received."
         print "Piksi Onboard Bootloader Version:", piksi_bootloader.version
         if piksi_bootloader.sbp_version > (0, 0):
