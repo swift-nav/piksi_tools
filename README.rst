@@ -7,14 +7,20 @@ Tools for the Piksi GNSS receiver
 .. image:: https://badge.fury.io/py/piksi_tools.png
     :target: https://pypi.python.org/pypi/piksi_tools
 
-Python tools for the Piksi GNSS receiver.
+Python tools for the Piksi GNSS receiver. This repository includes a
+Piksi console UI application, as well as a variety of command line
+utilities (firmware bootloader, serial port data logging, etc.).
 
 Setup
 -----
 
-Install dependencies only::
+Install all dependencies (including console libraries)::
 
-  $ ./setup.sh -x install
+  $ make deps
+
+Install dependencies (without console libraries)::
+
+  $ make serial_deps
 
 Install from repo::
 

@@ -1,8 +1,14 @@
-language: python
-python:
-- 2.7
+sudo: required
+os:
+  - linux
+  - osx
+
+before_install:
+  - make deps
 script:
-- tox
+  - tox
+  - sudo python setup.py install
+
 deploy:
   provider: pypi
   user: mark.fine@gmail.com
