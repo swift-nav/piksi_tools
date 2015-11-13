@@ -90,10 +90,14 @@ class TrackingView(HasTraits):
         self.plots.append(pl)
       print 'Number of tracking channels changed to {0}'.format(n_channels)
 
-    fmt = '<' + n_channels * ('BIf' if sbp_msg.msg_type is SBP_MSG_TRACKING_STATE else 'BBf')
-    state_data = struct.unpack(fmt, sbp_msg.payload)
-    for n, s in enumerate(self.states):
-      s.update(*state_data[3*n:3*(n+1)])
+    for n, k in enumerate(self.states):
+      s = sbp_msg.states[n]
+      if hasattr(s, "prn"):
+        prn = s.prn
+      else:
+        prn = s.sid.sat
+      k.update(s.state, prn, s.cn0)
+
     GUI.invoke_later(self.update_plot)
 
   def update_plot(self):

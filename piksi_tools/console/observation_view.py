@@ -148,10 +148,11 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     # Save this packet
     # See sbp_piksi.h for format
     for o in sbp_msg.obs:
-      try:
-        prn = o.sid
-      except:
+      if hasattr(o, "prn"):
         prn = o.prn
+      else:
+        prn = o.sid.sat
+
       self.obs[prn] = (
         float(o.P) / 1e2,
         float(o.L.i) + float(o.L.f) / (1<<8),
@@ -168,10 +169,11 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     return
 
   def ephemeris_callback(self, m, **metadata):
-    try:
+    if hasattr(m, "prn"):
       prn = m.prn
-    except:
-      prn = m.sid
+    else:
+      prn = m.sid.sat
+
     if self.recording:
       if self.eph_file is None:
         self.eph_file = open(self.name+self.t.strftime("-%Y%m%d-%H%M%S.eph"),  'w')
