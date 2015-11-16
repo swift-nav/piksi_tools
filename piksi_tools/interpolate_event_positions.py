@@ -25,8 +25,11 @@ def lin_interp(o, n, otow, ntow, ttow):
   ttow : integer
     TOW of trigger 
   """
+  #print "o ",otow
+  #print "t ",ttow
+  #print "n ",ntow
 
-  assert otow<ttow<ntow , 'TOW values ERROR' 
+  #assert otow<ttow<ntow , 'TOW values ERROR' 
 
   # assert to eliminate big end-point differences
   assert (ntow-otow)<3000, "Interpolation end-points for Trigger at TOW {0} too far away".format(ttow)
@@ -82,11 +85,15 @@ def write_positions(infile, outfile, msgtype, debouncetime):
         if msg.__class__.__name__ == "MsgExtEvent" :
           deltalasttrigger = msg.tow - triggertow
           if deltalasttrigger > debouncetime:
+            #print previous_msg.tow
+            #print "trigger", msg.tow , "Flag",msg.flags
             triggertow = msg.tow
             dataout = False
 
         if msg.__class__.__name__ == msgtype and dataout == False :
-          if msgtype == "MsgBaselineECEF" or msgtype == "MsgPosECEF" :
+          if (abs(triggertow - previous_msg.tow))/1000 >200 :
+            writer.writerow(("RollOver ERROR!!",""))
+          elif msgtype == "MsgBaselineECEF" or msgtype == "MsgPosECEF" :
             if previous_msg.flags == msg.flags: #< interpolates only if lock type didn't change.
               trigger_x = lin_interp(previous_msg.x, msg.x, previous_msg.tow, msg.tow, triggertow)
               trigger_y = lin_interp(previous_msg.y, msg.y, previous_msg.tow, msg.tow, triggertow)
@@ -116,12 +123,16 @@ def write_positions(infile, outfile, msgtype, debouncetime):
             else: #< otherwise outputs previous data packet received.
               writer.writerow((triggertow, previous_msg.lat, previous_msg.lon, previous_msg.height, previous_msg.h_accuracy,
                                 previous_msg.v_accuracy, previous_msg.n_sats, previous_msg.flags))
+          #print msg.tow    
           dataout = True # boolean to make sure next position point doesn't get interpulated before a trigger
         if msg.__class__.__name__ == msgtype : 
           """ 
           stores every message being analyzed so it can be used to interpolate for next trigger.  
           """
+          #print "msgtow ",msg.tow
           previous_msg = msg
+        if msg.__class__.__name__=="MsgBaselineECEF":
+          print msg
       except StopIteration:
         print "reached end of file after {0} seconds".format(hostdelta)
         fileoutput.close()
