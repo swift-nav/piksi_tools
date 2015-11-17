@@ -631,7 +631,7 @@
   type: integer
   units:
   default value: 0
-  enumerated possible values: 
+  enumerated possible values:
   Description: Output raw I/Q correlations
   Notes: Bitmask of channel IDs (not PRNs)
 
@@ -661,7 +661,7 @@
   name: loop_params
   expert: true
   type: string
-  units: 
+  units:
   default value: '(1 ms, (1, 0.7, 1, 1540), (10, 0.7, 1, 5)), (5 ms, (1, 0.7, 1, 1540), (50, 0.7, 1, 0))'
   Description: Tracking loop filter parameters
   Notes: "'<LOOP_PARAMS_STAGE1>[, <LOOP_PARAMS_STAGE2>]'
@@ -744,4 +744,13 @@
   units: Ticks
   default value: '10'
   Description: Number of ticks between GPGLL NMEA messages being sent.
+  Notes:
+
+- group: pps
+  name: width
+  type: integer
+  units: microseconds
+  default value: '200000'
+  enumerated possible values:
+  Description: Number of microseconds the PPS will remain high (1-999999).
   Notes:
