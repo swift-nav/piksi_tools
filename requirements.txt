@@ -18,4 +18,4 @@ pygments==2.0.2
 requests
 six
 construct
-sbp==0.51.2
+sbp==0.51.3

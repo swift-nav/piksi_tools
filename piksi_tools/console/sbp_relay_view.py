@@ -12,15 +12,13 @@
 from traits.api import HasTraits, String, Button, Instance, Int, Bool, \
                        on_trait_change, Enum
 from traitsui.api import View, Item, VGroup, UItem, HGroup, TextEditor, spring
-from sbp.observation import SBP_MSG_OBS, SBP_MSG_BASE_POS, SBP_MSG_OBS_DEP_A
+from sbp.observation import SBP_MSG_OBS, SBP_MSG_BASE_POS
 from sbp.client.loggers.udp_logger import UdpLogger
 
 DEFAULT_UDP_ADDRESS = "127.0.0.1"
 DEFAULT_UDP_PORT = 13320
 
-OBS_MSGS = [SBP_MSG_OBS,
-            SBP_MSG_BASE_POS,
-            SBP_MSG_OBS_DEP_A]
+OBS_MSGS = [SBP_MSG_OBS, SBP_MSG_BASE_POS,]
 
 class MyTextEditor(TextEditor):
   """
@@ -128,4 +126,3 @@ class SbpRelayView(HasTraits):
     except:
       import traceback
       print traceback.format_exc()
-
