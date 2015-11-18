@@ -48,7 +48,7 @@ def main():
         #ser.write(data)
   except KeyboardInterrupt:
    pass 
-  if ser.isopen()
+  if ser.isopen():
     ser.close()
 if __name__ == "__main__":
   main()
