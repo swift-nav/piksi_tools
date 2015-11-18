@@ -145,7 +145,7 @@ class DropSatsState(TestState):
       for channel, track_state in enumerate(msg.states):
         try:
           # MsgTrackingState
-          prn = track_state.sid + 1
+          prn = track_state.sid.sat + 1
         except AttributeError:
           # MsgTrackingStateDepA
           prn = track_state.prn + 1

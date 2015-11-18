@@ -144,19 +144,13 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
 
     else:
       self.prev_obs_count = count
-
     # Save this packet
     # See sbp_piksi.h for format
     for o in sbp_msg.obs:
-      try:
-        prn = o.sid
-      except:
-        prn = o.prn
-      self.obs[prn] = (
-        float(o.P) / 1e2,
-        float(o.L.i) + float(o.L.f) / (1<<8),
-        float(o.cn0) / 4)
-
+      prn = o.sid.sat
+      self.obs[prn] = (float(o.P) / 1e2,
+                       float(o.L.i) + float(o.L.f) / (1<<8),
+                       float(o.cn0) / 4)
     if (count == total - 1):
       self.t = datetime.datetime(1980, 1, 6) + \
                datetime.timedelta(weeks=self.gps_week) + \
@@ -168,10 +162,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     return
 
   def ephemeris_callback(self, m, **metadata):
-    try:
-      prn = m.prn
-    except:
-      prn = m.sid
+    prn = m.sid.sat
     if self.recording:
       if self.eph_file is None:
         self.eph_file = open(self.name+self.t.strftime("-%Y%m%d-%H%M%S.eph"),  'w')
@@ -203,25 +194,14 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
 
   def __init__(self, link, name='Rover', relay=False):
     super(ObservationView, self).__init__()
-
     self.obs_count = 0
-
     self.gps_tow  = 0.0
     self.gps_week = 0
-
     self.relay = relay
     self.name  = name
-
     self.rinex_file = None
     self.eph_file   = None
-
     self.link = link
-    self.link.add_callback(self.obs_packed_callback, [SBP_MSG_OBS,
-                                                      SBP_MSG_OBS_DEP_A])
-    self.link.add_callback(self.ephemeris_callback, [SBP_MSG_EPHEMERIS,
-                                                     SBP_MSG_EPHEMERIS_DEP_A,
-                                                     SBP_MSG_EPHEMERIS_DEP_B])
-
-    self.python_console_cmds = {
-      'obs': self
-    }
+    self.link.add_callback(self.obs_packed_callback, SBP_MSG_OBS)
+    self.link.add_callback(self.ephemeris_callback, SBP_MSG_EPHEMERIS)
+    self.python_console_cmds = {'obs': self}

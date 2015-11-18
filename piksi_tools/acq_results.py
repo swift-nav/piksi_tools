@@ -42,13 +42,10 @@ class AcqResults():
     self.link.add_callback(self._receive_acq_result, [SBP_MSG_ACQ_RESULT, SBP_MSG_ACQ_RESULT_DEP_A])
     self.max_corr = 0
 
-  def _sid_or_prn(self, o):
-    return o.sid if o.msg_type is SBP_MSG_ACQ_RESULT else o.prn
-
   def __str__(self):
     tmp = "Last %d acquisitions:\n" % len(self.acqs[-N_PRINT:])
     for a in self.acqs[-N_PRINT:]:
-      tmp += "PRN %2d, SNR: %3.2f\n" % (self._sid_or_prn(a), a.snr)
+      tmp += "PRN %2d, SNR: %3.2f\n" % (a.sid.sat, a.snr)
     tmp += "Max SNR         : %3.2f\n" % (self.max_snr())
     tmp += "Mean of max SNRs: %3.2f\n" % (self.mean_max_snrs(SNR_THRESHOLD))
     return tmp
@@ -64,8 +61,8 @@ class AcqResults():
   def mean_max_snrs(self, snr_threshold):
     snrs = []
     # Get the max SNR for each PRN.
-    for prn in set([self._sid_or_prn(a) for a in self.acqs]):
-      acqs_prn = filter(lambda x: self._sid_or_prn(x) == prn, self.acqs)
+    for prn in set([a.sid.sat for a in self.acqs]):
+      acqs_prn = filter(lambda x: x.sid.sat == prn, self.acqs)
       acqs_prn_max_snr = max([a.snr for a in acqs_prn])
       if acqs_prn_max_snr >= snr_threshold:
         snrs += [max([a.snr for a in acqs_prn])]
