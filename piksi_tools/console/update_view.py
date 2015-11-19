@@ -236,7 +236,7 @@ class UpdateView(HasTraits):
         'stream',
         style='custom',
         editor=InstanceEditor(),
-        show_label=False, 
+        show_label=False,
       ),
     )
   )
@@ -260,6 +260,7 @@ class UpdateView(HasTraits):
 
     }
     self.update_dl = None
+    self.erase_en = True
     self.stm_fw = IntelHexFileDialog('STM')
     self.stm_fw.on_trait_change(self._manage_enables, 'status')
     self.nap_fw = IntelHexFileDialog('M25')
@@ -274,8 +275,10 @@ class UpdateView(HasTraits):
       self.update_nap_en = False
       self.update_en = False
       self.download_fw_en = False
+      self.erase_en = False
     else:
       self.download_fw_en = True
+      self.erase_en = True
       if self.stm_fw.ihx is not None:
         self.update_stm_en = True
       else:
@@ -288,10 +291,6 @@ class UpdateView(HasTraits):
         self.update_en = False
       if self.nap_fw.ihx is not None and self.stm_fw.ihx is not None:
         self.update_en = True
-    if self.updating == True:
-      self.erase_en = False
-    else:
-      self.erase_en = True
 
   def _updating_changed(self):
     """ Handles self.updating trait being changed. """
@@ -586,7 +585,7 @@ class UpdateView(HasTraits):
     self._write("")
     progress_dialog.close()
 
-  def manage_nap_firmware_update(self):
+  def manage_nap_firmware_update(self, check_version=False):
     # Flash NAP if out of date.
     try:
       local_nap_version = parse_version(
@@ -595,7 +594,7 @@ class UpdateView(HasTraits):
       nap_out_of_date = local_nap_version != remote_nap_version
     except KeyError:
       nap_out_of_date = True
-    if nap_out_of_date:
+    if nap_out_of_date or check_version==False:
       text = "Updating NAP"
       self._write(text)
       self.create_flash("M25")
@@ -631,7 +630,7 @@ class UpdateView(HasTraits):
       update_nap = self.manage_nap_firmware_update()
     else:
       self.manage_stm_firmware_update()
-      update_nap = self.manage_nap_firmware_update()
+      update_nap = self.manage_nap_firmware_update(check_version=True)
 
     # Must tell Piksi to jump to application after updating firmware.
     if device == "STM" or update_nap:
