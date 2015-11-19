@@ -410,8 +410,8 @@
   units:
   default value: False
   enumerated possible values: True,False
-  Description: Enables SBP heading output.  Heading is caculated from base station to
-  rover and represents the inverse tangent of the north and east components of the baseline.
+  Description: Enables SBP heading output.  Heading is caculated from base station to 
+    rover and represents the inverse tangent of the north and east components of the baseline.
   Notes: No smoothing or additional processing is provided to improve heading output.
 
 - group: system_info
