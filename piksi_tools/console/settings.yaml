@@ -568,7 +568,7 @@
   name: baudrate
   type: integer
   units: baud
-  default value: '115200'
+  default value: '57600'
   enumerated possible values:
   Description: The baudrate for the UART
   Notes: The radio baudrate may be constrained by the particular RF equipment used
