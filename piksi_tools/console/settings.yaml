@@ -403,6 +403,17 @@
   Description: Receiver Autonomous Integrity Monitoring
   Notes: If True, RAIM checks will not be performed.
 
+- group: solution
+  name: enable_heading
+  type: boolean
+  expert: true
+  units:
+  default value: False
+  enumerated possible values: True,False
+  Description: Enables SBP heading output.  Heading is caculated from base station to
+  rover and represents the inverse tangent of the north and east components of the baseline.
+  Notes: No smoothing or additional processing is provided to improve heading output.
+
 - group: system_info
   name: serial_number
   type: integer
