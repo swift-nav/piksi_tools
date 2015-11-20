@@ -141,8 +141,9 @@ class SystemMonitorView(HasTraits):
         self.threads, key=lambda x: x[1].cpu, reverse=True)]
 
   def heartbeat_callback(self, sbp_msg, **metadata):
-    self.update_threads()
-    self.threads = []
+    if self.threads != []: 
+      self.update_threads()
+      self.threads = []
 
   def thread_state_callback(self, sbp_msg, **metadata):
     if sbp_msg.name == '':

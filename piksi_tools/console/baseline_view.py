@@ -126,10 +126,6 @@ class BaselineView(HasTraits):
     self.plot_data.set_data('cur_float_e', [])
     self.plot_data.set_data('cur_float_d', [])
 
-  def _baseline_callback_ecef(self, data, **metadata):
-    #Don't do anything for ECEF currently
-    return
-
   def iar_state_callback(self, sbp_msg, **metadata):
     self.num_hyps = sbp_msg.num_hyps
 
@@ -327,7 +323,6 @@ class BaselineView(HasTraits):
 
     self.link = link
     self.link.add_callback(self._baseline_callback_ned, SBP_MSG_BASELINE_NED)
-    self.link.add_callback(self._baseline_callback_ecef, SBP_MSG_BASELINE_ECEF)
     self.link.add_callback(self.iar_state_callback, SBP_MSG_IAR_STATE)
     self.link.add_callback(self.gps_time_callback, SBP_MSG_GPS_TIME)
 
