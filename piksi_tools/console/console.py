@@ -396,16 +396,21 @@ class PortChooser(HasTraits):
     title = 'Select serial device',
   )
 
-  def __init__(self):
+  def __init__(self, ports):
     try:
-      self.ports = [p for p, _, _ in s.get_ports()]
+      self.ports = ports
     except TypeError:
       pass
 
 if not port:
-  port_chooser = PortChooser()
-  is_ok = port_chooser.configure_traits()
-  port = port_chooser.port
+  ports = [p for p, _, _ in s.get_ports()]
+  if len(ports) == 1:
+    port = ports[0]
+    is_ok = True
+  else:
+    port_chooser = PortChooser(ports)
+    is_ok = port_chooser.configure_traits()
+    port = port_chooser.port
   if not port or not is_ok:
     print "No serial device selected!"
     sys.exit(1)
