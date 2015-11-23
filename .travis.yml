@@ -5,9 +5,11 @@ os:
 
 before_install:
   - make deps
+
 script:
   - tox
   - sudo python setup.py install
+  - make build_console
 
 deploy:
   provider: pypi

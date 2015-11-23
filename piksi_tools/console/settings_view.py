@@ -30,7 +30,7 @@ import numpy as np
 import datetime
 
 from piksi_tools.fileio import FileIO
-import callback_prompt as prompt
+import piksi_tools.console.callback_prompt as prompt
 
 from sbp.piksi      import *
 from sbp.settings   import *

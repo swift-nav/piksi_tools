@@ -16,7 +16,7 @@ from chaco.tools.api import ZoomTool, PanTool
 from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.api import GUI
-from utils import plot_square_axes
+from piksi_tools.console.utils import plot_square_axes
 
 import math
 import os
