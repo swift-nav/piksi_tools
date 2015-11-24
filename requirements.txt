@@ -16,6 +16,7 @@ pylibftdi==0.14.2
 pyparsing==1.5.7
 pygments==2.0.2
 requests
+kiwisolver
 six
 construct
 sbp==0.51.5
