@@ -1,5 +1,5 @@
-numpy==1.9.0
-cython==0.21
+numpy>=1.9.0,<=1.9.3
+cython>=0.21,<=0.23
 distribute==0.7.3
 cov-core==1.15.0
 pytest==2.6.4
