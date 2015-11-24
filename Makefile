@@ -54,4 +54,8 @@ build_console_Darwin: build_console_posix
 build_console_Linux: build_console_posix
 
 build_console_Windows:
-	@echo "Alas! Makefile setup for console building not supported on Windoze!"
+	cd $(SWIFTNAV_ROOT)/piksi_tools/console/pyinstaller; \
+	make clean && make; \
+	cd $(SWIFTNAV_ROOT);
+	@echo
+	@echo "Finished! Please check $(SWIFTNAV_ROOT)/piksi_tools/console/pyinstaller."
