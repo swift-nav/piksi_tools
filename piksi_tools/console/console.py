@@ -15,14 +15,15 @@ import sbp.client as sbpc
 import signal
 import sys
 
-from piksi_tools.version import VERSION as CONSOLE_VERSION
+from piksi_tools.console.deprecated import DeprecatedMessageHandler
 from piksi_tools.serial_link import swriter, get_uuid, DEFAULT_BASE
+from piksi_tools.version import VERSION as CONSOLE_VERSION
+from sbp.client.drivers.network_drivers import HTTPDriver
+from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
+from sbp.client.drivers.pyserial_driver import PySerialDriver
+from sbp.ext_events import *
 from sbp.logging import *
 from sbp.piksi import SBP_MSG_RESET, MsgReset
-from sbp.client.drivers.network_drivers import HTTPDriver
-from sbp.client.drivers.pyserial_driver import PySerialDriver
-from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
-from sbp.ext_events import *
 
 # Shut chaco up for now
 import warnings
@@ -97,7 +98,7 @@ else:
 # Logging
 import logging
 logging.basicConfig()
-from output_list import OutputList, LogItem, str_to_log_level, SYSLOG_LEVELS, DEFAULT_LOG_LEVEL_FILTER
+from piksi_tools.console.output_list import OutputList, LogItem, str_to_log_level, SYSLOG_LEVELS, DEFAULT_LOG_LEVEL_FILTER
 from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List, Enum
 from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
                          InstanceEditor, EnumEditor, ShellEditor, Handler, Spring, \
@@ -139,15 +140,15 @@ else:
     basedir = os.path.dirname(__file__)
 icon = ImageResource('icon', search_path=['images', os.path.join(basedir, 'images')])
 
-from output_stream import OutputStream
-from tracking_view import TrackingView
-from solution_view import SolutionView
-from baseline_view import BaselineView
-from observation_view import ObservationView
-from sbp_relay_view import SbpRelayView
-from system_monitor_view import SystemMonitorView
-from settings_view import SettingsView
-from update_view import UpdateView
+from piksi_tools.console.output_stream import OutputStream
+from piksi_tools.console.tracking_view import TrackingView
+from piksi_tools.console.solution_view import SolutionView
+from piksi_tools.console.baseline_view import BaselineView
+from piksi_tools.console.observation_view import ObservationView
+from piksi_tools.console.sbp_relay_view import SbpRelayView
+from piksi_tools.console.system_monitor_view import SystemMonitorView
+from piksi_tools.console.settings_view import SettingsView
+from piksi_tools.console.update_view import UpdateView
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 
 CONSOLE_TITLE = 'Piksi Console, Version: ' + CONSOLE_VERSION
@@ -160,6 +161,7 @@ class ConsoleHandler(Handler):
   This Handler is used by Traits UI to manage making changes to the GUI in
   response to changes in the underlying class/data.
   """
+
   def object_device_serial_changed(self, info):
     """
     Update the window title with the device serial number.
@@ -314,6 +316,7 @@ class SwiftConsole(HasTraits):
       self.link.add_callback(self.print_message_callback, SBP_MSG_PRINT_DEP)
       self.link.add_callback(self.log_message_callback, SBP_MSG_LOG)
       self.link.add_callback(self.ext_event_callback, SBP_MSG_EXT_EVENT)
+      self.dep_handler = DeprecatedMessageHandler(link)
       settings_read_finished_functions = []
       self.tracking_view = TrackingView(self.link)
       self.solution_view = SolutionView(self.link)

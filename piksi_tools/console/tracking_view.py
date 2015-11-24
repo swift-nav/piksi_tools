@@ -9,23 +9,17 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from traits.api import Str, Instance, Dict, HasTraits, Array, Float, Bool, on_trait_change, List, Int
-from traitsui.api import Item, View, HGroup, ArrayEditor, HSplit
-
-from chaco.api import BarPlot, ArrayDataSource, DataRange1D, LinearMapper, OverlayPlotContainer, LabelAxis, PlotAxis, ArrayPlotData, Plot, Legend
+from chaco.api import BarPlot, ArrayDataSource, DataRange1D, LinearMapper, \
+  OverlayPlotContainer, LabelAxis, PlotAxis, ArrayPlotData, Plot, Legend
 from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor, Component
-
 from pyface.api import GUI
-
+from sbp.tracking import SBP_MSG_TRACKING_STATE
+from traits.api import Str, Instance, Dict, HasTraits, Array, Float, Bool, on_trait_change, List, Int
+from traitsui.api import Item, View, HGroup, ArrayEditor, HSplit
+import numpy as np
 import struct
 
-import numpy as np
-
-from sbp.tracking import *
-
-TRACKING_STATE_BYTES_PER_CHANNEL_DEP_A = 6
-TRACKING_STATE_BYTES_PER_CHANNEL = 9
 NUM_POINTS = 200
 
 colours_list = [
@@ -75,8 +69,7 @@ class TrackingView(HasTraits):
   )
 
   def tracking_state_callback(self, sbp_msg, **metadata):
-    channel_size = TRACKING_STATE_BYTES_PER_CHANNEL if sbp_msg.msg_type is SBP_MSG_TRACKING_STATE else TRACKING_STATE_BYTES_PER_CHANNEL_DEP_A
-    n_channels = len(sbp_msg.payload) / channel_size
+    n_channels = len(sbp_msg.states)
     if n_channels != self.n_channels:
       # Update number of channels
       self.n_channels = n_channels
@@ -112,9 +105,7 @@ class TrackingView(HasTraits):
 
   def __init__(self, link):
     super(TrackingView, self).__init__()
-
     self.n_channels = None
-
     self.plot_data = ArrayPlotData(t=[0.0])
     self.plot = Plot(self.plot_data, auto_colors=colours_list, emphasized=True)
     self.plot.title = 'Tracking C/N0'
@@ -128,15 +119,11 @@ class TrackingView(HasTraits):
     self.plot.value_axis.title = 'dB-Hz'
     t = range(NUM_POINTS)
     self.plot_data.set_data('t', t)
-
     self.plot.legend.visible = True
     self.plot.legend.align = 'ul'
     self.plot.legend.tools.append(LegendTool(self.plot.legend, drag_button="right"))
-
     self.link = link
-    self.link.add_callback(self.tracking_state_callback, [SBP_MSG_TRACKING_STATE,
-                                                          SBP_MSG_TRACKING_STATE_DEP_A])
-
+    self.link.add_callback(self.tracking_state_callback, SBP_MSG_TRACKING_STATE)
     self.python_console_cmds = {
       'track': self
     }

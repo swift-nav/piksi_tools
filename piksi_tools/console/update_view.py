@@ -26,7 +26,7 @@ from pyface.api import GUI, FileDialog, OK, ProgressDialog
 from piksi_tools.version import VERSION as CONSOLE_VERSION
 from piksi_tools import bootload
 from piksi_tools import flash
-import callback_prompt as prompt
+import piksi_tools.console.callback_prompt as prompt
 from update_downloader import UpdateDownloader
 from output_stream import OutputStream
 

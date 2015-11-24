@@ -39,7 +39,7 @@ class AcqResults():
   def __init__(self, link):
     self.acqs = []
     self.link = link
-    self.link.add_callback(self._receive_acq_result, [SBP_MSG_ACQ_RESULT, SBP_MSG_ACQ_RESULT_DEP_A])
+    self.link.add_callback(self._receive_acq_result, SBP_MSG_ACQ_RESULT)
     self.max_corr = 0
 
   def __str__(self):
@@ -74,7 +74,7 @@ class AcqResults():
   def _receive_acq_result(self, sbp_msg, **metadata):
     while N_RECORD > 0 and len(self.acqs) >= N_RECORD:
       self.acqs.pop(0)
-    self.acqs.append(MsgAcqResult(sbp_msg) if sbp_msg.msg_type is SBP_MSG_ACQ_RESULT else MsgAcqResultDepA(sbp_msg))
+    self.acqs.append(MsgAcqResult(sbp_msg))
 
   def _receive_acq_result_dep_a(self, sbp_msg, **metadata):
     while N_RECORD > 0 and len(self.acqs) >= N_RECORD:
