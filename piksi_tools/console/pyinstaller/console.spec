@@ -45,7 +45,7 @@ resources = [
   ('settings.yaml', '../settings.yaml', 'DATA'),
   ('RELEASE-VERSION', '../../RELEASE-VERSION', 'DATA'),
 ]
-resources += Tree('../images', prefix='images')
+resources += Tree('../images', prefix='piksi_tools/console/images')
 
 import sys, os
 

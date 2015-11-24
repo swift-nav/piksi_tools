@@ -31,6 +31,7 @@ import datetime
 
 from piksi_tools.fileio import FileIO
 import piksi_tools.console.callback_prompt as prompt
+from piksi_tools.console.utils import determine_path
 
 from sbp.piksi      import *
 from sbp.settings   import *
@@ -165,15 +166,15 @@ class SettingsView(HasTraits):
   settings_yaml = list()
   settings_read_button = SVGButton(
     label='Reload', tooltip='Reload settings from Piksi',
-    filename=os.path.join(os.path.dirname(__file__), 'images', 'fontawesome', 'refresh.svg'),
+    filename=os.path.join(determine_path(), 'images', 'fontawesome', 'refresh.svg'),
     width=16, height=16)
   settings_save_button = SVGButton(
     label='Save to Flash', tooltip='Save settings to Flash',
-    filename=os.path.join(os.path.dirname(__file__), 'images', 'fontawesome', 'download.svg'),
+    filename=os.path.join(determine_path(), 'images', 'fontawesome', 'download.svg'),
     width=16, height=16)
   factory_default_button = SVGButton(
     label='Reset to Defaults', tooltip='Reset to Factory Defaults',
-    filename=os.path.join(os.path.dirname(__file__), 'images', 'fontawesome', 'exclamation-triangle.svg'),
+    filename=os.path.join(determine_path(), 'images', 'fontawesome', 'exclamation-triangle.svg'),
     width=16, height=16)
   settings_list = List(SettingBase)
   selected_setting = Instance(SettingBase)

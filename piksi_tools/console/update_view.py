@@ -27,6 +27,8 @@ from piksi_tools.version import VERSION as CONSOLE_VERSION
 from piksi_tools import bootload
 from piksi_tools import flash
 import piksi_tools.console.callback_prompt as prompt
+from piksi_tools.console.utils import determine_path
+
 from update_downloader import UpdateDownloader
 from output_stream import OutputStream
 
@@ -38,7 +40,7 @@ if getattr(sys, 'frozen', False):
     os.chdir(basedir)
 else:
     # we are running in a normal Python environment
-    basedir = os.path.dirname(__file__)
+    basedir = determine_path()
 icon = ImageResource('icon',
          search_path=['images', os.path.join(basedir, 'images')])
 

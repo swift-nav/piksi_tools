@@ -17,6 +17,7 @@ from chaco.tools.api import ZoomTool, PanTool
 from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.api import GUI
+from piksi_tools.console.utils import determine_path
 
 import math
 import os
@@ -41,8 +42,8 @@ class ObservationView(HasTraits):
   record_button = SVGButton(
     label='Record', tooltip='Record Raw Observations',
     toggle_tooltip='Stop Recording', toggle=True,
-    filename=os.path.join(os.path.dirname(__file__), 'images', 'fontawesome', 'floppy-o.svg'),
-    toggle_filename=os.path.join(os.path.dirname(__file__), 'images', 'fontawesome', 'stop.svg'),
+    filename=os.path.join(determine_path(), 'images', 'fontawesome', 'floppy-o.svg'),
+    toggle_filename=os.path.join(determine_path(), 'images', 'fontawesome', 'stop.svg'),
     width=16, height=16
   )
 

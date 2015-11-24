@@ -12,17 +12,8 @@
 import yaml
 import pprint
 import sys
+from piksi_tools.console.utils import determine_path
 import os
-
-def determine_path ():
-    """Borrowed from wxglade.py"""
-    try:
-        root = __file__
-        if os.path.islink (root):
-            root = os.path.realpath (root)
-        return os.path.dirname (os.path.abspath (root))
-    except:
-        print "There is no __file__ variable. Please contact the author."
 
 class SettingsList():
   list_of_dicts = list()

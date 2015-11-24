@@ -16,7 +16,7 @@ from chaco.tools.api import ZoomTool, PanTool
 from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.api import GUI
-from piksi_tools.console.utils import plot_square_axes
+from piksi_tools.console.utils import plot_square_axes, determine_path
 
 import math
 import os
@@ -45,23 +45,23 @@ class BaselineView(HasTraits):
 
   clear_button = SVGButton(
     label='', tooltip='Clear',
-    filename=os.path.join(os.path.dirname(__file__), 'images', 'iconic', 'x.svg'),
+    filename=os.path.join(determine_path(), 'images', 'iconic', 'x.svg'),
     width=16, height=16
   )
   zoomall_button = SVGButton(
     label='', tooltip='Zoom All', toggle=True,
-    filename=os.path.join(os.path.dirname(__file__), 'images', 'iconic', 'fullscreen.svg'),
+    filename=os.path.join(determine_path(), 'images', 'iconic', 'fullscreen.svg'),
     width=16, height=16
   )
   center_button = SVGButton(
     label='', tooltip='Center on Baseline', toggle=True,
-    filename=os.path.join(os.path.dirname(__file__), 'images', 'iconic', 'target.svg'),
+    filename=os.path.join(determine_path(), 'images', 'iconic', 'target.svg'),
     width=16, height=16
   )
   paused_button = SVGButton(
     label='', tooltip='Pause', toggle_tooltip='Run', toggle=True,
-    filename=os.path.join(os.path.dirname(__file__), 'images', 'iconic', 'pause.svg'),
-    toggle_filename=os.path.join(os.path.dirname(__file__), 'images', 'iconic', 'play.svg'),
+    filename=os.path.join(determine_path(), 'images', 'iconic', 'pause.svg'),
+    toggle_filename=os.path.join(determine_path(), 'images', 'iconic', 'play.svg'),
     width=16, height=16
   )
 
