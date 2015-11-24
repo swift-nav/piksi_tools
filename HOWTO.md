@@ -11,7 +11,13 @@ please feel free to update it to mirror reality.
 
 We build and distribute binary releases of the console for OS X and
 Windows. pyinstaller does not cross-compile binaries, so you'll have
-to build the binary on the target system. The steps are roughly:
+to build the binary on the target system. There is no bootstrapping 
+script for windows installation of the tools and its dependencies.
+You will need to install NSIS for creating the setup executable,
+Cygwin for bash shell scripting ablility, and the Python(X,Y) distribution 
+with the ETS and PySerial Module extras for Python and console dependencies. 
+
+The steps to build the console are roughly:
 
 ```shell
 # Check out the repository and the current release tag
