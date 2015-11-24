@@ -24,6 +24,7 @@ import datetime
 
 from sbp.piksi  import SBP_MSG_THREAD_STATE, SBP_MSG_UART_STATE, MsgReset
 from sbp.system import SBP_MSG_HEARTBEAT
+from piksi_tools.console.utils import determine_path
 
 class SimpleAdapter(TabularAdapter):
     columns = [('Thread Name', 0), ('CPU %',  1), ('Stack Free',  2)]
@@ -63,7 +64,7 @@ class SystemMonitorView(HasTraits):
 
   piksi_reset_button = SVGButton(
     label='Reset Piksi', tooltip='Reset Piksi',
-    filename=os.path.join(os.path.dirname(__file__), 'images', 'fontawesome', 'power27.svg'),
+    filename=os.path.join(determine_path(), 'images', 'fontawesome', 'power27.svg'),
     width=16, height=16, aligment='center'
    )
 
@@ -141,7 +142,7 @@ class SystemMonitorView(HasTraits):
         self.threads, key=lambda x: x[1].cpu, reverse=True)]
 
   def heartbeat_callback(self, sbp_msg, **metadata):
-    if self.threads != []: 
+    if self.threads != []:
       self.update_threads()
       self.threads = []
 

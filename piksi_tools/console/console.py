@@ -18,6 +18,7 @@ import sys
 from piksi_tools.console.deprecated import DeprecatedMessageHandler
 from piksi_tools.serial_link import swriter, get_uuid, DEFAULT_BASE
 from piksi_tools.version import VERSION as CONSOLE_VERSION
+from piksi_tools.console.utils import determine_path
 from sbp.client.drivers.network_drivers import HTTPDriver
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
@@ -99,6 +100,7 @@ else:
 import logging
 logging.basicConfig()
 from piksi_tools.console.output_list import OutputList, LogItem, str_to_log_level, SYSLOG_LEVELS, DEFAULT_LOG_LEVEL_FILTER
+from piksi_tools.console.utils import determine_path
 from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List, Enum
 from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
                          InstanceEditor, EnumEditor, ShellEditor, Handler, Spring, \
@@ -131,13 +133,7 @@ if ETSConfig.toolkit == 'qt4':
   import pyface.ui.qt4.python_shell
 from pyface.image_resource import ImageResource
 
-if getattr(sys, 'frozen', False):
-    # we are running in a |PyInstaller| bundle
-    basedir = sys._MEIPASS
-    os.chdir(basedir)
-else:
-    # we are running in a normal Python environment
-    basedir = os.path.dirname(__file__)
+basedir = determine_path()
 icon = ImageResource('icon', search_path=['images', os.path.join(basedir, 'images')])
 
 from piksi_tools.console.output_stream import OutputStream
@@ -206,13 +202,13 @@ class SwiftConsole(HasTraits):
 
   paused_button = SVGButton(
     label='', tooltip='Pause console update', toggle_tooltip='Resume console update', toggle=True,
-    filename=os.path.join(os.path.dirname(__file__), 'images', 'iconic', 'pause.svg'),
-    toggle_filename=os.path.join(os.path.dirname(__file__), 'images', 'iconic', 'play.svg'),
+    filename=os.path.join(determine_path(), 'images', 'iconic', 'pause.svg'),
+    toggle_filename=os.path.join(determine_path(), 'images', 'iconic', 'play.svg'),
     width=8, height=8
   )
   clear_button = SVGButton(
     label='', tooltip='Clear console buffer',
-    filename=os.path.join(os.path.dirname(__file__), 'images', 'iconic', 'x.svg'),
+    filename=os.path.join(determine_path(), 'images', 'iconic', 'x.svg'),
     width=8, height=8
   )
 
