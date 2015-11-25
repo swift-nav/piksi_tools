@@ -164,7 +164,7 @@
   name: obs_msg_max_size
   type: integer
   units: bytes
-  default value: '104'
+  default value: '102'
   enumerated possible values:
   Description: Determines the maximum message length for raw observation sbp messages.
   Notes: This parameter is useful for tuning observation messages for compatibility
