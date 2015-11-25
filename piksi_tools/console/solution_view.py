@@ -156,8 +156,6 @@ class SolutionView(HasTraits):
       self.log_file = open(time.strftime("position_log_%Y%m%d-%H%M%S.csv"), 'w')
       self.log_file.write("time,latitude(degrees),longitude(degrees),altitude(meters),n_sats,flags\n")
     tow = soln.tow * 1e-3
-    if self.nsec is not None:
-      tow += self.nsec * 1e-9
 
     if self.week is not None:
       t = datetime.datetime(1980, 1, 6) + \
@@ -261,8 +259,6 @@ class SolutionView(HasTraits):
       self.vel_log_file.write('time,north(m/s),east(m/s),down(m/s),speed(m/s),num_sats\n')
 
     tow = vel_ned.tow * 1e-3
-    if self.nsec is not None:
-      tow += self.nsec * 1e-9
 
     if self.week is not None:
       t = datetime.datetime(1980, 1, 6) + \
