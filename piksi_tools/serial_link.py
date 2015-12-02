@@ -22,6 +22,10 @@ import warnings
 
 from sbp.bootload                       import *
 from sbp.logging                        import *
+from sbp.navigation import SBP_MSG_POS_ECEF, SBP_MSG_POS_LLH, SBP_MSG_BASELINE_ECEF, \
+  SBP_MSG_BASELINE_NED, SBP_MSG_GPS_TIME
+from sbp.observation import SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_EPHEMERIS, \
+  SBP_MSG_EPHEMERIS_DEP_A, SBP_MSG_EPHEMERIS_DEP_B
 from sbp.piksi                          import MsgReset
 from sbp.system                         import SBP_MSG_HEARTBEAT
 from sbp.client.drivers.network_drivers import HTTPDriver
@@ -30,6 +34,7 @@ from sbp.client.drivers.pyftdi_driver   import PyFTDIDriver
 from sbp.client.loggers.json_logger     import JSONLogger
 from sbp.client.loggers.null_logger     import NullLogger
 from sbp.client                         import Handler, Framer, Forwarder
+
 
 LOG_FILENAME = time.strftime("serial-link-%Y%m%d-%H%M%S.log.json")
 
@@ -258,6 +263,15 @@ def run(args, link):
     # SystemExit exception.
     sys.exit(1)
 
+# The default whitelist of messages for the Piksi to publish
+DEFAULT_WHITELIST = [SBP_MSG_OBS,
+                     SBP_MSG_EPHEMERIS,
+                     SBP_MSG_POS_ECEF,
+                     SBP_MSG_POS_LLH,
+                     SBP_MSG_GPS_TIME,
+                     SBP_MSG_BASELINE_ECEF,
+                     SBP_MSG_BASELINE_NED]
+
 def main(args):
   """
   Get configuration, get driver, get logger, and build handler and start it.
@@ -290,9 +304,9 @@ def main(args):
           Forwarder(link, append_logger).start()
           if use_broker and base and serial_id:
             device_id = get_uuid(channel, serial_id)
-            with HTTPDriver(str(device_id), base) as http_driver:
-              with Handler(Framer(http_driver.read, None, args.verbose)) as slink:
-                slink.add_callback(swriter(link))
+            with HTTPDriver(str(device_id), base) as http:
+              with Handler(Framer(http.read, http.write, args.verbose)) as slink:
+                Forwarder(slink, swriter(link)).start()
                 run(args, link)
           run(args, link)
 
