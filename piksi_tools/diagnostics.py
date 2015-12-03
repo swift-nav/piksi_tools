@@ -56,9 +56,10 @@ class Diagnostics(object):
     while not self.heartbeat_received:
       time.sleep(0.1)
       if timeout is not None and time.time() > timeout:
+        print "timeout waiting for heartbeat"
         return
     # Wait for the settings
-    print "received hearbeat"
+    print "received heartbeat"
     expire = time.time() + 15.0
     self.link(MsgSettingsReadByIndexReq(index=0))
     while not self.settings_received:
@@ -67,6 +68,7 @@ class Diagnostics(object):
         expire = time.time() + 15.0
         self.link(MsgSettingsReadByIndexReq(index=0))
       if timeout is not None and time.time() > timeout:
+        print "timeout waiting for settings"
         return
 
     # Wait for the handshake
@@ -79,6 +81,7 @@ class Diagnostics(object):
         expire = time.time() + 10.0
         self.link(MsgReset())
       if timeout is not None and time.time() > timeout:
+        print "timeout waiting for handshake"
         return
     print "received bootloader handshake"
 
