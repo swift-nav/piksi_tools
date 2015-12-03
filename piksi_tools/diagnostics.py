@@ -29,7 +29,7 @@ class Diagnostics(object):
 
   The :class:`Diagnostics` class collects devices diagnostics.
   """
-  def __init__(self, link):
+  def __init__(self, link, timeout=None):
     self.diagnostics = {}
     self.diagnostics['versions'] = {}
     self.diagnostics['settings'] = {}
@@ -51,9 +51,12 @@ class Diagnostics(object):
                            SBP_MSG_BOOTLOADER_HANDSHAKE_RESP)
     self.link.add_callback(self._print_callback,
                            [SBP_MSG_LOG, SBP_MSG_PRINT_DEP])
+    timeout = time.time() + timeout if timeout is not None else None
     # Wait for the heartbeat
     while not self.heartbeat_received:
       time.sleep(0.1)
+      if timeout is not None and time.time() > timeout:
+        return
     # Wait for the settings
     print "received hearbeat"
     expire = time.time() + 15.0
@@ -63,6 +66,9 @@ class Diagnostics(object):
       if time.time() > expire:
         expire = time.time() + 15.0
         self.link(MsgSettingsReadByIndexReq(index=0))
+      if timeout is not None and time.time() > timeout:
+        return
+
     # Wait for the handshake
     print "received settings"
     expire = time.time() + 10.0
@@ -72,6 +78,8 @@ class Diagnostics(object):
       if time.time() > expire:
         expire = time.time() + 10.0
         self.link(MsgReset())
+      if timeout is not None and time.time() > timeout:
+        return
     print "received bootloader handshake"
 
   def _print_callback(self, msg, **metadata):
