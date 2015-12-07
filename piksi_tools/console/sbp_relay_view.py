@@ -206,7 +206,12 @@ class SbpRelayView(HasTraits):
       time.sleep(0.1)
       i += 1
       if i >= repeats:
-        self._prompt_networking_error("\nUnable to receive observations!")
+        msg = ("\nUnable to receive observations from Skylark!\n\n"
+               "Please check that:\n"
+               " - you have a network connection\n"
+               " - your Piksi has a single-point position\n"
+               " - a Skylark-connected Piksi receiver \n   is nearby (within 10km)")
+        self._prompt_networking_error(msg)
         self.http.read_close()
         return
     print "Connected as a rover!"
@@ -235,10 +240,7 @@ class SbpRelayView(HasTraits):
       _passive = self.hide_observations_from_other_receivers
       if not self.http.connect_write(self.link, self.whitelist, passive=_passive):
         msg = ("\nUnable to connect to Skylark!\n\n"
-               "Please check that:\n"
-               " - you have a network connection\n"
-               " - your Piksi has a single-point position\n"
-               " - a Skylark-connected Piksi receiver \n   is nearby (within 10km)")
+               "Please check that you have a network connection.")
         self._prompt_networking_error(msg)
         self.http.close()
         self.connected_rover = False
