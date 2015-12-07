@@ -210,7 +210,7 @@ class SbpRelayView(HasTraits):
                "Please check that:\n"
                " - you have a network connection\n"
                " - your Piksi has a single-point position\n"
-               " - a Skylark-connected Piksi receiver \n   is nearby (within 10km)")
+               " - a Skylark-connected Piksi receiver \n   is nearby (within 5km)")
         self._prompt_networking_error(msg)
         self.http.read_close()
         return
