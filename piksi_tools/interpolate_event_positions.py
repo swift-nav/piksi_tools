@@ -49,6 +49,22 @@ def fix_trigger_rollover(message_type,msg_tow, numofmsg):
     itt+=1
   return
 
+def fix_trigger_debounce(message_type, msg_tow, numofmsg, debouncetime):
+  # replaces all trigger debouncws with TOW value 0 
+  prev_trigger_tow = 0
+  itt=0
+  while itt<numofmsg:
+    if (msg_tow[itt]- prev_trigger_tow)<debouncetime and message_type[itt]=="MsgExtEvent":
+      msg_tow[itt]=0
+    elif message_type[itt]=="MsgExtEvent" :
+      prev_trigger_tow = msg_tow[itt]
+
+    itt += 1
+  return
+
+
+
+
 def write_positions(infile, outfile, msgtype, debouncetime):
   """
   Organize and output data to log file.
@@ -117,7 +133,7 @@ def write_positions(infile, outfile, msgtype, debouncetime):
       except StopIteration:
         print "reached end of file after {0} seconds".format(hostdelta)
         fix_trigger_rollover(message_type, msg_tow, numofmsg)
-        print msg_tow
+        fix_trigger_debounce(message_type, msg_tow, numofmsg, debouncetime)
         return 
     
 
