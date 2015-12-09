@@ -7,7 +7,7 @@ from sbp.client.loggers.json_logger import JSONLogIterator
 from sbp.ext_events import SBP_MSG_EXT_EVENT
 import csv
 
-def lin_interp(o, n, otow, ntow, ttow):
+def lin_interp(oldpos, newpos, oldtow, newtow, triggertow):
   """
   Linearly interpolates distance.
   Interpolation accurate to the mm.
@@ -18,26 +18,25 @@ def lin_interp(o, n, otow, ntow, ttow):
     distance previous to trigger
   n : integer
     distance prior to trigger
-  otow : integer
+  oldtow : integer
     TOW of data packet previous to trigger
-  ntow : integer
+  newtow : integer
     TOW of data packet after trigger
-  ttow : integer
+  triggertow : integer
     TOW of trigger 
   """
-  #print "o ",otow
-  #print "t ",ttow
-  #print "n ",ntow
+  #Warning for not logical TOW values 
+  if not(oldtow<triggertow<newtow) :
+    print 'TOW values ERROR at {0}'.format(triggertow)
 
-  #assert otow<ttow<ntow , 'TOW values ERROR' 
+  #Warning for big end-point differences
+  if (newtow- oldtow)>3000 :
+    print "Interpolation end-points for Trigger at TOW {0} too far away".format(triggertow)
 
-  # assert to eliminate big end-point differences
-  assert (ntow-otow)<3000, "Interpolation end-points for Trigger at TOW {0} too far away".format(ttow)
-
-  d = float(n-o)
-  t = (ntow-otow) 
+  d = float(newpos-oldpos)
+  t = (newtow-oldtow) 
   v = d/t
-  return o+(v*(ttow-otow))
+  return oldpos+(v*(triggertow-oldtow))
 
 
 def write_positions(infile, outfile, msgtype, debouncetime):
@@ -58,85 +57,59 @@ def write_positions(infile, outfile, msgtype, debouncetime):
 
   with JSONLogIterator(infile) as log:
     log = log.next()
-    triggertow = 0 # TOW of the trigger (used in interpolation function)
-    deltalasttrigger = 0 # change in time of current trigger TOW to previous
-    dataout = True # Boolean if interpulation of trigger TOW has happened or not
-    previous_msg = None # Used to compare change in flag
-    fileoutput = open(outfile, 'wt')
-    writer = csv.writer(fileoutput)
-    if msgtype == 'MsgBaselineNED' :
-      indexdata = ("TOW (ms)", "N (mm)", "E (mm)", "D (mm)", 
-                    "H Accuracy (mm)", "V Accuracy (mm)") 
-    elif msgtype == 'MsgPosECEF' :
-      indexdata = ("TOW (ms)", "X (m)", "Y (m)", "Z (m)", "Accuracy (mm)")
-    elif msgtype == 'MsgPosLLH' :
-      indexdata = ("TOW (ms)", "Lat (deg)", "Lon (deg)", "Height (m)",
-                    "H Accuracy (mm)", "V Accuracy (mm)")
-    elif msgtype == 'MsgBaselineECEF' :
-      indexdata = ("TOW (ms)", "X (mm)", "Y (mm)", "Z (mm)", "Accuracy (mm)")
-    writer.writerow(indexdata + ("# of Sats", "Flags"))
+    
+    #declaring all lists 
+    message_type=[]
+    msg_tow=[]
+    msg_horizontal=[]
+    msg_vertical=[]
+    msg_depth=[]
+    msg_sats=[]
+    msg_flag=[]
+    numofmsg=0;
+
+
 
     while True:
       try:
         msg, metadata = log.next()
         hostdelta = metadata['delta']
         hosttimestamp = metadata['timestamp']
-        
-        if msg.__class__.__name__ == "MsgExtEvent" :
-          deltalasttrigger = msg.tow - triggertow
-          if deltalasttrigger > debouncetime:
-            #print previous_msg.tow
-            #print "trigger", msg.tow , "Flag",msg.flags
-            triggertow = msg.tow
-            dataout = False
+        valid_msg=["MsgBaselineECEF","MsgPosECEF","MsgBaselineNED","MsgPosLLH","MsgExtEvent"]
+        #collect all data in lists
+        if msg.__class__.__name__ in valid_msg :
+          message_type.append(msg.__class__.__name__)
+          msg_tow.append(msg.tow)
+          msg_flag.append(msg.flags)
+          if msg.__class__.__name__== "MsgBaselineECEF" or msg.__class__.__name__== "MsgPosECEF" :
+            msg_horizontal.append(msg.x)
+            msg_vertical.append(msg.y)
+            msg_depth.append(msg.z)
+            msg_sats.append(msg.n_sats)
+          elif msg.__class__.__name__== "MsgBaselineNED":
+            msg_horizontal.append(msg.n)
+            msg_vertical.append(msg.e)
+            msg_depth.append(msg.d)
+            msg_sats.append(msg.n_sats)
+          elif msg.__class__.__name__== "MsgPosLLH":
+            msg_horizontal.append(msg.lat)
+            msg_vertical.append(msg.lon)
+            msg_depth.append(msg.height)
+            msg_sats.append(msg.n_sats)
+          elif msg.__class__.__name__ == "MsgExtEvent":
+            print msg.tow
+            msg_horizontal.append("0")
+            msg_vertical.append("0")
+            msg_depth.append("0")
+            msg_sats.append("0")
+          numofmsg+=1
 
-        if msg.__class__.__name__ == msgtype and dataout == False :
-          if (abs(triggertow - previous_msg.tow))/1000 >200 :
-            writer.writerow(("RollOver ERROR!!",""))
-          elif msgtype == "MsgBaselineECEF" or msgtype == "MsgPosECEF" :
-            if previous_msg.flags == msg.flags: #< interpolates only if lock type didn't change.
-              trigger_x = lin_interp(previous_msg.x, msg.x, previous_msg.tow, msg.tow, triggertow)
-              trigger_y = lin_interp(previous_msg.y, msg.y, previous_msg.tow, msg.tow, triggertow)
-              trigger_z = lin_interp(previous_msg.z, msg.z, previous_msg.tow, msg.tow, triggertow)
-              writer.writerow((triggertow, trigger_x, trigger_y, trigger_z, previous_msg.accuracy,
-                              previous_msg.n_sats, msg.flags))
-            else: #< otherwise outputs previous data packet received.
-              writer.writerow((triggertow, previous_msg.x, previous_msg.y, previous_msg.z,
-                              previous_msg.accuracy, previous_msg.n_sats, previous_msg.flags))
-          elif msgtype == "MsgBaselineNED" :
-            if previous_msg.flags == msg.flags: #< interpolates only if lock type didn't change.
-              trigger_n = lin_interp(previous_msg.n, msg.n, previous_msg.tow, msg.tow, triggertow)
-              trigger_e = lin_interp(previous_msg.e, msg.e, previous_msg.tow, msg.tow, triggertow)
-              trigger_d = lin_interp(previous_msg.d, msg.d, previous_msg.tow, msg.tow, triggertow)
-              writer.writerow((triggertow,trigger_n, trigger_e, trigger_d, previous_msg.h_accuracy,
-                                previous_msg.v_accuracy, previous_msg.n_sats, msg.flags))
-            else: #< otherwise outputs previous data packet received.
-              writer.writerow((triggertow, previous_msg.n, previous_msg.e, previous_msg.d, previous_msg.h_accuracy,
-                                previous_msg.v_accuracy, previous_msg.n_sats, previous_msg.flags))
-          elif msgtype == "MsgPosLLH" :
-            if previous_msg.flags == msg.flags: #< interpolates only if lock type didn't change.
-              trigger_lat = lin_interp(previous_msg.lat ,msg.lat, previous_msg.tow, msg.tow, triggertow)
-              trigger_lon = lin_interp(previous_msg.lon ,msg.lon, previous_msg.tow, msg.tow, triggertow)
-              trigger_height = lin_interp(previous_msg.height, msg.height, previous_msg.tow, msg.tow, triggertow)
-              writer.writerow((triggertow, trigger_lat, trigger_lon, trigger_height, previous_msg.h_accuracy,
-                                previous_msg.v_accuracy, previous_msg.n_sats, msg.flags))
-            else: #< otherwise outputs previous data packet received.
-              writer.writerow((triggertow, previous_msg.lat, previous_msg.lon, previous_msg.height, previous_msg.h_accuracy,
-                                previous_msg.v_accuracy, previous_msg.n_sats, previous_msg.flags))
-          #print msg.tow    
-          dataout = True # boolean to make sure next position point doesn't get interpulated before a trigger
-        if msg.__class__.__name__ == msgtype : 
-          """ 
-          stores every message being analyzed so it can be used to interpolate for next trigger.  
-          """
-          #print "msgtow ",msg.tow
-          previous_msg = msg
-        if msg.__class__.__name__=="MsgBaselineECEF":
-          print msg
       except StopIteration:
         print "reached end of file after {0} seconds".format(hostdelta)
-        fileoutput.close()
-        return
+        organize_trigger(message_type, msg_tow, numofmsg)
+        print msg_tow
+        return 
+    
 
 def get_args():
   """
