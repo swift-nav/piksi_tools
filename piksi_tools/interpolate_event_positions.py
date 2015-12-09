@@ -38,6 +38,16 @@ def lin_interp(oldpos, newpos, oldtow, newtow, triggertow):
   v = d/t
   return oldpos+(v*(triggertow-oldtow))
 
+def fix_trigger_rollover(message_type,msg_tow, numofmsg):
+  # fix all roll-overs 
+  pre_tow = msg_tow[0]
+  itt=1
+  while itt<numofmsg :
+    if (pre_tow- msg_tow[itt]) > 261000 and (pre_tow- msg_tow[itt]) < 263000 and message_type[itt] == "MsgExtEvent":
+      msg_tow[itt] +=  ((1/16368000.0 * 2**32) * 1000)
+    pre_tow=msg_tow[itt]
+    itt+=1
+  return
 
 def write_positions(infile, outfile, msgtype, debouncetime):
   """
@@ -106,7 +116,7 @@ def write_positions(infile, outfile, msgtype, debouncetime):
 
       except StopIteration:
         print "reached end of file after {0} seconds".format(hostdelta)
-        organize_trigger(message_type, msg_tow, numofmsg)
+        fix_trigger_rollover(message_type, msg_tow, numofmsg)
         print msg_tow
         return 
     
