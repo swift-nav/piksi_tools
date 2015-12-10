@@ -105,6 +105,7 @@ def get_trigger_positions(message_type,msg_tow,msgout,numofmsg, msg_horizontal, 
       left_d= get_position_parameter(message_type,msg_tow,msg_depth, left, numofmsg, msgout)
       right_d= get_position_parameter(message_type,msg_tow,msg_depth, right, numofmsg, msgout)
 
+
       # interpolate trigger position
       msg_horizontal[itt]=lin_interp(left_h, right_h, left, right, msg_tow[itt])
       msg_vertical[itt]=lin_interp(left_v, right_v, left, right, msg_tow[itt])
@@ -112,6 +113,23 @@ def get_trigger_positions(message_type,msg_tow,msgout,numofmsg, msg_horizontal, 
     itt+=1
   return 
 
+def display_data(message_type,msg_tow,msg_horizontal,msg_vertical,msg_depth,msgtype,outfile, numofmsg,msg_flag):
+  fout= open(outfile,'wt')
+  writer = csv.writer(fout)
+  if msgtype == 'MsgBaselineNED' :
+    indexdata = ("TOW (ms)", "N (mm)", "E (mm)", "D (mm)")
+  elif msgtype == 'MsgPosECEF' or msgtype == 'MsgBaselineECEF' :
+    indexdata = ("TOW (ms)", "X (m)", "Y (m)", "Z (m)")
+  elif msgtype == 'MsgPosLLH' :
+    indexdata = ("TOW (ms)", "Lat (deg)", "Lon (deg)", "Height (m)")
+  writer.writerow(indexdata + ("# of Sats", "Flags"))
+
+  itt=0
+  while itt<numofmsg:
+    if message_type[itt]=="MsgExtEvent" and msg_tow[itt] > 0 :
+      writer.writerow((msg_tow[itt],msg_horizontal[itt],msg_vertical[itt],msg_depth[itt],"0",msg_flag[itt]))
+    itt+=1
+  return 
 
 
 
@@ -175,6 +193,7 @@ def write_positions(infile, outfile, msgtype, debouncetime):
             msg_depth.append(msg.height)
             msg_sats.append(msg.n_sats)
           elif msg.__class__.__name__ == "MsgExtEvent":
+            print msg.tow
             msg_horizontal.append("0")
             msg_vertical.append("0")
             msg_depth.append("0")
@@ -184,8 +203,13 @@ def write_positions(infile, outfile, msgtype, debouncetime):
       except StopIteration:
         print "reached end of file after {0} seconds".format(hostdelta)
         fix_trigger_rollover(message_type, msg_tow, numofmsg)
+        print 'done roll'
         fix_trigger_debounce(message_type, msg_tow, numofmsg, debouncetime)
+        print ' done bebounce'
         get_trigger_positions(message_type,msg_tow,msgtype,numofmsg, msg_horizontal, msg_vertical, msg_depth)
+        print 'done interpolation'
+        display_data(message_type,msg_tow,msg_horizontal,msg_vertical,msg_depth,msgtype,outfile, numofmsg,msg_flag)
+        print 'done outputing data '
 
         return 
     
