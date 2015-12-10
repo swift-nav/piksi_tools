@@ -62,6 +62,58 @@ def fix_trigger_debounce(message_type, msg_tow, numofmsg, debouncetime):
     itt += 1
   return
 
+def get_leftbound (message_type, msg_tow, trigger_tow,msgout, numofmsg):
+  itt=0
+  leftbound=0
+  while itt<numofmsg:
+    if msg_tow[itt]<trigger_tow and msg_tow[itt]>leftbound and message_type[itt] == msgout:
+      leftbound = msg_tow[itt]
+    itt+=1
+  return leftbound
+
+def get_rightbound (message_type, msg_tow, trigger_tow,msgout, numofmsg):
+  itt=0
+  rightbound=msg_tow[numofmsg-1]
+  while itt<numofmsg:
+    if msg_tow[itt]>trigger_tow and msg_tow[itt]<rightbound and message_type[itt] == msgout:
+      rightbound = msg_tow[itt]
+    itt+=1
+  return rightbound
+def get_position_parameter(message_type,msg_tow,msg_position, tow, numofmsg, msgout):
+  itt=0
+  value=0
+  while itt<numofmsg:
+    if msg_tow[itt]==tow and message_type[itt]== msgout:
+      value= msg_position[itt]
+    itt+=1
+  return value
+
+def get_trigger_positions(message_type,msg_tow,msgout,numofmsg, msg_horizontal, msg_vertical, msg_depth):
+  # extracts the position at the trigger tow using interpolation subroutine
+  itt=0
+  while itt<numofmsg:
+    if message_type[itt] == "MsgExtEvent" and msg_tow[itt] > 0:
+      #get left and right tow bounds 
+      left = get_leftbound(message_type,msg_tow,msg_tow[itt],msgout,numofmsg)
+      right = get_rightbound(message_type,msg_tow,msg_tow[itt],msgout,numofmsg)
+
+      # get left and right vertical horizontal and depth positions
+      left_h = get_position_parameter(message_type,msg_tow,msg_horizontal, left, numofmsg, msgout)
+      right_h = get_position_parameter(message_type,msg_tow,msg_horizontal, right, numofmsg, msgout)
+      left_v = get_position_parameter(message_type,msg_tow,msg_vertical, left, numofmsg, msgout)
+      right_v= get_position_parameter(message_type,msg_tow,msg_vertical, right, numofmsg, msgout)
+      left_d= get_position_parameter(message_type,msg_tow,msg_depth, left, numofmsg, msgout)
+      right_d= get_position_parameter(message_type,msg_tow,msg_depth, right, numofmsg, msgout)
+
+      # interpolate trigger position
+      msg_horizontal[itt]=lin_interp(left_h, right_h, left, right, msg_tow[itt])
+      msg_vertical[itt]=lin_interp(left_v, right_v, left, right, msg_tow[itt])
+      msg_depth[itt]=lin_interp(left_d, right_d, left, right, msg_tow[itt])
+    itt+=1
+  return 
+
+
+
 
 
 
@@ -123,7 +175,6 @@ def write_positions(infile, outfile, msgtype, debouncetime):
             msg_depth.append(msg.height)
             msg_sats.append(msg.n_sats)
           elif msg.__class__.__name__ == "MsgExtEvent":
-            print msg.tow
             msg_horizontal.append("0")
             msg_vertical.append("0")
             msg_depth.append("0")
@@ -134,6 +185,8 @@ def write_positions(infile, outfile, msgtype, debouncetime):
         print "reached end of file after {0} seconds".format(hostdelta)
         fix_trigger_rollover(message_type, msg_tow, numofmsg)
         fix_trigger_debounce(message_type, msg_tow, numofmsg, debouncetime)
+        get_trigger_positions(message_type,msg_tow,msgtype,numofmsg, msg_horizontal, msg_vertical, msg_depth)
+
         return 
     
 
