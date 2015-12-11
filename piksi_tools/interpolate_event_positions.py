@@ -88,7 +88,7 @@ def get_position_parameter(message_type,msg_tow,msg_position, tow, numofmsg, msg
     itt+=1
   return value
 
-def get_trigger_positions(message_type,msg_tow,msgout,numofmsg, msg_horizontal, msg_vertical, msg_depth):
+def get_trigger_positions(message_type,msg_tow,msgout,numofmsg, msg_horizontal, msg_vertical, msg_depth, msg_sats):
   # extracts the position at the trigger tow using interpolation subroutine
   itt=0
   while itt<numofmsg:
@@ -104,16 +104,18 @@ def get_trigger_positions(message_type,msg_tow,msgout,numofmsg, msg_horizontal, 
       right_v= get_position_parameter(message_type,msg_tow,msg_vertical, right, numofmsg, msgout)
       left_d= get_position_parameter(message_type,msg_tow,msg_depth, left, numofmsg, msgout)
       right_d= get_position_parameter(message_type,msg_tow,msg_depth, right, numofmsg, msgout)
+      left_sats = get_position_parameter(message_type, msg_tow, msg_sats, left, numofmsg, msgout) 
 
 
       # interpolate trigger position
       msg_horizontal[itt]=lin_interp(left_h, right_h, left, right, msg_tow[itt])
       msg_vertical[itt]=lin_interp(left_v, right_v, left, right, msg_tow[itt])
       msg_depth[itt]=lin_interp(left_d, right_d, left, right, msg_tow[itt])
+      msg_sats[itt] = left_sats
     itt+=1
   return 
 
-def display_data(message_type,msg_tow,msg_horizontal,msg_vertical,msg_depth,msgtype,outfile, numofmsg,msg_flag):
+def display_data(message_type,msg_tow,msg_horizontal,msg_vertical,msg_depth,msgtype,outfile, numofmsg,msg_flag, msg_sats):
   fout= open(outfile,'wt')
   writer = csv.writer(fout)
   if msgtype == 'MsgBaselineNED' :
@@ -127,7 +129,7 @@ def display_data(message_type,msg_tow,msg_horizontal,msg_vertical,msg_depth,msgt
   itt=0
   while itt<numofmsg:
     if message_type[itt]=="MsgExtEvent" and msg_tow[itt] > 0 :
-      writer.writerow((msg_tow[itt],msg_horizontal[itt],msg_vertical[itt],msg_depth[itt],"0",msg_flag[itt]))
+      writer.writerow((msg_tow[itt],msg_horizontal[itt],msg_vertical[itt],msg_depth[itt],msg_sats[itt],msg_flag[itt]))
     itt+=1
   return 
 
@@ -206,9 +208,9 @@ def write_positions(infile, outfile, msgtype, debouncetime):
         print 'done roll'
         fix_trigger_debounce(message_type, msg_tow, numofmsg, debouncetime)
         print ' done bebounce'
-        get_trigger_positions(message_type,msg_tow,msgtype,numofmsg, msg_horizontal, msg_vertical, msg_depth)
+        get_trigger_positions(message_type,msg_tow,msgtype,numofmsg, msg_horizontal, msg_vertical, msg_depth, msg_sats)
         print 'done interpolation'
-        display_data(message_type,msg_tow,msg_horizontal,msg_vertical,msg_depth,msgtype,outfile, numofmsg,msg_flag)
+        display_data(message_type,msg_tow,msg_horizontal,msg_vertical,msg_depth,msgtype,outfile, numofmsg,msg_flag, msg_sats)
         print 'done outputing data '
 
         return 
