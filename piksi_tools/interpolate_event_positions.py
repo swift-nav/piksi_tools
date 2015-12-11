@@ -115,7 +115,7 @@ def get_trigger_positions(message_type,msg_tow,msgout,numofmsg, msg_horizontal, 
     itt+=1
   return 
 
-def display_data(message_type,msg_tow,msg_horizontal,msg_vertical,msg_depth,msgtype,outfile, numofmsg,msg_flag, msg_sats):
+def display_data(message_type,msg_tow,msg_horizontal,msg_vertical,msg_depth,msg_flag, msg_sats,numofmsg, msgtype,outfile):
   fout= open(outfile,'wt')
   writer = csv.writer(fout)
   if msgtype == 'MsgBaselineNED' :
@@ -137,7 +137,7 @@ def display_data(message_type,msg_tow,msg_horizontal,msg_vertical,msg_depth,msgt
 
 
 
-def write_positions(infile, outfile, msgtype, debouncetime):
+def collect_positions(infile, msgtype, debouncetime):
   """
   Organize and output data to log file.
 
@@ -210,10 +210,9 @@ def write_positions(infile, outfile, msgtype, debouncetime):
         print ' done bebounce'
         get_trigger_positions(message_type,msg_tow,msgtype,numofmsg, msg_horizontal, msg_vertical, msg_depth, msg_sats)
         print 'done interpolation'
-        display_data(message_type,msg_tow,msg_horizontal,msg_vertical,msg_depth,msgtype,outfile, numofmsg,msg_flag, msg_sats)
-        print 'done outputing data '
 
-        return 
+        return message_type, msg_tow, msg_horizontal , msg_vertical , msg_depth , msg_flag , msg_sats , numofmsg
+
     
 
 def get_args():
@@ -241,7 +240,8 @@ if __name__ == '__main__':
   args = get_args()
   if args.type[0] == 'MsgBaselineNED' or args.type[0] == 'MsgPosECEF' or args.type[0] == 'MsgPosLLH' or args.type[0] == 'MsgBaselineECEF'  :
     if args.filename[0]:
-      write_positions(args.filename[0], args.outfile[0], args.type[0], args.debouncetime[0])
+      a, b, c, d, e, f, g, h = collect_positions(args.filename[0], args.type[0], args.debouncetime[0])
+      display_data(a, b, c, d, e, f, g, h,args.type[0],args.outfile[0])
     else :
       print "Please provide a filename argument"
   else :
