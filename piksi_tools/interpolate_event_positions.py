@@ -304,7 +304,7 @@ def collect_positions(infile, msgtype, debouncetime):
           numofmsg += 1
 
       except StopIteration:
-        print "reached end of file after {0} seconds".format(hostdelta)
+        print "reached end of file after {0} milli-seconds".format(hostdelta)
         fix_trigger_rollover(message_type, msg_tow, numofmsg)
         print 'done roll'
         fix_trigger_debounce(message_type, msg_tow, numofmsg, debouncetime)
