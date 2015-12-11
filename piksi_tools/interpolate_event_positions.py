@@ -242,6 +242,28 @@ def display_data(message_type, msg_tow, msg_horizontal, msg_vertical, msg_depth,
     itt += 1
   return 
 
+def rid_access_data (message_type, msg_tow, msg_horizontal , msg_vertical , msg_depth , msg_flag , msg_sats , numofmsg):
+  
+  """
+  Gets rid of all access data in lists.
+  Only trigger and interpolated data remains.
+  """
+  itt = 0
+  while itt < numofmsg:
+    if msg_tow[itt] == 0 or message_type[itt] != "MsgExtEvent":
+      message_type.pop(itt)
+      msg_tow.pop(itt)
+      msg_sats.pop(itt)
+      msg_horizontal.pop(itt)
+      msg_vertical.pop(itt)
+      msg_depth.pop(itt)
+      msg_flag.pop(itt)
+      itt -= 1
+      numofmsg -= 1
+    itt += 1
+  return numofmsg
+
+
 def collect_positions(infile, msgtype, debouncetime):
   """
   Collects data from the log file and calls functions to analyze that data 
@@ -311,6 +333,9 @@ def collect_positions(infile, msgtype, debouncetime):
         print ' done bebounce'
         get_trigger_positions(message_type, msg_tow, msgtype, numofmsg, msg_horizontal, msg_vertical, msg_depth, msg_sats)
         print 'done interpolation'
+        print 
+        numofmsg =  rid_access_data (message_type, msg_tow, msg_horizontal , msg_vertical , msg_depth , msg_flag , msg_sats , numofmsg)
+
         return message_type, msg_tow, msg_horizontal , msg_vertical , msg_depth , msg_flag , msg_sats , numofmsg
 
 def get_args():
