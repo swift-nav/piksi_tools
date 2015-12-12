@@ -230,18 +230,19 @@ def get_uuid(channel, serial_id):
     return None
 
 def run(args, link):
-  """Returns a namespaced UUID based on the piksi serial number and a
-  namespace.
+  """Spin loop for reading from the serial link.
 
   Parameters
   ----------
-  args : str
-    UUID namespace
-  link : int
-    Piksi unique serial number
+  args : object
+    Argparse result.
+  link : Handler
+    Piksi serial handle
 
   """
   timeout = args.timeout[0]
+  if args.reset:
+    link(MsgReset())
   try:
     if args.timeout[0] is not None:
       expire = time.time() + float(args.timeout[0])
@@ -309,7 +310,8 @@ def main(args):
               with Handler(Framer(http.read, http.write, args.verbose)) as slink:
                 Forwarder(slink, swriter(link)).start()
                 run(args, link)
-          run(args, link)
+          else:
+            run(args, link)
 
 if __name__ == "__main__":
   main(get_args())
