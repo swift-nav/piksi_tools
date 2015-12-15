@@ -35,12 +35,16 @@ help:
 	@echo "  deps           to install all dependencies (includes UI deps)"
 	@echo "  serial_deps    to install serial dependencies (no UI deps)"
 	@echo "  build_console  to build the console binary and installer"
+	@echo "  docs           to build settings documentation from settings.yaml"
 	@echo
 
 all: deps
 
 deps:
 	cd $(SWIFTNAV_ROOT)/tasks && bash setup.sh && cd $(SWIFTNAV_ROOT)
+
+docs: piksi_tools/console/settings.yaml latex/settings_template.tex piksi_tools/generate_settings_doc.py
+	rm -f docs/settings.pdf && cd $(SWIFTNAV_ROOT) && PYTHONPATH=. python piksi_tools/generate_settings_doc.py
 
 serial_deps:
 	sudo pip install -r requirements.txt
