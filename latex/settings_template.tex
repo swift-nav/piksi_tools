@@ -43,7 +43,7 @@
 
 \section{Introduction}
 \label{sec:settings}
-Piksi Firmware has a number of settings that can be controlled by the end user via the provided Piksi Console or through the SBP binary message protocol.  This Document serves to enumerate these settings with an explanation and any relevant notes.
+Piksi Firmware has a number of settings that can be controlled by the end user via the provided Piksi Console or through the SBP binary message protocol.  This Document serves to enumerate these settings with an explanation and any relevant notes. If a setting is listed as "Expert" in this document, the --expert command line argument must be passed to the Piksi Console in order to see or modify the value.
 
 ((* block settings_toc *))
 {
@@ -89,7 +89,7 @@ Piksi Firmware has a number of settings that can be controlled by the end user v
     \midrule
     \hbadness=20000
     ((*- for key,value in m.iteritems() *))
-    ((*- if(key is defined and key != 'Notes' and key != 'Description' and value is defined) *))
+    ((*- if(key is defined and key != 'Notes' and key != 'Description' and value is defined and value != 'True') *))
     (((key|escape_tex_exp|no_us))) & $(((value|escape_tex_exp|no_us)))$ \\
     ((*- endif *))
     ((*- endfor *))

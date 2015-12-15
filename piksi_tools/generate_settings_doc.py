@@ -32,7 +32,9 @@ def main():
       (re.compile(r'"'), r"''"),
       (re.compile(r'\.\.\.+'), r'\\ldots'),
       (re.compile(r'\n'), r'\\newline '),
-      (re.compile(r'>='), r'\\geq')
+      (re.compile(r'>='), r'\\geq'),
+      (re.compile(r'<'), r'\\textless '),
+      (re.compile(r'>'), r'\\textgreater ')
   )
 
   NO_UNDERSCORE = re.compile(r'_')
@@ -44,6 +46,11 @@ def main():
       try:
         return NO_UNDERSCORE.sub(' ', newval)
       except TypeError:
+        if isinstance(value, bool): 
+           if value:
+            return "True"
+           else:
+            return "False"
         pass
       return None
 
@@ -54,6 +61,11 @@ def main():
             newval = pattern.sub(replacement, newval)
         return newval
       except TypeError:
+        if isinstance(value, bool): 
+           if value:
+            return "True"
+           else:
+            return "False"
         pass
       return None
 
@@ -72,7 +84,7 @@ def main():
 
   latex_template = jenv.get_template('settings_template.tex')
   with open("settings_out.tex", 'w') as f:
-    f.write(latex_template.render(groups=sorted(groups), setting=sorted(settings.list_of_dicts), version='v0.17'))
+    f.write(latex_template.render(groups=sorted(groups), setting=sorted(settings.list_of_dicts), version='v0.21'))
 
   import subprocess
 
