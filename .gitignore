@@ -69,3 +69,7 @@ RELEASE-VERSION
 
 *.csv
 diagnostics.yaml
+
+# Firmware downloads
+piksi_firmware_*.hex
+swift_nap_*.hex

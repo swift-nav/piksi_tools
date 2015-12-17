@@ -97,7 +97,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
           prns_ = prns[:12]
           prns = prns[12:]
           for prn in prns_:
-              self.rinex_file.write('G%2d' % (prn+1))
+              self.rinex_file.write('G%2d' % (prn))
           self.rinex_file.write('   ' * (12 - len(prns_)))
           self.rinex_file.write('\n')
 
@@ -110,7 +110,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
       self.rinex_file.flush()
 
   def update_obs(self):
-    self._obs_table_list = [(prn + 1,) + obs for prn, obs in sorted(self.obs.items(), key=lambda x: x[0])]
+    self._obs_table_list = [(prn,) + obs for prn, obs in sorted(self.obs.items(), key=lambda x: x[0])]
 
   def obs_packed_callback(self, sbp_msg, **metadata):
     if (sbp_msg.sender is not None and
@@ -149,6 +149,8 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     # See sbp_piksi.h for format
     for o in sbp_msg.obs:
       prn = o.sid.sat
+      if ((o.sid.constellation == 0) and (o.sid.band == 0)):
+        prn += 1
       self.obs[prn] = (float(o.P) / 1e2,
                        float(o.L.i) + float(o.L.f) / (1<<8),
                        float(o.cn0) / 4)
@@ -164,6 +166,8 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
 
   def ephemeris_callback(self, m, **metadata):
     prn = m.sid.sat
+    if ((m.sid.constellation == 0) and (m.sid.band == 0)):
+      prn += 1
     if self.recording:
       if self.eph_file is None:
         self.eph_file = open(self.name+self.t.strftime("-%Y%m%d-%H%M%S.eph"),  'w')
@@ -188,7 +192,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
                            m.toe_tow, m.toe_wn, m.toc_tow, m.toc_wn, \
                            m.valid, \
                            m.healthy, \
-                           prn+1])[1: -1] + "\n"
+                           prn])[1: -1] + "\n"
       self.eph_file.write(strout)
       self.eph_file.flush()
 

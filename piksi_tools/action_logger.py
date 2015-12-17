@@ -145,7 +145,9 @@ class DropSatsState(TestState):
       for channel, track_state in enumerate(msg.states):
         try:
           # MsgTrackingState
-          prn = track_state.sid.sat + 1
+          prn = track_state.sid.sat
+          if ((track_state.sid.constellation == 0) and (track_state.sid.band == 0)):
+            prn += 1
         except AttributeError:
           # MsgTrackingStateDepA
           prn = track_state.prn + 1

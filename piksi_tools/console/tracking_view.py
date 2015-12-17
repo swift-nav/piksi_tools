@@ -85,6 +85,8 @@ class TrackingView(HasTraits):
     for n, k in enumerate(self.states):
       s = sbp_msg.states[n]
       prn = s.sid.sat
+      if ((s.sid.constellation == 0) and (s.sid.band == 0)):
+        prn += 1
       k.update(s.state, prn, s.cn0)
     GUI.invoke_later(self.update_plot)
 
@@ -99,7 +101,7 @@ class TrackingView(HasTraits):
       if self.states[n].state == 0:
         plot_labels.append('Ch %02d (Disabled)' % n)
       else:
-        plot_labels.append('Ch %02d (PRN%02d)' % (n, self.states[n].prn+1))
+        plot_labels.append('Ch %02d (PRN%02d)' % (n, self.states[n].prn))
     plots = dict(zip(plot_labels, self.plots))
     self.plot.legend.plots = plots
 
