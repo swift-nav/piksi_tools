@@ -731,7 +731,7 @@
   units: Ticks
   default value: '10'
   Description: Number of ticks between GPGSV NMEA messages being sent.
-  Notes:
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
   name: gprmc_msg_rate
@@ -739,7 +739,7 @@
   units: Ticks
   default value: '10'
   Description: Number of ticks between GPRMC NMEA messages being sent.
-  Notes:
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
   name: gpvtg_msg_rate
@@ -747,7 +747,7 @@
   units: Ticks
   default value: '10'
   Description: Number of ticks between GPVTG NMEA messages being sent.
-  Notes:
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
   name: gpgll_msg_rate
@@ -755,7 +755,7 @@
   units: Ticks
   default value: '10'
   Description: Number of ticks between GPGLL NMEA messages being sent.
-  Notes:
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5hz.  If this setting is 0, the msg will be suppressed.
 
 - group: pps
   name: width
