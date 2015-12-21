@@ -128,6 +128,7 @@ class BaselineView(HasTraits):
 
   def iar_state_callback(self, sbp_msg, **metadata):
     self.num_hyps = sbp_msg.num_hyps
+    self.last_hyp_update = time.time()
 
   def _baseline_callback_ned(self, sbp_msg, **metadata):
     # Updating an ArrayPlotData isn't thread safe (see chaco issue #9), so
@@ -190,8 +191,12 @@ class BaselineView(HasTraits):
       table.append(('Mode', 'Fixed RTK'))
     else:
       table.append(('Mode', 'Float'))
-    table.append(('IAR Num. Hyps.', self.num_hyps))
+    if time.time() - self.last_hyp_update < 10 and self.num_hyps != 1:
+      table.append(('IAR Num. Hyps.', self.num_hyps))
+    else:
+      table.append(('IAR Num. Hyps.', "None"))
 
+      
     # Rotate array, deleting oldest entries to maintain
     # no more than N in plot
     self.neds[1:] = self.neds[:-1]
@@ -244,11 +249,10 @@ class BaselineView(HasTraits):
 
   def __init__(self, link, plot_history_max=1000):
     super(BaselineView, self).__init__()
-
     self.log_file = None
 
     self.num_hyps = 0
-
+    self.last_hyp_update = 0
     self.plot_data = ArrayPlotData(n_fixed=[0.0], e_fixed=[0.0], d_fixed=[0.0],
                                    n_float=[0.0], e_float=[0.0], d_float=[0.0],
                                    t=[0.0],
