@@ -13,6 +13,7 @@ from callback_prompt import CallbackPrompt, close_button
 from concurrent.futures import ThreadPoolExecutor
 from piksi_tools.serial_link import DEFAULT_WHITELIST, swriter, get_uuid, \
   DEFAULT_BASE, CHANNEL_UUID
+from piksi_tools.console.utils import MultilineTextEditor
 from sbp.client.drivers.network_drivers import HTTPDriver
 from sbp.client.forwarder import Forwarder
 from sbp.client.framer import Framer
@@ -23,21 +24,13 @@ from traits.api import HasTraits, String, Button, Instance, Int, Bool, \
                        on_trait_change, Enum
 from traitsui.api import View, Item, VGroup, UItem, HGroup, TextEditor, \
   spring
+
 import sys
 import time
 
 DEFAULT_UDP_ADDRESS = "127.0.0.1"
 DEFAULT_UDP_PORT = 13320
 OBS_MSGS = DEFAULT_WHITELIST
-
-class MyTextEditor(TextEditor):
-  """
-  Override of TextEditor Class for a multi-lin read only
-  """
-
-  def init(self, parent):
-    parent.read_only = True
-    parent.multi_line = True
 
 class SbpRelayView(HasTraits):
   """
@@ -83,7 +76,7 @@ class SbpRelayView(HasTraits):
                    spring)),
                VGroup(
                  Item('information', label="Notes", height=10,
-                      editor=MyTextEditor(TextEditor(multi_line=True)), style='readonly',
+                      editor=MultilineTextEditor(TextEditor(multi_line=True)), style='readonly',
                       show_label=False, resizable=True, padding=15),
                  spring,
                ),
@@ -101,7 +94,7 @@ class SbpRelayView(HasTraits):
                         spring),),
                VGroup(
                  Item('http_information', label="Notes", height=10,
-                      editor=MyTextEditor(TextEditor(multi_line=True)), style='readonly',
+                      editor=MultilineTextEditor(TextEditor(multi_line=True)), style='readonly',
                       show_label=False, resizable=True, padding=15),
                  spring,
                ),
