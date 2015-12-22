@@ -66,6 +66,7 @@ function all_dependencies_debian () {
     sudo apt-get install git \
          libicu-dev \
          libqt4-scripttools \
+         python-imaging \
          python-enable \
          python-chaco \
          python-vtk \
