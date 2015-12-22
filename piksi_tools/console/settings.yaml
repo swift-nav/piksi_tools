@@ -597,7 +597,7 @@
   name: sbp_message_mask
   type: integer
   units:
-  default value: 655280 (decimal), 0xFF00 (hex)
+  default value: 65280 (decimal), 0xFF00 (hex)
   enumerated possible values:
   Description: Configure the message mask for SBP messages on UART
   Notes: The default message mask on this uart (0xFF00) is appropriate for a general purpose interface to the Piksi.
