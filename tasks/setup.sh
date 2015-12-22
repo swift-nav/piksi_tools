@@ -147,6 +147,7 @@ function install_python_deps_osx () {
     brew install qt pyqt libftdi pyside
     sudo pip install chaco==4.4.1 enable==4.4.1 intelhex==1.5 \
          --allow-unverified enable \
+         --allow-external PIL \
          --allow-unverified PIL \
          --allow-external intelhex \
          --allow-unverified intelhex
