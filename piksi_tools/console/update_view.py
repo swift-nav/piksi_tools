@@ -177,7 +177,7 @@ class UpdateView(HasTraits):
   newest_stm_vers = String('Downloading Newest Firmware info...')
   piksi_nap_vers = String('Waiting for Piksi to send settings...')
   newest_nap_vers = String('Downloading Newest Firmware info...')
-  local_console_vers = String(CONSOLE_VERSION)
+  local_console_vers = String('v' + CONSOLE_VERSION)
   newest_console_vers = String('Downloading Newest Console info...')
 
   erase_stm = Bool(True)
@@ -480,7 +480,7 @@ class UpdateView(HasTraits):
             "Please visit http://downloads.swiftnav.com to\n" + \
             "download the newest version.\n\n" + \
             "Local Console Version :\n\t" + \
-                CONSOLE_VERSION + \
+                "v" + CONSOLE_VERSION + \
             "\nNewest Console Version :\n\t" + \
                 self.update_dl.index['piksi_v2.3.1']['console']['version'] + "\n"
 
