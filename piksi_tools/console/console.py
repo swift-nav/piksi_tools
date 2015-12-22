@@ -130,7 +130,7 @@ from piksi_tools.console.settings_view import SettingsView
 from piksi_tools.console.update_view import UpdateView
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 
-CONSOLE_TITLE = 'Piksi Console, Version: ' + CONSOLE_VERSION
+CONSOLE_TITLE = 'Piksi Console, Version: v' + CONSOLE_VERSION
 
 
 class ConsoleHandler(Handler):
