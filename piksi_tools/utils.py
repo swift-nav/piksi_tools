@@ -149,3 +149,5 @@ def setup_piksi(handler, stm_fw, nap_fw, verbose=False):
     if verbose: print "Jumping to application"
     piksi_bootloader.jump_to_app()
 
+def wrap_sbp_dict(data_dict, timestamp, delta):
+  return {'data':data_dict, 'timestamp': timestamp, 'delta':delta}
