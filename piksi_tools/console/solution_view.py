@@ -9,15 +9,15 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from traits.api import Instance, Dict, HasTraits, Array, Float, on_trait_change, List, Int, Button, Bool
-from traitsui.api import Item, View, HGroup, VGroup, ArrayEditor, HSplit, TabularEditor, UItem, Tabbed
+from traits.api import Instance, Dict, HasTraits, Array, Float, on_trait_change, List, Int, Button, Bool, Str
+from traitsui.api import Item, View, HGroup, VGroup, ArrayEditor, HSplit, TextEditor, TabularEditor, UItem, Tabbed
 from traitsui.tabular_adapter import TabularAdapter
 from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import ZoomTool, PanTool
 from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.api import GUI
-from piksi_tools.console.utils import plot_square_axes, determine_path
+from piksi_tools.console.utils import plot_square_axes, determine_path, MultilineTextEditor
 
 import math
 import os
@@ -48,6 +48,8 @@ class SolutionView(HasTraits):
   dops_table = List()
   pos_table_spp = List()
   vel_table = List()
+
+  rtk_pos_note = Str("It is necessary to enter the \"Surveyed Position\" settings for the base station in order to view the psuedo-absolute RTK Positions in this tab.")
 
   plot = Instance(Plot)
   plot_data = Instance(ArrayPlotData)
@@ -92,7 +94,10 @@ class SolutionView(HasTraits):
           Item('', label='RTK Position', emphasized=True),
           Item('table_psuedo_abs',style='readonly',
                editor=TabularEditor(adapter=SimpleAdapter()),
-               show_label=False, width=0.3),
+               show_label=False, width=0.3, height=0.9),
+          Item('rtk_pos_note', show_label=False, resizable=True,
+            editor=MultilineTextEditor(TextEditor(multi_line=True)), 
+            style='readonly', width=0.3, height=-40),
           label='RTK Position')
       ),
       VGroup(

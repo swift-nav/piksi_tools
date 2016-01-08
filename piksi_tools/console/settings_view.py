@@ -31,7 +31,7 @@ import datetime
 
 from piksi_tools.fileio import FileIO
 import piksi_tools.console.callback_prompt as prompt
-from piksi_tools.console.utils import determine_path
+from piksi_tools.console.utils import determine_path, MultilineTextEditor
 
 from sbp.piksi      import *
 from sbp.settings   import *
@@ -55,11 +55,6 @@ class SettingBase(HasTraits):
   def __str__(self):
     return self.value
 
-class MyTextEditor(TextEditor):
-  def init(self,parent):
-    parent.read_only = True
-    parent.multi_line = True
-
 class Setting(SettingBase):
   full_name = Str()
   section = Str()
@@ -72,7 +67,7 @@ class Setting(SettingBase):
       Item('units', style='readonly'),
       Item('default_value', style='readonly'),
       UItem('notes', label="Notes", height=-1,
-            editor=MyTextEditor(TextEditor(multi_line=True)), style='readonly',
+            editor=MultilineTextEditor(TextEditor(multi_line=True)), style='readonly',
             show_label=True, resizable=True),
       show_border=True,
       label='Setting',
@@ -111,7 +106,7 @@ class EnumSetting(Setting):
       Item('description', style='readonly'),
       Item('default_value', style='readonly'),
             UItem('notes', label="Notes", height=-1,
-            editor=MyTextEditor(TextEditor(multi_line=True)), style='readonly',
+            editor=MultilineTextEditor(TextEditor(multi_line=True)), style='readonly',
             show_label=True, resizable=True),
       show_border=True,
       label='Setting',

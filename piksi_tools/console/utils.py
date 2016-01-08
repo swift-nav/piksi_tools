@@ -12,6 +12,18 @@ import sys
 import traceback
 import os
 
+
+from traitsui.api import TextEditor
+
+class MultilineTextEditor(TextEditor):
+  """
+  Override of TextEditor Class for a multi-line read only
+  """
+
+  def init(self, parent):
+    parent.read_only = True
+    parent.multi_line = True
+
 def plot_square_axes(plot, xnames, ynames):
   try:
     if type(xnames) is str:
