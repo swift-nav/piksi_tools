@@ -63,7 +63,7 @@ function all_dependencies_debian () {
          python-pip \
          python-virtualenv \
          swig
-    sudo apt-get install git \
+    sudo apt-get install \
          libicu-dev \
          libqt4-scripttools \
          python-imaging \
@@ -76,6 +76,9 @@ function all_dependencies_debian () {
          python-sip \
          python-qt4-gl \
          python-software-properties
+    sudo apt-get install \
+         libffi-dev \
+         libssl-dev
     sudo pip install traits traitsui
     sudo pip install -r ../requirements.txt
 }
