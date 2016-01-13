@@ -145,17 +145,14 @@ function install_python_deps_osx () {
     # python dependencies.
     log_info "Installing Python dependencies..."
     brew install qt pyqt libftdi pyside
-    sudo pip install chaco==4.4.1 enable==4.4.1 intelhex==1.5 \
-         --allow-unverified enable \
-         --allow-external PIL \
-         --allow-unverified PIL \
-         --allow-external intelhex \
-         --allow-unverified intelhex
     sudo pip install traits==4.5.0 \
          traitsui==4.4.0 \
-         pyface==4.4.0 \
-         wsgiref==0.1.2 \
-         pyside==1.2.2
+         pyface==4.5.0 \
+         wsgiref==0.1.2
+    sudo pip install Pillow chaco==4.5.0 enable==4.5.1 intelhex==1.5 \
+         --allow-unverified enable \
+         --allow-external intelhex \
+         --allow-unverified intelhex
     sudo pip install -r ../requirements.txt
 }
 

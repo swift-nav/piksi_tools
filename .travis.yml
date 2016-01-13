@@ -1,15 +1,42 @@
-sudo: required
+sudo: false
+
+cache:
+  apt: true
+  pip: true
+
 os:
   - linux
-  - osx
+#  - osx
 
-before_install:
-  - make deps
+addons:
+  apt:
+    packages:
+      - build-essential
+      - python
+      - python-setuptools
+      - python-pip
+      - python-virtualenv
+      - swig
+      - libicu-dev
+      - libqt4-scripttools
+      - python-imaging
+      - python-enable
+      - python-chaco
+      - python-vtk
+      - python-wxgtk2.8
+      - python-pyside
+      - python-qt4-dev
+      - python-sip
+      - python-qt4-gl
+      - python-software-properties
+
+#before_install:
+#  - make deps
 
 script:
   - tox
-  - sudo python setup.py install
-  - make build_console
+#  - sudo python setup.py install
+#  - make build_console
 
 deploy:
   provider: pypi
