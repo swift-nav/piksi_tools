@@ -72,8 +72,6 @@ def get_args():
                       If TCP is selected, the port is interpreted as host:port")
   parser.add_argument('--error', action='store_true',
                       help="Do not swallow exceptions.")
-
-
   return parser.parse_args()
 
 args = get_args()

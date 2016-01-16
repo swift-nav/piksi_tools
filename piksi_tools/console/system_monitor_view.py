@@ -9,7 +9,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from traits.api import Instance, Dict, HasTraits, Array, Float, on_trait_change, List, Int, Button, Bool
+from traits.api import Instance, Dict, HasTraits, Array, Enum, Float, on_trait_change, List, Int, Button, Bool
 from traitsui.api import Item, View, HGroup, VGroup, ArrayEditor, HSplit, TabularEditor, Spring
 from traitsui.tabular_adapter import TabularAdapter
 
@@ -22,7 +22,7 @@ import os
 import numpy as np
 import datetime
 
-from sbp.piksi  import SBP_MSG_THREAD_STATE, SBP_MSG_UART_STATE, MsgReset
+from sbp.piksi  import SBP_MSG_THREAD_STATE, SBP_MSG_UART_STATE, SBP_MSG_UART_STATE_DEPA, MsgReset
 from sbp.system import SBP_MSG_HEARTBEAT
 from piksi_tools.console.utils import determine_path
 
@@ -34,7 +34,6 @@ class SystemMonitorView(HasTraits):
 
   _threads_table_list = List()
   threads = List()
-
   uart_a_crc_error_count = Int(0)
   uart_a_io_error_count = Int(0)
   uart_a_rx_buffer = Float(0)
@@ -62,6 +61,11 @@ class SystemMonitorView(HasTraits):
   msg_obs_max_latency_ms    = Int(0)
   msg_obs_window_latency_ms = Int(0)
 
+  msg_obs_avg_period_ms    = Int(0)
+  msg_obs_min_period_ms    = Int(0)
+  msg_obs_max_period_ms    = Int(0)
+  msg_obs_window_period_ms = Int(0)
+  
   piksi_reset_button = SVGButton(
     label='Reset Piksi', tooltip='Reset Piksi',
     filename=os.path.join(determine_path(), 'images', 'fontawesome', 'power27.svg'),
@@ -77,17 +81,31 @@ class SystemMonitorView(HasTraits):
       ),
       HGroup(
         VGroup(
+          HGroup(
           VGroup(
-            Item('msg_obs_window_latency_ms', label='Obs Latency',
+            Item('msg_obs_window_latency_ms', label='Curr',
               style='readonly', format_str='%dms'),
-            Item('msg_obs_avg_latency_ms', label='Obs Latency (Avg ms)',
+            Item('msg_obs_avg_latency_ms', label='Avg',
               style='readonly', format_str='%dms'),
-            Item('msg_obs_min_latency_ms', label='Obs Latency (Min ms)',
+            Item('msg_obs_min_latency_ms', label='Min',
               style='readonly', format_str='%dms'),
-            Item('msg_obs_max_latency_ms', label='Obs Latency (Max ms)',
+            Item('msg_obs_max_latency_ms', label='Max',
               style='readonly', format_str='%dms'),
-            label='Connection Monitor', show_border=True,
+            label='Latency', show_border=True
             ),
+          VGroup(
+            Item('msg_obs_window_period_ms', label='Curr',
+              style='readonly', format_str='%dms'),
+            Item('msg_obs_avg_period_ms', label='Avg',
+              style='readonly', format_str='%dms'),
+            Item('msg_obs_min_period_ms', label='Min',
+              style='readonly', format_str='%dms'),
+            Item('msg_obs_max_period_ms', label='Max',
+              style='readonly', format_str='%dms'),
+            label='Period', show_border=True, 
+            ),
+           show_border=True, label="Observation Connection Monitor"
+           ),
            HGroup(
             Spring(width=50, springy=False),
             Item('piksi_reset_button', show_label=False, width=0.50),
@@ -181,15 +199,18 @@ class SystemMonitorView(HasTraits):
     self.msg_obs_min_latency_ms = m.latency.lmin
     self.msg_obs_max_latency_ms = m.latency.lmax
     self.msg_obs_window_latency_ms = m.latency.current
-
+    if m.msg_type == SBP_MSG_UART_STATE:
+      self.msg_obs_avg_period_ms = m.obs_period.avg
+      self.msg_obs_min_period_ms = m.obs_period.pmin
+      self.msg_obs_max_period_ms = m.obs_period.pmax
+      self.msg_obs_window_period_ms = m.obs_period.current
 
   def __init__(self, link):
     super(SystemMonitorView, self).__init__()
-
     self.link = link
     self.link.add_callback(self.heartbeat_callback, SBP_MSG_HEARTBEAT)
     self.link.add_callback(self.thread_state_callback, SBP_MSG_THREAD_STATE)
-    self.link.add_callback(self.uart_state_callback, SBP_MSG_UART_STATE)
+    self.link.add_callback(self.uart_state_callback, [SBP_MSG_UART_STATE, SBP_MSG_UART_STATE_DEPA])
 
 
     self.python_console_cmds = {
