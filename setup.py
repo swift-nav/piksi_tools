@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
+from piksi_tools.version import VERSION
 from setuptools import setup
 import os
-from piksi_tools.version import VERSION
 
 CLASSIFIERS = [
   'Intended Audience :: Developers',
