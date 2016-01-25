@@ -4,6 +4,7 @@ os:
   - osx
 
 before_install:
+  - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
   - make deps
 
 script:
