@@ -14,8 +14,7 @@ before_script:
   - sleep 3
 
 script:
-  - sudo /tasks/setup.sh install
-  - sudo python setup.py install
+  - python setup.py build
   - PYTHONPATH=. piksi_tools/console/console.py
   - make build_console
 
