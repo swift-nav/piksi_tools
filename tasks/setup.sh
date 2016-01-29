@@ -126,12 +126,12 @@ function install_python_deps_osx () {
 
     log_info "Installing Python dependencies..."
     brew install qt pyqt
-    /usr/local/bin/pip install cython
-    /usr/local/bin/pip install git+https://github.com/enthought/enable@dddfac16132051e40d93485333f1c13ea7964631
-    /usr/local/bin/pip install intelhex \
+    pip install cython
+    pip install git+https://github.com/enthought/enable@dddfac16132051e40d93485333f1c13ea7964631
+    pip install intelhex \
          --allow-external intelhex \
          --allow-unverified intelhex
-    /usr/local/bin/pip install -r ../requirements.txt
+    pip install -r ../requirements.txt
 }
 
 
