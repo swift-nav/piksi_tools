@@ -2,8 +2,7 @@ numpy
 cython
 chaco
 traitsui
-enable
-pytest
+pytest==2.6.4
 intelhex
 pyserial
 requests
