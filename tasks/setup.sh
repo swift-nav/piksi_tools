@@ -125,7 +125,7 @@ function install_python_deps_osx () {
     # python dependencies.
 
     log_info "Installing Python dependencies..."
-    brew install qt pyqt
+    brew install qt python pyqt
     pip install cython
     pip install git+https://github.com/enthought/enable@dddfac16132051e40d93485333f1c13ea7964631
     pip install intelhex \
