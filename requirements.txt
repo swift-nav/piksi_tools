@@ -1,8 +1,8 @@
+numpy
+cython
 chaco
 traitsui
 enable
-numpy
-cython
 pytest
 intelhex
 pyserial
