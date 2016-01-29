@@ -15,7 +15,6 @@ before_script:
 
 script:
   - sudo /usr/local/bin/python setup.py install
-  - tox
   - make build_console
   - PYTHONPATH=. piksi_tools/console/console.py
 

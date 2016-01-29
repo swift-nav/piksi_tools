@@ -67,6 +67,7 @@ function all_dependencies_debian () {
          libicu-dev \
          libqt4-scripttools \
          python-imaging \
+         python-numpy \
          python-enable \
          python-chaco \
          python-vtk \
