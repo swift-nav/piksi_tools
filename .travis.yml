@@ -14,7 +14,7 @@ before_script:
   - sleep 3
 
 script:
-  - sudo python setup.py install
+  - sudo /usr/local/bin/python setup.py install
   - tox
   - make build_console
   - PYTHONPATH=. piksi_tools/console/console.py
