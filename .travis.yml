@@ -14,9 +14,10 @@ before_script:
   - sleep 3
 
 script:
-  - sudo /usr/local/bin/python setup.py install
-  - make build_console
+  - sudo /tasks/setup.sh install
+  - sudo python setup.py install
   - PYTHONPATH=. piksi_tools/console/console.py
+  - make build_console
 
 deploy:
   provider: pypi
