@@ -15,10 +15,8 @@ import sbp.client as sbpc
 import signal
 import sys
 
-from piksi_tools.console.deprecated import DeprecatedMessageHandler
 from piksi_tools.serial_link import swriter, get_uuid, DEFAULT_BASE
 from piksi_tools.version import VERSION as CONSOLE_VERSION
-from piksi_tools.console.utils import determine_path
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.ext_events import *
@@ -85,6 +83,7 @@ logging.basicConfig()
 from piksi_tools.console.output_list import OutputList, LogItem, str_to_log_level, \
   SYSLOG_LEVELS, DEFAULT_LOG_LEVEL_FILTER
 from piksi_tools.console.utils import determine_path
+from piksi_tools.console.deprecated import DeprecatedMessageHandler
 from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List, Enum
 from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
                          InstanceEditor, EnumEditor, ShellEditor, Handler, Spring, \
