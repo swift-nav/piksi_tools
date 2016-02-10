@@ -67,6 +67,7 @@ function all_dependencies_debian () {
          libicu-dev \
          libqt4-scripttools \
          python-imaging \
+         python-numpy \
          python-enable \
          python-chaco \
          python-vtk \
@@ -108,10 +109,6 @@ function homebrew_install () {
     ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     brew doctor
     brew update
-    # Homebrew apparently requires the contents of /usr/local to be
-    # chown'd to your username.  See:
-    # http://superuser.com/questions/254843/cant-install-brew-formulae-correctly-permission-denied-in-usr-local-lib
-    sudo chown -R "$(whoami)" /usr/local
 }
 
 function bootstrap_osx () {
@@ -122,41 +119,19 @@ function bootstrap_osx () {
         homebrew_install
     fi
     brew update
-    brew outdated xctool || brew upgrade xctool
-    # Download and install Homebrew Python
-    # if [[ ! -x /usr/local/bin/python ]]; then
-    #     log_info "Installing homebrew python..."
-    #     brew install python --framework --with-brewed-openssl 2> /dev/null
-    #     # Check for bash profile and add Homebrew Python to path.
-    #     touch ~/.bash_profile
-    #     echo '' >> ~/.bash_profile
-    #     echo "export PATH=/usr/local/bin:/usr/local/sbin:$PATH" >> ~/.bash_profile
-    #     source ~/.bash_profile
-    # fi
-}
-
-function install_swig_osx () {
-    log_info "Installing swig...."
-    brew install homebrew/versions/swig2
 }
 
 function install_python_deps_osx () {
-    # Uses brew to install system-wide dependencies and pip to install
+    # Uses brew to install system-wide dependencies and brew's pip to install
     # python dependencies.
+
     log_info "Installing Python dependencies..."
-    brew install qt pyqt libftdi pyside
-    sudo pip install chaco==4.4.1 enable==4.4.1 intelhex==1.5 \
-         --allow-unverified enable \
-         --allow-external PIL \
-         --allow-unverified PIL \
+    brew install qt python pyqt
+    pip install -r ../requirements.txt
+    pip install git+https://github.com/enthought/enable@dddfac16132051e40d93485333f1c13ea7964631
+    pip install intelhex \
          --allow-external intelhex \
          --allow-unverified intelhex
-    sudo pip install traits==4.5.0 \
-         traitsui==4.4.0 \
-         pyface==4.4.0 \
-         wsgiref==0.1.2 \
-         pyside==1.2.2
-    sudo pip install -r ../requirements.txt
 }
 
 
@@ -178,7 +153,6 @@ function run_all_platforms () {
         log_info "Please enter your password..."
         log_info ""
         bootstrap_osx &&
-            install_swig_osx &&
             install_python_deps_osx
     else
         log_error "This script does not support this platform. Please contact mookerji@swiftnav.com."
