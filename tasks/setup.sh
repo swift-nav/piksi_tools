@@ -66,18 +66,18 @@ function all_dependencies_debian () {
     sudo apt-get install git \
          libicu-dev \
          libqt4-scripttools \
-         python-imaging \
-         python-enable \
+         libffi-dev \
+         libssl-dev \
          python-chaco \
          python-vtk \
          python-wxgtk2.8 \
-         python-pyside \
          python-qt4-dev \
          python-sip \
          python-qt4-gl \
+         python-pyside \
          python-software-properties
-    sudo pip install traits traitsui
     sudo pip install -r ../requirements.txt
+    sudo pip install -r ../requirements_gui.txt
 }
 
 
@@ -144,19 +144,9 @@ function install_python_deps_osx () {
     # Uses brew to install system-wide dependencies and pip to install
     # python dependencies.
     log_info "Installing Python dependencies..."
-    brew install qt pyqt libftdi pyside
-    sudo pip install chaco==4.4.1 enable==4.4.1 intelhex==1.5 \
-         --allow-unverified enable \
-         --allow-external PIL \
-         --allow-unverified PIL \
-         --allow-external intelhex \
-         --allow-unverified intelhex
-    sudo pip install traits==4.5.0 \
-         traitsui==4.4.0 \
-         pyface==4.4.0 \
-         wsgiref==0.1.2 \
-         pyside==1.2.2
-    sudo pip install -r ../requirements.txt
+    brew install python qt pyqt libftdi pyside
+    pip install -r ../requirements.txt
+    pip install -r ../requirements_gui.txt
 }
 
 
