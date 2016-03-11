@@ -9,6 +9,7 @@ before_install:
 script:
   - tox
   - sudo python setup.py install
+  - PYTHONPATH=. piksi_tools/console/console.py --file -p tests/data/piksi.bin
   - make build_console
 
 deploy:
