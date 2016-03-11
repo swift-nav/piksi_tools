@@ -129,7 +129,7 @@ sbp2rinex                               %s UTC PGM / RUN BY / DATE
         for prn, obs in sorted(sats.iteritems()):
           # G    3 C1C L1C S1C
           f.write("%14.3f  " % obs['P'])
-          f.write("%14.3f  " % obs['L'])
+          f.write("%14.3f  " % -obs['L']) # Piksi carrier sign phase is flipped
           f.write("%14.3f  \n" % obs['S'])
 
     except:
