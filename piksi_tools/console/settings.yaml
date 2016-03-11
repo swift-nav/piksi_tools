@@ -8,7 +8,7 @@
   enumerated possible values: true,false
   Description: Broadcast surveyed base station location
   Notes: This flag ultimately determines whether the SBP message with identifier
-    MSG_BASE_POS will be calculated and sent.  Logically, setting this attribute to
+    MSG_BASE_POS_ECEF will be calculated and sent.  Logically, setting this attribute to
     "true" sets the Local Piksi as a base station and configures the unit to send
     its surveyed location coordinates to the other Piksi(s) with which the base
     station is communicating.  If "true", the remote Piksi that receives the

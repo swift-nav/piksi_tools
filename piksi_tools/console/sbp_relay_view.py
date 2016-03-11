@@ -19,7 +19,6 @@ from sbp.client.forwarder import Forwarder
 from sbp.client.framer import Framer
 from sbp.client.handler import Handler
 from sbp.client.loggers.udp_logger import UdpLogger
-from sbp.observation import SBP_MSG_OBS, SBP_MSG_BASE_POS
 from traits.api import HasTraits, String, Button, Instance, Int, Bool, \
                        on_trait_change, Enum
 from traitsui.api import View, Item, VGroup, UItem, HGroup, TextEditor, \

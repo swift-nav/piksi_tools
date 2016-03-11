@@ -19,12 +19,12 @@ from sbp.client import Handler, Framer
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.handler import Handler
 from sbp.client.loggers.udp_logger import UdpLogger
-from sbp.observation import SBP_MSG_OBS, SBP_MSG_BASE_POS
+from sbp.observation import SBP_MSG_OBS, SBP_MSG_BASE_POS_ECEF, SBP_MSG_BASE_POS_LLH
 
 import socket
 import time
 
-OBS_MSGS = [SBP_MSG_OBS, SBP_MSG_BASE_POS]
+OBS_MSGS = [SBP_MSG_OBS, SBP_MSG_BASE_POS_ECEF, SBP_MSG_BASE_POS_LLH]
 
 DEFAULT_SERIAL_PORT = "/dev/ttyUSB0"
 DEFAULT_SERIAL_BAUD = 1000000
