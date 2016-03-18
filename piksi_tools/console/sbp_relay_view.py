@@ -50,7 +50,7 @@ class SbpRelayView(HasTraits):
     ' aircraft telemetry via ground control software such as MAVProxy or'
     ' Mission Planner.')
   http_information = String('Skylark - Experimental Piksi Networking\n\n'
-                            'Skylark is an Internet service for connecting Piksi receivers without the use of a radio. To receive GPS observations from the closest nearby Piksi base station (within 5km), click Connect to Skylark.\n\nTo hide your observations (and position) from other nearby Piksi receivers, select the checkbox Hide Observations From Other Receivers.\n\n')
+                            "Skylark is Swift Navigation's Internet service for connecting Piksi receivers without the use of a radio. To receive GPS observations from the closest nearby Piksi base station (within 5km), click Connect to Skylark.\n\nTo hide your observations (and position) from other nearby Piksi receivers, select the checkbox Hide Observations From Other Receivers.\n\n")
   start = Button(label='Start', toggle=True, width=32)
   stop = Button(label='Stop', toggle=True, width=32)
   connected_rover = Bool(False)
