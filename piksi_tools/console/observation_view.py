@@ -149,7 +149,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     # See sbp_piksi.h for format
     for o in sbp_msg.obs:
       prn = o.sid.sat
-      if ((o.sid.constellation == 0) and (o.sid.band == 0)):
+      if ((o.sid.code == 0)):
         prn += 1
       self.obs[prn] = (float(o.P) / 1e2,
                        float(o.L.i) + float(o.L.f) / (1<<8),
@@ -166,7 +166,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
 
   def ephemeris_callback(self, m, **metadata):
     prn = m.sid.sat
-    if ((m.sid.constellation == 0) and (m.sid.band == 0)):
+    if ((m.sid.code == 0)):
       prn += 1
     if self.recording:
       if self.eph_file is None:

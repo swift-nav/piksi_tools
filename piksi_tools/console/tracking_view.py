@@ -85,7 +85,7 @@ class TrackingView(HasTraits):
     for n, k in enumerate(self.states):
       s = sbp_msg.states[n]
       prn = s.sid.sat
-      if ((s.sid.constellation == 0) and (s.sid.band == 0)):
+      if (s.sid.code == 0):
         prn += 1
       k.update(s.state, prn, s.cn0)
     GUI.invoke_later(self.update_plot)
