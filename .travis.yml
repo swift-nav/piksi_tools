@@ -3,6 +3,7 @@ os:
   - linux
   - osx
 
+
 before_install:
   - sleep 3 # give xvfb some time to start
   - make deps
@@ -22,6 +23,15 @@ script:
   - sudo python setup.py install
   - make build_console
 
+addons:
+  artifacts:
+    debug: true 
+    paths:
+      - ./piksi_tools/console/pyinstaller/
+    working_dir: $TRAVIS_BUILD_DIR
+    target_paths: $TRAVIS_BUILD_NUMBER
+    bucket: console-ci-builds
+    s3_region: us-west-2
 deploy:
   provider: pypi
   user: mark.fine@gmail.com
