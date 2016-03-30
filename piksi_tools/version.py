@@ -35,9 +35,16 @@
 
 __all__ = ("get_git_version")
 
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, check_call, CalledProcessError
 import sys
 import os
+
+def check_for_git():
+  try:
+      p = check_call(['which', 'git'])
+      return True
+  except CalledProcessError:
+      return False 
 
 def call_git_describe():
     try:
@@ -81,9 +88,10 @@ def write_release_version(version):
 def get_git_version():
     # Read in the version that's currently in RELEASE-VERSION.
     release_version = read_release_version()
-
+    version = None
     # First try to get the current version using “git describe”.
-    version = call_git_describe()
+    if check_for_git(): 
+      version = call_git_describe()
 
     # Take off the leading if present.
     if version is not None and version[0] == 'v':
