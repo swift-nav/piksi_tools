@@ -59,6 +59,9 @@ def get_args():
   parser.add_argument("-f", "--ftdi",
                       help="use pylibftdi instead of pyserial.",
                       action="store_true")
+  parser.add_argument("--file",
+                      help="Read with a filedriver rather than pyserial.",
+                      action="store_true")
   parser.add_argument('-t', '--toolkit', nargs=1, default=[None],
                       help="specify the TraitsUI toolkit to use, either 'wx' or 'qt4'.")
   parser.add_argument('-e', '--expert', action='store_true',
@@ -371,7 +374,7 @@ if not port:
   else:
     print "Using serial device '%s'" % port
 
-with s.get_driver(args.ftdi, port, baud) as driver:
+with s.get_driver(args.ftdi, port, baud, args.file) as driver:
   with sbpc.Handler(sbpc.Framer(driver.read, driver.write, args.verbose)) as link:
     if os.path.isdir(log_filename):
       log_filename = os.path.join(log_filename, s.LOG_FILENAME)

@@ -3,14 +3,35 @@ os:
   - linux
   - osx
 
+
 before_install:
+  - sleep 3 # give xvfb some time to start
   - make deps
+
+before_script:
+  - "export DISPLAY=:0.0"
+  - "export PATH=/usr/local/bin/:./:$PATH"
+  - Xvfb :0.0 -screen 1 800x600x24 &
+  - sleep 3
 
 script:
   - tox
+  - which python
+  - PYTHONPATH=. python piksi_tools/console/console.py --file -p ./tests/data/piksi.bin & PID=$!
+  - sleep 10 
+  - kill -n 9  $PID
   - sudo python setup.py install
   - make build_console
 
+addons:
+  artifacts:
+    debug: true 
+    paths:
+      - ./piksi_tools/console/pyinstaller/
+    working_dir: $TRAVIS_BUILD_DIR
+    target_paths: $TRAVIS_BUILD_NUMBER
+    bucket: console-ci-builds
+    s3_region: us-west-2
 deploy:
   provider: pypi
   user: mark.fine@gmail.com

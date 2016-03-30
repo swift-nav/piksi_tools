@@ -105,7 +105,7 @@ def get_args():
   parser = base_cl_options()
   return parser.parse_args()
 
-def get_driver(use_ftdi=False, port=SERIAL_PORT, baud=SERIAL_BAUD):
+def get_driver(use_ftdi=False, port=SERIAL_PORT, baud=SERIAL_BAUD, file=False):
   """
   Get a driver based on configuration options
 
@@ -121,6 +121,8 @@ def get_driver(use_ftdi=False, port=SERIAL_PORT, baud=SERIAL_BAUD):
   try:
     if use_ftdi:
       return PyFTDIDriver(baud)
+    if file:
+      return open(port, 'r')
     return PySerialDriver(port, baud)
   # if finding the driver fails we should exit with a return code
   # currently sbp's py serial driver raises SystemExit, so we trap it
