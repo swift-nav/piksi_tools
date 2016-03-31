@@ -33,11 +33,11 @@ class Sat:
     self.ecc     = float(fields[2])
     self.toa     = float(fields[3])
     self.inc     = float(fields[4])
-    self.rora    = float(fields[5])
-    self.a       = float(fields[6])**2
-    self.raaw    = float(fields[7])
-    self.argp    = float(fields[8])
-    self.ma      = float(fields[9])
+    self.omegadot= float(fields[5])
+    self.sqrta   = float(fields[6])
+    self.omega0  = float(fields[7])
+    self.w       = float(fields[8])
+    self.m0      = float(fields[9])
     self.af0     = float(fields[10])
     self.af1     = float(fields[11])
     self.week    = int(fields[12])
@@ -50,8 +50,9 @@ class Sat:
     elif tdiff < -302400.0:
       tdiff += 604800.0
 
-    ma_dot = m.sqrt(NAV_GM / self.a**3)
-    ma = self.ma + ma_dot*tdiff
+    a = self.sqrta**2
+    ma_dot = m.sqrt(NAV_GM / a**3)
+    ma = self.m0 + ma_dot*tdiff
 
     # Iteratively solve for the Eccentric Anomaly (from Keith Alter and David Johnston)
     ea = ma # Starting value for E
@@ -66,7 +67,7 @@ class Sat:
     # Begin calc for True Analomay and Argument of Latitude
     tempd2 = m.sqrt(1.0 - self.ecc * self.ecc)
     # [rad] Argument of Latitude = True Anomaly + Argument of Perigee
-    al = m.atan2(tempd2 * m.sin(ea), m.cos(ea) - self.ecc) + self.argp
+    al = m.atan2(tempd2 * m.sin(ea), m.cos(ea) - self.ecc) + self.w
     al_dot = tempd2 * ea_dot / tempd1
 
     # Calculate corrected radius based on argument of latitude
@@ -83,8 +84,8 @@ class Sat:
     y_dot = r_dot * m.sin(al) + x * al_dot
 
     # Corrected longitude of ascending node
-    om_dot = self.rora - NAV_OMEGAE_DOT
-    om = self.raaw + tdiff * om_dot - NAV_OMEGAE_DOT * self.toa
+    om_dot = self.omegadot - NAV_OMEGAE_DOT
+    om = self.omega0 + tdiff * om_dot - NAV_OMEGAE_DOT * self.toa
 
     sat_pos = n.array([0.0, 0.0, 0.0])
     sat_vel = n.array([0.0, 0.0, 0.0])
@@ -121,8 +122,8 @@ class Sat:
   def packed(self):
     import struct
     return struct.pack("<ddddddddddHBBB",
-      self.ecc, self.toa, self.inc, self.rora, self.a, self.raaw, self.argp,
-      self.ma, self.af0, self.af1, self.week, self.prn, self.healthy, 1
+      self.ecc, self.toa, self.inc, self.omegadot, self.sqrta, self.omega, self.w,
+      self.m0, self.af0, self.af1, self.week, self.prn, self.healthy, 1
     )
 
   def __str__(self):
