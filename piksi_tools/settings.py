@@ -26,7 +26,7 @@ class Settings(object):
   """
   Settings
 
-  The :class:`Diagnostics` class retrieves and sends settings.
+  The :class:`Settings` class retrieves and sends settings.
   """
   def __init__(self, link):
     self.link = link
