@@ -19,6 +19,7 @@ from piksi_tools.serial_link import swriter, get_uuid, DEFAULT_BASE
 from piksi_tools.version import VERSION as CONSOLE_VERSION
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
+from sbp.client.drivers.network_drivers import TCPDriver
 from sbp.ext_events import *
 from sbp.logging import *
 from sbp.piksi import SBP_MSG_RESET, MsgReset
@@ -34,7 +35,7 @@ def get_args():
   import argparse
   parser = argparse.ArgumentParser(description='Swift Nav Console.')
   parser.add_argument('-p', '--port', nargs=1, default=[None],
-                      help='specify the serial port to use.')
+                      help='specify the port to use.')
   parser.add_argument('-b', '--baud', nargs=1, default=[s.SERIAL_BAUD],
                       help='specify the baud rate to use.')
   parser.add_argument("-v", "--verbose",
@@ -66,6 +67,10 @@ def get_args():
                       help="specify the TraitsUI toolkit to use, either 'wx' or 'qt4'.")
   parser.add_argument('-e', '--expert', action='store_true',
                       help="Show expert settings.")
+  parser.add_argument("--tcp", action="store_true", default=False,
+                      help="Use a TCP connection instead of a local serial port. \
+                      If TCP is selected, the port is interpreted as host:port")
+
   return parser.parse_args()
 
 args = get_args()
@@ -364,17 +369,26 @@ class PortChooser(HasTraits):
     except TypeError:
       pass
 
-if not port:
-  port_chooser = PortChooser()
-  is_ok = port_chooser.configure_traits()
-  port = port_chooser.port
-  if not port or not is_ok:
-    print "No serial device selected!"
-    sys.exit(1)
-  else:
-    print "Using serial device '%s'" % port
+if args.tcp:
+  try:
+    host, port = port.split(':')
+    selected_driver = TCPDriver(host, int(port))
+  except:
+    raise Exception('Invalid host and/or port')
+else:
+  if not port:
+    port_chooser = PortChooser()
+    is_ok = port_chooser.configure_traits()
+    port = port_chooser.port
+    if not port or not is_ok:
+      print "No serial device selected!"
+      sys.exit(1)
+    else:
+      print "Using serial device '%s'" % port
 
-with s.get_driver(args.ftdi, port, baud, args.file) as driver:
+  selected_driver = s.get_driver(args.ftdi, port, baud, args.file)
+
+with selected_driver as driver:
   with sbpc.Handler(sbpc.Framer(driver.read, driver.write, args.verbose)) as link:
     if os.path.isdir(log_filename):
       log_filename = os.path.join(log_filename, s.LOG_FILENAME)
