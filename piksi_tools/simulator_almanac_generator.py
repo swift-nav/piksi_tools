@@ -55,7 +55,7 @@ def to_struct(sat):
   sat.af1,
   0, # CODE_GPS_L1CA
   sat.prn,
-  sat.week,
+  sat.week + 1024,
   sat.toa,
   900.0,
   144,
@@ -73,8 +73,8 @@ if __name__ == "__main__":
   with open(args.file) as f:
     alm.process_yuma(f.readlines())
     print "#include \"simulator_data.h\""
-    print "/* AUTO-GENERATED FROM simulator_almanac_generator.py */\n"
-    print "u16 simulation_week_number = 866;\n"
+    print "/* AUTO-GENERATED FROM simulator_almanac_generator.py and data/week763.alm*/\n"
+    print "u16 simulation_week_number = 1787;\n"
     print "double simulation_sats_pos[%d][3];\n" % len(alm.sats)
     print "double simulation_sats_vel[%d][3];\n" % len(alm.sats)
     print "u32 simulation_fake_carrier_bias[%d];\n" % len(alm.sats)
