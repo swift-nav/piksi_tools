@@ -40,6 +40,8 @@ class Settings(object):
                            SBP_MSG_SETTINGS_READ_BY_INDEX_RESP)
     self.link.add_callback(self._settings_done_callback,
                            SBP_MSG_SETTINGS_READ_BY_INDEX_DONE)
+    self.link.add_callback(self._print_callback,
+                           SBP_MSG_LOG)
 
   def read_all(self):
     self.settings_list_received = False
@@ -66,6 +68,9 @@ class Settings(object):
 
   def reset(self):
     self.link(MsgReset())
+
+  def _print_callback(self, msg, **metadata):
+    print msg.text
 
   def _settings_callback(self, sbp_msg, **metadata):
     section, setting, value, format_type = sbp_msg.payload[2:].split('\0')[:4]
