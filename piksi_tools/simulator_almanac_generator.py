@@ -58,7 +58,7 @@ def to_struct(sat):
   sat.week + 1024,
   sat.toa,
   900.0,
-  144,
+  144 * 60 * 60,
   sat.healthy,
   1);
 
