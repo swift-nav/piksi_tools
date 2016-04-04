@@ -22,12 +22,13 @@
   default value: '0'
   enumerated possible values:
   Description: "Surveyed latitude of the Piksi's antenna"
-  Notes: This setting represents the latitude of the local Piksi's antenna. If
-    surveyed position "broadcast" is set to "true", the coordinate will be
-    communicated to remote Piksis with which to calculate their pseudo-absolute
-    RTK position.  The value should be as accurate as possible and should have
+  Notes: This setting represents the latitude of the local Piksi's antenna, expressed
+    in decimal degrees relative to the equator (north = positive, south = negative).
+    If surveyed position "broadcast" is set to "true", the coordinate will be
+    communicated to remote Piksis for use in calculating their pseudo-absolute
+    RTK position. The value should be as accurate as possible and should have
     precision to at least 7 digits following the decimal point. For reference,
-    1e-7 degrees of latitude is about 1.1cm on the surface of the earth. Any
+    1e-7 degrees of latitude is about 1.1 cm on the surface of the earth. Any
     errors in the surveyed position will directly affect the pseudo-absolute
     RTK position measurement reported by the remote Piksi.
 
@@ -38,10 +39,11 @@
   default value: '0'
   enumerated possible values:
   Description: "Surveyed longitude of the Piksi's antenna"
-  Notes: This setting represents the longitude of the local Piksi's antenna. If
-    surveyed position "broadcast" is set to "true", the coordinate will be
-    communicated to remote Piksis with which to calculate their pseudo-absolute
-    RTK position.  The value should be as accurate as possible and should have
+  Notes: This setting represents the longitude of the local Piksi's antenna, expressed
+    in decimal degrees relative to the Prime Meridian (east = positive, west = negative).
+    If surveyed position "broadcast" is set to "true", the coordinate will be
+    communicated to remote Piksis for use in calculating their pseudo-absolute
+    RTK position. The value should be as accurate as possible and should have
     precision to at least 7 digits following the decimal point. For reference,
     1e-7 degrees of longitude at 35 degree latitude is about 1 cm.  Any
     errors in the surveyed position will directly affect the pseudo-absolute
@@ -55,11 +57,11 @@
   enumerated possible values:
   Description: "Surveyed altitude of the Piksi's antenna"
   Notes: This setting represents the altitude of the Piksi's antenna above the
-    WGS84 ellipsoid. If surveyed position "broadcast" is set to "true", this
-    coordinate will be communicated to remote Piksi's against which to calculate
-     a pseudo-absolute position. This value should be precise to 1 cm. Any
-     errors in the surveyed position will directly affect the pseudo-absolute
-     RTK position measurement reported by the Rover.
+    WGS84 ellipsoid, in meters. If surveyed position "broadcast" is set to "true",
+    this coordinate will be communicated to remote Piksis for use in calculating
+    their pseudo-absolute position. This value should be precise to 1 cm. Any
+    errors in the surveyed position will directly affect the pseudo-absolute
+    RTK position measurement reported by the Rover.
 
 - group: float_kf
   name: phase_var
