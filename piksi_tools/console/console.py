@@ -70,6 +70,9 @@ def get_args():
   parser.add_argument("--tcp", action="store_true", default=False,
                       help="Use a TCP connection instead of a local serial port. \
                       If TCP is selected, the port is interpreted as host:port")
+  parser.add_argument('--error', action='store_true',
+                      help="Do not swallow exceptions.")
+
 
   return parser.parse_args()
 
@@ -290,11 +293,13 @@ class SwiftConsole(HasTraits):
   def _clear_button_fired(self):
     self.console_output.clear()
 
-  def __init__(self, link, update, log_level_filter, skip_settings=False):
+  def __init__(self, link, update, log_level_filter, skip_settings=False, error=False):
     self.console_output = OutputList()
     self.console_output.write("Console: starting...")
+    self.error = error
     sys.stdout = self.console_output
-    sys.stderr = self.console_output
+    if not error:
+      sys.stderr = self.console_output
     self.log_level_filter = log_level_filter
     self.console_output.log_level_filter = str_to_log_level(log_level_filter)
     try:
@@ -341,6 +346,8 @@ class SwiftConsole(HasTraits):
     except:
       import traceback
       traceback.print_exc()
+      if self.error:
+        sys.exit(1)
 
 # Make sure that SIGINT (i.e. Ctrl-C from command line) actually stops the
 # application event loop (otherwise Qt swallows KeyboardInterrupt exceptions)
@@ -399,7 +406,7 @@ with selected_driver as driver:
       log_filter = DEFAULT_LOG_LEVEL_FILTER
       if args.initloglevel[0]:
         log_filter = args.initloglevel[0]
-      SwiftConsole(link, args.update, log_filter).configure_traits()
+      SwiftConsole(link, args.update, log_filter, error=args.error).configure_traits()
 
 # Force exit, even if threads haven't joined
 try:
