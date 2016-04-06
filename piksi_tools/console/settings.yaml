@@ -513,11 +513,20 @@
 - group: telemetry_radio
   name: configuration_string
   type: string
-  units:
+  units: 
   default value:
   enumerated possible values:
   Description: Configuration string to send radio modem over UART when detected
-  Notes: This configuration string is intended for radios that use AT style commands
+  Notes: |
+         This configuration string is intended for radios that use AT style commands
+         ATS1 = Serial Baud Rate 
+         ATS2 = Air Speed
+         ATS3 = Net ID
+         ATS4 = TX Power
+         ATS5 = Error Correction
+         ATS8 = Minimum Frequency
+         ATS9 = Maximum Frequency
+         ATS15 = Node ID 
 
 - group: uart_ftdi
   name: mode
