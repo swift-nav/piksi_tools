@@ -16,8 +16,8 @@ before_script:
 
 script:
   - tox
-  - which python
-  - PYTHONPATH=. python piksi_tools/console/console.py --file -p ./tests/data/piksi.bin & PID=$!
+  - export TRAITS_DEBUG="1" 
+  - PYTHONPATH=. python piksi_tools/console/console.py --file --error -p ./tests/data/piksi.bin & PID=$!
   - sleep 10 
   - kill -n 9  $PID
   - sudo python setup.py install
