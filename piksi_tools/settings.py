@@ -144,7 +144,6 @@ def main():
   with serial_link.get_driver(args.ftdi, port, baud) as driver:
     with Handler(Framer(driver.read, driver.write)) as link:
       settings = Settings(link)
-
       if command == 'write':
         settings.write(args.section, args.setting, args.value)
       elif command == 'read':
@@ -155,6 +154,8 @@ def main():
         settings.save()
       elif command == 'reset':
         settings.reset()
+      # Wait a few seconds for any relevant print messages
+      settings.link.wait(MsgLog, 8)
 
 if __name__ == "__main__":
   main()
