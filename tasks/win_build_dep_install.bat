@@ -12,11 +12,11 @@ if exist C:\Python27\python.exe (
 	)
 	echo "installing python xy"
 	xy_install /S /FULL
-	
-	echo "reinstalling python cryptography module"
-	echo y | C:\Python27\Scripts\pip uninstall cryptography
-	C:\Python27\Scripts\pip install cryptography
 )
+
+echo "reinstalling python cryptography module"
+echo y | C:\Python27\Scripts\pip uninstall cryptography
+C:\Python27\Scripts\pip install cryptography
 
 if exist C:\cygwin\bin\run.exe (
 	echo "cygwin already installed"
@@ -30,10 +30,9 @@ if exist C:\cygwin\bin\run.exe (
 	echo "installing cygwin"
 	cygwin_install --no-shortcuts --quiet-mode --disable-buggy-antivirus --packages git,make --root C:\cygwin --site http://cygwin.mirror.constant.com
 	
-	echo "cygwin config"
-	c:\cygwin\bin\bash.exe tasks\win_build_dep_install.sh
 )
-
+echo "cygwin config"
+c:\cygwin\bin\bash.exe tasks\win_build_dep_install.sh
 
 SET Result=0
 IF exist "C:\Program Files (x86)\NSIS\NSIS.exe" SET Result=1
