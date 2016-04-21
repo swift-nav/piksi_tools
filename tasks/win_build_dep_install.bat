@@ -25,5 +25,10 @@ if exist C:\cygwin\bin\run.exe (
 	cygwin_install --no-shortcuts --quiet-mode --disable-buggy-antivirus --packages git,make --root C:\cygwin --site http://cygwin.mirror.constant.com
 )
 
+echo "reinstalling python cryptography module"
 echo y | C:\Python27\Scripts\pip uninstall cryptography
 C:\Python27\Scripts\pip install cryptography
+
+echo "cygwin config"
+set PATH=C:\cygwin\bin;
+c:\cygwin\bin\bash.exe tasks\win_build_dep_install.sh
