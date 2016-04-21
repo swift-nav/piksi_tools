@@ -1,4 +1,6 @@
 echo off
+setlocal
+SET PATH=%PATH%;C:\cygwin\bin;
 if exist C:\Python27\python.exe (
 	echo "python already installed"
 ) else (
@@ -10,6 +12,10 @@ if exist C:\Python27\python.exe (
 	)
 	echo "installing python xy"
 	xy_install /S /FULL
+	
+	echo "reinstalling python cryptography module"
+	echo y | C:\Python27\Scripts\pip uninstall cryptography
+	C:\Python27\Scripts\pip install cryptography
 )
 
 if exist C:\cygwin\bin\run.exe (
@@ -23,12 +29,25 @@ if exist C:\cygwin\bin\run.exe (
 	)
 	echo "installing cygwin"
 	cygwin_install --no-shortcuts --quiet-mode --disable-buggy-antivirus --packages git,make --root C:\cygwin --site http://cygwin.mirror.constant.com
+	
+	echo "cygwin config"
+	c:\cygwin\bin\bash.exe tasks\win_build_dep_install.sh
 )
 
-echo "reinstalling python cryptography module"
-echo y | C:\Python27\Scripts\pip uninstall cryptography
-C:\Python27\Scripts\pip install cryptography
 
-echo "cygwin config"
-set PATH=C:\cygwin\bin;
-c:\cygwin\bin\bash.exe tasks\win_build_dep_install.sh
+SET Result=0
+IF exist "C:\Program Files (x86)\NSIS\NSIS.exe" SET Result=1
+IF exist "C:\Program Files\NSIS\NSIS.exe" SET Result=1
+
+if %Result% EQU 1 (
+	echo "NSIS already installed"
+) else (
+	if exist nsis_install.exe (
+		echo "NSIS install cached"
+	) else (
+		echo "NSIS install downloading"
+		c:\cygwin\bin\bash.exe tasks\nsis_download.sh
+	)
+	echo "installing NSIS"
+	nsis_install /S
+)
