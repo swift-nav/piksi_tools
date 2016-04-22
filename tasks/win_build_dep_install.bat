@@ -28,8 +28,8 @@ if exist C:\cygwin\bin\run.exe (
 		powershell -Command "Invoke-WebRequest https://cygwin.com/setup-x86_64.exe -OutFile cygwin_install.exe"
 	)
 	echo "installing cygwin"
-	cygwin_install --no-shortcuts --quiet-mode --disable-buggy-antivirus --packages git,make --root C:\cygwin --site http://cygwin.mirror.constant.com
-	
+	cygwin_install --no-shortcuts --quiet-mode --disable-buggy-antivirus --packages git,make,wget --root C:\cygwin --site http://cygwin.mirror.constant.com
+	set /p=Hit ENTER when install complete
 )
 echo "cygwin config"
 c:\cygwin\bin\bash.exe tasks\win_build_dep_install.sh
