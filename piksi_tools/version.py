@@ -43,7 +43,7 @@ def check_for_git():
   try:
       p = check_call(['which', 'git'])
       return True
-  except CalledProcessError:
+  except:
       return False 
 
 def call_git_describe():
@@ -78,7 +78,8 @@ def read_release_version():
 
 def write_release_version(version):
     try:
-        f = open(os.path.join(os.path.dirname(__file__), 'RELEASE-VERSION'), "w")
+        # openning file in wb to force Unix newline in python 2.X
+        f = open(os.path.join(os.path.dirname(__file__), 'RELEASE-VERSION'), "wb")
         f.write("%s\n" % version)
         f.close()
     except:
