@@ -3,10 +3,14 @@
 # using it to do Crazy Things.
 
 SWIFTNAV_ROOT := $(shell pwd)
-MAKEFLAGS += SWIFTNAV_ROOT=$(SWIFTNAV_ROOT)
 export PYTHONPATH := .
 
 ifneq (,$(findstring /cygdrive/,$(PATH)))
+    ifeq (,$(findstring /cygdrive/,$(SWIFTNAV_ROOT)))
+        ifneq (,$(findstring /c/,$(SWIFTNAV_ROOT)))
+            SWIFTNAV_ROOT := /cygdrive$(SWIFTNAV_ROOT)
+        endif
+    endif
     UNAME := Windows
 else
 ifneq (,$(findstring WINDOWS,$(PATH)))
@@ -15,6 +19,8 @@ else
     UNAME := $(shell uname -s)
 endif
 endif
+
+MAKEFLAGS += SWIFTNAV_ROOT=$(SWIFTNAV_ROOT)
 
 .PHONY: help deps serial_deps build_console build_console_posix build_console_Darwin build_console_Linux build_console_Windows
 
