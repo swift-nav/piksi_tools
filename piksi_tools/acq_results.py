@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-# Copyright (C) 2011-2014 Swift Navigation Inc.
+# Copyright (C) 2011-2014, 2016 Swift Navigation Inc.
 # Contact: Colin Beighley <colin@swift-nav.com>
+#          Pasi Miettinen <pasi.miettinen@exafore.com>
 #
 # This source is subject to the license found in the file 'LICENSE' which must
 # be be distributed together with this source. All other rights reserved.
@@ -15,20 +16,18 @@ monitoring acquisition.
 """
 
 import serial_link
-import argparse
-import sys
 import time
-import struct
 
-from numpy              import mean
-from sbp.acquisition    import *
-from sbp.logging        import *
-from sbp.client         import *
+from numpy import mean
+from sbp.acquisition import *
+from sbp.logging import *
+from sbp.client import *
 
-N_RECORD = 0 # Number of results to keep in memory, 0 = no limit.
+N_RECORD = 0  # Number of results to keep in memory, 0 = no limit.
 N_PRINT = 32
 
-SNR_THRESHOLD = 25
+SNR_THRESHOLD = 15
+
 
 class AcqResults():
   """
@@ -54,7 +53,7 @@ class AcqResults():
   def max_snr(self):
     try:
       return max([a.snr for a in self.acqs])
-    except ValueError, KeyError:
+    except (ValueError, KeyError):
       return 0
 
   # Return the mean of the max SNR (above snr_threshold) of each PRN.
@@ -81,6 +80,7 @@ class AcqResults():
       self.acqs.pop(0)
     self.acqs.append(MsgAcqResultDepA(sbp_msg))
 
+
 def get_args():
   """
   Get and parse arguments.
@@ -97,6 +97,7 @@ def get_args():
                       default=[serial_link.SERIAL_BAUD], nargs=1,
                       help="specify the baud rate to use.")
   return parser.parse_args()
+
 
 def main():
   """

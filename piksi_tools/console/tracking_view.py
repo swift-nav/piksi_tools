@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-# Copyright (C) 2011-2014 Swift Navigation Inc.
+# Copyright (C) 2011-2014, 2016 Swift Navigation Inc.
 # Contact: Fergus Noble <fergus@swift-nav.com>
+#          Pasi Miettinen <pasi.miettinen@exafore.com>
 #
 # This source is subject to the license found in the file 'LICENSE' which must
 # be be distributed together with this source. All other rights reserved.
@@ -9,16 +10,15 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from chaco.api import BarPlot, ArrayDataSource, DataRange1D, LinearMapper, \
-  OverlayPlotContainer, LabelAxis, PlotAxis, ArrayPlotData, Plot, Legend
+from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import LegendTool
-from enable.api import ComponentEditor, Component
+from enable.api import ComponentEditor
 from pyface.api import GUI
 from sbp.tracking import SBP_MSG_TRACKING_STATE
-from traits.api import Str, Instance, Dict, HasTraits, Array, Float, Bool, on_trait_change, List, Int
-from traitsui.api import Item, View, HGroup, ArrayEditor, HSplit
+from traits.api import Instance, Dict, HasTraits, Float, List, Int
+from traitsui.api import Item, View, HSplit
 import numpy as np
-import struct
+from piksi_tools.acq_results import SNR_THRESHOLD
 
 NUM_POINTS = 200
 
@@ -32,6 +32,7 @@ colours_list = [
   0xA65628,
   0xF781BF,
 ]
+
 
 class TrackingState(HasTraits):
   state = Int()
@@ -49,6 +50,7 @@ class TrackingState(HasTraits):
   def __repr__(self):
     return "TS: %d %f" % (self.prn, self.cn0)
 
+
 class TrackingView(HasTraits):
   python_console_cmds = Dict()
   states = List(Instance(TrackingState))
@@ -62,8 +64,8 @@ class TrackingView(HasTraits):
     HSplit(
       Item(
         'plot',
-        editor = ComponentEditor(bgcolor = (0.8, 0.8, 0.8)),
-        show_label = False,
+        editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8)),
+        show_label=False,
       )
     )
   )
@@ -78,8 +80,9 @@ class TrackingView(HasTraits):
         self.plot.delplot(pl.name)
       self.plots = []
       for n in range(n_channels):
-        self.plot_data.set_data('ch'+str(n), [0.0])
-        pl = self.plot.plot(('t', 'ch'+str(n)), type='line', color='auto', name='ch'+str(n))
+        self.plot_data.set_data('ch' + str(n), [0.0])
+        pl = self.plot.plot(('t', 'ch' + str(n)), type='line', color='auto',
+                            name='ch' + str(n))
         self.plots.append(pl)
       print 'Number of tracking channels changed to {0}'.format(n_channels)
     for n, k in enumerate(self.states):
@@ -97,7 +100,7 @@ class TrackingView(HasTraits):
     chans = np.transpose(self.cn0_history[-NUM_POINTS:])
     plot_labels = []
     for n in range(self.n_channels):
-      self.plot_data.set_data('ch'+str(n), chans[n])
+      self.plot_data.set_data('ch' + str(n), chans[n])
       if self.states[n].state == 0:
         plot_labels.append('Ch %02d (Disabled)' % n)
       else:
@@ -111,11 +114,11 @@ class TrackingView(HasTraits):
     self.plot_data = ArrayPlotData(t=[0.0])
     self.plot = Plot(self.plot_data, auto_colors=colours_list, emphasized=True)
     self.plot.title = 'Tracking C/N0'
-    self.plot.title_color = [0,0,0.43]
+    self.plot.title_color = [0, 0, 0.43]
     self.ylim = self.plot.value_mapper.range
-    self.ylim.low = 25
+    self.ylim.low = SNR_THRESHOLD
     self.ylim.high = 60
-    self.plot.value_range.bounds_func = lambda l, h, m, tb: (0, h*(1+m))
+    self.plot.value_range.bounds_func = lambda l, h, m, tb: (0, h * (1 + m))
     self.plot.value_axis.orientation = 'right'
     self.plot.value_axis.axis_line_visible = False
     self.plot.value_axis.title = 'dB-Hz'
@@ -123,7 +126,8 @@ class TrackingView(HasTraits):
     self.plot_data.set_data('t', t)
     self.plot.legend.visible = True
     self.plot.legend.align = 'ul'
-    self.plot.legend.tools.append(LegendTool(self.plot.legend, drag_button="right"))
+    self.plot.legend.tools.append(LegendTool(self.plot.legend,
+                                  drag_button="right"))
     self.link = link
     self.link.add_callback(self.tracking_state_callback, SBP_MSG_TRACKING_STATE)
     self.python_console_cmds = {
