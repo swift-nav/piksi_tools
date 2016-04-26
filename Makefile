@@ -54,6 +54,8 @@ build_console_Darwin: build_console_posix
 build_console_Linux: build_console_posix
 
 build_console_Windows:
+	@echo "$(PATH)"
+	@echo "$(SWIFTNAV_ROOT)"
 	cd $(SWIFTNAV_ROOT)/piksi_tools/console/pyinstaller; \
 	make clean && make; \
 	cd $(SWIFTNAV_ROOT);
