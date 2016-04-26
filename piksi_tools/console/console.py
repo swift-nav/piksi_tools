@@ -72,6 +72,8 @@ def get_args():
                       If TCP is selected, the port is interpreted as host:port")
   parser.add_argument('--error', action='store_true',
                       help="Do not swallow exceptions.")
+  parser.add_argument("--list-devices", action="store_true", default=False,
+                      help="write a list of connected devices to devicelist.txt")
 
 
   return parser.parse_args()
@@ -383,6 +385,10 @@ if args.tcp:
   except:
     raise Exception('Invalid host and/or port')
 else:
+  if args.list_devices:
+    with open("devicelist.txt", "w") as f:
+        f.write("%s\n" % s.get_ports())
+    sys.exit(0)
   if not port:
     port_chooser = PortChooser()
     is_ok = port_chooser.configure_traits()
