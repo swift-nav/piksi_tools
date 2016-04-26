@@ -1,7 +1,7 @@
 echo off
 setlocal
 SET PATH=%PATH%;C:\cygwin\bin;
-if exist C:\Python27\python.exe (
+if exist "C:\Program Files (x86)\pythonxy" (
 	echo "python already installed"
 ) else (
 	if exist xy_install.exe (
