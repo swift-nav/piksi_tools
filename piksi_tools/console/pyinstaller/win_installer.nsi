@@ -30,6 +30,9 @@ CreateDirectory "$SMPROGRAMS\Swift Navigation"
 CreateShortCut "$SMPROGRAMS\Swift Navigation\Piksi Console.lnk" "$INSTDIR\console.exe"
 CreateShortCut "$SMPROGRAMS\Swift Navigation\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
 
+;create desktop shortcut
+CreateShortCut "$DESKTOP\Piksi Console.lnk" "$INSTDIR\console.exe" ""
+
 ; Tell the compiler to write an uninstaller and to look for a "Uninstall" section
 WriteUninstaller $INSTDIR\Uninstall.exe
 
