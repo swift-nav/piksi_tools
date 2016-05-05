@@ -325,7 +325,7 @@ class SwiftConsole(HasTraits):
       settings_read_finished_functions.append(update_serial)
       self.settings_view = SettingsView(self.link,
                                         settings_read_finished_functions,
-                                        hide_expert=not args.expert,
+                                        expert=args.expert,
                                         skip=skip_settings)
       self.update_view.settings = self.settings_view.settings
       self.python_console_env = { 'send_message': self.link,

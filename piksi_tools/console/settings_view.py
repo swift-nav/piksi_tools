@@ -131,8 +131,8 @@ class SimpleAdapter(TabularAdapter):
   SectionHeading_font = Font('14 bold')
   SectionHeading_name_text = Property
   Setting_name_text = Property
-  name_width = Float(0.5)
-  value_width = Float(0.9)
+  name_width = Float(.7)
+  value_width = Float(.3)
 
   def _get_SectionHeading_name_text(self):
     return self.item.name.replace('_', ' ')
@@ -149,8 +149,8 @@ class SettingsView(HasTraits):
     Callbacks to call on finishing a settings read.
   name_of_yaml_file : str
     Settings to read from (defaults to settings.yaml)
-  hide_expert : bool
-    Hide expert settings (defaults to False)
+  expert : bool
+    Show expert settings (defaults to False)
   gui_mode : bool
     ??? (defaults to True)
   skip : bool
@@ -162,16 +162,17 @@ class SettingsView(HasTraits):
   settings_read_button = SVGButton(
     label='Reload', tooltip='Reload settings from Piksi',
     filename=os.path.join(determine_path(), 'images', 'fontawesome', 'refresh.svg'),
-    width=16, height=16)
+    width=16, height=20)
   settings_save_button = SVGButton(
     label='Save to Flash', tooltip='Save settings to Flash',
     filename=os.path.join(determine_path(), 'images', 'fontawesome', 'download.svg'),
-    width=16, height=16)
+    width=16, height=20)
   factory_default_button = SVGButton(
     label='Reset to Defaults', tooltip='Reset to Factory Defaults',
     filename=os.path.join(determine_path(), 'images', 'fontawesome', 'exclamation-triangle.svg'),
-    width=16, height=16)
+    width=16, height=20)
   settings_list = List(SettingBase)
+  expert=Bool()
   selected_setting = Instance(SettingBase)
   traits_view = View(
     HSplit(
@@ -190,10 +191,14 @@ class SettingsView(HasTraits):
           Item('settings_save_button', show_label=False),
           Item('factory_default_button', show_label=False),
         ),
+        HGroup(Item('expert', label="Show Advanced Settings", show_label=True)),
         Item('selected_setting', style='custom', show_label=False),
       ),
     )
   )
+  
+  def _expert_changed(self, info):
+    self.settings_display_setup(do_read_finished=False)
 
   def _settings_read_button_fired(self):
     self.enumindex = 0
@@ -221,24 +226,25 @@ class SettingsView(HasTraits):
     self.link(MsgReset())
 
   ##Callbacks for receiving messages
-  def settings_display_setup(self):
+  def settings_display_setup(self, do_read_finished=True):
     self.settings_list = []
     sections = sorted(self.settings.keys())
     for sec in sections:
       this_section = []
       for name, setting in sorted(self.settings[sec].iteritems(),
         key=lambda (n, s): s.ordering):
-        if not (self.hide_expert and setting.expert):
+        if not setting.expert or (self.expert and setting.expert):
           this_section.append(setting)
       if this_section:
         self.settings_list.append(SectionHeading(sec))
         self.settings_list += this_section
     # call read_finished_functions as needed
-    for cb in self.read_finished_functions:
-      if self.gui_mode:
-        GUI.invoke_later(cb)
-      else:
-        cb()
+    if do_read_finished:
+      for cb in self.read_finished_functions:
+        if self.gui_mode:
+          GUI.invoke_later(cb)
+        else:
+          cb()
 
   def settings_read_by_index_done_callback(self, sbp_msg, **metadata):
     self.settings_display_setup()
@@ -306,11 +312,11 @@ class SettingsView(HasTraits):
                link,
                read_finished_functions=[],
                name_of_yaml_file="settings.yaml",
-               hide_expert=False,
+               expert=False,
                gui_mode=True,
                skip=False):
     super(SettingsView, self).__init__()
-    self.hide_expert = hide_expert
+    self.expert = expert
     self.gui_mode = gui_mode
     self.enumindex = 0
     self.settings = {}
