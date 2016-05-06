@@ -104,7 +104,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
       for prn in list(self.obs.iterkeys()):
           # G    3 C1C L1C D1C
           self.rinex_file.write("%14.3f  " % self.obs[prn][0])
-          self.rinex_file.write("%14.3f  " % self.obs[prn][1])
+          self.rinex_file.write("%14.3f  " % -self.obs[prn][1]) # Piksi carrier sign phase is flipped
           self.rinex_file.write("%14.3f  \n" % self.obs[prn][2])
 
       self.rinex_file.flush()
