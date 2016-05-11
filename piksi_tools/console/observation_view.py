@@ -152,7 +152,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     for o in sbp_msg.obs:
       prn = o.sid.sat
       # compute time difference of carrier phase for display
-      cp = float(o.L.i) + float(o.L.f) / (1<<8), 
+      cp = float(o.L.i) + float(o.L.f) / (1<<8) 
       try:
         ocp = self.old_obs[prn][1]
       except Exception as e:
