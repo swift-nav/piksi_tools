@@ -565,6 +565,15 @@
   Description: The baudrate for the UART for the USB port on Piksi
   Notes:
 
+- group: uart_ftdi
+  name: fwd_msg
+  type: boolean
+  units: 
+  default value: 'true'
+  enumerated possible values: true, false
+  Description: Enable forwarding of base station messages
+  Notes:
+
 - group: uart_uarta
   name: mode
   type: enum
@@ -614,6 +623,15 @@
   Notes: The radio baudrate may be constrained by the particular RF equipment used
     for the telemetry radio.
 
+- group: uart_uarta
+  name: fwd_msg
+  type: boolean
+  units: 
+  default value: 'false'
+  enumerated possible values: true, false
+  Description: Enable forwarding of base station messages
+  Notes:
+
 - group: uart_uartb
   name: mode
   type: enum
@@ -657,6 +675,15 @@
   default value: '115200'
   enumerated possible values:
   Description: The baudrate for the uart
+  Notes:
+
+- group: uart_uartb
+  name: fwd_msg
+  type: boolean
+  units: 
+  default value: 'false'
+  enumerated possible values: true, false
+  Description: Enable forwarding of base station messages
   Notes:
 
 - group: ext_events
@@ -794,6 +821,24 @@
   Description: Number of ticks between GPGLL NMEA messages being sent.
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5hz.  If this setting is 0, the msg will be suppressed.
 
+  - group: nmea
+  name: gpzda_msg_rate
+  type: integer
+  units: Ticks
+  default value: '10'
+  enumerated possible values:
+  Description: Number of ticks between GPZDA NMEA messages being sent.
+  Notes:
+
+- group: nmea
+  name: gpgsa_msg_rate
+  type: integer
+  units: Ticks
+  default value: '10'
+  enumerated possible values:
+  Description: Number of ticks between GPGSA NMEA messages being sent.
+  Notes:
+
 - group: pps
   name: width
   type: integer
@@ -802,3 +847,12 @@
   enumerated possible values:
   Description: Number of microseconds the PPS will remain high (1-999999).
   Notes:
+
+- group: acquisition
+  name: sbas enabled
+  type: boolean
+  units:
+  default value: 'false'
+  enumerated possible values: true,false
+  Description: Enable the SBAS constellation
+  Notes: 
