@@ -12,8 +12,17 @@ import sys
 import traceback
 import os
 
-
 from traitsui.api import TextEditor
+
+
+def code_to_str(code):
+  if code == 0:
+    return 'L1CA'
+  elif code == 1:
+    return 'L2CM'
+  else:
+    return 'N/A'
+
 
 class MultilineTextEditor(TextEditor):
   """
@@ -24,13 +33,16 @@ class MultilineTextEditor(TextEditor):
     parent.read_only = True
     parent.multi_line = True
 
+
 def plot_square_axes(plot, xnames, ynames):
   try:
     if type(xnames) is str:
       xs = plot.data.get_data(xnames)
       ys = plot.data.get_data(ynames)
-      minx = min(xs); maxx = max(xs)
-      miny = min(ys); maxy = max(ys)
+      minx = min(xs)
+      maxx = max(xs)
+      miny = min(ys)
+      maxy = max(ys)
     else:
       minx = min(min(plot.data.get_data(xname)) for xname in xnames)
       maxx = max(max(plot.data.get_data(xname)) for xname in xnames)
@@ -40,7 +52,8 @@ def plot_square_axes(plot, xnames, ynames):
     rangey = maxy - miny
     try:
       aspect = float(plot.width) / plot.height
-    except: aspect = 1
+    except:
+      aspect = 1
     if aspect * rangey > rangex:
       padding = (aspect * rangey - rangex) / 2
       plot.index_range.low_setting = minx - padding
@@ -53,17 +66,16 @@ def plot_square_axes(plot, xnames, ynames):
       plot.index_range.high_setting = maxx
       plot.value_range.low_setting = miny - padding
       plot.value_range.high_setting = maxy + padding
-    dy = plot.value_range.high_setting - plot.value_range.low_setting
-    dx = plot.index_range.high_setting - plot.index_range.low_setting
-  except Exception as e:
+  except:
     sys.__stderr__.write(traceback.format_exc() + '\n')
 
-def determine_path ():
+
+def determine_path():
     """Borrowed from wxglade.py"""
     try:
         root = __file__
-        if os.path.islink (root):
-            root = os.path.realpath (root)
-        return os.path.dirname (os.path.abspath (root))
+        if os.path.islink(root):
+          root = os.path.realpath(root)
+        return os.path.dirname(os.path.abspath(root))
     except:
         print "There is no __file__ variable. Please contact the author."
