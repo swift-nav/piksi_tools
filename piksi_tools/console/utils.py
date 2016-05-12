@@ -1,5 +1,6 @@
-# Copyright (C) 2011-2014 Swift Navigation Inc.
+# Copyright (C) 2011-2014, 2016 Swift Navigation Inc.
 # Contact: Gareth McMullin <gareth@swift-nav.com>
+#          Pasi Miettinen  <pasi.miettinen@exafore.com>
 #
 # This source is subject to the license found in the file 'LICENSE' which must
 # be be distributed together with this source. All other rights reserved.
@@ -14,14 +15,18 @@ import os
 
 from traitsui.api import TextEditor
 
+L1CA = 'L1CA'
+L2CM = 'L2CM'
+CODE_NOT_AVAILABLE = 'N/A'
+
 
 def code_to_str(code):
   if code == 0:
-    return 'L1CA'
+    return L1CA
   elif code == 1:
-    return 'L2CM'
+    return L2CM
   else:
-    return 'N/A'
+    return CODE_NOT_AVAILABLE
 
 
 class MultilineTextEditor(TextEditor):
