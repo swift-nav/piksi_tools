@@ -335,5 +335,9 @@ class SettingsView(HasTraits):
     self.read_finished_functions = read_finished_functions
     self.setting_detail = SettingBase()
     if not skip:
-      self._settings_read_button_fired()
+      try:
+        self._settings_read_button_fired()
+      except IOError:
+        print "IOError in settings_view startup call of _settings_read_button_fired."
+        print "Verify that write permissions exist on the port."
     self.python_console_cmds = {'settings': self}
