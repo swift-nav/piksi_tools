@@ -23,11 +23,12 @@ import math
 import os
 import numpy as np
 import datetime
+import copy
 
 from sbp.observation import *
 
 class SimpleAdapter(TabularAdapter):
-    columns = [('PRN', 0), ('Pseudorange',  1), ('Carrier Phase',  2), ('C/N0', 3), ('Carrier Freq', 4)]
+    columns = [('PRN', 0), ('Pseudorange (m)',  1), ('Carrier Phase (cycles)',  2), ('C/N0 (db-hz)', 3), ('Doppler (hz)', 4)]
 
 class ObservationView(HasTraits):
   python_console_cmds = Dict()
@@ -116,7 +117,6 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     if (sbp_msg.sender is not None and
         (self.relay ^ (sbp_msg.sender == 0))):
       return
-
     tow = sbp_msg.header.t.tow
     wn = sbp_msg.header.t.wn
     seq = sbp_msg.header.n_obs
@@ -130,11 +130,11 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     # Assumes no out-of-order packets
     if (count == 0):
       self.old_tow = self.gps_tow
-      self.old_obs = self.obs
       self.gps_tow = tow;
       self.gps_week = wn;
       self.prev_obs_total = total
       self.prev_obs_count = 0;
+      self.old_obs = copy.deepcopy(self.obs)
       self.obs = {}
 
     elif (self.gps_tow            != tow    or
@@ -153,14 +153,18 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
       prn = o.sid.sat
       # compute time difference of carrier phase for display
       cp = float(o.L.i) + float(o.L.f) / (1<<8) 
+      if ((o.sid.code == 0)):
+        prn += 1
+      if sbp_msg.msg_type == SBP_MSG_OBS_DEP_A or sbp_msg.msg_type == SBP_MSG_OBS_DEP_B:
+        divisor = 1e2
+      else:
+        divisor = 5e1
       try:
         ocp = self.old_obs[prn][1]
       except Exception as e:
         ocp = 0
       cf = (cp - ocp) / (self.gps_tow - self.old_tow)
-      if ((o.sid.code == 0)):
-        prn += 1
-      self.obs[prn] = (float(o.P) / 1e2,
+      self.obs[prn] = (float(o.P) / divisor,
                        float(o.L.i) + float(o.L.f) / (1<<8),
                        float(o.cn0) / 4,
                        cf)
@@ -217,6 +221,6 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     self.rinex_file = None
     self.eph_file   = None
     self.link = link
-    self.link.add_callback(self.obs_packed_callback, SBP_MSG_OBS)
+    self.link.add_callback(self.obs_packed_callback, [SBP_MSG_OBS, SBP_MSG_OBS_DEP_B])
     self.link.add_callback(self.ephemeris_callback, SBP_MSG_EPHEMERIS)
     self.python_console_cmds = {'obs': self}
