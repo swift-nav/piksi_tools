@@ -83,6 +83,9 @@ class SbpRelayView(HasTraits):
              spring,
              HGroup(
                VGroup(
+                 HGroup(spring, 
+                        Item('device_uid', label="Skylark device ID", style='readonly'),
+                        spring),
                  HGroup(
                    spring,
                    UItem('connect_rover', enabled_when='not connected_rover', show_label=False),
@@ -90,7 +93,8 @@ class SbpRelayView(HasTraits):
                    spring),
                  HGroup(spring,
                         Item('hide_observations_from_other_receivers'),
-                        spring),),
+                        spring),
+                      ),
                VGroup(
                  Item('http_information', label="Notes", height=10,
                       editor=MultilineTextEditor(TextEditor(multi_line=True)), style='readonly',
