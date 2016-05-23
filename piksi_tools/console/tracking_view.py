@@ -19,6 +19,7 @@ from traits.api import Instance, Dict, HasTraits, Float, List, Int
 from traitsui.api import Item, View, HSplit
 import numpy as np
 from piksi_tools.acq_results import SNR_THRESHOLD
+from piksi_tools.console.utils import code_to_str
 
 NUM_POINTS = 200
 
@@ -38,17 +39,19 @@ class TrackingState(HasTraits):
   state = Int()
   cn0 = Float()
   prn = Int()
+  code = Int()
 
   def __init__(self, *args, **kwargs):
     self.update(*args, **kwargs)
 
-  def update(self, state, prn, cn0):
+  def update(self, state, prn, cn0, code):
     self.state = state
     self.cn0 = 0 if cn0 == -1 else cn0
     self.prn = prn
+    self.code = code
 
   def __repr__(self):
-    return "TS: %d %f" % (self.prn, self.cn0)
+    return "TS: %d %f %d" % (self.prn, self.cn0, self.code)
 
 
 class TrackingView(HasTraits):
@@ -75,7 +78,7 @@ class TrackingView(HasTraits):
     if n_channels != self.n_channels:
       # Update number of channels
       self.n_channels = n_channels
-      self.states = [TrackingState(0, 0, 0) for _ in range(n_channels)]
+      self.states = [TrackingState(0, 0, 0, 0) for _ in range(n_channels)]
       for pl in self.plot.plots.iterkeys():
         self.plot.delplot(pl.name)
       self.plots = []
@@ -88,9 +91,9 @@ class TrackingView(HasTraits):
     for n, k in enumerate(self.states):
       s = sbp_msg.states[n]
       prn = s.sid.sat
-      if (s.sid.code == 0):
+      if (s.sid.code == 0 or s.sid.code == 1):
         prn += 1
-      k.update(s.state, prn, s.cn0)
+      k.update(s.state, prn, s.cn0, s.sid.code)
     GUI.invoke_later(self.update_plot)
 
   def update_plot(self):
@@ -104,7 +107,8 @@ class TrackingView(HasTraits):
       if self.states[n].state == 0:
         plot_labels.append('Ch %02d (Disabled)' % n)
       else:
-        plot_labels.append('Ch %02d (PRN%02d)' % (n, self.states[n].prn))
+        plot_labels.append('Ch %02d (PRN%02d (%s))' %
+          (n, self.states[n].prn, code_to_str(self.states[n].code)))
     plots = dict(zip(plot_labels, self.plots))
     self.plot.legend.plots = plots
 
