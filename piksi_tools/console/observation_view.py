@@ -27,8 +27,12 @@ import copy
 
 from sbp.observation import *
 
+GPS_C =  299792458.0
+GPS_L1_HZ = 1.57542e9
+GPS_L1_LAMBDA = GPS_C / GPS_L1_HZ
+
 class SimpleAdapter(TabularAdapter):
-    columns = [('PRN', 0), ('Pseudorange (m)',  1), ('Carrier Phase (cycles)',  2), ('C/N0 (db-hz)', 3), ('Doppler (hz)', 4)]
+    columns = [('PRN', 0), ('Pseudorange (m)',  1), ('Carrier Phase (cycles)',  2), ('C/N0 (db-hz)', 3), ('lock_time (ms)',4), ('Doppler (hz)', 5)]
 
 class ObservationView(HasTraits):
   python_console_cmds = Dict()
@@ -152,21 +156,26 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     for o in sbp_msg.obs:
       prn = o.sid.sat
       # compute time difference of carrier phase for display
-      cp = float(o.L.i) + float(o.L.f) / (1<<8) 
       if ((o.sid.code == 0)):
         prn += 1
       if sbp_msg.msg_type == MsgObsDepB:
-        divisor = 1e2
+        p =  float(o.P)/float(1e2)
+        cp = float(o.L.i) + float(o.L.f) / (1<<8)
+        lock_time = 0;
       else:
-        divisor = 5e1
+        # todo cleanup and extend for L1 / L2
+        p =  float(o.P)/float(5e1) 
+        cp = (float(o.L)/float(5e4) + p) / GPS_L1_LAMBDA
+        lock_time = o.lock
       try:
         ocp = self.old_obs[prn][1]
       except Exception as e:
         ocp = 0
       cf = (cp - ocp) / (self.gps_tow - self.old_tow)
-      self.obs[prn] = (float(o.P) / divisor,
-                       float(o.L.i) + float(o.L.f) / (1<<8),
+      self.obs[prn] = (float(p),
+                       float(cp),
                        float(o.cn0) / 4,
+                       float(lock_time),
                        cf)
     if (count == total - 1):
       self.t = datetime.datetime(1980, 1, 6) + \
