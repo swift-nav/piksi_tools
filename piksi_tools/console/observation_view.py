@@ -23,11 +23,23 @@ import math
 import os
 import numpy as np
 import datetime
+import copy
 
 from sbp.observation import *
 
+GPS_C =  299792458.0
+GPS_L1_HZ = 1.57542e9
+GPS_L1_LAMBDA = GPS_C / GPS_L1_HZ
+
+
+def min_lock_time_decode(lock_time_packed): 
+  if (lock_time_packed == 0): 
+    return 0
+  else :
+    return 1 << (lock_time_packed + 4)
+
 class SimpleAdapter(TabularAdapter):
-    columns = [('PRN', 0), ('Pseudorange',  1), ('Carrier Phase',  2), ('C/N0', 3), ('Carrier Freq', 4)]
+    columns = [('PRN', 0), ('Pseudorange (m)',  1), ('Carrier Phase (cycles)',  2), ('C/N0 (db-hz)', 3), ('min lock time (s)',4), ('Doppler (hz)', 5)]
 
 class ObservationView(HasTraits):
   python_console_cmds = Dict()
@@ -116,7 +128,6 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     if (sbp_msg.sender is not None and
         (self.relay ^ (sbp_msg.sender == 0))):
       return
-
     tow = sbp_msg.header.t.tow
     wn = sbp_msg.header.t.wn
     seq = sbp_msg.header.n_obs
@@ -130,11 +141,11 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     # Assumes no out-of-order packets
     if (count == 0):
       self.old_tow = self.gps_tow
-      self.old_obs = self.obs
       self.gps_tow = tow;
       self.gps_week = wn;
       self.prev_obs_total = total
       self.prev_obs_count = 0;
+      self.old_obs = copy.deepcopy(self.obs)
       self.obs = {}
 
     elif (self.gps_tow            != tow    or
@@ -152,17 +163,26 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     for o in sbp_msg.obs:
       prn = o.sid.sat
       # compute time difference of carrier phase for display
-      cp = float(o.L.i) + float(o.L.f) / (1<<8) 
+      if ((o.sid.code == 0)):
+        prn += 1
+      if sbp_msg.msg_type == MsgObsDepB:
+        p =  float(o.P)/float(1e2)
+        cp = float(o.L.i) + float(o.L.f) / (1<<8)
+        lock_time = 0;
+      else:
+        # todo cleanup and extend for L1 / L2
+        p =  float(o.P)/float(5e1) 
+        cp = (float(o.L)/float(5e4) + p) / GPS_L1_LAMBDA
+        lock_time = min_lock_time_decode(o.lock)/1000.0
       try:
         ocp = self.old_obs[prn][1]
       except Exception as e:
         ocp = 0
       cf = (cp - ocp) / (self.gps_tow - self.old_tow)
-      if ((o.sid.code == 0)):
-        prn += 1
-      self.obs[prn] = (float(o.P) / 1e2,
-                       float(o.L.i) + float(o.L.f) / (1<<8),
+      self.obs[prn] = (float(p),
+                       float(cp),
                        float(o.cn0) / 4,
+                       float(lock_time),
                        cf)
     if (count == total - 1):
       self.t = datetime.datetime(1980, 1, 6) + \
@@ -217,6 +237,6 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     self.rinex_file = None
     self.eph_file   = None
     self.link = link
-    self.link.add_callback(self.obs_packed_callback, SBP_MSG_OBS)
+    self.link.add_callback(self.obs_packed_callback, [SBP_MSG_OBS, SBP_MSG_OBS_DEP_B])
     self.link.add_callback(self.ephemeris_callback, SBP_MSG_EPHEMERIS)
     self.python_console_cmds = {'obs': self}
