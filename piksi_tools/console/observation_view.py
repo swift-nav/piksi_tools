@@ -31,8 +31,15 @@ GPS_C =  299792458.0
 GPS_L1_HZ = 1.57542e9
 GPS_L1_LAMBDA = GPS_C / GPS_L1_HZ
 
+
+def min_lock_time_decode(lock_time_packed): 
+  if (lock_time_packed == 0): 
+    return 0
+  else :
+    return 1 << (lock_time_packed + 4)
+
 class SimpleAdapter(TabularAdapter):
-    columns = [('PRN', 0), ('Pseudorange (m)',  1), ('Carrier Phase (cycles)',  2), ('C/N0 (db-hz)', 3), ('lock_time (ms)',4), ('Doppler (hz)', 5)]
+    columns = [('PRN', 0), ('Pseudorange (m)',  1), ('Carrier Phase (cycles)',  2), ('C/N0 (db-hz)', 3), ('min lock time (s)',4), ('Doppler (hz)', 5)]
 
 class ObservationView(HasTraits):
   python_console_cmds = Dict()
@@ -166,7 +173,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
         # todo cleanup and extend for L1 / L2
         p =  float(o.P)/float(5e1) 
         cp = (float(o.L)/float(5e4) + p) / GPS_L1_LAMBDA
-        lock_time = o.lock
+        lock_time = min_lock_time_decode(o.lock)/1000.0
       try:
         ocp = self.old_obs[prn][1]
       except Exception as e:
