@@ -5,9 +5,6 @@
 ; The name of the installer
 Name "Piksi Console"
 
-; The file to write
-OutFile "piksi_console_setup.exe"
-
 ; The default installation directory
 InstallDir "$PROGRAMFILES\Swift Navigation\Piksi Console"
 
