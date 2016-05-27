@@ -198,7 +198,10 @@ class SettingsView(HasTraits):
   )
   
   def _expert_changed(self, info):
-    self.settings_display_setup(do_read_finished=False)
+    try:
+      self.settings_display_setup(do_read_finished=False)
+    except AttributeError:
+      pass
 
   def _settings_read_button_fired(self):
     self.enumindex = 0

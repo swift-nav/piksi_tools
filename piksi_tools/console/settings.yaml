@@ -820,8 +820,8 @@
   default value: '10'
   Description: Number of ticks between GPGLL NMEA messages being sent.
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5hz.  If this setting is 0, the msg will be suppressed.
-
-  - group: nmea
+  
+- group: nmea
   name: gpzda_msg_rate
   type: integer
   units: Ticks
