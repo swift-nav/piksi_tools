@@ -25,9 +25,9 @@ console: $(spec_file)
 	make $(UNAME)
 
 Windows:
-	makensis "/XOutfile piksi_console_v$(VERSION)_setup.exe" win_installer.nsi
+	makensis "-XOutfile piksi_console_v$(VERSION)_setup.exe" win_installer.nsi
 Cygwin:
-	makensis "/XOutfile piksi_console_v$(VERSION)_setup.exe" win_installer.nsi
+	makensis '-XOutfile piksi_console_v$(VERSION)_setup.exe' win_installer.nsi
 Darwin:
 	sudo ./create-dmg-installer.sh
 clean:
