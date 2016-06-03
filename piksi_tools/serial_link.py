@@ -24,7 +24,7 @@ from sbp.bootload                       import *
 from sbp.logging                        import *
 from sbp.navigation import SBP_MSG_POS_ECEF, SBP_MSG_POS_LLH, SBP_MSG_BASELINE_ECEF, \
   SBP_MSG_BASELINE_NED, SBP_MSG_GPS_TIME
-from sbp.observation import SBP_MSG_OBS, SBP_MSG_EPHEMERIS, SBP_MSG_BASE_POS_LLH, SBP_MSG_BASE_POS_ECEF
+from sbp.observation import SBP_MSG_OBS, SBP_MSG_OBS_DEP_B, SBP_MSG_EPHEMERIS, SBP_MSG_BASE_POS_LLH, SBP_MSG_BASE_POS_ECEF
 from sbp.user import SBP_MSG_USER_DATA
 from sbp.piksi                          import MsgReset
 from sbp.system                         import SBP_MSG_HEARTBEAT
@@ -269,6 +269,7 @@ def run(args, link):
 # The default whitelist of messages for the Piksi to publish
 DEFAULT_WHITELIST = [SBP_MSG_HEARTBEAT,
                      SBP_MSG_OBS,
+                     SBP_MSG_OBS_DEP_B,
                      SBP_MSG_EPHEMERIS,
                      SBP_MSG_POS_ECEF,
                      SBP_MSG_POS_LLH,

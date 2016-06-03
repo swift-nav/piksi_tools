@@ -11,7 +11,7 @@
 
 from callback_prompt import CallbackPrompt, close_button
 from concurrent.futures import ThreadPoolExecutor
-from piksi_tools.serial_link import DEFAULT_WHITELIST, swriter, get_uuid, \
+from piksi_tools.serial_link import swriter, get_uuid, \
   DEFAULT_BASE, CHANNEL_UUID
 from piksi_tools.console.utils import MultilineTextEditor
 from sbp.client.drivers.network_drivers import HTTPDriver
@@ -19,6 +19,8 @@ from sbp.client.forwarder import Forwarder
 from sbp.client.framer import Framer
 from sbp.client.handler import Handler
 from sbp.client.loggers.udp_logger import UdpLogger
+from sbp.observation import SBP_MSG_OBS, SBP_MSG_OBS_DEP_B, \
+  SBP_MSG_BASE_POS_LLH, SBP_MSG_BASE_POS_ECEF
 from traits.api import HasTraits, String, Button, Instance, Int, Bool, \
                        on_trait_change, Enum
 from traitsui.api import View, Item, VGroup, UItem, HGroup, TextEditor, \
@@ -29,7 +31,11 @@ import time
 
 DEFAULT_UDP_ADDRESS = "127.0.0.1"
 DEFAULT_UDP_PORT = 13320
-OBS_MSGS = DEFAULT_WHITELIST
+OBS_MSGS = [ SBP_MSG_OBS,
+           SBP_MSG_OBS_DEP_B,
+           SBP_MSG_BASE_POS_LLH,
+           SBP_MSG_BASE_POS_ECEF
+          ]
 
 class SbpRelayView(HasTraits):
   """
