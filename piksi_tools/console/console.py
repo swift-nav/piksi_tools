@@ -65,8 +65,6 @@ def get_args():
                       action="store_true")
   parser.add_argument('-t', '--toolkit', nargs=1, default=[None],
                       help="specify the TraitsUI toolkit to use, either 'wx' or 'qt4'.")
-  parser.add_argument('-e', '--expert', action='store_true',
-                      help="Show expert settings.")
   parser.add_argument("--tcp", action="store_true", default=False,
                       help="Use a TCP connection instead of a local serial port. \
                       If TCP is selected, the port is interpreted as host:port")
@@ -328,7 +326,7 @@ class SwiftConsole(HasTraits):
       settings_read_finished_functions.append(update_serial)
       self.settings_view = SettingsView(self.link,
                                         settings_read_finished_functions,
-                                        expert=args.expert,
+                                        False,
                                         skip=skip_settings)
       self.update_view.settings = self.settings_view.settings
       self.python_console_env = { 'send_message': self.link,
