@@ -16,6 +16,7 @@ from sbp.client.loggers.json_logger import JSONLogIterator
 from sbp.utils import exclude_fields, walk_json_dict
 import os
 import sbp.observation as ob
+import sbp.navigation as nav
 import sbp.piksi as piksi
 import time
 import datetime
@@ -40,8 +41,17 @@ class StoreToRINEX(object):
     self.base_obs_integrity = {}
     self.rover_obs = {}
     self.rover_obs_integrity = {}
+    self.x = 0.0
+    self.y = 0.0
+    self.z = 0.0
     self.time = None
-
+    self.first_spp = False
+    
+  def _process_spp(self, host_offset, host_time, msg):
+    self.x = float(msg.x)
+    self.y = float(msg.y)
+    self.z = float(msg.z)
+  
   def _process_obs(self, host_offset, host_time, msg):
     time = datetime.datetime(1980, 1, 6) + \
            datetime.timedelta(weeks=msg.header.t.wn) + \
@@ -56,15 +66,24 @@ class StoreToRINEX(object):
     # Convert pseudorange, carrier phase to SI units.
     for o in msg.obs:
       prn = o.sid.sat
+      code = o.sid.code
+      
       if msg.msg_type == ob.SBP_MSG_OBS_DEP_B:
-        v = {'P': o.P / 1e2, 'L': -o.L.i + o.L.f / 256.0,
-             'S': o.cn0 / 4.0, 'lock': o.lock}
-      else: 
-        v = {'P': o.P / 5e1, 'L': o.L.i + o.L.f / 256.0,
-           'S': o.cn0 / 4.0, 'lock': o.lock}
+        p_scale = 1.0/1e2
+        l_scale = -1
+      else:
+        p_scale = 1.0/5e1
+        l_scale = 1        
+      v = t.get(time, {}).get(prn, {})
+      if code == 0:
+        v.update({'P': o.P * p_scale, 'L': l_scale * (o.L.i + o.L.f / 256.0),
+             'S': o.cn0 / 4.0, 'lock': o.lock})
+      elif code == 1: 
+        v.update({'P2': o.P * p_scale, 'L2': l_scale * (o.L.i + o.L.f / 256.0),
+             'S2': o.cn0 / 4.0, 'lock2': o.lock})
       v.update({'host_offset': host_offset, 'host_time': host_time})
       if time in t:
-        t[time].update({prn: v})
+        t[time].update({ prn: v})
       else:
         t[time] = {prn: v}
       # Set the 'counts' field such that the Nth bit is 1 if we have
@@ -91,6 +110,9 @@ class StoreToRINEX(object):
     """
     if msg.msg_type == ob.SBP_MSG_OBS_DEP_B or msg.msg_type == ob.SBP_MSG_OBS:
       self._process_obs(host_offset, host_time, msg)
+    if not self.first_spp and msg.msg_type == nav.SBP_MSG_POS_ECEF:
+      self._process_spp(host_offset, host_time, msg)
+      self.first_spp = True
 
   def save(self, filename):
     if os.path.exists(filename):
@@ -109,15 +131,14 @@ sbp2rinex                               %s UTC PGM / RUN BY / DATE
                                                             OBSERVER / AGENCY
                     Piksi                                   REC # / TYPE / VERS
                                                             ANT # / TYPE
-        0.0000        0.0000        0.0000                  APPROX POSITION XYZ
-        0.0000        0.0000        0.0000                  ANTENNA: DELTA H/E/N
-     3    C1    L1    S1                                    # / TYPES OF OBSERV
+ %14.4f %14.4f %14.4f               APPROX POSITION XYZ
+         0.0000         0.0000         0.0000               ANTENNA: DELTA H/E/N
+     6    C1    L1    S1   C2    L2    S2                   # / TYPES OF OBSERV
 %s%13.7f     GPS         TIME OF FIRST OBS
                                                             END OF HEADER
-""" % (# TODO fill in approx antenna pos?
-            datetime.datetime.utcnow().strftime("%Y%m%d %H%M%S"),
-            t.strftime("  %Y    %m    %d    %H    %M"), t.second + t.microsecond * 1e-6
-          )
+""" % (datetime.datetime.utcnow().strftime("%Y%m%d %H%M%S"),
+      self.x, self.y, self.z,
+      t.strftime("  %Y    %m    %d    %H    %M"), t.second + t.microsecond * 1e-6)
           f.write(header)
           header_written = True
 
@@ -130,17 +151,30 @@ sbp2rinex                               %s UTC PGM / RUN BY / DATE
         f.write('   ' * (12 - len(sats)))
         f.write('\n')
 
-        for prn, obs in sorted(sats.iteritems()):
+        for (prn), obs in sorted(sats.iteritems()):
           # G    3 C1C L1C S1C
           f.write("%14.3f " % obs['P'])
           f.write("%14.3f " % obs['L']) 
           f.write("%14.3f " % obs['S'])
+          # now we write the L1 lock indicator 
           lock_indicator = 1
-          last_obs = self.rover_obs.get(last_t,{}).get(prn, None) 
+          last_obs = self.rover_obs.get(last_t,{}).get((prn), None)
           if last_obs: 
             if last_obs['lock'] == obs['lock']:
               lock_indicator = 0
           f.write("%01d  \n" % lock_indicator)
+          # if we have L2
+          if obs.get('P2', None):
+            f.write("%14.3f " % obs.get('P2', 0))
+            f.write("%14.3f " % obs.get('L2', 0))
+            f.write("%14.3f " % obs.get('S2', 0))
+            lock_indicator = 1
+            if last_obs: 
+              if last_obs.get('lock2') == obs.get('lock2'):
+                lock_indicator = 0
+            f.write("%01d  \n" % lock_indicator)
+          else:
+            f.write("\n")
           last_t = t
     except:
       import traceback
