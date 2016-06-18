@@ -56,7 +56,11 @@ class StoreToRINEX(object):
     # Convert pseudorange, carrier phase to SI units.
     for o in msg.obs:
       prn = o.sid.sat
-      v = {'P': o.P / 1e2, 'L': o.L.i + o.L.f / 256.0,
+      if msg.msg_type == ob.SBP_MSG_OBS_DEP_B:
+        v = {'P': o.P / 1e2, 'L': -o.L.i + o.L.f / 256.0,
+             'S': o.cn0 / 4.0, 'lock': o.lock}
+      else: 
+        v = {'P': o.P / 5e1, 'L': o.L.i + o.L.f / 256.0,
            'S': o.cn0 / 4.0, 'lock': o.lock}
       v.update({'host_offset': host_offset, 'host_time': host_time})
       if time in t:
@@ -85,7 +89,7 @@ class StoreToRINEX(object):
       SBP message payload
 
     """
-    if type(msg) == ob.MsgObs:
+    if msg.msg_type == ob.SBP_MSG_OBS_DEP_B or msg.msg_type == ob.SBP_MSG_OBS:
       self._process_obs(host_offset, host_time, msg)
 
   def save(self, filename):
@@ -96,7 +100,7 @@ class StoreToRINEX(object):
       f = open(filename, mode='w')
 
       header_written = False
-
+      last_t = 0
       for t, sats in sorted(self.rover_obs.iteritems()):
         if not header_written:
           header = """     2.11           OBSERVATION DATA    G (GPS)             RINEX VERSION / TYPE
@@ -128,10 +132,16 @@ sbp2rinex                               %s UTC PGM / RUN BY / DATE
 
         for prn, obs in sorted(sats.iteritems()):
           # G    3 C1C L1C S1C
-          f.write("%14.3f  " % obs['P'])
-          f.write("%14.3f  " % obs['L'])
-          f.write("%14.3f  \n" % obs['S'])
-
+          f.write("%14.3f " % obs['P'])
+          f.write("%14.3f " % obs['L']) 
+          f.write("%14.3f " % obs['S'])
+          lock_indicator = 1
+          last_obs = self.rover_obs.get(last_t,{}).get(prn, None) 
+          if last_obs: 
+            if last_obs['lock'] == obs['lock']:
+              lock_indicator = 0
+          f.write("%01d  \n" % lock_indicator)
+          last_t = t
     except:
       import traceback
       print traceback.format_exc()
