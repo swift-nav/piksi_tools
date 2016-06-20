@@ -10,7 +10,6 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 import piksi_tools.sbp2rinex as s2r
-import bitstring as bs
 import pytest
 import os
 
