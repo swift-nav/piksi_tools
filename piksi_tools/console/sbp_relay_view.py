@@ -63,6 +63,7 @@ class SbpRelayView(HasTraits):
   connect_rover = Button(label='Connect to Skylark', toggle=True, width=32)
   disconnect_rover = Button(label='Disconnect from Skylark', toggle=True, width=32)
   hide_observations_from_other_receivers = Bool(False)
+  virtual_observations = Bool(False)
   toggle=True
   view = View(
            VGroup(
@@ -96,6 +97,7 @@ class SbpRelayView(HasTraits):
                    spring),
                  HGroup(spring,
                         Item('hide_observations_from_other_receivers'),
+                        Item('virtual_observations'),
                         spring),),
                VGroup(
                  Item('http_information', label="Notes", height=10,
@@ -236,7 +238,8 @@ class SbpRelayView(HasTraits):
       return
     try:
       _passive = self.hide_observations_from_other_receivers
-      if not self.http.connect_write(self.link, self.whitelist, passive=_passive):
+      _virtual = self.virtual_observations
+      if not self.http.connect_write(self.link, self.whitelist, passive=_passive, virtual=_virtual):
         msg = ("\nUnable to connect to Skylark!\n\n"
                "Please check that you have a network connection.")
         self._prompt_networking_error(msg)
