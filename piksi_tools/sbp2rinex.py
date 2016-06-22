@@ -153,13 +153,14 @@ sbp2rinex                               %s UTC PGM / RUN BY / DATE
 
         for (prn), obs in sorted(sats.iteritems()):
           # G    3 C1C L1C S1C
-          f.write("%14.3f " % obs['P'])
-          f.write("%14.3f " % obs['L']) 
-          f.write("%14.3f " % obs['S'])
+          if obs.get('P', None):
+            f.write("%14.3f " % obs.get('P', 0))
+            f.write("%14.3f " % obs.get('L', 0)) 
+            f.write("%14.3f " % obs.get('S', 0))
           # now we write the L1 lock indicator 
           lock_indicator = 1
           last_obs = self.rover_obs.get(last_t,{}).get((prn), None)
-          if last_obs: 
+          if last_obs and last_obs.get('lock', None) and obs.get('lock', None): 
             if last_obs['lock'] == obs['lock']:
               lock_indicator = 0
           f.write("%01d  \n" % lock_indicator)
@@ -182,6 +183,26 @@ sbp2rinex                               %s UTC PGM / RUN BY / DATE
     finally:
       f.close()
 
+def wrapper(log_datafile, filename, num_records):
+  processor = StoreToRINEX()
+  i = 0
+  logging_interval = 10000
+  start = time.time()
+  with JSONLogIterator(log_datafile) as log:
+    for msg, data in log.next():
+      i += 1
+      if i % logging_interval == 0:
+        print "Processed %d records! @ %.1f sec." \
+          % (i, time.time() - start)
+      processor.process_message(data['delta'], data['timestamp'], msg)
+      if num_records is not None and i >= int(num_records):
+        print "Processed %d records!" % i
+        break
+    processor.save(filename)
+
+  
+
+
 def main():
   import argparse
   parser = argparse.ArgumentParser(description='Swift Nav SBP log to RINEX tool.')
@@ -201,21 +222,7 @@ def main():
   else:
     filename = args.output[0]
   num_records = args.num_records[0]
-  processor = StoreToRINEX()
-  i = 0
-  logging_interval = 10000
-  start = time.time()
-  with JSONLogIterator(log_datafile) as log:
-    for msg, data in log.next():
-      i += 1
-      if i % logging_interval == 0:
-        print "Processed %d records! @ %.1f sec." \
-          % (i, time.time() - start)
-      processor.process_message(data['delta'], data['timestamp'], msg)
-      if num_records is not None and i >= int(num_records):
-        print "Processed %d records!" % i
-        break
-    processor.save(filename)
+  wrapper(log_datafile, filename, num_records)
 
 if __name__ == "__main__":
   main()
