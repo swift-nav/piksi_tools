@@ -56,13 +56,12 @@ class SbpRelayView(HasTraits):
     ' aircraft telemetry via ground control software such as MAVProxy or'
     ' Mission Planner.')
   http_information = String('Skylark - Experimental Piksi Networking\n\n'
-                            "Skylark is Swift Navigation's Internet service for connecting Piksi receivers without the use of a radio. To receive GPS observations from the closest nearby Piksi base station (within 5km), click Connect to Skylark.\n\nTo hide your observations (and position) from other nearby Piksi receivers, select the checkbox Hide Observations From Other Receivers.\n\nTo receive observations from a Pseudo Reference Station, select the checkbox Virtual Observations.\n\n")
+                            "Skylark is Swift Navigation's Internet service for connecting Piksi receivers without the use of a radio. To receive GPS observations from the closest nearby Piksi base station (within 5km), click Connect to Skylark.\n\nTo receive observations from a Pseudo Reference Station, select the checkbox Virtual Observations.\n\n")
   start = Button(label='Start', toggle=True, width=32)
   stop = Button(label='Stop', toggle=True, width=32)
   connected_rover = Bool(False)
   connect_rover = Button(label='Connect to Skylark', toggle=True, width=32)
   disconnect_rover = Button(label='Disconnect from Skylark', toggle=True, width=32)
-  hide_observations_from_other_receivers = Bool(False)
   virtual_observations = Bool(False)
   toggle=True
   view = View(
@@ -96,7 +95,6 @@ class SbpRelayView(HasTraits):
                    UItem('disconnect_rover', enabled_when='connected_rover', show_label=False),
                    spring),
                  HGroup(spring,
-                        Item('hide_observations_from_other_receivers'),
                         Item('virtual_observations'),
                         spring),),
                VGroup(
@@ -238,8 +236,7 @@ class SbpRelayView(HasTraits):
       self._prompt_networking_error("\nNetworking disabled!")
       return
     try:
-      _passive = self.hide_observations_from_other_receivers
-      if not self.http.connect_write(self.link, self.whitelist, passive=_passive):
+      if not self.http.connect_write(self.link, self.whitelist):
         msg = ("\nUnable to connect to Skylark!\n\n"
                "Please check that you have a network connection.")
         self._prompt_networking_error(msg)
@@ -247,8 +244,7 @@ class SbpRelayView(HasTraits):
         self.connected_rover = False
         return
       self.connected_rover = True
-      if not _passive:
-        print "Connected as a base station!"
+      print "Connected as a base station!"
       executor = ThreadPoolExecutor(max_workers=2)
       executor.submit(self._retry_read)
     except:
