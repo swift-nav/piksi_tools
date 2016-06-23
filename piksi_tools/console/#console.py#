@@ -15,13 +15,6 @@ import sbp.client as sbpc
 import signal
 import sys
 
-import math
-import os
-import numpy as np
-import datetime
-import time
-
-
 from piksi_tools.serial_link import swriter, get_uuid, DEFAULT_BASE
 from piksi_tools.version import VERSION as CONSOLE_VERSION
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
@@ -30,11 +23,6 @@ from sbp.client.drivers.network_drivers import TCPDriver
 from sbp.ext_events import *
 from sbp.logging import *
 from sbp.piksi import SBP_MSG_RESET, MsgReset
-from sbp.piksi import *
-from sbp.navigation import *
-
-
-from pyface.api import GUI
 
 # Shut chaco up for now
 import warnings
@@ -103,7 +91,7 @@ from piksi_tools.console.output_list import OutputList, LogItem, str_to_log_leve
   SYSLOG_LEVELS, DEFAULT_LOG_LEVEL_FILTER
 from piksi_tools.console.utils import determine_path
 from piksi_tools.console.deprecated import DeprecatedMessageHandler
-from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List, Enum, Bool
+from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List, Enum
 from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
                          InstanceEditor, EnumEditor, ShellEditor, Handler, Spring, \
                          TableEditor, UItem
@@ -202,20 +190,6 @@ class SwiftConsole(HasTraits):
   update_view = Instance(UpdateView)
   log_level_filter = Enum(list(SYSLOG_LEVELS.itervalues()))
 
-
-########## TRY TO IMPLEMENT FIX TYPE AND #SATS HERE #########
-  
-  mode = Str('') 
-  num_sats = Int(0)
-  running = Bool(True)
-  logging_button=Button('Log')
-  logging = Int(0);
-
-
-  ##########################################################
-
-
-
   paused_button = SVGButton(
     label='', tooltip='Pause console update', toggle_tooltip='Resume console update', toggle=True,
     filename=os.path.join(determine_path(), 'images', 'iconic', 'pause.svg'),
@@ -262,15 +236,6 @@ class SwiftConsole(HasTraits):
           UItem('log_level_filter', style='simple', padding=0, height=8, show_label=True,
                 tooltip='Show log levels up to and including the selected level of severity.\nThe CONSOLE log level is always visible.'),
         ),
-        HGroup(
-          Item('', label='SERIAL PORT:', emphasized=True, tooltip='Serial Port that Piksi is connected to'),
-          Item('', label='COM1'),
-          Item('', label='FIX TYPE:', emphasized = True, tooltip='Piksi Mode: SPS, Float RTK, Fixed RTK'),
-          Item('mode', show_label = False, style = 'readonly'),
-          Item('', label='#SATS:', emphasized=True, tooltip='Number of satellites acquired by Piksi'),
-          Item('num_sats', show_label=False, style = 'readonly'),
-          Item('logging_button', show_label= False, tooltip='Start or stop logging'),
-        ),
         Item(
           'console_output',
           style='custom',
@@ -287,8 +252,6 @@ class SwiftConsole(HasTraits):
     handler = ConsoleHandler(),
     title = CONSOLE_TITLE
   )
-
-  
 
   def print_message_callback(self, sbp_msg, **metadata):
     try:
@@ -326,103 +289,11 @@ class SwiftConsole(HasTraits):
   def _clear_button_fired(self):
     self.console_output.clear()
 
-
-
-
-
-
-
-
-
-################################################
-
-  def _baseline_callback_ned(self, sbp_msg, **metadata):
-    # Updating an ArrayPlotData isn't thread safe (see chaco issue #9), so
-    # actually perform the update in the UI thread.
-    if self.running:
-      GUI.invoke_later(self.baseline_callback, sbp_msg)
-
-
-  def gps_time_callback(self, sbp_msg, **metadata):
-    self.week = MsgGPSTime(sbp_msg).wn
-    self.nsec = MsgGPSTime(sbp_msg).ns
-
-
-      
-  def baseline_callback(self, sbp_msg):
-    soln = MsgBaselineNED(sbp_msg)
-    self.num_sats = soln.n_sats
-    soln.n = soln.n * 1e-3
-    soln.e = soln.e * 1e-3
-    soln.d = soln.d * 1e-3
-
-    dist = np.sqrt(soln.n**2 + soln.e**2 + soln.d**2)
-
-
-    fixed = (soln.flags & 1) == 1
-    if fixed:
-      self.mode = 'Fixed RTK'
-    else:
-      self.mode = 'Float'
-
-
-    tow = soln.tow * 1e-3
-    if self.nsec is not None:
-      tow += self.nsec * 1e-9
-
-    if self.week is not None:
-      t = datetime.datetime(1980, 1, 6) + \
-          datetime.timedelta(weeks=self.week) + \
-          datetime.timedelta(seconds=tow)
-
-
-    if self.logging:
-      if self.log_file is None:
-        self.log_file = open(time.strftime("baseline_log_%Y%m%d-%H%M%S.csv"), 'w')
-        self.log_file.write('time,north(meters),east(meters),down(meters),distance(meters),num_sats,flags,num_hypothesis\n')
-
-      self.log_file.write('%s,%.4f,%.4f,%.4f,%.4f,%d,0x%02x' % (  #### !!!!!!!!!!!!! ADD NUM_HYPS ARGUMENT HERE
-        str(t),
-        soln.n, soln.e, soln.d, dist,
-        soln.n_sats,
-        soln.flags,
-        #######################################################self.num_hyps  !!!!!!!!!!!!!!!!! DO SOMETHING ABOUT THIS
-        )
-      )
-      self.log_file.flush()
-
-
-  def _logging_button_fired(self):
-    if self.logging:
-       self.logging = 0
-    else: 
-       self.logging =1
-      
-    
-    
-
-
-
-################################################
-
-
-
-
-
-
-
-
   def __init__(self, link, update, log_level_filter, skip_settings=False, error=False):
     self.console_output = OutputList()
     self.console_output.write("Console: starting...")
     self.error = error
     sys.stdout = self.console_output
-    self.log_file = None
-    
-    self.week = None
-    self.nsec = 0
-
-
     if not error:
       sys.stderr = self.console_output
     self.log_level_filter = log_level_filter
@@ -432,8 +303,6 @@ class SwiftConsole(HasTraits):
       self.link.add_callback(self.print_message_callback, SBP_MSG_PRINT_DEP)
       self.link.add_callback(self.log_message_callback, SBP_MSG_LOG)
       self.link.add_callback(self.ext_event_callback, SBP_MSG_EXT_EVENT)
-      self.link.add_callback(self._baseline_callback_ned, SBP_MSG_BASELINE_NED) ##########################################
-      self.link.add_callback(self.gps_time_callback, SBP_MSG_GPS_TIME)  ###################################
       self.dep_handler = DeprecatedMessageHandler(link)
       settings_read_finished_functions = []
       self.tracking_view = TrackingView(self.link)
@@ -445,10 +314,6 @@ class SwiftConsole(HasTraits):
       self.update_view = UpdateView(self.link, prompt=update)
       settings_read_finished_functions.append(self.update_view.compare_versions)
       self.networking_view = SbpRelayView(self.link)
-
-
-
-    
       # Once we have received the settings, update device_serial with
       # the Piksi serial number which will be displayed in the window
       # title. This callback will also update the header route as used
@@ -474,10 +339,6 @@ class SwiftConsole(HasTraits):
       self.python_console_env.update(self.system_monitor_view.python_console_cmds)
       self.python_console_env.update(self.update_view.python_console_cmds)
       self.python_console_env.update(self.settings_view.python_console_cmds)
-
-
-
-
     except:
       import traceback
       traceback.print_exc()
