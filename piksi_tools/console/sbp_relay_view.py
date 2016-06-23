@@ -201,7 +201,8 @@ class SbpRelayView(HasTraits):
     """
     i = 0
     repeats = 5
-    while self.http and not self.http.connect_read():
+    _virtual = self.virtual_observations
+    while self.http and not self.http.connect_read(virtual=_virtual):
       print "Attempting to read observation from Skylark..."
       time.sleep(0.1)
       i += 1
@@ -238,8 +239,7 @@ class SbpRelayView(HasTraits):
       return
     try:
       _passive = self.hide_observations_from_other_receivers
-      _virtual = self.virtual_observations
-      if not self.http.connect_write(self.link, self.whitelist, passive=_passive, virtual=_virtual):
+      if not self.http.connect_write(self.link, self.whitelist, passive=_passive):
         msg = ("\nUnable to connect to Skylark!\n\n"
                "Please check that you have a network connection.")
         self._prompt_networking_error(msg)
