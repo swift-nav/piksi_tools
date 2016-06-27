@@ -9,7 +9,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from traits.api import Instance, Dict, HasTraits, Array, Float, on_trait_change, List, Int, Button, Bool, Str
+from traits.api import Instance, Dict, HasTraits, Array, Float, on_trait_change, List, Int, Button, Bool, Str, File
 from traitsui.api import Item, View, HGroup, VGroup, ArrayEditor, HSplit, TextEditor, TabularEditor, UItem, Tabbed
 from traitsui.tabular_adapter import TabularAdapter
 from chaco.api import ArrayPlotData, Plot
@@ -18,6 +18,9 @@ from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.api import GUI
 from piksi_tools.console.utils import plot_square_axes, determine_path, MultilineTextEditor
+
+from traitsui.file_dialog \
+    import open_file
 
 import math
 import os
@@ -38,6 +41,20 @@ class SolutionView(HasTraits):
   lats = List()
   lngs = List()
   alts = List()
+
+
+  #############################################################################
+  logging_v = Bool(False)
+  file_name_v = File
+
+  logging_p = Bool(False)
+  file_name_p = File
+
+  #############################################################################
+
+
+ 
+
 
   lats_psuedo_abs = List()
   lngs_psuedo_abs = List()
@@ -157,9 +174,6 @@ class SolutionView(HasTraits):
       psuedo_absolutes = True
     pos_table = []
 
-    if self.log_file is None:
-      self.log_file = open(time.strftime("position_log_%Y%m%d-%H%M%S.csv"), 'w')
-      self.log_file.write("time,latitude(degrees),longitude(degrees),altitude(meters),n_sats,flags\n")
     tow = soln.tow * 1e-3
     if self.nsec is not None:
       tow += self.nsec * 1e-9
@@ -171,12 +185,24 @@ class SolutionView(HasTraits):
       pos_table.append(('GPS Time', t))
       pos_table.append(('GPS Week', str(self.week)))
 
-      self.log_file.write('%s,%.10f,%.10f,%.4f,%d,%d\n' % (
-        str(t),
-        soln.lat, soln.lon, soln.height,
-        soln.n_sats, soln.flags)
-      )
-      self.log_file.flush()
+      if(self.file_name_p == ''):
+        filepath_p = time.strftime("position_log_%Y%m%d-%H%M%S.csv")
+      else:
+        filepath_p = self.file_name_p + '/' + time.strftime("position_log_%Y%m%d-%H%M%S.csv")
+
+      
+      if self.logging_p:
+        if self.log_file is None:
+          self.log_file = open(filepath_p, 'w')
+          self.log_file.write("time,latitude(degrees),longitude(degrees),altitude(meters),n_sats,flags\n")
+        
+
+          self.log_file.write('%s,%.10f,%.10f,%.4f,%d,%d\n' % (
+            str(t),
+            soln.lat, soln.lon, soln.height,
+            soln.n_sats, soln.flags)
+          )
+          self.log_file.flush()
 
     pos_table.append(('GPS ToW', tow))
 
@@ -261,10 +287,6 @@ class SolutionView(HasTraits):
   def vel_ned_callback(self, sbp_msg, **metadata):
     vel_ned = MsgVelNED(sbp_msg)
 
-    if self.vel_log_file is None:
-      self.vel_log_file = open(time.strftime("velocity_log_%Y%m%d-%H%M%S.csv"), 'w')
-      self.vel_log_file.write('time,north(m/s),east(m/s),down(m/s),speed(m/s),num_sats\n')
-
     tow = vel_ned.tow * 1e-3
     if self.nsec is not None:
       tow += self.nsec * 1e-9
@@ -274,13 +296,27 @@ class SolutionView(HasTraits):
           datetime.timedelta(weeks=self.week) + \
           datetime.timedelta(seconds=tow)
 
-      self.vel_log_file.write('%s,%.6f,%.6f,%.6f,%.6f,%d\n' % (
-        str(t),
-        vel_ned.n * 1e-3, vel_ned.e * 1e-3, vel_ned.d * 1e-3,
-        math.sqrt(vel_ned.n*vel_ned.n + vel_ned.e*vel_ned.e) * 1e-3,
-        vel_ned.n_sats)
-      )
-      self.vel_log_file.flush()
+      if self.file_name_v == '':
+        filepath_v = time.strftime("velocity_log_%Y%m%d-%H%M%S.csv")
+      else:
+        filepath_v = self.file_name_v + '/' + time.strftime("velocity_log_%Y%m%d-%H%M%S.csv")
+
+      
+      if self.logging_v:
+
+        if self.vel_log_file is None:
+          self.vel_log_file = open(filepath_v, 'w')
+          self.vel_log_file.write('time,north(m/s),east(m/s),down(m/s),speed(m/s),num_sats\n')
+
+        
+
+          self.vel_log_file.write('%s,%.6f,%.6f,%.6f,%.6f,%d\n' % (
+            str(t),
+            vel_ned.n * 1e-3, vel_ned.e * 1e-3, vel_ned.d * 1e-3,
+            math.sqrt(vel_ned.n*vel_ned.n + vel_ned.e*vel_ned.e) * 1e-3,
+            vel_ned.n_sats)
+          )
+          self.vel_log_file.flush()
 
     self.vel_table = [
       ('Vel. N', '% 8.4f' % (vel_ned.n * 1e-3)),

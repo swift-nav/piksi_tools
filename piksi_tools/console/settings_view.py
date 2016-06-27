@@ -142,7 +142,6 @@ class SimpleAdapter(TabularAdapter):
 
 class SettingsView(HasTraits):
   """Traits-defined console settings view.
-
   link : object
     Serial driver object.
   read_finished_functions : list

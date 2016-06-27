@@ -77,7 +77,7 @@ view1 = View(
             Item('fix_type', show_label=False, style = 'readonly'),
             Item('', label='#SATS:', emphasized=True, tooltip='Number of satellites acquired by Piksi'),
             Item('num_sats', show_label=False, style = 'readonly'),
-            Item('logging_button', show_label= False, bgcolor = (0.8,0.8,0.8), tooltip='Start or stop logging'),
+            Item('logging_button', show_label= False, tooltip='Start or stop logging'),
             Item('CSV_or_JASON',label='JSON?', emphasized=True, tooltip='File as JSON, default settings are CSV'),
             Item('string',show_label=False, style = 'readonly'),
             Item('my_button_trait',show_label=False, tooltip='Select location to store log files'),

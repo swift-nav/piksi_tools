@@ -103,7 +103,7 @@ from piksi_tools.console.output_list import OutputList, LogItem, str_to_log_leve
   SYSLOG_LEVELS, DEFAULT_LOG_LEVEL_FILTER
 from piksi_tools.console.utils import determine_path
 from piksi_tools.console.deprecated import DeprecatedMessageHandler
-from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List, Enum, Bool
+from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List, Enum, Bool, File
 from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
                          InstanceEditor, EnumEditor, ShellEditor, Handler, Spring, \
                          TableEditor, UItem
@@ -113,6 +113,8 @@ from traitsui.table_filter \
 from traitsui.table_column \
     import ObjectColumn, ExpressionColumn
 
+from traitsui.file_dialog \
+    import open_file
 
 # When bundled with pyInstaller, PythonLexer can't be found. The problem is
 # pygments.lexers is doing some crazy magic to load up all of the available
@@ -207,10 +209,16 @@ class SwiftConsole(HasTraits):
   
   mode = Str('') 
   num_sats = Int(0)
+
   running = Bool(True)
   logging_button=Button('Log')
-  logging = Int(0);
+  #logging = Bool(False)
 
+  file_name = File
+  
+
+  port_shown = Str('')
+  port_shown = port
 
   ##########################################################
 
@@ -264,12 +272,14 @@ class SwiftConsole(HasTraits):
         ),
         HGroup(
           Item('', label='SERIAL PORT:', emphasized=True, tooltip='Serial Port that Piksi is connected to'),
-          Item('', label='COM1'),
+          Item('port_shown', show_label=False, style = 'readonly'),
           Item('', label='FIX TYPE:', emphasized = True, tooltip='Piksi Mode: SPS, Float RTK, Fixed RTK'),
           Item('mode', show_label = False, style = 'readonly'),
           Item('', label='#SATS:', emphasized=True, tooltip='Number of satellites acquired by Piksi'),
           Item('num_sats', show_label=False, style = 'readonly'),
           Item('logging_button', show_label= False, tooltip='Start or stop logging'),
+          Item('file_name', show_label = False, springy = True, tooltip='Choose location for file logs. Default is current directory.'),
+
         ),
         Item(
           'console_output',
@@ -328,13 +338,9 @@ class SwiftConsole(HasTraits):
 
 
 
+  
+ 
 
-
-
-
-
-
-################################################
 
   def _baseline_callback_ned(self, sbp_msg, **metadata):
     # Updating an ArrayPlotData isn't thread safe (see chaco issue #9), so
@@ -343,67 +349,57 @@ class SwiftConsole(HasTraits):
       GUI.invoke_later(self.baseline_callback, sbp_msg)
 
 
-  def gps_time_callback(self, sbp_msg, **metadata):
-    self.week = MsgGPSTime(sbp_msg).wn
-    self.nsec = MsgGPSTime(sbp_msg).ns
-
-
       
   def baseline_callback(self, sbp_msg):
-    soln = MsgBaselineNED(sbp_msg)
-    self.num_sats = soln.n_sats
-    soln.n = soln.n * 1e-3
-    soln.e = soln.e * 1e-3
-    soln.d = soln.d * 1e-3
-
-    dist = np.sqrt(soln.n**2 + soln.e**2 + soln.d**2)
-
-
-    fixed = (soln.flags & 1) == 1
-    if fixed:
-      self.mode = 'Fixed RTK'
-    else:
-      self.mode = 'Float'
-
-
-    tow = soln.tow * 1e-3
-    if self.nsec is not None:
-      tow += self.nsec * 1e-9
-
-    if self.week is not None:
-      t = datetime.datetime(1980, 1, 6) + \
-          datetime.timedelta(weeks=self.week) + \
-          datetime.timedelta(seconds=tow)
+    
+    
+    self.mode = self.baseline_view.table[9][1]
+    self.num_sats = self.baseline_view.table[7][1]
+    self.baseline_view.file_name_b = self.file_name
+    print(self.baseline_view.file_name_b) 
+    #self.solution_view.file_name_p = self.file_name
+    #self.solution_view.file_name_v = self.file_name
+    
+    
+    '''print(self.baseline_view.logging_b)
+    print(self.baseline_view.logging_p)
+    print(self.baseline_view.logging_v)
+    print(self.baseline_view.file_name_b) 
+    print(self.solution_view.file_name_p)
+    print(self.solution_view.file_name_v)'''
 
 
-    if self.logging:
-      if self.log_file is None:
-        self.log_file = open(time.strftime("baseline_log_%Y%m%d-%H%M%S.csv"), 'w')
-        self.log_file.write('time,north(meters),east(meters),down(meters),distance(meters),num_sats,flags,num_hypothesis\n')
+  def _pos_llh_callback(self, sbp_msg, **metadata):
+    # Updating an ArrayPlotData isn't thread safe (see chaco issue #9), so
+    # actually perform the update in the UI thread.
+    if self.running:
+      GUI.invoke_later(self.pos_llh_callback, sbp_msg)
 
-      self.log_file.write('%s,%.4f,%.4f,%.4f,%.4f,%d,0x%02x' % (  #### !!!!!!!!!!!!! ADD NUM_HYPS ARGUMENT HERE
-        str(t),
-        soln.n, soln.e, soln.d, dist,
-        soln.n_sats,
-        soln.flags,
-        #######################################################self.num_hyps  !!!!!!!!!!!!!!!!! DO SOMETHING ABOUT THIS
-        )
-      )
-      self.log_file.flush()
+
+  def pos_llh_callback(self, sbp_msg, **metadata):
+    #self.mode = self.solution_view.pos_table_spp[8][1]
+    self.num_sats = self.solution_view.table_spp[3][1]
+    self.solution_view.file_name_p = self.file_name
+    
+
+
+  def vel_ned_callback(self, sbp_msg, **metadata):
+    self.solution_view.file_name_v = self.file_name
+
 
 
   def _logging_button_fired(self):
-    if self.logging:
-       self.logging = 0
+    if self.baseline_view.logging_b and self.solution_view.logging_p and self.solution_view.logging_v:
+       self.baseline_view.logging_b = False
+       self.solution_view.logging_p = False
+       self.solution_view.logging_v = False
+
     else: 
-       self.logging =1
+       self.baseline_view.logging_b = True
+       self.solution_view.logging_p = True
+       self.solution_view.logging_v = True
       
-    
-    
-
-
-
-################################################
+  
 
 
 
@@ -417,11 +413,8 @@ class SwiftConsole(HasTraits):
     self.console_output.write("Console: starting...")
     self.error = error
     sys.stdout = self.console_output
-    self.log_file = None
     
-    self.week = None
-    self.nsec = 0
-
+    
 
     if not error:
       sys.stderr = self.console_output
@@ -433,7 +426,9 @@ class SwiftConsole(HasTraits):
       self.link.add_callback(self.log_message_callback, SBP_MSG_LOG)
       self.link.add_callback(self.ext_event_callback, SBP_MSG_EXT_EVENT)
       self.link.add_callback(self._baseline_callback_ned, SBP_MSG_BASELINE_NED) ##########################################
-      self.link.add_callback(self.gps_time_callback, SBP_MSG_GPS_TIME)  ###################################
+      self.link.add_callback(self._pos_llh_callback, SBP_MSG_POS_LLH)
+      self.link.add_callback(self.vel_ned_callback, SBP_MSG_VEL_NED)
+     # self.link.add_callback(self.gps_time_callback, SBP_MSG_GPS_TIME)  ###################################
       self.dep_handler = DeprecatedMessageHandler(link)
       settings_read_finished_functions = []
       self.tracking_view = TrackingView(self.link)
@@ -541,7 +536,7 @@ with selected_driver as driver:
       log_filter = DEFAULT_LOG_LEVEL_FILTER
       if args.initloglevel[0]:
         log_filter = args.initloglevel[0]
-      SwiftConsole(link, args.update, log_filter, error=args.error).configure_traits()
+      SwiftConsole(link, args.update, log_filter, port, error=args.error).configure_traits()
 
 # Force exit, even if threads haven't joined
 try:

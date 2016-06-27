@@ -73,4 +73,3 @@ import subprocess
 
 subprocess.Popen(["pdflatex" , "--shell-escape", "settings_out.tex"], env=myenviron).wait()
 subprocess.call(["mv" , "settings_out.pdf", "../docs/settings.pdf"])
-

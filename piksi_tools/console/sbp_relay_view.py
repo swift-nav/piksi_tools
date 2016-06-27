@@ -56,13 +56,13 @@ class SbpRelayView(HasTraits):
     ' aircraft telemetry via ground control software such as MAVProxy or'
     ' Mission Planner.')
   http_information = String('Skylark - Experimental Piksi Networking\n\n'
-                            "Skylark is Swift Navigation's Internet service for connecting Piksi receivers without the use of a radio. To receive GPS observations from the closest nearby Piksi base station (within 5km), click Connect to Skylark.\n\nTo hide your observations (and position) from other nearby Piksi receivers, select the checkbox Hide Observations From Other Receivers.\n\n")
+                            "Skylark is Swift Navigation's Internet service for connecting Piksi receivers without the use of a radio. To receive GPS observations from the closest nearby Piksi base station (within 5km), click Connect to Skylark.\n\nTo receive observations from a Skylark Proxy, select the checkbox Proxy observations.\n\n")
   start = Button(label='Start', toggle=True, width=32)
   stop = Button(label='Stop', toggle=True, width=32)
   connected_rover = Bool(False)
   connect_rover = Button(label='Connect to Skylark', toggle=True, width=32)
   disconnect_rover = Button(label='Disconnect from Skylark', toggle=True, width=32)
-  hide_observations_from_other_receivers = Bool(False)
+  proxy_observations = Bool(False)
   toggle=True
   view = View(
            VGroup(
@@ -95,7 +95,7 @@ class SbpRelayView(HasTraits):
                    UItem('disconnect_rover', enabled_when='connected_rover', show_label=False),
                    spring),
                  HGroup(spring,
-                        Item('hide_observations_from_other_receivers'),
+                        Item('proxy_observations'),
                         spring),),
                VGroup(
                  Item('http_information', label="Notes", height=10,
@@ -111,7 +111,6 @@ class SbpRelayView(HasTraits):
   def __init__(self, link, device_uid=None, base=DEFAULT_BASE, whitelist=None):
     """
     Traits tab with UI for UDP broadcast of SBP.
-
     Parameters
     ----------
     link : sbp.client.handler.Handler
@@ -122,7 +121,6 @@ class SbpRelayView(HasTraits):
       HTTP endpoint
     whitelist : [int] | None
       Piksi Device UUID (defaults to None)
-
     """
     self.link = link
     self.http = HTTPDriver(None, base)
@@ -141,7 +139,6 @@ class SbpRelayView(HasTraits):
   def update_msgs(self):
     """Updates the instance variable msgs which store the msgs that we
     will send over UDP.
-
     """
     if self.msg_enum == 'Observations':
       self.msgs = OBS_MSGS
@@ -152,14 +149,12 @@ class SbpRelayView(HasTraits):
 
   def set_route(self, serial_id, channel=CHANNEL_UUID):
     """Sets serial_id hash for HTTP headers.
-
     Parameters
     ----------
     serial_id : int
       Piksi device ID
     channel : str
       UUID namespace for device UUID
-
     """
     device_uid = str(get_uuid(channel, serial_id))
     self.device_uid = device_uid
@@ -168,12 +163,10 @@ class SbpRelayView(HasTraits):
 
   def _prompt_networking_error(self, text):
     """Nonblocking prompt for a networking error.
-
     Parameters
     ----------
     text : str
       Helpful error message for the user
-
     """
     prompt = CallbackPrompt(title="Networking Error", actions=[close_button])
     prompt.text = text
@@ -181,12 +174,10 @@ class SbpRelayView(HasTraits):
 
   def _prompt_setting_error(self, text):
     """Nonblocking prompt for a device setting error.
-
     Parameters
     ----------
     text : str
       Helpful error message for the user
-
     """
     prompt = CallbackPrompt(title="Setting Error", actions=[close_button])
     prompt.text = text
@@ -195,11 +186,11 @@ class SbpRelayView(HasTraits):
   def _retry_read(self):
     """Retry read connections. Intended to be called by
     _connect_rover_fired.
-
     """
     i = 0
     repeats = 5
-    while self.http and not self.http.connect_read():
+    _virtual = self.proxy_observations
+    while self.http and not self.http.connect_read(virtual=_virtual):
       print "Attempting to read observation from Skylark..."
       time.sleep(0.1)
       i += 1
@@ -225,7 +216,6 @@ class SbpRelayView(HasTraits):
 
   def _connect_rover_fired(self):
     """Handle callback for HTTP rover connections.
-
     """
     if not self.device_uid:
       msg = "\nDevice ID not found!\n\nConnection requires a valid Piksi device ID."
@@ -235,8 +225,7 @@ class SbpRelayView(HasTraits):
       self._prompt_networking_error("\nNetworking disabled!")
       return
     try:
-      _passive = self.hide_observations_from_other_receivers
-      if not self.http.connect_write(self.link, self.whitelist, passive=_passive):
+      if not self.http.connect_write(self.link, self.whitelist):
         msg = ("\nUnable to connect to Skylark!\n\n"
                "Please check that you have a network connection.")
         self._prompt_networking_error(msg)
@@ -244,8 +233,7 @@ class SbpRelayView(HasTraits):
         self.connected_rover = False
         return
       self.connected_rover = True
-      if not _passive:
-        print "Connected as a base station!"
+      print "Connected as a base station!"
       executor = ThreadPoolExecutor(max_workers=2)
       executor.submit(self._retry_read)
     except:
@@ -255,7 +243,6 @@ class SbpRelayView(HasTraits):
 
   def _disconnect_rover_fired(self):
     """Handle callback for HTTP rover disconnects.
-
     """
     if not self.device_uid:
       msg = "\nDevice ID not found!\n\nConnection requires a valid Piksi device ID."
@@ -279,7 +266,6 @@ class SbpRelayView(HasTraits):
     """Handle start udp broadcast button. Registers callbacks on
     self.link for each of the self.msgs If self.msgs is None, it
     registers one generic callback for all messages.
-
     """
     self.running = True
     try:
@@ -293,7 +279,6 @@ class SbpRelayView(HasTraits):
     """Handle the stop udp broadcast button. It uses the self.funcs and
     self.msgs to remove the callbacks that were registered when the
     start button was pressed.
-
     """
     try:
       self.link.remove_callback(self.func, self.msgs)

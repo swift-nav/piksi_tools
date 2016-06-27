@@ -313,7 +313,6 @@
     bit 1 (decimal value 2) turns on the satellite tracking simulated outputs
     bit 2 (decimal value 4) turns on Float IAR simulated RTK outputs
     bit 3 (decimal value 8) turns on Fixed IAR simulated RTK outputs
-
 - group: solution
   name: soln_freq
   type: integer
@@ -338,7 +337,6 @@
     sharing for RTK solution output. This parameter is designed to tune the rate at
     which correction information is passed from one Piksi to the other as to efficiently
     use radio modem bandwidth and fit with user applications.
-
 - group: solution
   name: dgnss_solution_mode
   type: enum
@@ -352,7 +350,6 @@
     or when both Piksi's are moving, "Time matched" mode can be chosen.  This
     means that the RTK output will require a corresponding set of correction observations
     for each timestamp.
-
 - group: solution
   name: dgnss_filter
   expert: true
@@ -364,7 +361,6 @@
   Notes: If "fixed", the Piksi will output a integer fixed ambiguity estimate.  If
     no fixed solution is available, it will revert to the float solution.  If "float",
     the device will only output the float ambiguity estimate.
-
 - group: solution
   name: known_baseline_n
   type: double
@@ -374,7 +370,6 @@
   Description: Determines the baseline vector for the "init known baseline" feature.
   Notes: This sets the number of meters that the rover is North from the
     base station when the "init known baseline" feature is used.
-
 - group: solution
   name: known_baseline_e
   type: double
@@ -384,7 +379,6 @@
   Description: Determines the baseline vector for the "init known baseline" feature.
   Notes: This sets the number of meters that the rover is East from the
     base station when the "init known baseline" feature is used.
-
 - group: solution
   name: known_baseline_d
   type: double
@@ -394,7 +388,6 @@
   Description: Determines the baseline vector for the "init known baseline" feature.
   Notes: This sets the number of meters that the rover is Down from the
     base station when the "init known baseline" feature is used.
-
 - group: solution
   name: elevation_mask
   type: float
@@ -404,7 +397,6 @@
   Description: SPP / RTK elevation mask
   Notes: Satellites must be above the horizon by at least this angle before they
     will be used in a solution.
-
 - group: solution
   name: disable_raim
   type: boolean
@@ -414,7 +406,6 @@
   enumerated possible values: True,False
   Description: Receiver Autonomous Integrity Monitoring
   Notes: If True, RAIM checks will not be performed.
-
 - group: solution
   name: send_heading
   type: boolean
@@ -425,7 +416,6 @@
   Description: Enables SBP heading output.  Heading is caculated from base station to 
     rover and represents the inverse tangent of the north and east components of the baseline.
   Notes: No smoothing or additional processing is provided to improve heading output.
-
 - group: system_info
   name: serial_number
   type: integer
@@ -434,7 +424,6 @@
   enumerated possible values:
   Description: The serial number of the Piksi
   Notes: This number should match the number on the barcode and cannot be modified
-
 - group: system_info
   name: firmware_version
   type: string
@@ -527,7 +516,6 @@
          ATS8 = Minimum Frequency
          ATS9 = Maximum Frequency
          ATS15 = Node ID 
-
 - group: uart_ftdi
   name: mode
   type: enum
@@ -740,22 +728,12 @@
   default value: '(1 ms, (1, 0.7, 1, 1540), (10, 0.7, 1, 5)), (5 ms, (1, 0.7, 1, 1540), (50, 0.7, 1, 0))'
   Description: Tracking loop filter parameters
   Notes: "'<LOOP_PARAMS_STAGE1>[, <LOOP_PARAMS_STAGE2>]'
-
-
     where <LOOP_PARAMS_STAGEn> =
-
     (<COHERENT_MS> ms, (CODE_BW, CODE_ZETA, CODE_K, CARR_TO_CODE),
-
                        (CARR_BW, CARR_ZETA, CARR_K, FLL_AID_GAIN))
-
-
     LOOP_PARAMS_STAGE1 will be used until navigation bit synchronization
     is achieved, after which LOOP_PARAMS_STAGE2 will be used.
-
-
     COHERENT_MS must be a factor of 20, and must be 1 for LOOP_PARAMS_STAGE1.
-
-
     CARR_TO_CODE should be 0 (carrier aiding disabled) or 1540 (ratio of
     GPS L1 C/A carrier freq to code freq)."
 
@@ -767,16 +745,10 @@
   default value: '0.02, 1.4, 150, 50'
   Description: PLL lock detector parameters
   Notes: "<k1>, <k2>, <lp>, <lo>
-
-
     where
-
       k1 = LPF coefficient (@ 1 ms)
-
       k2 = I arm divisor
-
       lp = Pessimistic lock count threshold
-
       lo = Optimistic lock count threshold"
 
 - group: track
