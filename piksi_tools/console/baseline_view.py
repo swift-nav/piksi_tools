@@ -8,7 +8,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from traits.api import Instance, Dict, HasTraits, Array, Float, on_trait_change, List, Int, Button, Bool
+from traits.api import Instance, Dict, HasTraits, Array, Float, on_trait_change, List, Int, Button, Bool, File
 from traitsui.api import Item, View, HGroup, VGroup, ArrayEditor, HSplit, TabularEditor
 from traitsui.tabular_adapter import TabularAdapter
 from chaco.api import ArrayPlotData, Plot
@@ -17,6 +17,9 @@ from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.api import GUI
 from piksi_tools.console.utils import plot_square_axes, determine_path
+
+from traitsui.file_dialog \
+    import open_file
 
 import math
 import os
@@ -35,6 +38,17 @@ class BaselineView(HasTraits):
   python_console_cmds = Dict()
 
   table = List()
+
+
+
+
+  ##############################################################
+  logging_b = Bool(False)
+  file_name_b = File
+  json = Bool(False)
+
+  
+  ##############################################################
 
   plot = Instance(Plot)
   plot_data = Instance(ArrayPlotData)
@@ -165,18 +179,35 @@ class BaselineView(HasTraits):
       table.append(('GPS Time', t))
       table.append(('GPS Week', str(self.week)))
 
-      if self.log_file is None:
-        self.log_file = open(time.strftime("baseline_log_%Y%m%d-%H%M%S.csv"), 'w')
-        self.log_file.write('time,north(meters),east(meters),down(meters),distance(meters),num_sats,flags,num_hypothesis\n')
+      if self.file_name_b == '':
+        if self.json:
+          filepath = time.strftime("baseline_log_%Y%m%d-%H%M%S.json")
+        else:
+          filepath = time.strftime("baseline_log_%Y%m%d-%H%M%S.csv")
+      else:
+        if self.json:
+          filepath = self.file_name_b + '/' + time.strftime("baseline_log_%Y%m%d-%H%M%S.json")
+        else:
+          filepath = self.file_name_b + '/' + time.strftime("baseline_log_%Y%m%d-%H%M%S.csv")
 
-      self.log_file.write('%s,%.4f,%.4f,%.4f,%.4f,%d,0x%02x,%d\n' % (
-        str(t),
-        soln.n, soln.e, soln.d, dist,
-        soln.n_sats,
-        soln.flags,
-        self.num_hyps)
-      )
-      self.log_file.flush()
+
+      if self.logging_b ==  False:
+        self.log_file = None
+
+      if self.logging_b:
+        if self.log_file is None:
+          self.log_file = open(filepath, 'w')
+          
+          self.log_file.write('time,north(meters),east(meters),down(meters),distance(meters),num_sats,flags,num_hypothesis\n')
+
+        self.log_file.write('%s,%.4f,%.4f,%.4f,%.4f,%d,0x%02x,%d\n' % (
+          str(t),
+          soln.n, soln.e, soln.d, dist,
+          soln.n_sats,
+          soln.flags,
+          self.num_hyps)
+        )
+        self.log_file.flush()
 
     table.append(('GPS ToW', tow))
 
@@ -249,6 +280,7 @@ class BaselineView(HasTraits):
 
   def __init__(self, link, plot_history_max=1000):
     super(BaselineView, self).__init__()
+    print "here"
     self.log_file = None
 
     self.num_hyps = 0
