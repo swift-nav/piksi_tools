@@ -45,14 +45,11 @@ class _OutputStreamViewHandler(Handler):
 
 class OutputStream(HasTraits):
     """This class has methods to emulate an file-like output string buffer.
-
     It has a default View that shows a multiline TextEditor.  The view will
     automatically move to the end of the displayed text when data is written
     using the write() method.
-
     The `max_len` attribute specifies the maximum number of bytes saved by
     the object.  `max_len` may be set to None.
-
     The `paused` attribute is a bool; when True, text written to the
     OutputStream is saved in a separate buffer, and the display (if there is
     one) does not update.  When `paused` returns is set to False, the data is
@@ -117,4 +114,3 @@ class OutputStream(HasTraits):
                 handler=_OutputStreamViewHandler(),
             )
         return view
-

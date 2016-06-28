@@ -63,7 +63,6 @@ class IntelHexFileDialog(HasTraits):
     """
     Pop-up file dialog to choose an IntelHex file, with status and button to
     display in traitsui window.
-
     Parameters
     ----------
     flash_type : string
@@ -77,7 +76,6 @@ class IntelHexFileDialog(HasTraits):
   def clear(self, status):
     """
     Set text of status box and clear IntelHex file.
-
     Parameters
     ----------
     status : string
@@ -90,7 +88,6 @@ class IntelHexFileDialog(HasTraits):
     """
     Load IntelHex file and set status to indicate if file was
     successfully loaded.
-
     Parameters
     ----------
     filepath : string
@@ -133,7 +130,6 @@ class PulsableProgressDialog(ProgressDialog):
   def __init__(self, max, pulsed=False):
     """
     Pop-up window for showing a process's progress.
-
     Parameters
     ----------
     max : int
@@ -151,7 +147,6 @@ class PulsableProgressDialog(ProgressDialog):
     """
     Update progress of progress bar. If pulsing initially, wait until count
     is at least 12 before changing to discrete progress bar.
-
     Parameters
     ----------
     count : int
@@ -246,7 +241,6 @@ class UpdateView(HasTraits):
   def __init__(self, link, prompt=True):
     """
     Traits tab with UI for updating Piksi firmware.
-
     Parameters
     ----------
     link : sbp.client.handler.Handler
@@ -306,7 +300,6 @@ class UpdateView(HasTraits):
     """
     Stream style write function. Allows flashing debugging messages to be
     routed to embedded text console.
-
     Parameters
     ----------
     text : string
@@ -646,7 +639,6 @@ class UpdateView(HasTraits):
     """
     Create flash.Flash instance and set Piksi into bootloader mode, prompting
     user to reset if necessary.
-
     Parameter
     ---------
     flash_type : string

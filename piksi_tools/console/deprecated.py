@@ -10,10 +10,8 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 """Deprecated SBP message types and utilities.
-
 If you having sbp problems I feel bad for you son
 I got 99 callbacks but your type ain't one
-
 """
 
 from sbp.acquisition import SBP_MSG_ACQ_RESULT_DEP_A
@@ -29,14 +27,12 @@ DEPRECATED_SBP_MESSAGES = [SBP_MSG_ACQ_RESULT_DEP_A,
 class DeprecatedMessageHandler(object):
   """Callback prompt for issuing a feature deprecation prompt in the
   console.
-
   Parameters
   ----------
   link : sbp.client.handler.Handler
     Link for SBP transfer to/from Piksi.
   dep_whitelist : [int]
     List of SBP messages to warn on (defaults to DEPRECATED_SBP_MESSAGES)
-
   """
 
   def __init__(self, link, dep_whitelist=DEPRECATED_SBP_MESSAGES):
@@ -57,12 +53,10 @@ class DeprecatedMessageHandler(object):
 
   def _prompt_dep_warning(self, text):
     """Nonblocking prompt for a deprecation warning.
-
     Parameters
     ----------
     txt : str
       Helpful error message for the user
-
     """
     from piksi_tools.console.callback_prompt import CallbackPrompt, close_button
     prompt = CallbackPrompt(title="Deprecation Warning", actions=[close_button])

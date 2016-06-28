@@ -121,4 +121,3 @@ class CallbackPrompt(HasTraits):
     self.handler_executed = True
     if not self.closed:
       self.close = 1
-
