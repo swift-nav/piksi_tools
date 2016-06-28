@@ -41,7 +41,7 @@ LOG_FILENAME = time.strftime("serial-link-%Y%m%d-%H%M%S.log.json")
 SERIAL_PORT  = "/dev/ttyUSB0"
 SERIAL_BAUD  = 1000000
 CHANNEL_UUID = '118db405-b5de-4a05-87b5-605cc85af924'
-DEFAULT_BASE = "http://broker.staging.skylark.swiftnav.com"
+DEFAULT_BASE = "http://broker.testing.skylark.swiftnav.com"
 
 def get_ports():
   """
