@@ -158,6 +158,7 @@ class BaselineView(HasTraits):
     self.nsec = MsgGPSTime(sbp_msg).ns
 
   def baseline_callback(self, sbp_msg):
+    self.last_btime_update = time.time()
     soln = MsgBaselineNED(sbp_msg)
     table = []
 
@@ -285,6 +286,7 @@ class BaselineView(HasTraits):
 
     self.num_hyps = 0
     self.last_hyp_update = 0
+    self.last_btime_update = 0
     self.plot_data = ArrayPlotData(n_fixed=[0.0], e_fixed=[0.0], d_fixed=[0.0],
                                    n_float=[0.0], e_float=[0.0], d_float=[0.0],
                                    t=[0.0],
@@ -356,6 +358,7 @@ class BaselineView(HasTraits):
 
     self.week = None
     self.nsec = 0
+    
 
     self.link = link
     self.link.add_callback(self._baseline_callback_ned, SBP_MSG_BASELINE_NED)

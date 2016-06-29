@@ -33,6 +33,12 @@ from sbp.piksi import SBP_MSG_RESET, MsgReset
 from sbp.piksi import *
 from sbp.navigation import *
 
+######################################################
+from piksi_tools.heartbeat import Heartbeat
+from sbp.system import SBP_MSG_HEARTBEAT
+
+######################################################
+
 
 from pyface.api import GUI
 
@@ -218,10 +224,6 @@ class SwiftConsole(HasTraits):
   file_name = File
 
   CSV_or_JSON = Bool
-  
-
-  port_shown = Str('')
-  # port_shown = port
 
   ##########################################################
 
@@ -274,7 +276,7 @@ class SwiftConsole(HasTraits):
                 tooltip='Show log levels up to and including the selected level of severity.\nThe CONSOLE log level is always visible.'),
         ),
         HGroup(
-          Item('', label='SERIAL PORT:', emphasized=True, tooltip='Serial Port that Piksi is connected to'),
+          Item('', label='PORT:', emphasized=True, tooltip='Serial Port that Piksi is connected to'),
           Item('port', show_label=False, style = 'readonly'),
           Item('', label='FIX TYPE:', emphasized = True, tooltip='Piksi Mode: SPS, Float RTK, Fixed RTK'),
           Item('mode', show_label = False, style = 'readonly'),
@@ -354,23 +356,31 @@ class SwiftConsole(HasTraits):
     self.baseline_view.file_name_b = self.file_name
     self.solution_view.file_name_p = self.file_name
     self.solution_view.file_name_v = self.file_name
-    print(self.baseline_view.file_name_b) 
-    print(self.solution_view.file_name_p)
-    print(self.solution_view.file_name_v)
 
+  def update_on_heartbeat(self, sbp_msg, **metadata):
+    flag = 0
+    if self.solution_view.last_stime_update - self.baseline_view.last_btime_update > 1:
+      flag = 1
+      self.mode = self.solution_view.pos_table_spp[8][1]
+      self.num_sats = self.solution_view.pos_table_spp[3][1]
+    else:
+      self.mode = self.baseline_view.table[9][1]
+      self.num_sats = self.baseline_view.table[7][1]
 
-  def _baseline_callback_ned(self, sbp_msg, **metadata):
-    # Updating an ArrayPlotData isn't thread safe (see chaco issue #9), so
-    # actually perform the update in the UI thread.
-    if self.running:
-      GUI.invoke_later(self.baseline_callback, sbp_msg)
-
-
-      
-  def baseline_callback(self, sbp_msg):
-    self.mode = self.baseline_view.table[9][1]
-    self.num_sats = self.baseline_view.table[7][1]
-   
+    if flag:
+      if time.time() - self.solution_view.last_stime_update > 1:
+        self.mode = None
+        self.num_sats = 0
+      else:
+        self.mode = self.solution_view.table[8][1]
+        self.num_sats = self.solution_view.table[3][1]
+    else:
+      if time.time() - self.baseline_view.last_btime_update > 1:
+        self.mode = None
+        self.num_sats = 0
+      else:
+        self.mode = self.baseline_view.table[9][1]
+        self.num_sats = self.baseline_view.table[7][1]
 
 
 
@@ -386,20 +396,14 @@ class SwiftConsole(HasTraits):
        self.solution_view.logging_v = True
       
   
-
-
-
-
-
-
-
-
   def __init__(self, link, update, log_level_filter, skip_settings=False, error=False, port=None):
     self.console_output = OutputList()
     self.console_output.write("Console: starting...")
     self.error = error
     sys.stdout = self.console_output
     self.port = port
+    self.num_sats = 0
+    self.mode = ''
     
 
     if not error:
@@ -411,10 +415,7 @@ class SwiftConsole(HasTraits):
       self.link.add_callback(self.print_message_callback, SBP_MSG_PRINT_DEP)
       self.link.add_callback(self.log_message_callback, SBP_MSG_LOG)
       self.link.add_callback(self.ext_event_callback, SBP_MSG_EXT_EVENT)
-      self.link.add_callback(self._baseline_callback_ned, SBP_MSG_BASELINE_NED) ##########################################
-      #self.link.add_callback(self._pos_llh_callback, SBP_MSG_POS_LLH)
-      #self.link.add_callback(self.vel_ned_callback, SBP_MSG_VEL_NED)
-     # self.link.add_callback(self.gps_time_callback, SBP_MSG_GPS_TIME)  ###################################
+      self.link.add_callback(self.update_on_heartbeat, SBP_MSG_HEARTBEAT)
       self.dep_handler = DeprecatedMessageHandler(link)
       settings_read_finished_functions = []
       self.tracking_view = TrackingView(self.link)

@@ -168,6 +168,7 @@ class SolutionView(HasTraits):
     self._table_list = self.table_spp.items()
 
   def pos_llh_callback(self, sbp_msg, **metadata):
+    self.last_stime_update = time.time()
     soln = MsgPosLLH(sbp_msg)
     masked_flag = soln.flags & 0x7
     if masked_flag == 0:
@@ -298,14 +299,14 @@ class SolutionView(HasTraits):
   def vel_ned_callback(self, sbp_msg, **metadata):
     vel_ned = MsgVelNED(sbp_msg)
 
-    tow = vel_ned.tow * 1e-3
+    self.tow = vel_ned.tow * 1e-3
     if self.nsec is not None:
-      tow += self.nsec * 1e-9
+      self.tow += self.nsec * 1e-9
 
     if self.week is not None:
       t = datetime.datetime(1980, 1, 6) + \
           datetime.timedelta(weeks=self.week) + \
-          datetime.timedelta(seconds=tow)
+          datetime.timedelta(seconds=self.tow)
 
       if self.file_name_v == '':
         if self.json:
@@ -353,6 +354,7 @@ class SolutionView(HasTraits):
 
     self.log_file = None
     self.vel_log_file = None
+    self.last_stime_update = 0
 
     self.plot_data = ArrayPlotData(lat=[], lng=[], alt=[], t=[],
       cur_lat=[], cur_lng=[], cur_lat_ps=[], cur_lng_ps=[],
@@ -402,6 +404,7 @@ class SolutionView(HasTraits):
 
     self.week = None
     self.nsec = 0
+  
 
     self.python_console_cmds = {
       'solution': self,
