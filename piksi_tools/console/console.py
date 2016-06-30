@@ -365,15 +365,26 @@ class SwiftConsole(HasTraits):
     self.solution_view.file_name_v = self.file_name
 
   def update_on_heartbeat(self, sbp_msg, **metadata):
+<<<<<<< HEAD
      # First initialize the state to nothing, if we can't update, it will be none
+=======
+    # First initialize the state to nothing, if we can't update, it will be none
+>>>>>>> 58950b35a352bc393c960f3e25738fc90c3313f9
     temp_mode = "None"
     temp_num_sats = 0
     view = None
     # If we have a recent baseline update, we use the baseline info
+<<<<<<< HEAD
     if time.time() - self.baseline_view.last_btime_update < 1:
       view = self.baseline_view
     # Otherwise, if we have a recent SPP update, we use the SPP
     elif time.time() - self.solution_view.last_stime_update < 1:
+=======
+    if time.time() - self.baseline_view.last_btime_update < 10:
+      view = self.baseline_view
+    # Otherwise, if we have a recent SPP update, we use the SPP
+    elif time.time() - self.solution_view.last_stime_update < 10:
+>>>>>>> 58950b35a352bc393c960f3e25738fc90c3313f9
       view = self.solution_view
     if view:
       if view.last_soln:
@@ -383,9 +394,12 @@ class SwiftConsole(HasTraits):
     
     self.mode = temp_mode
     self.num_sats = temp_num_sats
+<<<<<<< HEAD
   
 
 
+=======
+>>>>>>> 58950b35a352bc393c960f3e25738fc90c3313f9
 
   def _logging_button_fired(self):
     if self.baseline_view.logging_b and self.solution_view.logging_p and self.solution_view.logging_v:

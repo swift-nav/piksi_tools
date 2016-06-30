@@ -146,6 +146,15 @@ class BaselineView(HasTraits):
   def update_table(self):
     self._table_list = self.table.items()
 
+  def mode_string(self, msg):
+    if msg:
+      self.fixed = (msg.flags & 1) == 1
+      if self.fixed:
+        return 'Fixed RTK'
+      else:
+        return 'Float'
+    return 'None'
+
   def gps_time_callback(self, sbp_msg, **metadata):
     self.week = MsgGPSTime(sbp_msg).wn
     self.nsec = MsgGPSTime(sbp_msg).ns
