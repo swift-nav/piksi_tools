@@ -153,6 +153,15 @@ class BaselineView(HasTraits):
   def update_table(self):
     self._table_list = self.table.items()
 
+  def mode_string(self, msg):
+    if msg:
+      self.fixed = (msg.flags & 1) == 1
+      if self.fixed:
+        return 'Fixed RTK'
+      else:
+        return 'Float'
+    return 'None'
+
   def gps_time_callback(self, sbp_msg, **metadata):
     self.week = MsgGPSTime(sbp_msg).wn
     self.nsec = MsgGPSTime(sbp_msg).ns
@@ -160,6 +169,7 @@ class BaselineView(HasTraits):
   def baseline_callback(self, sbp_msg):
     self.last_btime_update = time.time()
     soln = MsgBaselineNED(sbp_msg)
+    self.last_soln = soln
     table = []
 
     soln.n = soln.n * 1e-3
@@ -218,11 +228,7 @@ class BaselineView(HasTraits):
     table.append(('Dist.', dist))
     table.append(('Num. Sats.', soln.n_sats))
     table.append(('Flags', '0x%02x' % soln.flags))
-    fixed = (soln.flags & 1) == 1
-    if fixed:
-      table.append(('Mode', 'Fixed RTK'))
-    else:
-      table.append(('Mode', 'Float'))
+    table.append(('Mode', self.mode_string(soln)))
     if time.time() - self.last_hyp_update < 10 and self.num_hyps != 1:
       table.append(('IAR Num. Hyps.', self.num_hyps))
     else:
@@ -236,7 +242,7 @@ class BaselineView(HasTraits):
 
     # Insert latest position
     self.neds[0][:] = [soln.n, soln.e, soln.d]
-    self.fixeds[0] = fixed
+    self.fixeds[0] = self.fixed
 
     neds_fixed = self.neds[self.fixeds]
     neds_float = self.neds[np.logical_not(self.fixeds)]
@@ -250,7 +256,7 @@ class BaselineView(HasTraits):
       self.plot_data.set_data('e_float', neds_float.T[1])
       self.plot_data.set_data('d_float', neds_float.T[2])
 
-    if fixed:
+    if self.fixed:
       self.plot_data.set_data('cur_fixed_n', [soln.n])
       self.plot_data.set_data('cur_fixed_e', [soln.e])
       self.plot_data.set_data('cur_fixed_d', [soln.d])
@@ -287,6 +293,7 @@ class BaselineView(HasTraits):
     self.num_hyps = 0
     self.last_hyp_update = 0
     self.last_btime_update = 0
+    self.last_soln = None
     self.plot_data = ArrayPlotData(n_fixed=[0.0], e_fixed=[0.0], d_fixed=[0.0],
                                    n_float=[0.0], e_float=[0.0], d_float=[0.0],
                                    t=[0.0],
