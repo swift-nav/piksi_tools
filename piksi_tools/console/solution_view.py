@@ -166,14 +166,12 @@ class SolutionView(HasTraits):
   def mode_string(self, msg):
     if msg:
       if (msg.flags & 0xff) == 0:
-<<<<<<< HEAD
         return 'SPP (single point position)'
       elif (msg.flags & 0xff) == 1:
         return 'Fixed RTK'
       elif (msg.flags & 0xff) == 2:
         return 'Float RTK'
     return 'None'
->>>>>>> 58950b35a352bc393c960f3e25738fc90c3313f9
 
   def update_table(self):
     self._table_list = self.table_spp.items()
