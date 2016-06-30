@@ -225,13 +225,9 @@ class SolutionView(HasTraits):
     pos_table.append(('Lng', soln.lon))
     pos_table.append(('Alt', soln.height))
     pos_table.append(('Flags', '0x%02x' % soln.flags))
-<<<<<<< HEAD
-    
+
     pos_table.append(('Mode', self.mode_string(soln)))
 
-=======
-    pos_table.append(('Mode', self.mode_string(soln)))
->>>>>>> 58950b35a352bc393c960f3e25738fc90c3313f9
     if psuedo_absolutes:
       # setup_plot variables
       self.lats_psuedo_abs.append(soln.lat)
