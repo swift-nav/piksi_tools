@@ -33,9 +33,6 @@ from sbp.piksi import SBP_MSG_RESET, MsgReset
 from sbp.piksi import *
 from sbp.navigation import *
 
-
-from pyface.api import GUI
-
 # Shut chaco up for now
 import warnings
 warnings.simplefilter(action = "ignore", category = FutureWarning)
