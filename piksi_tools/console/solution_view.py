@@ -164,23 +164,12 @@ class SolutionView(HasTraits):
     if self.running:
       GUI.invoke_later(self.pos_llh_callback, sbp_msg)
 
-  def mode_string(self, msg):
-    if msg:
-      if (msg.flags & 0xff) == 0:
-       return 'SPP (single point position)'
-      elif (msg.flags & 0xff) == 1:
-        return 'Fixed RTK'
-      elif (msg.flags & 0xff) == 2:
-       return 'Float RTK'
-    return 'None'
-
   def update_table(self):
     self._table_list = self.table_spp.items()
 
   def pos_llh_callback(self, sbp_msg, **metadata):
     self.last_stime_update = time.time()
     soln = MsgPosLLH(sbp_msg)
-    self.last_soln = soln
     masked_flag = soln.flags & 0x7
     if masked_flag == 0:
       psuedo_absolutes = False
@@ -235,7 +224,15 @@ class SolutionView(HasTraits):
     pos_table.append(('Lng', soln.lon))
     pos_table.append(('Alt', soln.height))
     pos_table.append(('Flags', '0x%02x' % soln.flags))
-    pos_table.append(('Mode', self.mode_string(soln)))
+    if (soln.flags & 0xff) == 0:
+      pos_table.append(('Mode', 'SPP (single point position)'))
+    elif (soln.flags & 0xff) == 1:
+      pos_table.append(('Mode', 'Fixed RTK'))
+    elif (soln.flags & 0xff) == 2:
+      pos_table.append(('Mode', 'Float RTK'))
+    else:
+      pos_table.append(('Mode', 'Unknown'))
+
     if psuedo_absolutes:
       # setup_plot variables
       self.lats_psuedo_abs.append(soln.lat)
@@ -358,7 +355,6 @@ class SolutionView(HasTraits):
     self.log_file = None
     self.vel_log_file = None
     self.last_stime_update = 0
-    self.last_soln = None
 
     self.plot_data = ArrayPlotData(lat=[], lng=[], alt=[], t=[],
       cur_lat=[], cur_lng=[], cur_lat_ps=[], cur_lng_ps=[],
