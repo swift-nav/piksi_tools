@@ -358,24 +358,31 @@ class SwiftConsole(HasTraits):
     self.solution_view.file_name_v = self.file_name
 
   def update_on_heartbeat(self, sbp_msg, **metadata):
-    # First initialize the state to nothing, if we can't update, it will be none
-    temp_mode = "None"
-    temp_num_sats = 0
-    view = None
-    # If we have a recent baseline update, we use the baseline info
-    if time.time() - self.baseline_view.last_btime_update < 10:
-      view = self.baseline_view
-    # Otherwise, if we have a recent SPP update, we use the SPP
-    elif time.time() - self.solution_view.last_stime_update < 10:
-      view = self.solution_view
-    if view:
-      if view.last_soln:
-        # if all is well we update state
-        temp_mode = view.mode_string(view.last_soln)
-        temp_num_sats = view.last_soln.n_sats
-    
-    self.mode = temp_mode
-    self.num_sats = temp_num_sats
+    flag = 0
+    if self.solution_view.last_stime_update - self.baseline_view.last_btime_update > 1:
+      flag = 1
+      self.mode = self.solution_view.pos_table_spp[8][1]
+      self.num_sats = self.solution_view.pos_table_spp[3][1]
+    else:
+      self.mode = self.baseline_view.table[9][1]
+      self.num_sats = self.baseline_view.table[7][1]
+
+    if flag:
+      if time.time() - self.solution_view.last_stime_update > 1:
+        self.mode = None
+        self.num_sats = 0
+      else:
+        self.mode = self.solution_view.table[8][1]
+        self.num_sats = self.solution_view.table[3][1]
+    else:
+      if time.time() - self.baseline_view.last_btime_update > 1:
+        self.mode = None
+        self.num_sats = 0
+      else:
+        self.mode = self.baseline_view.table[9][1]
+        self.num_sats = self.baseline_view.table[7][1]
+
+
 
   def _logging_button_fired(self):
     if self.baseline_view.logging_b and self.solution_view.logging_p and self.solution_view.logging_v:
@@ -436,6 +443,7 @@ class SwiftConsole(HasTraits):
       settings_read_finished_functions.append(update_serial)
       self.settings_view = SettingsView(self.link,
                                         settings_read_finished_functions,
+                                        False,
                                         skip=skip_settings)
       self.update_view.settings = self.settings_view.settings
       self.python_console_env = { 'send_message': self.link,
