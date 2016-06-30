@@ -42,8 +42,13 @@ class SolutionView(HasTraits):
   lngs = List()
   alts = List()
 
+  """
+  logging_v : toggle logging for velocity files
+  file_name_v : location and name of velocity files
+  logging_p : toggle logging for position files
+  file_name_p : location and name of velocity files
+  """
 
-  #############################################################################
   logging_v = Bool(False)
   file_name_v = File
 
@@ -51,12 +56,6 @@ class SolutionView(HasTraits):
   file_name_p = File
 
   json = Bool(False)
-
-  #############################################################################
-
-
- 
-
 
   lats_psuedo_abs = List()
   lngs_psuedo_abs = List()
@@ -164,12 +163,25 @@ class SolutionView(HasTraits):
     if self.running:
       GUI.invoke_later(self.pos_llh_callback, sbp_msg)
 
+  def mode_string(self, msg):
+    if msg:
+      if (msg.flags & 0xff) == 0:
+        return 'SPP (single point position)'
+      elif (msg.flags & 0xff) == 1:
+        return 'Fixed RTK'
+      elif (msg.flags & 0xff) == 2:
+        return 'Float RTK'
+    return 'None'
+ 
+
+
   def update_table(self):
     self._table_list = self.table_spp.items()
 
   def pos_llh_callback(self, sbp_msg, **metadata):
     self.last_stime_update = time.time()
     soln = MsgPosLLH(sbp_msg)
+    self.last_soln = soln
     masked_flag = soln.flags & 0x7
     if masked_flag == 0:
       psuedo_absolutes = False
@@ -189,26 +201,17 @@ class SolutionView(HasTraits):
       pos_table.append(('GPS Week', str(self.week)))
 
       if(self.file_name_p == ''):
-        if self.json:
-          filepath_p = time.strftime("position_log_%Y%m%d-%H%M%S.json")
-        else:
           filepath_p = time.strftime("position_log_%Y%m%d-%H%M%S.csv")
       else:
-        if self.json:
-          filepath_p = self.file_name_p + '/' + time.strftime("position_log_%Y%m%d-%H%M%S.json")
-        else:
           filepath_p = self.file_name_p + '/' + time.strftime("position_log_%Y%m%d-%H%M%S.csv")
 
       if self.logging_p ==  False:
         self.log_file = None
 
-
       if self.logging_p:
         if self.log_file is None:
           self.log_file = open(filepath_p, 'w')
           self.log_file.write("time,latitude(degrees),longitude(degrees),altitude(meters),n_sats,flags\n")
-        
-
           self.log_file.write('%s,%.10f,%.10f,%.4f,%d,%d\n' % (
             str(t),
             soln.lat, soln.lon, soln.height,
@@ -224,14 +227,8 @@ class SolutionView(HasTraits):
     pos_table.append(('Lng', soln.lon))
     pos_table.append(('Alt', soln.height))
     pos_table.append(('Flags', '0x%02x' % soln.flags))
-    if (soln.flags & 0xff) == 0:
-      pos_table.append(('Mode', 'SPP (single point position)'))
-    elif (soln.flags & 0xff) == 1:
-      pos_table.append(('Mode', 'Fixed RTK'))
-    elif (soln.flags & 0xff) == 2:
-      pos_table.append(('Mode', 'Float RTK'))
-    else:
-      pos_table.append(('Mode', 'Unknown'))
+    
+    pos_table.append(('Mode', self.mode_string(soln)))
 
     if psuedo_absolutes:
       # setup_plot variables
@@ -299,24 +296,18 @@ class SolutionView(HasTraits):
   def vel_ned_callback(self, sbp_msg, **metadata):
     vel_ned = MsgVelNED(sbp_msg)
 
-    self.tow = vel_ned.tow * 1e-3
+    tow = vel_ned.tow * 1e-3
     if self.nsec is not None:
-      self.tow += self.nsec * 1e-9
+      tow += self.nsec * 1e-9
 
     if self.week is not None:
       t = datetime.datetime(1980, 1, 6) + \
           datetime.timedelta(weeks=self.week) + \
-          datetime.timedelta(seconds=self.tow)
+          datetime.timedelta(seconds=tow)
 
       if self.file_name_v == '':
-        if self.json:
-          filepath_v = time.strftime("velocity_log_%Y%m%d-%H%M%S.json")
-        else:
           filepath_v = time.strftime("velocity_log_%Y%m%d-%H%M%S.csv")
       else:
-        if self.json:
-          filepath_v = self.file_name_v + '/' + time.strftime("velocity_log_%Y%m%d-%H%M%S.json")
-        else:
           filepath_v = self.file_name_v + '/' + time.strftime("velocity_log_%Y%m%d-%H%M%S.csv")
 
       if self.logging_v ==  False:
@@ -355,6 +346,7 @@ class SolutionView(HasTraits):
     self.log_file = None
     self.vel_log_file = None
     self.last_stime_update = 0
+    self.last_soln = None
 
     self.plot_data = ArrayPlotData(lat=[], lng=[], alt=[], t=[],
       cur_lat=[], cur_lng=[], cur_lat_ps=[], cur_lng_ps=[],
@@ -404,7 +396,6 @@ class SolutionView(HasTraits):
 
     self.week = None
     self.nsec = 0
-  
 
     self.python_console_cmds = {
       'solution': self,

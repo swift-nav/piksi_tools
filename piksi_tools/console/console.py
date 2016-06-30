@@ -33,12 +33,6 @@ from sbp.piksi import SBP_MSG_RESET, MsgReset
 from sbp.piksi import *
 from sbp.navigation import *
 
-######################################################
-from piksi_tools.heartbeat import Heartbeat
-from sbp.system import SBP_MSG_HEARTBEAT
-
-######################################################
-
 
 from pyface.api import GUI
 
@@ -109,18 +103,6 @@ from piksi_tools.console.output_list import OutputList, LogItem, str_to_log_leve
   SYSLOG_LEVELS, DEFAULT_LOG_LEVEL_FILTER
 from piksi_tools.console.utils import determine_path
 from piksi_tools.console.deprecated import DeprecatedMessageHandler
-from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List, Enum, Bool, File
-from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
-                         InstanceEditor, EnumEditor, ShellEditor, Handler, Spring, \
-                         TableEditor, UItem
-from traitsui.table_filter \
-    import EvalFilterTemplate, MenuFilterTemplate, RuleFilterTemplate, \
-           EvalTableFilter
-from traitsui.table_column \
-    import ObjectColumn, ExpressionColumn
-
-from traitsui.file_dialog \
-    import open_file
 
 # When bundled with pyInstaller, PythonLexer can't be found. The problem is
 # pygments.lexers is doing some crazy magic to load up all of the available
@@ -155,6 +137,24 @@ from piksi_tools.console.system_monitor_view import SystemMonitorView
 from piksi_tools.console.settings_view import SettingsView
 from piksi_tools.console.update_view import UpdateView
 from enable.savage.trait_defs.ui.svg_button import SVGButton
+
+
+from piksi_tools.heartbeat import Heartbeat
+from sbp.system import SBP_MSG_HEARTBEAT
+
+from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List, Enum, Bool, File
+from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
+                         InstanceEditor, EnumEditor, ShellEditor, Handler, Spring, \
+                         TableEditor, UItem
+from traitsui.table_filter \
+    import EvalFilterTemplate, MenuFilterTemplate, RuleFilterTemplate, \
+           EvalTableFilter
+from traitsui.table_column \
+    import ObjectColumn, ExpressionColumn
+
+from traitsui.file_dialog \
+    import open_file
+
 
 CONSOLE_TITLE = 'Piksi Console, Version: v' + CONSOLE_VERSION
 
@@ -211,23 +211,30 @@ class SwiftConsole(HasTraits):
   log_level_filter = Enum(list(SYSLOG_LEVELS.itervalues()))
 
 
-########## TRY TO IMPLEMENT FIX TYPE AND #SATS HERE #########
-  
+  """"
+  mode : baseline and solution view - SPP, Fixed or Float
+  num_sat : baseline and solution view - number of satellites
+  port : which port is Piksi connected to
+  logging_button : start or stop logging
+  file_name : location of logged files
+  JSON : enable JSON logging
+
+  """
+
   mode = Str('') 
   num_sats = Int(0)
   port = Str('')
-
-  running = Bool(True)
-  logging_button=Button('Log')
-  #logging = Bool(False)
-
+  #logging_button = Button('Log')
   file_name = File
+  JSON = Bool
 
-  CSV_or_JSON = Bool
-
-  ##########################################################
-
-
+  logging_button = SVGButton(
+   label='log', tooltip='start logging', toggle_tooltip='stop logging', toggle=True,
+   filename='',
+   toggle_filename='',
+   orientation='horizontal',
+   width=12, height=8
+  )
 
   paused_button = SVGButton(
     label='', tooltip='Pause console update', toggle_tooltip='Resume console update', toggle=True,
@@ -267,6 +274,18 @@ class SwiftConsole(HasTraits):
       ),
       VGroup(
         HGroup(
+          Item('', label='PORT:', emphasized=True, tooltip='Serial Port that Piksi is connected to'),
+          Item('port', show_label=False, style = 'readonly'),
+          Item('', label='FIX TYPE:', emphasized = True, tooltip='Piksi Mode: SPS, Float RTK, Fixed RTK'),
+          Item('mode', show_label = False, style = 'readonly'),
+          Item('', label='#SATS:', emphasized=True, tooltip='Number of satellites acquired by Piksi'),
+          Item('num_sats', show_label=False, style = 'readonly'),
+          Item('logging_button', show_label=False, width=12, height=8),
+          Item('JSON',label='JSON?', emphasized=True, tooltip='Start JSON logging'),
+          Item('file_name', show_label=False, springy=True, tooltip='Choose location for file logs. Default is current directory.'),
+
+        ),
+        HGroup(
           Spring(width=4, springy=False),
           Item('paused_button', show_label=False, width=8, height=8),
           Item('clear_button', show_label=False, width=8, height=8),
@@ -274,19 +293,7 @@ class SwiftConsole(HasTraits):
           Spring(),
           UItem('log_level_filter', style='simple', padding=0, height=8, show_label=True,
                 tooltip='Show log levels up to and including the selected level of severity.\nThe CONSOLE log level is always visible.'),
-        ),
-        HGroup(
-          Item('', label='PORT:', emphasized=True, tooltip='Serial Port that Piksi is connected to'),
-          Item('port', show_label=False, style = 'readonly'),
-          Item('', label='FIX TYPE:', emphasized = True, tooltip='Piksi Mode: SPS, Float RTK, Fixed RTK'),
-          Item('mode', show_label = False, style = 'readonly'),
-          Item('', label='#SATS:', emphasized=True, tooltip='Number of satellites acquired by Piksi'),
-          Item('num_sats', show_label=False, style = 'readonly'),
-          Item('logging_button', show_label= False, tooltip='Start or stop logging'),
-          Item('CSV_or_JSON',label='JSON?', emphasized=True, tooltip='File as JSON, default settings are CSV'),
-          Item('file_name', show_label = False, springy = True, tooltip='Choose location for file logs. Default is current directory.'),
-
-        ),
+        ), 
         Item(
           'console_output',
           style='custom',
@@ -344,8 +351,8 @@ class SwiftConsole(HasTraits):
     self.console_output.clear()
 
 
-  def _CSV_or_JSON_changed(self):
-    if(self.CSV_or_JSON):
+  def _JSON_changed(self):
+    if(self.JSON):
       self.baseline_view.json = True
       self.solution_view.json = True
     else:
@@ -358,29 +365,25 @@ class SwiftConsole(HasTraits):
     self.solution_view.file_name_v = self.file_name
 
   def update_on_heartbeat(self, sbp_msg, **metadata):
-    flag = 0
-    if self.solution_view.last_stime_update - self.baseline_view.last_btime_update > 1:
-      flag = 1
-      self.mode = self.solution_view.pos_table_spp[8][1]
-      self.num_sats = self.solution_view.pos_table_spp[3][1]
-    else:
-      self.mode = self.baseline_view.table[9][1]
-      self.num_sats = self.baseline_view.table[7][1]
-
-    if flag:
-      if time.time() - self.solution_view.last_stime_update > 1:
-        self.mode = None
-        self.num_sats = 0
-      else:
-        self.mode = self.solution_view.table[8][1]
-        self.num_sats = self.solution_view.table[3][1]
-    else:
-      if time.time() - self.baseline_view.last_btime_update > 1:
-        self.mode = None
-        self.num_sats = 0
-      else:
-        self.mode = self.baseline_view.table[9][1]
-        self.num_sats = self.baseline_view.table[7][1]
+     # First initialize the state to nothing, if we can't update, it will be none
+    temp_mode = "None"
+    temp_num_sats = 0
+    view = None
+    # If we have a recent baseline update, we use the baseline info
+    if time.time() - self.baseline_view.last_btime_update < 1:
+      view = self.baseline_view
+    # Otherwise, if we have a recent SPP update, we use the SPP
+    elif time.time() - self.solution_view.last_stime_update < 1:
+      view = self.solution_view
+    if view:
+      if view.last_soln:
+        # if all is well we update state
+        temp_mode = view.mode_string(view.last_soln)
+        temp_num_sats = view.last_soln.n_sats
+    
+    self.mode = temp_mode
+    self.num_sats = temp_num_sats
+  
 
 
 
@@ -405,7 +408,6 @@ class SwiftConsole(HasTraits):
     self.num_sats = 0
     self.mode = ''
     
-
     if not error:
       sys.stderr = self.console_output
     self.log_level_filter = log_level_filter
@@ -429,8 +431,6 @@ class SwiftConsole(HasTraits):
       self.networking_view = SbpRelayView(self.link)
 
 
-
-    
       # Once we have received the settings, update device_serial with
       # the Piksi serial number which will be displayed in the window
       # title. This callback will also update the header route as used
@@ -443,7 +443,6 @@ class SwiftConsole(HasTraits):
       settings_read_finished_functions.append(update_serial)
       self.settings_view = SettingsView(self.link,
                                         settings_read_finished_functions,
-                                        False,
                                         skip=skip_settings)
       self.update_view.settings = self.settings_view.settings
       self.python_console_env = { 'send_message': self.link,
