@@ -142,7 +142,7 @@ from sbp.system import SBP_MSG_HEARTBEAT
 from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List, Enum, Bool, File
 from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
                          InstanceEditor, EnumEditor, ShellEditor, Handler, Spring, \
-                         TableEditor, UItem
+                         TableEditor, UItem, Group
 from traitsui.table_filter \
     import EvalFilterTemplate, MenuFilterTemplate, RuleFilterTemplate, \
            EvalTableFilter
@@ -221,12 +221,24 @@ class SwiftConsole(HasTraits):
   mode = Str('') 
   num_sats = Int(0)
   port = Str('')
-  #logging_button = Button('Log')
   file_name = File
   JSON = Bool
 
+  name_list = Enum('JSON')
+    # Items are used to define the display, one Item per editor style:
+  enum_group = Group(
+        
+        # The custom style defaults to radio button mode:
+    Item( 'name_list', style = 'custom', show_label=False),
+  )
+
+  logging_radio = Enum('')
+  logging_group = Group(
+    Item( 'logging_radio', style = 'custom', label = 'LOG', emphasized=True),
+    )
+
   logging_button = SVGButton(
-   label='log', tooltip='start logging', toggle_tooltip='stop logging', toggle=True,
+   label='LOG', toggle_label='STOP LOG', tooltip='start logging', toggle_tooltip='stop logging', toggle=True,
    filename='',
    toggle_filename='',
    orientation='horizontal',
@@ -277,10 +289,12 @@ class SwiftConsole(HasTraits):
           Item('mode', show_label = False, style = 'readonly'),
           Item('', label='#SATS:', emphasized=True, tooltip='Number of satellites acquired by Piksi'),
           Item('num_sats', show_label=False, style = 'readonly'),
-          Item('logging_button', show_label=False, width=12, height=8),
+          Item('logging_button', emphasized=True, show_label=False, width=12, height=8),
+          #logging_group,
           Item('JSON',label='JSON?', emphasized=True, tooltip='Start JSON logging'),
           Item('file_name', show_label=False, springy=True, tooltip='Choose location for file logs. Default is current directory.'),
-
+          #enum_group,
+          
         ),
         HGroup(
           Spring(width=4, springy=False),
@@ -357,9 +371,10 @@ class SwiftConsole(HasTraits):
       self.solution_view.json = False
   
   def _file_name_changed(self):
-    self.baseline_view.file_name_b = self.file_name
-    self.solution_view.file_name_p = self.file_name
-    self.solution_view.file_name_v = self.file_name
+    if self.baseline_view and self.solution_view:
+      self.baseline_view.file_name_b = self.file_name
+      self.solution_view.file_name_p = self.file_name
+      self.solution_view.file_name_v = self.file_name
 
   def update_on_heartbeat(self, sbp_msg, **metadata):
      # First initialize the state to nothing, if we can't update, it will be none
@@ -402,6 +417,7 @@ class SwiftConsole(HasTraits):
     self.port = port
     self.num_sats = 0
     self.mode = ''
+    self.file_name = os.getcwd()
     
     if not error:
       sys.stderr = self.console_output
