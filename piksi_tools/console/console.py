@@ -224,19 +224,6 @@ class SwiftConsole(HasTraits):
   file_name = File
   JSON = Bool
 
-  name_list = Enum('JSON')
-    # Items are used to define the display, one Item per editor style:
-  enum_group = Group(
-        
-        # The custom style defaults to radio button mode:
-    Item( 'name_list', style = 'custom', show_label=False),
-  )
-
-  logging_radio = Enum('')
-  logging_group = Group(
-    Item( 'logging_radio', style = 'custom', label = 'LOG', emphasized=True),
-    )
-
   logging_button = SVGButton(
    label='LOG', toggle_label='STOP LOG', tooltip='start logging', toggle_tooltip='stop logging', toggle=True,
    filename='',
@@ -290,11 +277,8 @@ class SwiftConsole(HasTraits):
           Item('', label='#SATS:', emphasized=True, tooltip='Number of satellites acquired by Piksi'),
           Item('num_sats', show_label=False, style = 'readonly'),
           Item('logging_button', emphasized=True, show_label=False, width=12, height=8),
-          #logging_group,
           Item('JSON',label='JSON?', emphasized=True, tooltip='Start JSON logging'),
           Item('file_name', show_label=False, springy=True, tooltip='Choose location for file logs. Default is current directory.'),
-          #enum_group,
-          
         ),
         HGroup(
           Spring(width=4, springy=False),
