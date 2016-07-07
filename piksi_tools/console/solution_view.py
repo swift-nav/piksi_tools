@@ -44,16 +44,16 @@ class SolutionView(HasTraits):
 
   """
   logging_v : toggle logging for velocity files
-  file_name_v : location and name of velocity files
+  directory_name_v : location and name of velocity files
   logging_p : toggle logging for position files
-  file_name_p : location and name of velocity files
+  directory_name_p : location and name of velocity files
   """
 
   logging_v = Bool(False)
-  file_name_v = File
+  directory_name_v = File
 
   logging_p = Bool(False)
-  file_name_p = File
+  directory_name_p = File
 
   json = Bool(False)
 
@@ -198,10 +198,10 @@ class SolutionView(HasTraits):
       pos_table.append(('GPS Time', t))
       pos_table.append(('GPS Week', str(self.week)))
 
-      if(self.file_name_p == ''):
+      if(self.directory_name_p == ''):
           filepath_p = time.strftime("position_log_%Y%m%d-%H%M%S.csv")
       else:
-          filepath_p = self.file_name_p + '/' + time.strftime("position_log_%Y%m%d-%H%M%S.csv")
+          filepath_p = self.directory_name_p + '/' + time.strftime("position_log_%Y%m%d-%H%M%S.csv")
 
       if self.logging_p ==  False:
         self.log_file = None
@@ -303,10 +303,10 @@ class SolutionView(HasTraits):
           datetime.timedelta(weeks=self.week) + \
           datetime.timedelta(seconds=tow)
 
-      if self.file_name_v == '':
+      if self.directory_name_v == '':
           filepath_v = time.strftime("velocity_log_%Y%m%d-%H%M%S.csv")
       else:
-          filepath_v = self.file_name_v + '/' + time.strftime("velocity_log_%Y%m%d-%H%M%S.csv")
+          filepath_v = self.directory_name_v + '/' + time.strftime("velocity_log_%Y%m%d-%H%M%S.csv")
 
       if self.logging_v ==  False:
         self.vel_log_file = None

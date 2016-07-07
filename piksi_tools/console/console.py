@@ -213,7 +213,7 @@ class SwiftConsole(HasTraits):
   num_sat : baseline and solution view - number of satellites
   port : which port is Piksi connected to
   logging_button : start or stop logging
-  file_name : location of logged files
+  directory_name : location of logged files
   JSON : enable JSON logging
 
   """
@@ -221,7 +221,7 @@ class SwiftConsole(HasTraits):
   mode = Str('') 
   num_sats = Int(0)
   port = Str('')
-  file_name = File
+  directory_name = File
   JSON = Bool
 
   logging_button = SVGButton(
@@ -278,7 +278,7 @@ class SwiftConsole(HasTraits):
           Item('num_sats', show_label=False, style = 'readonly'),
           Item('logging_button', emphasized=True, show_label=False, width=12, height=8),
           Item('JSON',label='JSON?', emphasized=True, tooltip='Start JSON logging'),
-          Item('file_name', show_label=False, springy=True, tooltip='Choose location for file logs. Default is current directory.'),
+          Item('directory_name', show_label=False, springy=True, tooltip='Choose location for file logs. Default is current directory.'),
         ),
         HGroup(
           Spring(width=4, springy=False),
@@ -354,11 +354,11 @@ class SwiftConsole(HasTraits):
       self.baseline_view.json = False
       self.solution_view.json = False
   
-  def _file_name_changed(self):
+  def _directory_name_changed(self):
     if self.baseline_view and self.solution_view:
-      self.baseline_view.file_name_b = self.file_name
-      self.solution_view.file_name_p = self.file_name
-      self.solution_view.file_name_v = self.file_name
+      self.baseline_view.directory_name_b = self.directory_name
+      self.solution_view.directory_name_p = self.directory_name
+      self.solution_view.directory_name_v = self.directory_name
 
   def update_on_heartbeat(self, sbp_msg, **metadata):
      # First initialize the state to nothing, if we can't update, it will be none
@@ -401,8 +401,8 @@ class SwiftConsole(HasTraits):
     self.port = port
     self.num_sats = 0
     self.mode = ''
-    self.file_name = os.getcwd()
-    
+    self.directory_name = os.getcwd()
+     
     if not error:
       sys.stderr = self.console_output
     self.log_level_filter = log_level_filter
