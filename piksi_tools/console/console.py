@@ -222,16 +222,28 @@ class SwiftConsole(HasTraits):
   num_sats = Int(0)
   port = Str('')
   directory_name = File
-  JSON = Bool
+  #JSON = Bool
+  json_logging = Bool
+  csv_logging = Bool
+  enabled = Str('')
 
-  logging_button = SVGButton(
-   label='LOG', toggle_label='STOP LOG', tooltip='start logging', toggle_tooltip='stop logging', toggle=True,
-   filename='',
-   toggle_filename='',
-   orientation='horizontal',
-   width=12, height=8
+
+  #logging_button = Button('Log')
+
+  csv_logging_button = SVGButton(
+   toggle=True, label='Start CSV log', toggle_label='Stop CSV log', tooltip='start logging', toggle_tooltip='stop logging', 
+   filename=os.path.join(determine_path(), 'images', 'iconic', 'pause.svg'),
+   toggle_filename=os.path.join(determine_path(), 'images', 'iconic', 'play.svg'),
+   orientation = 'vertical',
+   width=2, height=2
   )
-
+  json_logging_button = SVGButton(
+   toggle=True, label='Start JSON log', toggle_label='Stop JSON log', tooltip='start logging', toggle_tooltip='stop logging', 
+   filename=os.path.join(determine_path(), 'images', 'iconic', 'pause.svg'),
+   toggle_filename=os.path.join(determine_path(), 'images', 'iconic', 'play.svg'),
+   orientation = 'vertical',
+   width=2, height=2
+  )
   paused_button = SVGButton(
     label='', tooltip='Pause console update', toggle_tooltip='Resume console update', toggle=True,
     filename=os.path.join(determine_path(), 'images', 'iconic', 'pause.svg'),
@@ -276,27 +288,29 @@ class SwiftConsole(HasTraits):
           Item('mode', show_label = False, style = 'readonly'),
           Item('', label='#SATS:', emphasized=True, tooltip='Number of satellites acquired by Piksi'),
           Item('num_sats', show_label=False, style = 'readonly'),
-          Item('logging_button', emphasized=True, show_label=False, width=12, height=8),
-          Item('JSON',label='JSON?', emphasized=True, tooltip='Start JSON logging'),
-          Item('directory_name', show_label=False, springy=True, tooltip='Choose location for file logs. Default is current directory.'),
+          Item('csv_logging_button', emphasized=True, show_label=False, width=12, height=-25, padding=0),
+          Item('json_logging_button', emphasized=True, show_label=False, width=12, height=-25, padding=0),
+          Item('directory_name', show_label=False, springy=True, tooltip='Choose location for file logs. Default is current directory.', 
+              height=-25, enabled_when='not(json_logging or csv_logging)'),
+          
+        ),
+        Item(
+          'console_output',
+          style='custom',
+          editor=InstanceEditor(),
+          height=-125,
+          show_label=False,
         ),
         HGroup(
           Spring(width=4, springy=False),
-          Item('paused_button', show_label=False, width=8, height=8),
+          Item('paused_button', show_label=False, padding=0, width=8, height=8),
           Item('clear_button', show_label=False, width=8, height=8),
           Item('', label='Console Log', emphasized=True),
           Spring(),
           UItem('log_level_filter', style='simple', padding=0, height=8, show_label=True,
                 tooltip='Show log levels up to and including the selected level of severity.\nThe CONSOLE log level is always visible.'),
-        ), 
-        Item(
-          'console_output',
-          style='custom',
-          editor=InstanceEditor(),
-          height=0.3,
-          show_label=False,
         ),
-      )
+      ),
     ),
     icon = icon,
     resizable = True,
@@ -346,13 +360,6 @@ class SwiftConsole(HasTraits):
     self.console_output.clear()
 
 
-  def _JSON_changed(self):
-    if(self.JSON):
-      self.baseline_view.json = True
-      self.solution_view.json = True
-    else:
-      self.baseline_view.json = False
-      self.solution_view.json = False
   
   def _directory_name_changed(self):
     if self.baseline_view and self.solution_view:
@@ -376,23 +383,43 @@ class SwiftConsole(HasTraits):
         # if all is well we update state
         temp_mode = view.mode_string(view.last_soln)
         temp_num_sats = view.last_soln.n_sats
+
+    if self.settings_view:
+      self.settings_view.lat = self.solution_view.table_spp[4][1]
+      self.settings_view.lon = self.solution_view.table_spp[5][1]
+      self.settings_view.alt = self.solution_view.table_spp[6][1]
     
     self.mode = temp_mode
     self.num_sats = temp_num_sats
+
   
 
-  def _logging_button_fired(self):
-    if self.baseline_view.logging_b and self.solution_view.logging_p and self.solution_view.logging_v:
-       self.baseline_view.logging_b = False
-       self.solution_view.logging_p = False
-       self.solution_view.logging_v = False
+  def _csv_logging_button_fired(self):
+    if self.csv_logging and self.baseline_view.logging_b and self.solution_view.logging_p and self.solution_view.logging_v:
+      print "Stopped CSV logging"
+      self.csv_logging =  False
+      self.baseline_view.logging_b = False
+      self.solution_view.logging_p = False
+      self.solution_view.logging_v = False
 
     else: 
-       self.baseline_view.logging_b = True
-       self.solution_view.logging_p = True
-       self.solution_view.logging_v = True
+      print "Started CSV logging"
+      self.csv_logging = True
+      self.baseline_view.logging_b = True
+      self.solution_view.logging_p = True
+      self.solution_view.logging_v = True
       
-  
+  def _json_logging_button_fired(self):
+    if self.json_logging:
+      self.enabled = "False"
+      self.json_logging = False
+      print "Stopped JSON logging"
+    else:
+      self.json_logging = True
+      print "Started JSON logging"  
+
+
+
   def __init__(self, link, update, log_level_filter, skip_settings=False, error=False, port=None):
     self.console_output = OutputList()
     self.console_output.write("Console: starting...")
@@ -402,6 +429,9 @@ class SwiftConsole(HasTraits):
     self.num_sats = 0
     self.mode = ''
     self.directory_name = os.getcwd()
+    self.json_logging = False
+    self.csv_logging = False 
+
      
     if not error:
       sys.stderr = self.console_output
