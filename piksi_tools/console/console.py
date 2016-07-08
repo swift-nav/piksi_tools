@@ -377,6 +377,12 @@ class SwiftConsole(HasTraits):
         temp_mode = view.mode_string(view.last_soln)
         temp_num_sats = view.last_soln.n_sats
     
+
+    if self.settings_view:
+      self.settings_view.lat = self.solution_view.table_spp[4][1]
+      self.settings_view.lon = self.solution_view.table_spp[5][1]
+      self.settings_view.alt = self.solution_view.table_spp[6][1]
+    
     self.mode = temp_mode
     self.num_sats = temp_num_sats
   

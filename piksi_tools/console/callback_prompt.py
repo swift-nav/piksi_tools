@@ -17,7 +17,7 @@ from piksi_tools.console.utils import determine_path
 from threading import Thread
 from time import sleep
 
-yes_button = Action(name = "Auto Survey", action= "set_execute_callback_true", \
+auto_survey_button = Action(name = "Auto Survey", action= "set_execute_callback_true", \
                               show_label=False)
 
 update_button = Action(name = "Update", action = "set_execute_callback_true", \

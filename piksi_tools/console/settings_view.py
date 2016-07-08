@@ -210,10 +210,9 @@ class SettingsView(HasTraits):
 
 
   def _auto_survey_fired(self):
-    print "here"
     confirm_prompt = prompt.CallbackPrompt(
                           title="Auto populate surveyed position?",
-                          actions=[prompt.close_button, prompt.yes_button],
+                          actions=[prompt.close_button, prompt.auto_survey_button],
                           callback=self.auto_survey_fn
                          )
     confirm_prompt.text = "This will set the Surveyed Position section to the mean of the SPP positions over the last n seconds.\n" \
