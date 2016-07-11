@@ -24,6 +24,7 @@ import time
 
 from piksi_tools.serial_link import swriter, get_uuid, DEFAULT_BASE
 from piksi_tools.version import VERSION as CONSOLE_VERSION
+from piksi_tools.heartbeat import Heartbeat
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.network_drivers import TCPDriver
@@ -32,6 +33,8 @@ from sbp.logging import *
 from sbp.piksi import SBP_MSG_RESET, MsgReset
 from sbp.piksi import *
 from sbp.navigation import *
+from sbp.system import SBP_MSG_HEARTBEAT
+
 
 # Shut chaco up for now
 import warnings
@@ -135,9 +138,6 @@ from piksi_tools.console.settings_view import SettingsView
 from piksi_tools.console.update_view import UpdateView
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 
-
-from piksi_tools.heartbeat import Heartbeat
-from sbp.system import SBP_MSG_HEARTBEAT
 
 from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List, Enum, Bool, File
 from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
