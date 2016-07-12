@@ -18,8 +18,6 @@ from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.api import GUI
 from piksi_tools.console.utils import plot_square_axes, determine_path
 
-from traitsui.file_dialog \
-    import open_file
 
 import math
 import os
