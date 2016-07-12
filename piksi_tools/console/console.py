@@ -310,9 +310,10 @@ class SwiftConsole(HasTraits):
           Item('', label='FIX TYPE:', emphasized = True, tooltip='Piksi Mode: SPS, Float RTK, Fixed RTK'),
           Item('mode', show_label = False, style = 'readonly'),
           Item('', label='#SATS:', emphasized=True, tooltip='Number of satellites acquired by Piksi'),
-          Item('num_sats', show_label=False, style = 'readonly'),
+          Item('num_sats', padding=2, show_label=False, style = 'readonly'),
           
         ),
+	Spring(height=1, springy=False),
       ),
     ),
     icon=icon,
@@ -403,7 +404,7 @@ class SwiftConsole(HasTraits):
         self.solution_view.logging_v = False
 
       else: 
-        print "Started CSV logging"
+        print "Started CSV logging at %s" % self.directory_name
         self.csv_logging = True
         self.baseline_view.logging_b = True
         self.solution_view.logging_p = True
@@ -441,7 +442,6 @@ class SwiftConsole(HasTraits):
       else:
         self._start_json_logging()
         self.json_logging = True
-        print "Started JSON logging" 
       self.first_json_press = False
     else: 
       print "Directory not valid"
