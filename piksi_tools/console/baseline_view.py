@@ -39,7 +39,6 @@ class BaselineView(HasTraits):
 
   logging_b = Bool(False)
   directory_name_b = File
-  json = Bool(False)
 
   plot = Instance(Plot)
   plot_data = Instance(ArrayPlotData)
@@ -181,7 +180,7 @@ class BaselineView(HasTraits):
 
       table.append(('GPS Time', t))
       table.append(('GPS Week', str(self.week)))
-
+     
       if self.directory_name_b == '':
           filepath = time.strftime("baseline_log_%Y%m%d-%H%M%S.csv")
       else:

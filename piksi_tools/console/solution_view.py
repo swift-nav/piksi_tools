@@ -55,8 +55,6 @@ class SolutionView(HasTraits):
   logging_p = Bool(False)
   directory_name_p = File
 
-  json = Bool(False)
-
   lats_psuedo_abs = List()
   lngs_psuedo_abs = List()
   alts_psuedo_abs = List()
@@ -197,11 +195,12 @@ class SolutionView(HasTraits):
           datetime.timedelta(seconds=tow)
       pos_table.append(('GPS Time', t))
       pos_table.append(('GPS Week', str(self.week)))
-
+     
       if(self.directory_name_p == ''):
-          filepath_p = time.strftime("position_log_%Y%m%d-%H%M%S.csv")
+        filepath_p = time.strftime("position_log_%Y%m%d-%H%M%S.csv")
       else:
-          filepath_p = self.directory_name_p + '/' + time.strftime("position_log_%Y%m%d-%H%M%S.csv")
+        #filepath_p = os.path.join(home, 'SwiftNav')
+        filepath_p = self.directory_name_p + '/' + time.strftime("position_log_%Y%m%d-%H%M%S.csv")
 
       if self.logging_p ==  False:
         self.log_file = None
@@ -302,7 +301,7 @@ class SolutionView(HasTraits):
       t = datetime.datetime(1980, 1, 6) + \
           datetime.timedelta(weeks=self.week) + \
           datetime.timedelta(seconds=tow)
-
+     
       if self.directory_name_v == '':
           filepath_v = time.strftime("velocity_log_%Y%m%d-%H%M%S.csv")
       else:
