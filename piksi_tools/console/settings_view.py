@@ -160,7 +160,7 @@ class SettingsView(HasTraits):
   #auto_survey = Button('Auto Survey')
   settings_yaml = list()
   auto_survey = SVGButton(
-    label='Auto Survey', tooltip='Reload settings from Piksi',
+    label='Auto Survey', tooltip='Auto populate latitude, longitude and altitude',
     filename='',
     width=16, height=20)
   settings_read_button = SVGButton(
@@ -215,9 +215,9 @@ class SettingsView(HasTraits):
                           actions=[prompt.close_button, prompt.auto_survey_button],
                           callback=self.auto_survey_fn
                          )
-    confirm_prompt.text = "This will set the Surveyed Position section to the mean of the SPP positions over the last n seconds.\n" \
-                        + "The surveyed positon will be the approximate value. \n" \
-                        + "This may affect the relative accuracy of Piksi. \n" \
+    confirm_prompt.text = "This will set the Surveyed Position section to the mean of the SPP positions over the last 1000 samples.\n" \
+                        + "The surveyed positon will be an approximate value. \n" \
+                        + "This may affect the relative accuracy of Piksi. \n \n" \
                         + "Are you sure you want to auto-populate the Surveyed Position section?"
     confirm_prompt.run(block=False)
 
