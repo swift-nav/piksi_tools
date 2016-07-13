@@ -174,6 +174,21 @@ class SolutionView(HasTraits):
   def update_table(self):
     self._table_list = self.table_spp.items()
 
+
+  def auto_survey(self):
+    self.counter = self.counter + 1
+    if self.counter == 1000:
+      self.counter = 1000
+    self.latitude_list.append(self.last_soln.lat)
+    self.longitude_list.append(self.last_soln.lon)
+    self.altitude_list.append(self.last_soln.height)
+    self.latitude_list = self.latitude_list[-1000:]
+    self.longitude_list = self.longitude_list[-1000:]
+    self.altitude_list = self.altitude_list[-1000:]
+    self.latitude = (sum(self.latitude_list))/self.counter
+    self.altitude = (sum(self.altitude_list))/self.counter
+    self.longitude = (sum(self.longitude_list))/self.counter
+
   def pos_llh_callback(self, sbp_msg, **metadata):
     self.last_stime_update = time.time()
     soln = MsgPosLLH(sbp_msg)
@@ -226,6 +241,8 @@ class SolutionView(HasTraits):
     pos_table.append(('Flags', '0x%02x' % soln.flags))
 
     pos_table.append(('Mode', self.mode_string(soln)))
+
+    self.auto_survey()
 
     if psuedo_absolutes:
       # setup_plot variables
@@ -344,6 +361,14 @@ class SolutionView(HasTraits):
     self.vel_log_file = None
     self.last_stime_update = 0
     self.last_soln = None
+
+    self.counter = 0
+    self.latitude_list = []
+    self.longitude_list = []
+    self.altitude_list = []
+    self.altitude = 0
+    self.longitude = 0
+    self.latitude = 0
 
     self.plot_data = ArrayPlotData(lat=[], lng=[], alt=[], t=[],
       cur_lat=[], cur_lng=[], cur_lat_ps=[], cur_lng_ps=[],

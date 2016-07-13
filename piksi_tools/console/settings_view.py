@@ -159,6 +159,10 @@ class SettingsView(HasTraits):
   """
 
   settings_yaml = list()
+  auto_survey = SVGButton(
+    label='Auto Survey', tooltip='Auto populate surveyed lat, lon and alt fields',
+    filename='',
+    width=16, height=20)
   settings_read_button = SVGButton(
     label='Reload', tooltip='Reload settings from Piksi',
     filename=os.path.join(determine_path(), 'images', 'fontawesome', 'refresh.svg'),
@@ -190,6 +194,7 @@ class SettingsView(HasTraits):
           Item('settings_read_button', show_label=False),
           Item('settings_save_button', show_label=False),
           Item('factory_default_button', show_label=False),
+          Item('auto_survey', show_label=False),
         ),
         HGroup(Item('expert', label="Show Advanced Settings", show_label=True)),
         Item('selected_setting', style='custom', show_label=False),
@@ -227,6 +232,38 @@ class SettingsView(HasTraits):
     fio.remove('config')
     # Reset the Piksi
     self.link(MsgReset())
+
+
+  def _auto_survey_fired(self):
+    confirm_prompt = prompt.CallbackPrompt(
+                          title="Auto populate surveyed position?",
+                          actions=[prompt.close_button, prompt.auto_survey_button],
+                          callback=self.auto_survey_fn
+                         )
+    confirm_prompt.text = "This will set the Surveyed Position section to the mean of the SPP positions over the last 1000 samples.\n" \
+                        + "The surveyed positon will be an approximate value. \n" \
+                        + "This may affect the relative accuracy of Piksi. \n \n" \
+                        + "Are you sure you want to auto-populate the Surveyed Position section?"
+    confirm_prompt.run(block=False)
+
+  def auto_survey_fn(self):
+    lat_value = str(self.lat)
+    lon_value = str(self.lon)
+    alt_value = str(self.alt)
+    
+    self.settings['surveyed_position']['surveyed_lat'] = Setting('surveyed_lat', 'surveyed_position',
+                                                                lat_value, ordering=self.ordering_counter,
+                                                                settings=self)
+    self.settings['surveyed_position']['surveyed_lon'] = Setting('surveyed_lon', 'surveyed_position',
+                                                                lon_value, ordering=self.ordering_counter,
+                                                                settings=self)
+    self.settings['surveyed_position']['surveyed_alt'] = Setting('surveyed_alt', 'surveyed_position',
+                                                                alt_value, ordering=self.ordering_counter,
+                                                                settings=self)
+    try:
+      self.settings_display_setup(do_read_finished=False)
+    except AttributeError:
+      pass
 
   ##Callbacks for receiving messages
   def settings_display_setup(self, do_read_finished=True):
