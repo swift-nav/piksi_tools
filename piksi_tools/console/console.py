@@ -15,6 +15,13 @@ import sbp.client as sbpc
 import signal
 import sys
 
+import math
+import os
+import numpy as np
+import datetime
+import time
+
+
 from piksi_tools.serial_link import swriter, get_uuid, DEFAULT_BASE
 from piksi_tools.version import VERSION as CONSOLE_VERSION
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
@@ -23,6 +30,8 @@ from sbp.client.drivers.network_drivers import TCPDriver
 from sbp.ext_events import *
 from sbp.logging import *
 from sbp.piksi import SBP_MSG_RESET, MsgReset
+from sbp.piksi import *
+from sbp.navigation import *
 
 # Shut chaco up for now
 import warnings
@@ -91,16 +100,6 @@ from piksi_tools.console.output_list import OutputList, LogItem, str_to_log_leve
   SYSLOG_LEVELS, DEFAULT_LOG_LEVEL_FILTER
 from piksi_tools.console.utils import determine_path
 from piksi_tools.console.deprecated import DeprecatedMessageHandler
-from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List, Enum
-from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
-                         InstanceEditor, EnumEditor, ShellEditor, Handler, Spring, \
-                         TableEditor, UItem
-from traitsui.table_filter \
-    import EvalFilterTemplate, MenuFilterTemplate, RuleFilterTemplate, \
-           EvalTableFilter
-from traitsui.table_column \
-    import ObjectColumn, ExpressionColumn
-
 
 # When bundled with pyInstaller, PythonLexer can't be found. The problem is
 # pygments.lexers is doing some crazy magic to load up all of the available
@@ -135,6 +134,24 @@ from piksi_tools.console.system_monitor_view import SystemMonitorView
 from piksi_tools.console.settings_view import SettingsView
 from piksi_tools.console.update_view import UpdateView
 from enable.savage.trait_defs.ui.svg_button import SVGButton
+
+
+from piksi_tools.heartbeat import Heartbeat
+from sbp.system import SBP_MSG_HEARTBEAT
+
+from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List, Enum, Bool, File
+from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
+                         InstanceEditor, EnumEditor, ShellEditor, Handler, Spring, \
+                         TableEditor, UItem, Group
+from traitsui.table_filter \
+    import EvalFilterTemplate, MenuFilterTemplate, RuleFilterTemplate, \
+           EvalTableFilter
+from traitsui.table_column \
+    import ObjectColumn, ExpressionColumn
+
+from traitsui.file_dialog \
+    import open_file
+
 
 CONSOLE_TITLE = 'Piksi Console, Version: v' + CONSOLE_VERSION
 
@@ -190,6 +207,31 @@ class SwiftConsole(HasTraits):
   update_view = Instance(UpdateView)
   log_level_filter = Enum(list(SYSLOG_LEVELS.itervalues()))
 
+
+  """"
+  mode : baseline and solution view - SPP, Fixed or Float
+  num_sat : baseline and solution view - number of satellites
+  port : which port is Piksi connected to
+  logging_button : start or stop logging
+  directory_name : location of logged files
+  JSON : enable JSON logging
+
+  """
+
+  mode = Str('') 
+  num_sats = Int(0)
+  port = Str('')
+  directory_name = File
+  JSON = Bool
+
+  logging_button = SVGButton(
+   label='LOG', toggle_label='STOP LOG', tooltip='start logging', toggle_tooltip='stop logging', toggle=True,
+   filename='',
+   toggle_filename='',
+   orientation='horizontal',
+   width=12, height=8
+  )
+
   paused_button = SVGButton(
     label='', tooltip='Pause console update', toggle_tooltip='Resume console update', toggle=True,
     filename=os.path.join(determine_path(), 'images', 'iconic', 'pause.svg'),
@@ -228,6 +270,17 @@ class SwiftConsole(HasTraits):
       ),
       VGroup(
         HGroup(
+          Item('', label='PORT:', emphasized=True, tooltip='Serial Port that Piksi is connected to'),
+          Item('port', show_label=False, style = 'readonly'),
+          Item('', label='FIX TYPE:', emphasized = True, tooltip='Piksi Mode: SPS, Float RTK, Fixed RTK'),
+          Item('mode', show_label = False, style = 'readonly'),
+          Item('', label='#SATS:', emphasized=True, tooltip='Number of satellites acquired by Piksi'),
+          Item('num_sats', show_label=False, style = 'readonly'),
+          Item('logging_button', emphasized=True, show_label=False, width=12, height=8),
+          Item('JSON',label='JSON?', emphasized=True, tooltip='Start JSON logging'),
+          Item('directory_name', show_label=False, springy=True, tooltip='Choose location for file logs. Default is current directory.'),
+        ),
+        HGroup(
           Spring(width=4, springy=False),
           Item('paused_button', show_label=False, width=8, height=8),
           Item('clear_button', show_label=False, width=8, height=8),
@@ -235,7 +288,7 @@ class SwiftConsole(HasTraits):
           Spring(),
           UItem('log_level_filter', style='simple', padding=0, height=8, show_label=True,
                 tooltip='Show log levels up to and including the selected level of severity.\nThe CONSOLE log level is always visible.'),
-        ),
+        ), 
         Item(
           'console_output',
           style='custom',
@@ -253,6 +306,8 @@ class SwiftConsole(HasTraits):
     title = CONSOLE_TITLE
   )
 
+  
+
   def print_message_callback(self, sbp_msg, **metadata):
     try:
       encoded = sbp_msg.payload.encode('ascii', 'ignore')
@@ -263,6 +318,7 @@ class SwiftConsole(HasTraits):
       print "Critical Error encoding the serial stream as ascii."
 
   def log_message_callback(self, sbp_msg, **metadata):
+    
     try:
       encoded = sbp_msg.text.encode('ascii', 'ignore')
       for eachline in reversed(encoded.split('\n')):
@@ -289,11 +345,70 @@ class SwiftConsole(HasTraits):
   def _clear_button_fired(self):
     self.console_output.clear()
 
-  def __init__(self, link, update, log_level_filter, skip_settings=False, error=False):
+
+  def _JSON_changed(self):
+    if(self.JSON):
+      self.baseline_view.json = True
+      self.solution_view.json = True
+    else:
+      self.baseline_view.json = False
+      self.solution_view.json = False
+  
+  def _directory_name_changed(self):
+    if self.baseline_view and self.solution_view:
+      self.baseline_view.directory_name_b = self.directory_name
+      self.solution_view.directory_name_p = self.directory_name
+      self.solution_view.directory_name_v = self.directory_name
+
+  def update_on_heartbeat(self, sbp_msg, **metadata):
+     # First initialize the state to nothing, if we can't update, it will be none
+    temp_mode = "None"
+    temp_num_sats = 0
+    view = None
+    # If we have a recent baseline update, we use the baseline info
+    if time.time() - self.baseline_view.last_btime_update < 1:
+      view = self.baseline_view
+    # Otherwise, if we have a recent SPP update, we use the SPP
+    elif time.time() - self.solution_view.last_stime_update < 1:
+      view = self.solution_view
+    if view:
+      if view.last_soln:
+        # if all is well we update state
+        temp_mode = view.mode_string(view.last_soln)
+        temp_num_sats = view.last_soln.n_sats
+    
+
+    if self.settings_view:
+      self.settings_view.lat = self.solution_view.latitude
+      self.settings_view.lon = self.solution_view.longitude
+      self.settings_view.alt = self.solution_view.altitude
+    
+    self.mode = temp_mode
+    self.num_sats = temp_num_sats
+  
+
+  def _logging_button_fired(self):
+    if self.baseline_view.logging_b and self.solution_view.logging_p and self.solution_view.logging_v:
+       self.baseline_view.logging_b = False
+       self.solution_view.logging_p = False
+       self.solution_view.logging_v = False
+
+    else: 
+       self.baseline_view.logging_b = True
+       self.solution_view.logging_p = True
+       self.solution_view.logging_v = True
+      
+  
+  def __init__(self, link, update, log_level_filter, skip_settings=False, error=False, port=None):
     self.console_output = OutputList()
     self.console_output.write("Console: starting...")
     self.error = error
     sys.stdout = self.console_output
+    self.port = port
+    self.num_sats = 0
+    self.mode = ''
+    self.directory_name = os.getcwd()
+     
     if not error:
       sys.stderr = self.console_output
     self.log_level_filter = log_level_filter
@@ -303,6 +418,7 @@ class SwiftConsole(HasTraits):
       self.link.add_callback(self.print_message_callback, SBP_MSG_PRINT_DEP)
       self.link.add_callback(self.log_message_callback, SBP_MSG_LOG)
       self.link.add_callback(self.ext_event_callback, SBP_MSG_EXT_EVENT)
+      self.link.add_callback(self.update_on_heartbeat, SBP_MSG_HEARTBEAT)
       self.dep_handler = DeprecatedMessageHandler(link)
       settings_read_finished_functions = []
       self.tracking_view = TrackingView(self.link)
@@ -314,6 +430,8 @@ class SwiftConsole(HasTraits):
       self.update_view = UpdateView(self.link, prompt=update)
       settings_read_finished_functions.append(self.update_view.compare_versions)
       self.networking_view = SbpRelayView(self.link)
+
+
       # Once we have received the settings, update device_serial with
       # the Piksi serial number which will be displayed in the window
       # title. This callback will also update the header route as used
@@ -338,6 +456,10 @@ class SwiftConsole(HasTraits):
       self.python_console_env.update(self.system_monitor_view.python_console_cmds)
       self.python_console_env.update(self.update_view.python_console_cmds)
       self.python_console_env.update(self.settings_view.python_console_cmds)
+
+
+
+
     except:
       import traceback
       traceback.print_exc()
@@ -401,7 +523,7 @@ with selected_driver as driver:
       log_filter = DEFAULT_LOG_LEVEL_FILTER
       if args.initloglevel[0]:
         log_filter = args.initloglevel[0]
-      SwiftConsole(link, args.update, log_filter, error=args.error).configure_traits()
+      SwiftConsole(link, args.update, log_filter, port=port, error=args.error).configure_traits()
 
 # Force exit, even if threads haven't joined
 try:
