@@ -176,9 +176,8 @@ class SolutionView(HasTraits):
 
 
   def auto_survey(self):
-    self.counter = self.counter + 1
-    if self.counter == 1000:
-      self.counter = 1000
+    if self.counter < 1000:
+      self.counter = self.counter + 1
     self.latitude_list.append(self.last_soln.lat)
     self.longitude_list.append(self.last_soln.lon)
     self.altitude_list.append(self.last_soln.height)

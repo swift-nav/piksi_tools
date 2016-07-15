@@ -157,7 +157,7 @@ class SettingsView(HasTraits):
     Skip reading of the settings (defaults to False). Intended for
     use when reading from network connections.
   """
-
+  show_auto_survey = Bool(False)
   settings_yaml = list()
   auto_survey = SVGButton(
     label='Auto Survey', tooltip='Auto populate surveyed lat, lon and alt fields',
@@ -194,7 +194,7 @@ class SettingsView(HasTraits):
           Item('settings_read_button', show_label=False),
           Item('settings_save_button', show_label=False),
           Item('factory_default_button', show_label=False),
-          Item('auto_survey', show_label=False),
+          Item('auto_survey', show_label=False, visible_when = 'show_auto_survey'),
         ),
         HGroup(Item('expert', label="Show Advanced Settings", show_label=True)),
         Item('selected_setting', style='custom', show_label=False),
@@ -202,6 +202,13 @@ class SettingsView(HasTraits):
     )
   )
   
+  def _selected_setting_changed(self):
+    if self.selected_setting.name in ['surveyed_position','broadcast','surveyed_lat', 
+                                      'surveyed_lon', 'surveyed_alt']:
+      self.show_auto_survey = True
+    else:
+      self.show_auto_survey = False
+
   def _expert_changed(self, info):
     try:
       self.settings_display_setup(do_read_finished=False)
@@ -240,8 +247,14 @@ class SettingsView(HasTraits):
                           actions=[prompt.close_button, prompt.auto_survey_button],
                           callback=self.auto_survey_fn
                          )
-    confirm_prompt.text = "This will set the Surveyed Position section to the mean of the SPP positions over the last 1000 samples.\n" \
-                        + "The surveyed positon will be an approximate value. \n" \
+    confirm_prompt.text = "\n" \
+                        + "This will set the Surveyed Position section to the \n" \
+                        + "mean of the SPP positions of the last 1000 SPP samples.\n \n" \
+                        + "The fields that will be auto-populated are: \n" \
+                        + "Surveyed Lat \n" \
+                        + "Surveyed Lon \n" \
+                        + "Surveyed Alt \n \n" \
+                        + "The surveyed position will be an approximate value. \n" \
                         + "This may affect the relative accuracy of Piksi. \n \n" \
                         + "Are you sure you want to auto-populate the Surveyed Position section?"
     confirm_prompt.run(block=False)
@@ -357,6 +370,7 @@ class SettingsView(HasTraits):
                skip=False):
     super(SettingsView, self).__init__()
     self.expert = expert
+    self.show_auto_survey = False
     self.gui_mode = gui_mode
     self.enumindex = 0
     self.settings = {}
