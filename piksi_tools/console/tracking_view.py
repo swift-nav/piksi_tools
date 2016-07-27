@@ -15,8 +15,8 @@ from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
 from pyface.api import GUI
 from sbp.tracking import SBP_MSG_TRACKING_STATE
-from traits.api import Instance, Dict, HasTraits, Float, List, Int
-from traitsui.api import Item, View, HSplit
+from traits.api import Instance, Dict, HasTraits, Float, List, Int, Bool
+from traitsui.api import Item, View, HSplit, VGroup, HGroup
 import numpy as np
 from piksi_tools.acq_results import SNR_THRESHOLD
 from piksi_tools.console.utils import code_to_str
@@ -58,18 +58,19 @@ class TrackingView(HasTraits):
   python_console_cmds = Dict()
   states = List(Instance(TrackingState))
   cn0_history = List()
-
+  legend_visible = Bool()
   plot = Instance(Plot)
   plots = List()
   plot_data = Instance(ArrayPlotData)
 
   traits_view = View(
-    HSplit(
+    VGroup(
       Item(
         'plot',
         editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8)),
         show_label=False,
-      )
+      ),
+      HGroup(Item(' '), Item('legend_visible', label="Show Legend?")),
     )
   )
 
@@ -112,6 +113,15 @@ class TrackingView(HasTraits):
     plots = dict(zip(plot_labels, self.plots))
     self.plot.legend.plots = plots
 
+  def _legend_visible_changed(self):
+    if self.plot:
+      if self.legend_visible==False:
+        self.plot.legend.visible = False
+      else:
+        self.plot.legend.visible = True
+      self.plot.legend.tools.append(LegendTool(self.plot.legend,
+                                    drag_button="right"))
+
   def __init__(self, link):
     super(TrackingView, self).__init__()
     self.n_channels = None
@@ -128,8 +138,12 @@ class TrackingView(HasTraits):
     self.plot.value_axis.title = 'dB-Hz'
     t = range(NUM_POINTS)
     self.plot_data.set_data('t', t)
+    self.legend_visible = True
     self.plot.legend.visible = True
-    self.plot.legend.align = 'ul'
+    self.plot.legend.align = 'll'
+    self.plot.legend.line_spacing = 1
+    self.plot.legend.font = 'modern 8'
+    self.plot.legend.draw_layer= 'overlay'
     self.plot.legend.tools.append(LegendTool(self.plot.legend,
                                   drag_button="right"))
     self.link = link
