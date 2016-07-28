@@ -19,7 +19,7 @@ requests>=2.8.1
 kiwisolver>=0.1.3
 six>=1.10.0
 construct>=2.5.2
-sbp==1.0.0
+sbp==1.0.1
 # pyinstaller requirements
 pyinstaller>=3.0
 cryptography>=1.1.1
