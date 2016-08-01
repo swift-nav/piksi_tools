@@ -386,6 +386,11 @@ class SwiftConsole(HasTraits):
     self.mode = temp_mode
     self.num_sats = temp_num_sats
 
+    if self.settings_view: # for auto populating surveyed fields 
+      self.settings_view.lat = self.solution_view.latitude
+      self.settings_view.lon = self.solution_view.longitude
+      self.settings_view.alt = self.solution_view.altitude
+
   def _csv_logging_button_fired(self):
     if self.is_valid_directory:
       if self.csv_logging and self.baseline_view.logging_b and self.solution_view.logging_p and self.solution_view.logging_v:
