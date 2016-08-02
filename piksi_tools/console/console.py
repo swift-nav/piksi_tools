@@ -147,10 +147,6 @@ from traitsui.table_filter \
 from traitsui.table_column \
     import ObjectColumn, ExpressionColumn
 
-from traitsui.file_dialog \
-    import open_file
-
-
 CONSOLE_TITLE = 'Piksi Console, Version: v' + CONSOLE_VERSION
 
 
