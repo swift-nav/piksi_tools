@@ -39,7 +39,7 @@ class ObservationView(HasTraits):
   _obs_table_list = List()
   obs = Dict()
 
-  name = Str('Rover')
+  name = Str('Local')
 
   recording = Bool(False)
 
@@ -226,7 +226,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
       self.eph_file.write(strout)
       self.eph_file.flush()
 
-  def __init__(self, link, name='Rover', relay=False):
+  def __init__(self, link, name='Local', relay=False):
     super(ObservationView, self).__init__()
     self.obs_count = 0
     self.gps_tow = 0.0
