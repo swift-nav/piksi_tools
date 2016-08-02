@@ -14,7 +14,7 @@ from traits.api import Dict, HasTraits, List, Bool, Str
 from traitsui.api import Item, View, HGroup, VGroup, TabularEditor
 from traitsui.tabular_adapter import TabularAdapter
 from enable.savage.trait_defs.ui.svg_button import SVGButton
-from piksi_tools.console.utils import determine_path,sopen
+from piksi_tools.console.utils import determine_path, sopen
 from piksi_tools.console.utils import code_to_str
 from piksi_tools.console.utils import L1CA
 
@@ -77,8 +77,9 @@ class ObservationView(HasTraits):
     if self.recording:
       if self.rinex_file is None:
         # If the file is being opened for the first time, write the RINEX header
-        self.rinex_file = sopen(os.path.join(self.dirname, self.name + self.t.strftime(
-                               "-%Y%m%d-%H%M%S.obs")), 'w')
+        self.rinex_file =\
+          sopen(os.path.join(self.dirname, self.name + self.t.strftime(
+                             "-%Y%m%d-%H%M%S.obs")), 'w')
         header = '     ' +\
 """2.11           OBSERVATION DATA    G (GPS)             RINEX VERSION / TYPE
 pyNEX                                   %s UTC PGM / RUN BY / DATE
@@ -193,14 +194,26 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
 
     return
 
+  def time_str(self):
+    return "%s %10.7f" % (self.t.strftime(" %y %m %d %H %M"),
+                          self.t.second + self.t.microsecond * 1e-6)
+
   def ephemeris_callback(self, m, **metadata):
-    prn = m.sid.sat
-    if m.sid.code == 0 or m.sid.code == 1:
+    # rip ephe saving for now
+    # check https://github.com/swift-nav/piksi_tools/pull/312 conversation
+    return
+
+    if not self.recording:
+      return
+
+    prn = m.common.sid.sat
+    if 0 == m.common.sid.code or 1 == m.common.sid.code:
       prn += 1
-    if self.recording:
-      if self.eph_file is None:
-        self.eph_file = sopen(os.path.join(self.dirname, self.name + self.t.strftime("-%Y%m%d-%H%M%S.eph")),
-                             'w')
+
+      if self.eph_file_gps is None:
+        fname = os.path.join(self.dirname,
+                self.name + self.t.strftime("-%Y%m%d-%H%M%S_GPS.eph"))
+        self.eph_file_gps = sopen(fname, 'w')
         header = "time, " \
                + "tgd, " \
                + "crs, crc, cuc, cus, cic, cis, " \
@@ -208,23 +221,82 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
                + "af0, af1, af2, " \
                + "toe_tow, toe_wn, toc_tow, toc_wn, " \
                + "valid, " \
-               + "healthy, " \
-               + "prn\n"
-        self.eph_file.write(header)
+               + "health_bits, " \
+               + "prn, ura, fit_interval\n"
+        self.eph_file_gps.write(header)
 
-      strout = "%s %10.7f" % (self.t.strftime(" %y %m %d %H %M"),
-                              self.t.second + self.t.microsecond * 1e-6)
-      strout += "," + str([m.tgd,
-                           m.c_rs, m.c_rc, m.c_uc, m.c_us, m.c_ic, m.c_is,
-                           m.dn, m.m0, m.ecc, m.sqrta, m.omega0, m.omegadot,
-                           m.w, m.inc, m.inc_dot,
-                           m.af0, m.af1, m.af2,
-                           m.toe_tow, m.toe_wn, m.toc_tow, m.toc_wn,
-                           m.valid,
-                           m.healthy,
-                           prn])[1: -1] + "\n"
-      self.eph_file.write(strout)
-      self.eph_file.flush()
+      strout = self.time_str() + "," \
+             + str([m.tgd,
+                   m.c_rs, m.c_rc, m.c_uc, m.c_us, m.c_ic, m.c_is,
+                   m.dn, m.m0, m.ecc, m.sqrta, m.omega0, m.omegadot,
+                   m.w, m.inc, m.inc_dot,
+                   m.af0, m.af1, m.af2,
+                   m.common.toe.tow, m.common.toe.wn,
+                   m.toc.tow, m.toc.wn,
+                   m.common.valid,
+                   m.common.health_bits,
+                   prn, m.common.ura,
+                   m.common.fit_interval])[1: -1] + "\n"
+      self.eph_file_gps.write(strout)
+      self.eph_file_gps.flush()
+
+    if 3 == m.common.sid.code:
+
+      if self.eph_file_sbas is None:
+        fname = os.path.join(self.dirname,
+              self.name + self.t.strftime("-%Y%m%d-%H%M%S_SBAS.eph"))
+        self.eph_file_sbas = sopen(fname, 'w')
+
+        header = "time, " \
+               + "prn" \
+               + "toe_tow, toe_wn, valid, health_bits, ura, fit_interval" \
+               + "pos[0], pos[1], pos[2], " \
+               + "vel[0], vel[1], vel[2], " \
+               + "acc[0], acc[1], acc[2], " \
+               + "a_gf0, a_gf1\n"
+
+        self.eph_file_sbas.write(header)
+
+      strout = self.time_str() + "," \
+             + str([prn,
+                   m.common.toe.tow, m.common.toe.wn,
+                   m.common.valid, m.common.health_bits,
+                   m.common.ura, m.common.fit_interval,
+                   m.pos[0], m.pos[1], m.pos[2],
+                   m.vel[0], m.vel[1], m.vel[2],
+                   m.acc[0], m.acc[1], m.acc[2],
+                   m.a_gf0, m.a_gf1])[1: -1] + "\n"
+      self.eph_file_sbas.write(strout)
+      self.eph_file_sbas.flush()
+
+    if 4 == m.common.sid.code or 5 == m.common.sid.code:
+
+      if self.eph_file_glo is None:
+        fname = os.path.join(self.dirname,
+              self.name + self.t.strftime("-%Y%m%d-%H%M%S_GLO.eph"))
+        self.eph_file_glo =\
+          open(self.name + self.t.strftime("-%Y%m%d-%H%M%S_GLO.eph"), 'w')
+
+        header = "time, " \
+               + "prn" \
+               + "toe_tow, toe_wn, valid, health_bits, ura, fit_interval" \
+               + "pos[0], pos[1], pos[2], " \
+               + "vel[0], vel[1], vel[2], " \
+               + "acc[0], acc[1], acc[2], " \
+               + "gamma, tau\n"
+        self.eph_file_glo.write(header)
+
+      strout = self.time_str() + "," \
+             + str([prn,
+                     m.common.toe.tow, m.common.toe.wn,
+                     m.common.valid, m.common.health_bits,
+                     m.common.ura, m.common.fit_interval,
+                     m.pos[0], m.pos[1], m.pos[2],
+                     m.vel[0], m.vel[1], m.vel[2],
+                     m.acc[0], m.acc[1], m.acc[2],
+                     m.gamma, m.tau])[1: -1] + "\n"
+      self.eph_file_glo.write(strout)
+      self.eph_file_glo.flush()
 
   def __init__(self, link, name='Local', relay=False, dirname=None):
     super(ObservationView, self).__init__()
@@ -235,9 +307,13 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     self.relay = relay
     self.name = name
     self.rinex_file = None
-    self.eph_file = None
+    self.eph_file_gps = None
+    self.eph_file_sbas = None
+    self.eph_file_glo = None
     self.link = link
     self.link.add_callback(self.obs_packed_callback,
                            [SBP_MSG_OBS, SBP_MSG_OBS_DEP_B])
-    self.link.add_callback(self.ephemeris_callback, SBP_MSG_EPHEMERIS)
+    self.link.add_callback(self.ephemeris_callback, SBP_MSG_EPHEMERIS_GPS)
+    self.link.add_callback(self.ephemeris_callback, SBP_MSG_EPHEMERIS_SBAS)
+    self.link.add_callback(self.ephemeris_callback, SBP_MSG_EPHEMERIS_GLO)
     self.python_console_cmds = {'obs': self}

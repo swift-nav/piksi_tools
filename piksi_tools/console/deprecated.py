@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-# Copyright (C) 2015 Swift Navigation Inc.
+# Copyright (C) 2015, 2016 Swift Navigation Inc.
 # Contact: Bhaskar Mookerji <mookerji@swiftnav.com>
+#          Pasi Miettinen <pasi.miettinen@exafore.com>
 #
 # This source is subject to the license found in the file 'LICENSE' which must
 # be be distributed together with this source. All other rights reserved.
@@ -17,14 +18,17 @@ I got 99 callbacks but your type ain't one
 """
 
 from sbp.acquisition import SBP_MSG_ACQ_RESULT_DEP_A
-from sbp.observation import SBP_MSG_EPHEMERIS_DEP_A, SBP_MSG_EPHEMERIS_DEP_B, SBP_MSG_OBS_DEP_A
+from sbp.observation import SBP_MSG_EPHEMERIS_DEP_A, SBP_MSG_EPHEMERIS_DEP_B,\
+                            SBP_MSG_EPHEMERIS_DEP_D, SBP_MSG_OBS_DEP_A
 from sbp.tracking import SBP_MSG_TRACKING_STATE_DEP_A
 
 DEPRECATED_SBP_MESSAGES = [SBP_MSG_ACQ_RESULT_DEP_A,
                            SBP_MSG_EPHEMERIS_DEP_A,
                            SBP_MSG_EPHEMERIS_DEP_B,
+                           SBP_MSG_EPHEMERIS_DEP_D,
                            SBP_MSG_OBS_DEP_A,
                            SBP_MSG_TRACKING_STATE_DEP_A]
+
 
 class DeprecatedMessageHandler(object):
   """Callback prompt for issuing a feature deprecation prompt in the

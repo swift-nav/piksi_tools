@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-# Copyright (C) 2011-2015 Swift Navigation Inc.
+# Copyright (C) 2011-2016 Swift Navigation Inc.
 # Contact: Fergus Noble <fergus@swift-nav.com>
+#          Pasi Miettinen <pasi.miettinen@exafore.com>
 #
 # This source is subject to the license found in the file 'LICENSE' which must
 # be be distributed together with this source. All other rights reserved.
@@ -18,13 +19,14 @@ import sys
 import os
 import time
 import uuid
-import warnings
 
 from sbp.bootload                       import *
 from sbp.logging                        import *
-from sbp.navigation import SBP_MSG_POS_ECEF, SBP_MSG_POS_LLH, SBP_MSG_BASELINE_ECEF, \
-  SBP_MSG_BASELINE_NED, SBP_MSG_GPS_TIME
-from sbp.observation import SBP_MSG_OBS, SBP_MSG_OBS_DEP_B, SBP_MSG_EPHEMERIS, SBP_MSG_BASE_POS_LLH, SBP_MSG_BASE_POS_ECEF
+from sbp.navigation import SBP_MSG_POS_ECEF, SBP_MSG_POS_LLH, SBP_MSG_GPS_TIME
+from sbp.observation import SBP_MSG_OBS, SBP_MSG_OBS_DEP_B, \
+                            SBP_MSG_EPHEMERIS_GPS, SBP_MSG_EPHEMERIS_SBAS, \
+                            SBP_MSG_EPHEMERIS_GLO, SBP_MSG_BASE_POS_LLH, \
+                            SBP_MSG_BASE_POS_ECEF
 from sbp.user import SBP_MSG_USER_DATA
 from sbp.piksi                          import MsgReset
 from sbp.system                         import SBP_MSG_HEARTBEAT
@@ -35,14 +37,15 @@ from sbp.client.loggers.json_logger     import JSONLogger
 from sbp.client.loggers.null_logger     import NullLogger
 from sbp.client                         import Handler, Framer, Forwarder
 
-
 SERIAL_PORT  = "/dev/ttyUSB0"
 SERIAL_BAUD  = 1000000
 CHANNEL_UUID = '118db405-b5de-4a05-87b5-605cc85af924'
 DEFAULT_BASE = "http://broker.staging.skylark.swiftnav.com"
 
+
 def logfilename():
-  return time.strftime("serial-link-%Y%m%d-%H%M%S.log.json") 
+  return time.strftime("serial-link-%Y%m%d-%H%M%S.log.json")
+
 
 def get_ports():
   """
@@ -50,6 +53,7 @@ def get_ports():
   """
   import serial.tools.list_ports
   return [p for p in serial.tools.list_ports.comports() if p[1][0:4] != "ttyS"]
+
 
 def base_cl_options():
   import argparse
@@ -98,13 +102,14 @@ def base_cl_options():
                       help="Used brokered SBP data.")
   return parser
 
+
 def get_args():
   """
   Get and parse arguments.
   """
-  import argparse
   parser = base_cl_options()
   return parser.parse_args()
+
 
 def get_driver(use_ftdi=False, port=SERIAL_PORT, baud=SERIAL_BAUD, file=False):
   """
@@ -131,6 +136,7 @@ def get_driver(use_ftdi=False, port=SERIAL_PORT, baud=SERIAL_BAUD, file=False):
   except SystemExit:
     sys.exit(1)
 
+
 def get_logger(use_log=False, filename=logfilename()):
   """
   Get a logger based on configuration options.
@@ -149,6 +155,7 @@ def get_logger(use_log=False, filename=logfilename()):
   print "Starting JSON logging at %s" % filename
   return JSONLogger(filename)
 
+
 def get_append_logger(filename, tags):
   """
   Get a append logger based on configuration options.
@@ -165,6 +172,7 @@ def get_append_logger(filename, tags):
   print "Append logging at %s" % filename
   return JSONLogger(filename, "a", tags)
 
+
 def printer(sbp_msg, **metadata):
   """
   Default print callback
@@ -175,6 +183,7 @@ def printer(sbp_msg, **metadata):
     SBP Message to print out.
   """
   print sbp_msg.payload,
+
 
 def log_printer(sbp_msg, **metadata):
   """
@@ -196,6 +205,7 @@ def log_printer(sbp_msg, **metadata):
   m = MsgLog(sbp_msg)
   print levels[m.level], m.text
 
+
 def swriter(link):
   """Callback intended for reading out messages from one stream and into
   a serial link stream.
@@ -212,6 +222,7 @@ def swriter(link):
   def scallback(sbp_msg, **metadata):
     link(sbp_msg)
   return scallback
+
 
 def get_uuid(channel, serial_id):
   """Returns a namespaced UUID based on the piksi serial number and a
@@ -233,6 +244,7 @@ def get_uuid(channel, serial_id):
     return uuid.uuid5(uuid.UUID(channel), str(serial_id))
   else:
     return None
+
 
 def run(args, link):
   """Spin loop for reading from the serial link.
@@ -273,7 +285,9 @@ def run(args, link):
 DEFAULT_WHITELIST = [SBP_MSG_HEARTBEAT,
                      SBP_MSG_OBS,
                      SBP_MSG_OBS_DEP_B,
-                     SBP_MSG_EPHEMERIS,
+                     SBP_MSG_EPHEMERIS_GPS,
+                     SBP_MSG_EPHEMERIS_SBAS,
+                     SBP_MSG_EPHEMERIS_GLO,
                      SBP_MSG_POS_ECEF,
                      SBP_MSG_POS_LLH,
                      SBP_MSG_GPS_TIME,
@@ -281,6 +295,7 @@ DEFAULT_WHITELIST = [SBP_MSG_HEARTBEAT,
                      SBP_MSG_BASE_POS_LLH,
                      SBP_MSG_BASE_POS_ECEF,
                      SBP_MSG_TWEET]
+
 
 def main(args):
   """
