@@ -137,7 +137,7 @@ from piksi_tools.console.update_view import UpdateView
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 
 
-from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List, Enum, Bool, File
+from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List, Enum, Bool, Directory
 from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
                          InstanceEditor, EnumEditor, ShellEditor, Handler, Spring, \
                          TableEditor, UItem, Group
@@ -216,7 +216,7 @@ class SwiftConsole(HasTraits):
   mode = Str('') 
   num_sats = Int(0)
   port = Str('')
-  directory_name = File
+  directory_name = Directory
   json_logging = Bool(True)
   csv_logging = Bool(False)
   is_valid_directory = Bool (True)
@@ -280,7 +280,7 @@ class SwiftConsole(HasTraits):
             Item('', label='Console Log', emphasized=True),
             Item('csv_logging_button', emphasized=True, show_label=False, width=12, height=-25, padding=0),
             Item('json_logging_button', emphasized=True, show_label=False, width=12, height=-25, padding=0),
-            Item('directory_name', show_label=False, springy=True, tooltip='Choose location for file logs. Default is current directory.', 
+            Item('directory_name', show_label=False, springy=True, tooltip='Choose location for file logs. Default is home/SwiftNav.', 
               height=-25, enabled_when='not(json_logging or csv_logging)'),
             UItem('log_level_filter', style='simple', padding=0, height=8, show_label=True,
                 tooltip='Show log levels up to and including the selected level of severity.\nThe CONSOLE log level is always visible.'),
