@@ -1,0 +1,23 @@
+Dear all,
+
+We are happy to announce the release of v0.28 of the Piksi console.  The console should prompt you to download the new version and the installers are available for windows and mac from downloads.swiftnav.com. You should expect the following features in this version of the console:
+
+   	- Added a status bar to show the important information about Piksi on screen at once
+		- shows the serial port to which it's connected
+		- shows the number of satellites
+		- shows the fixed type
+	- Added the following logging functionality
+		- creates a folder called SwiftNav in the home directory as the default logging location
+		- logging does not begin automatically now
+		- allows users to choose location for logging
+		- buttons to start JSON and CSV logging, allows users to choose when to begin logging
+		- set logging location from command line 
+	- Toggle button to make legend in the Tracking Tab visible
+	- Legend in Tracking Tab is now smaller and does not hide the satellite signals
+	- Added auto-survey button for the surveyed lat, lon and alt positions in the Settings Tab 
+	- Changed the 'rover' and 'base' labels in the Observation Tab to 'local' and 'remote'
+
+As always, we welcome feedback!
+
+Best,
+Dennis
