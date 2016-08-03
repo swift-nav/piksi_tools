@@ -145,7 +145,7 @@ def get_logger(use_log=False, filename=logfilename()):
   if not use_log:
     return NullLogger()
   if os.path.isdir(filename):
-    filename = os.path.join(filename, logfilename())
+    filename = os.path.normpath(os.path.join(filename, logfilename()))
   print "Starting JSON logging at %s" % filename
   return JSONLogger(filename)
 
