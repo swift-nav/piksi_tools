@@ -410,7 +410,7 @@ class SwiftConsole(HasTraits):
       filename = override_filename
     else:
       filename = s.logfilename()
-    filename = os.path.join(self.directory_name, filename)
+    filename = os.path.normpath(os.path.join(self.directory_name, filename))
     self.logger = s.get_logger(True, filename)
     self.forwarder = sbpc.Forwarder(self.link, self.logger)
     self.forwarder.start()
@@ -451,7 +451,7 @@ class SwiftConsole(HasTraits):
     override_filename = None
     swift_path = None
     home = expanduser("~")
-    swift_path = os.path.join(home, 'SwiftNav')
+    swift_path = os.path.normpath(os.path.join(home, 'SwiftNav'))
     try: 
       os.makedirs(swift_path)
     except OSError:
