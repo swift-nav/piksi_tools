@@ -263,16 +263,9 @@ class SettingsView(HasTraits):
     lat_value = str(self.lat)
     lon_value = str(self.lon)
     alt_value = str(self.alt)
-    
-    self.settings['surveyed_position']['surveyed_lat'] = Setting('surveyed_lat', 'surveyed_position',
-                                                                lat_value, ordering=self.ordering_counter,
-                                                                settings=self)
-    self.settings['surveyed_position']['surveyed_lon'] = Setting('surveyed_lon', 'surveyed_position',
-                                                                lon_value, ordering=self.ordering_counter,
-                                                                settings=self)
-    self.settings['surveyed_position']['surveyed_alt'] = Setting('surveyed_alt', 'surveyed_position',
-                                                                alt_value, ordering=self.ordering_counter,
-                                                                settings=self)
+    self.settings['surveyed_position']['surveyed_lat'].value = lat_value 
+    self.settings['surveyed_position']['surveyed_lon'].value = lon_value
+    self.settings['surveyed_position']['surveyed_alt'].value = alt_value
     try:
       self.settings_display_setup(do_read_finished=False)
     except AttributeError:
