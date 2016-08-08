@@ -266,10 +266,7 @@ class SettingsView(HasTraits):
     self.settings['surveyed_position']['surveyed_lat'].value = lat_value 
     self.settings['surveyed_position']['surveyed_lon'].value = lon_value
     self.settings['surveyed_position']['surveyed_alt'].value = alt_value
-    try:
-      self.settings_display_setup(do_read_finished=False)
-    except AttributeError:
-      pass
+    self.settings_display_setup(do_read_finished=False)
 
   ##Callbacks for receiving messages
   def settings_display_setup(self, do_read_finished=True):
