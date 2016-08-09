@@ -14,6 +14,7 @@ import traceback
 import os
 
 from traitsui.api import TextEditor
+from piksi_tools.utils import sopen
 
 L1CA = 'L1CA'
 L2CM = 'L2CM'
