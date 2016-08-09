@@ -210,8 +210,7 @@ class SolutionView(HasTraits):
       if(self.directory_name_p == ''):
         filepath_p = time.strftime("position_log_%Y%m%d-%H%M%S.csv")
       else:
-        #filepath_p = os.path.join(home, 'SwiftNav')
-        filepath_p = self.directory_name_p + '/' + time.strftime("position_log_%Y%m%d-%H%M%S.csv")
+        filepath_p = os.path.join(self.directory_name_p, time.strftime("position_log_%Y%m%d-%H%M%S.csv"))
 
       if self.logging_p ==  False:
         self.log_file = None
@@ -220,12 +219,13 @@ class SolutionView(HasTraits):
         if self.log_file is None:
           self.log_file = open(filepath_p, 'w')
           self.log_file.write("time,latitude(degrees),longitude(degrees),altitude(meters),n_sats,flags\n")
-          self.log_file.write('%s,%.10f,%.10f,%.4f,%d,%d\n' % (
-            str(t),
-            soln.lat, soln.lon, soln.height,
-            soln.n_sats, soln.flags)
-          )
-          self.log_file.flush()
+
+        self.log_file.write('%s,%.10f,%.10f,%.4f,%d,%d\n' % (
+          str(t),
+          soln.lat, soln.lon, soln.height,
+          soln.n_sats, soln.flags)
+        )
+        self.log_file.flush()
 
     pos_table.append(('GPS ToW', tow))
 
@@ -256,7 +256,8 @@ class SolutionView(HasTraits):
       self.plot_data.set_data('cur_lat_ps', [soln.lat])
       self.plot_data.set_data('cur_lng_ps', [soln.lon])
       t_psuedo_abs = range(len(self.lats))
-      self.plot_data.set_data('t', t)
+      if t is not None:
+        self.plot_data.set_data('t', t)
       self.plot_data.set_data('t_ps', t_psuedo_abs)
       # set-up table variables
       self.table_psuedo_abs = pos_table
@@ -318,7 +319,7 @@ class SolutionView(HasTraits):
       if self.directory_name_v == '':
           filepath_v = time.strftime("velocity_log_%Y%m%d-%H%M%S.csv")
       else:
-          filepath_v = self.directory_name_v + '/' + time.strftime("velocity_log_%Y%m%d-%H%M%S.csv")
+          filepath_v = os.path.join(self.directory_name_v,time.strftime("velocity_log_%Y%m%d-%H%M%S.csv"))
 
       if self.logging_v ==  False:
         self.vel_log_file = None
@@ -350,10 +351,12 @@ class SolutionView(HasTraits):
     self.week = MsgGPSTime(sbp_msg).wn
     self.nsec = MsgGPSTime(sbp_msg).ns
 
-  def __init__(self, link):
+  def __init__(self, link, dirname=''):
     super(SolutionView, self).__init__()
 
     self.log_file = None
+    self.directory_name_v = dirname
+    self.directory_name_p = dirname
     self.vel_log_file = None
     self.last_stime_update = 0
     self.last_soln = None
