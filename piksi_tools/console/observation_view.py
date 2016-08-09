@@ -77,8 +77,8 @@ class ObservationView(HasTraits):
     if self.recording:
       if self.rinex_file is None:
         # If the file is being opened for the first time, write the RINEX header
-        self.rinex_file = open(self.name + self.t.strftime(
-                               "-%Y%m%d-%H%M%S.obs"), 'w')
+        self.rinex_file = open(os.path.join(self.dirname, self.name + self.t.strftime(
+                               "-%Y%m%d-%H%M%S.obs")), 'w')
         header = '     ' +\
 """2.11           OBSERVATION DATA    G (GPS)             RINEX VERSION / TYPE
 pyNEX                                   %s UTC PGM / RUN BY / DATE
@@ -199,7 +199,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
       prn += 1
     if self.recording:
       if self.eph_file is None:
-        self.eph_file = open(self.name + self.t.strftime("-%Y%m%d-%H%M%S.eph"),
+        self.eph_file = open(os.path.join(self.dirname, self.name + self.t.strftime("-%Y%m%d-%H%M%S.eph")),
                              'w')
         header = "time, " \
                + "tgd, " \
@@ -226,8 +226,9 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
       self.eph_file.write(strout)
       self.eph_file.flush()
 
-  def __init__(self, link, name='Local', relay=False):
+  def __init__(self, link, name='Local', relay=False, dirname=None):
     super(ObservationView, self).__init__()
+    self.dirname = dirname
     self.obs_count = 0
     self.gps_tow = 0.0
     self.gps_week = 0
