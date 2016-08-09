@@ -11,7 +11,8 @@
 
 import sys
 import time
-
+import os
+import errno
 from piksi_tools.bootload import Bootloader
 from piksi_tools.flash import Flash
 from piksi_tools.timeout import *
@@ -151,3 +152,17 @@ def setup_piksi(handler, stm_fw, nap_fw, verbose=False):
 
 def wrap_sbp_dict(data_dict, timestamp, delta):
   return {'data':data_dict, 'timestamp': timestamp, 'delta':delta}
+
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc: # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else: raise
+
+def sopen(path, mode):
+    ''' Open "path" for writing, creating any parent directories as needed.
+    '''
+    mkdir_p(os.path.dirname(path))
+    return open(path, mode)
