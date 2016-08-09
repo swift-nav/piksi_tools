@@ -210,8 +210,7 @@ class SolutionView(HasTraits):
       if(self.directory_name_p == ''):
         filepath_p = time.strftime("position_log_%Y%m%d-%H%M%S.csv")
       else:
-        #filepath_p = os.path.join(home, 'SwiftNav')
-        filepath_p = self.directory_name_p + '/' + time.strftime("position_log_%Y%m%d-%H%M%S.csv")
+        filepath_p = os.path.join(self.directory_name_p, time.strftime("position_log_%Y%m%d-%H%M%S.csv"))
 
       if self.logging_p ==  False:
         self.log_file = None
@@ -320,7 +319,7 @@ class SolutionView(HasTraits):
       if self.directory_name_v == '':
           filepath_v = time.strftime("velocity_log_%Y%m%d-%H%M%S.csv")
       else:
-          filepath_v = self.directory_name_v + '/' + time.strftime("velocity_log_%Y%m%d-%H%M%S.csv")
+          filepath_v = os.path.join(self.directory_name_v,time.strftime("velocity_log_%Y%m%d-%H%M%S.csv"))
 
       if self.logging_v ==  False:
         self.vel_log_file = None
@@ -352,10 +351,12 @@ class SolutionView(HasTraits):
     self.week = MsgGPSTime(sbp_msg).wn
     self.nsec = MsgGPSTime(sbp_msg).ns
 
-  def __init__(self, link):
+  def __init__(self, link, dirname=''):
     super(SolutionView, self).__init__()
 
     self.log_file = None
+    self.directory_name_v = dirname
+    self.directory_name_p = dirname
     self.vel_log_file = None
     self.last_stime_update = 0
     self.last_soln = None

@@ -184,7 +184,7 @@ class BaselineView(HasTraits):
       if self.directory_name_b == '':
           filepath = time.strftime("baseline_log_%Y%m%d-%H%M%S.csv")
       else:
-          filepath = self.directory_name_b + '/' + time.strftime("baseline_log_%Y%m%d-%H%M%S.csv")
+          filepath = os.path.join(self.directory_name_b, time.strftime("baseline_log_%Y%m%d-%H%M%S.csv"))
 
 
       if self.logging_b ==  False:
@@ -270,10 +270,10 @@ class BaselineView(HasTraits):
       plot_square_axes(self.plot, ('e_fixed', 'e_float'), ('n_fixed', 'n_float'))
     self.table = table
 
-  def __init__(self, link, plot_history_max=1000):
+  def __init__(self, link, plot_history_max=1000, dirname=''):
     super(BaselineView, self).__init__()
     self.log_file = None
-
+    self.directory_name_b = dirname
     self.num_hyps = 0
     self.last_hyp_update = 0
     self.last_btime_update = 0
