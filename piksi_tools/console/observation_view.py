@@ -14,7 +14,7 @@ from traits.api import Dict, HasTraits, List, Bool, Str
 from traitsui.api import Item, View, HGroup, VGroup, TabularEditor
 from traitsui.tabular_adapter import TabularAdapter
 from enable.savage.trait_defs.ui.svg_button import SVGButton
-from piksi_tools.console.utils import determine_path
+from piksi_tools.console.utils import determine_path,sopen
 from piksi_tools.console.utils import code_to_str
 from piksi_tools.console.utils import L1CA
 
@@ -77,7 +77,7 @@ class ObservationView(HasTraits):
     if self.recording:
       if self.rinex_file is None:
         # If the file is being opened for the first time, write the RINEX header
-        self.rinex_file = open(os.path.join(self.dirname, self.name + self.t.strftime(
+        self.rinex_file = sopen(os.path.join(self.dirname, self.name + self.t.strftime(
                                "-%Y%m%d-%H%M%S.obs")), 'w')
         header = '     ' +\
 """2.11           OBSERVATION DATA    G (GPS)             RINEX VERSION / TYPE
@@ -199,7 +199,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
       prn += 1
     if self.recording:
       if self.eph_file is None:
-        self.eph_file = open(os.path.join(self.dirname, self.name + self.t.strftime("-%Y%m%d-%H%M%S.eph")),
+        self.eph_file = sopen(os.path.join(self.dirname, self.name + self.t.strftime("-%Y%m%d-%H%M%S.eph")),
                              'w')
         header = "time, " \
                + "tgd, " \
