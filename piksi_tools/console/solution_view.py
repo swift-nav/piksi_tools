@@ -332,13 +332,13 @@ class SolutionView(HasTraits):
 
         
 
-          self.vel_log_file.write('%s,%.6f,%.6f,%.6f,%.6f,%d\n' % (
-            str(t),
-            vel_ned.n * 1e-3, vel_ned.e * 1e-3, vel_ned.d * 1e-3,
-            math.sqrt(vel_ned.n*vel_ned.n + vel_ned.e*vel_ned.e) * 1e-3,
-            vel_ned.n_sats)
-          )
-          self.vel_log_file.flush()
+        self.vel_log_file.write('%s,%.6f,%.6f,%.6f,%.6f,%d\n' % (
+          str(t),
+          vel_ned.n * 1e-3, vel_ned.e * 1e-3, vel_ned.d * 1e-3,
+          math.sqrt(vel_ned.n*vel_ned.n + vel_ned.e*vel_ned.e) * 1e-3,
+          vel_ned.n_sats)
+        )
+        self.vel_log_file.flush()
 
     self.vel_table = [
       ('Vel. N', '% 8.4f' % (vel_ned.n * 1e-3)),
