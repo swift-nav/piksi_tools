@@ -17,9 +17,8 @@ from chaco.tools.api import ZoomTool, PanTool
 from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.api import GUI
-<<<<<<< HEAD
 from piksi_tools.console.utils import plot_square_axes, determine_path, MultilineTextEditor,\
-                                      get_mode, mode_dict, color_dict, sopen\
+                                      get_mode, mode_dict, color_dict, sopen,\
                                       EMPTY_STR, SPP_MODE, FLOAT_MODE, DGNSS_MODE, FIXED_MODE
 
 import math
@@ -393,16 +392,8 @@ class SolutionView(HasTraits):
       if self.logging_v:
 
         if self.vel_log_file is None:
-<<<<<<< HEAD
-          self.vel_log_file = open(filepath_v, 'w')
-          self.vel_log_file.write('time,north(m/s),east(m/s),down(m/s),speed(m/s),flags,num_signals\n')
-=======
           self.vel_log_file = sopen(filepath_v, 'w')
-          self.vel_log_file.write('time,north(m/s),east(m/s),down(m/s),speed(m/s),num_sats\n')
-
-        
->>>>>>> 7d29e3f... solution_view: add sopen to create directory for log if it doesn't exist
-
+          self.vel_log_file.write('time,north(m/s),east(m/s),down(m/s),speed(m/s),flags,num_signals\n')
         self.vel_log_file.write('%s,%.6f,%.6f,%.6f,%.6f,%d,%d\n' % (
           str(t),
           vel_ned.n * 1e-3, vel_ned.e * 1e-3, vel_ned.d * 1e-3,
