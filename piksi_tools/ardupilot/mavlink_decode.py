@@ -1,8 +1,7 @@
 """
 Takes in a dataflish BIN file and produces an SBP JSON log file with the following record fields:
 
- {"delta": msec offset since beginning of run,
-  "timestamp": UTC timestamp (sec),
+ {"timestamp": UTC timestamp (sec),
   "data":  JSON representation of SBP message specialized to message type (like MsgBaselineNED),
   "metadata": dictionary of tags, optional
   }
@@ -98,8 +97,8 @@ def extractSBP(filename):
 
 def rewrite(records, outfile):
   """
-  Returns array of (time delta offset from beginning of log in msec,
-  timestamp in sec, SBP object, parsed). skips unparseable objects.
+  Returns array of (timestamp in sec, SBP object, parsed).
+  skips unparseable objects.
 
   """
   new_datafile = open(outfile, 'w')
@@ -113,11 +112,9 @@ def rewrite(records, outfile):
     sbp = SBP(msg_type, sender_id, msg_len, bin_data, 0x1337)
     try:
       _SBP_TABLE[msg_type](sbp)
-      deltat = (timestamp - start_t)*1000.
-      item = (deltat, timestamp, sbp, dispatch(sbp))
+      item = (timestamp, sbp, dispatch(sbp))
       items.append(item)
-      m = {"delta": deltat,
-           "timestamp": timestamp,
+      m = {"timestamp": timestamp,
            "data": dispatch(sbp).to_json_dict(),
            "metadata": {}}
       new_datafile.write(json.dumps(m) + "\n")
