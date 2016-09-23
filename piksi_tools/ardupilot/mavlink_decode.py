@@ -1,7 +1,7 @@
 """
 Takes in a dataflish BIN file and produces an SBP JSON log file with the following record fields:
 
- {"timestamp": UTC timestamp (sec),
+ {"time": UTC timestamp (sec),
   "data":  JSON representation of SBP message specialized to message type (like MsgBaselineNED),
   "metadata": dictionary of tags, optional
   }
@@ -56,7 +56,7 @@ def extractSBP(filename):
       # If the last message was an SBR1 and the current message is SBR2
       # we combine the two into one SBP message
       msg_len = last_m.msg_len
-      timestamp = getattr(last_m, '_timestamp', 0.0)
+      timestamp = getattr(last_m, '_time', 0.0)
       binary = last_m.binary
       bin_data = bytearray(last_m.binary[SBR1_DATASTART:SBR1_DATASTART+64]
                  + m.binary[SBR2_DATASTART:SBR2_DATASTART+msg_len-64])
@@ -71,7 +71,7 @@ def extractSBP(filename):
       msg_len = last_m.msg_len
       binary = last_m.binary
       assert binary, "binary empty"
-      timestamp = getattr(last_m, '_timestamp', 0.0)
+      timestamp = getattr(last_m, '_time', 0.0)
       msg_type = last_m.msg_type
       sender_id = last_m.sender_id
       bin_data = bytearray(last_m.binary[SBR1_DATASTART:SBR1_DATASTART+msg_len])
@@ -114,7 +114,7 @@ def rewrite(records, outfile):
       _SBP_TABLE[msg_type](sbp)
       item = (timestamp, sbp, dispatch(sbp))
       items.append(item)
-      m = {"timestamp": timestamp,
+      m = {"time": timestamp,
            "data": dispatch(sbp).to_json_dict(),
            "metadata": {}}
       new_datafile.write(json.dumps(m) + "\n")

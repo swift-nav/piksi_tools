@@ -194,7 +194,7 @@ def wrapper(log_datafile, filename, num_records):
       if i % logging_interval == 0:
         print "Processed %d records! @ %.1f sec." \
           % (i, time.time() - start)
-      processor.process_message(data['timestamp'], msg)
+      processor.process_message(data['time'], msg)
       if num_records is not None and i >= int(num_records):
         print "Processed %d records!" % i
         break

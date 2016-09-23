@@ -151,7 +151,7 @@ def setup_piksi(handler, stm_fw, nap_fw, verbose=False):
     piksi_bootloader.jump_to_app()
 
 def wrap_sbp_dict(data_dict, timestamp):
-  return {'data':data_dict, 'timestamp': timestamp}
+  return {'data':data_dict, 'time': timestamp}
 
 def mkdir_p(path):
     try:
