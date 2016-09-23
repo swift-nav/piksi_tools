@@ -22,12 +22,7 @@ import warnings
 
 from sbp.bootload                       import *
 from sbp.logging                        import *
-from sbp.navigation import SBP_MSG_POS_ECEF, SBP_MSG_POS_LLH, SBP_MSG_BASELINE_ECEF, \
-  SBP_MSG_BASELINE_NED, SBP_MSG_GPS_TIME
-from sbp.observation import SBP_MSG_OBS, SBP_MSG_OBS_DEP_B, SBP_MSG_EPHEMERIS, SBP_MSG_BASE_POS_LLH, SBP_MSG_BASE_POS_ECEF
-from sbp.user import SBP_MSG_USER_DATA
 from sbp.piksi                          import MsgReset
-from sbp.system                         import SBP_MSG_HEARTBEAT
 from sbp.client.drivers.network_drivers import HTTPDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.pyftdi_driver   import PyFTDIDriver
@@ -268,19 +263,6 @@ def run(args, link):
     # block does get caught since exit itself throws a
     # SystemExit exception.
     sys.exit(1)
-
-# The default whitelist of messages for the Piksi to publish
-DEFAULT_WHITELIST = [SBP_MSG_HEARTBEAT,
-                     SBP_MSG_OBS,
-                     SBP_MSG_OBS_DEP_B,
-                     SBP_MSG_EPHEMERIS,
-                     SBP_MSG_POS_ECEF,
-                     SBP_MSG_POS_LLH,
-                     SBP_MSG_GPS_TIME,
-                     SBP_MSG_USER_DATA,
-                     SBP_MSG_BASE_POS_LLH,
-                     SBP_MSG_BASE_POS_ECEF,
-                     SBP_MSG_TWEET]
 
 def main(args):
   """

@@ -47,12 +47,12 @@ class StoreToRINEX(object):
     self.time = None
     self.first_spp = False
     
-  def _process_spp(self, host_offset, host_time, msg):
+  def _process_spp(self, host_time, msg):
     self.x = float(msg.x)
     self.y = float(msg.y)
     self.z = float(msg.z)
   
-  def _process_obs(self, host_offset, host_time, msg):
+  def _process_obs(self, host_time, msg):
     time = datetime.datetime(1980, 1, 6) + \
            datetime.timedelta(weeks=msg.header.t.wn) + \
            datetime.timedelta(seconds=msg.header.t.tow / 1e3)
@@ -81,7 +81,7 @@ class StoreToRINEX(object):
       elif code == 1: 
         v.update({'P2': o.P * p_scale, 'L2': l_scale * (o.L.i + o.L.f / 256.0),
              'S2': o.cn0 / 4.0, 'lock2': o.lock})
-      v.update({'host_offset': host_offset, 'host_time': host_time})
+      v.update({'host_time': host_time})
       if time in t:
         t[time].update({ prn: v})
       else:
@@ -95,13 +95,11 @@ class StoreToRINEX(object):
       else:
         ti[time] = {'total': total, 'counts': 1 << count}
 
-  def process_message(self, host_offset, host_time, msg):
+  def process_message(self, host_time, msg):
     """Processes messages.
 
     Parameters
     ----------
-    host_offset : int
-      Millisecond offset since beginning of log.
     host_time : int
       Host UNIX epoch (UTC)
     msg : SBP message
@@ -109,9 +107,9 @@ class StoreToRINEX(object):
 
     """
     if msg.msg_type == ob.SBP_MSG_OBS_DEP_B or msg.msg_type == ob.SBP_MSG_OBS:
-      self._process_obs(host_offset, host_time, msg)
+      self._process_obs(host_time, msg)
     if not self.first_spp and msg.msg_type == nav.SBP_MSG_POS_ECEF:
-      self._process_spp(host_offset, host_time, msg)
+      self._process_spp(host_time, msg)
       self.first_spp = True
 
   def save(self, filename):
@@ -194,7 +192,7 @@ def wrapper(log_datafile, filename, num_records):
       if i % logging_interval == 0:
         print "Processed %d records! @ %.1f sec." \
           % (i, time.time() - start)
-      processor.process_message(data['delta'], data['timestamp'], msg)
+      processor.process_message(data['time'], msg)
       if num_records is not None and i >= int(num_records):
         print "Processed %d records!" % i
         break

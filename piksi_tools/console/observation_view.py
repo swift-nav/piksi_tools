@@ -194,8 +194,8 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     return
 
   def ephemeris_callback(self, m, **metadata):
-    prn = m.sid.sat
-    if m.sid.code == 0 or m.sid.code == 1:
+    prn = m.common.sid.sat
+    if m.common.sid.code == 0 or m.common.sid.code == 1:
       prn += 1
     if self.recording:
       if self.eph_file is None:
@@ -219,9 +219,9 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
                            m.dn, m.m0, m.ecc, m.sqrta, m.omega0, m.omegadot,
                            m.w, m.inc, m.inc_dot,
                            m.af0, m.af1, m.af2,
-                           m.toe_tow, m.toe_wn, m.toc_tow, m.toc_wn,
-                           m.valid,
-                           m.healthy,
+                           m.common.toe.tow, m.common.toe.wn, m.toc.tow, m.toc.wn,
+                           m.common.valid,
+                           m.common.health_bits,
                            prn])[1: -1] + "\n"
       self.eph_file.write(strout)
       self.eph_file.flush()
@@ -239,5 +239,5 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     self.link = link
     self.link.add_callback(self.obs_packed_callback,
                            [SBP_MSG_OBS, SBP_MSG_OBS_DEP_B])
-    self.link.add_callback(self.ephemeris_callback, SBP_MSG_EPHEMERIS)
+    self.link.add_callback(self.ephemeris_callback, SBP_MSG_EPHEMERIS_GPS)
     self.python_console_cmds = {'obs': self}
