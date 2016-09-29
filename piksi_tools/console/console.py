@@ -85,7 +85,6 @@ def get_args():
 args = get_args()
 port = args.port[0]
 baud = args.baud[0]
-
 # Toolkit
 from traits.etsconfig.api import ETSConfig
 if args.toolkit[0] is not None:
@@ -146,7 +145,8 @@ from traitsui.table_filter \
 from traitsui.table_column \
     import ObjectColumn, ExpressionColumn
 
-CONSOLE_TITLE = 'Piksi Console, Version: v' + CONSOLE_VERSION
+CONSOLE_TITLE = 'Piksi Console v:' + CONSOLE_VERSION
+BAUD_LIST = [57600, 115200, 921600, 1000000]
 
 
 class ConsoleHandler(Handler):
@@ -165,7 +165,7 @@ class ConsoleHandler(Handler):
     the `device_serial` variable in the underlying class.
     """
     if info.initialized:
-      info.ui.title = CONSOLE_TITLE + ' : ' + info.object.device_serial
+      info.ui.title =  info.object.dev_id + "(" + info.object.device_serial +") " + CONSOLE_TITLE
 
 
 class SwiftConsole(HasTraits):
@@ -187,6 +187,7 @@ class SwiftConsole(HasTraits):
   console_output = Instance(OutputList())
   python_console_env = Dict
   device_serial = Str('')
+  dev_id = Str('')
   a = Int
   b = Int
   tracking_view = Instance(TrackingView)
@@ -446,6 +447,7 @@ class SwiftConsole(HasTraits):
     self.error = error
     sys.stdout = self.console_output
     self.port = port
+    self.dev_id = str(os.path.split(port)[1])
     self.num_sats = 0
     self.mode = ''
     self.forwarder = None
@@ -533,21 +535,35 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 class PortChooser(HasTraits):
   ports = List()
   port = Str(None)
+  choose_baud = Bool(True)
+  baudrate = Int() #um(57600, 115200, 921600, 1000000)
   traits_view = View(
-    VGroup(
-      Label('Select Piksi device:'),
-      Item('port', editor=EnumEditor(name='ports'), show_label=False),
+    HGroup(
+      VGroup(
+        Item(" ", height=-8),
+        Label('Select Piksi device:'),
+        Item('port', editor=EnumEditor(name='ports'), show_label=False),
+      ),
+      VGroup(
+        Item(" ", height=-8),
+        Label('Baudrate:'),
+        Item('baudrate', editor=EnumEditor(values=BAUD_LIST), show_label=False, visible_when='choose_baud'), 
+        Item('baudrate', show_label=False, visible_when='not choose_baud', style='readonly'), 
+      ),
     ),
     buttons = ['OK', 'Cancel'],
     close_result=False,
     icon = icon,
-    width = 250,
-    title = 'Select serial device',
+    width = 350,
+    title = 'Select serial Configuration',
   )
 
-  def __init__(self):
+  def __init__(self, baudrate=None):
     try:
       self.ports = [p for p, _, _ in s.get_ports()]
+      if baudrate not in BAUD_LIST:
+        self.choose_baud = False
+      self.baudrate = baudrate
     except TypeError:
       pass
 
@@ -559,9 +575,10 @@ if args.tcp:
     raise Exception('Invalid host and/or port')
 else:
   if not port:
-    port_chooser = PortChooser()
+    port_chooser = PortChooser(baudrate=int(args.baud[0]))
     is_ok = port_chooser.configure_traits()
     port = port_chooser.port
+    baud = port_chooser.baudrate
     if not port or not is_ok:
       print "No serial device selected!"
       sys.exit(1)
