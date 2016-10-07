@@ -32,7 +32,7 @@ from sbp.client                         import Handler, Framer, Forwarder
 
 
 SERIAL_PORT  = "/dev/ttyUSB0"
-SERIAL_BAUD  = 1000000
+SERIAL_BAUD  = 921600
 CHANNEL_UUID = '118db405-b5de-4a05-87b5-605cc85af924'
 DEFAULT_BASE = "http://broker.staging.skylark.swiftnav.com"
 
@@ -80,6 +80,9 @@ def base_cl_options():
   parser.add_argument("-d", "--tags",
                       default=None,
                       help="tags to decorate logs with.")
+  parser.add_argument("--file",
+                      help="Read with a filedriver rather than pyserial.",
+                      action="store_true")
   parser.add_argument("-u", "--base", default=DEFAULT_BASE,
                       help="Base station URI.")
   parser.add_argument("-c", "--channel_id",
@@ -280,7 +283,7 @@ def main(args):
   base = args.base
   use_broker = args.broker
   # Driver with context
-  with get_driver(args.ftdi, port, baud) as driver:
+  with get_driver(args.ftdi, port, baud, args.file) as driver:
     # Handler with context
     with Handler(Framer(driver.read, driver.write, args.verbose)) as link:
       # Logger with context
