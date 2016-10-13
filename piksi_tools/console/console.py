@@ -138,7 +138,7 @@ from enable.savage.trait_defs.ui.svg_button import SVGButton
 from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List, Enum, Bool, Directory
 from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
                          InstanceEditor, EnumEditor, ShellEditor, Handler, Spring, \
-                         TableEditor, UItem, Group
+                         TableEditor, UItem, Group, ImageEditor
 from traitsui.table_filter \
     import EvalFilterTemplate, MenuFilterTemplate, RuleFilterTemplate, \
            EvalTableFilter
@@ -219,6 +219,8 @@ class SwiftConsole(HasTraits):
   directory_name = Directory
   json_logging = Bool(True)
   csv_logging = Bool(False)
+  cnx_icon = Str('')
+  heartbeat_count = Int()
   is_valid_directory = Bool (True)
 
 
@@ -301,9 +303,17 @@ class SwiftConsole(HasTraits):
           Item('', label='FIX TYPE:', emphasized = True, tooltip='Piksi Mode: SPS, Float RTK, Fixed RTK'),
           Item('mode', show_label = False, style = 'readonly'),
           Item('', label='#SATS:', emphasized=True, tooltip='Number of satellites acquired by Piksi'),
-          Item('num_sats', padding=2, show_label=False, style = 'readonly'),     
+          Item('num_sats', padding=2, show_label=False, style = 'readonly'),
+          Spring(springy=True),
+          Item('cnx_icon', show_label = False, padding=0, width=8, height=8, visible_when='heartbeat_count%2==1',
+               springy=False, editor=ImageEditor(allow_clipping=False, image = ImageResource( 'arrows_blue.png', 
+                                                search_path=[os.path.join(determine_path(), 'images', 'iconic')]))),
+          Item('cnx_icon', show_label = False, padding=0, width=8, height=8, visible_when='heartbeat_count%2==0',
+               springy=False, editor=ImageEditor(allow_clipping=False, image = ImageResource( 'arrows_grey.png',
+                                                search_path=[os.path.join(determine_path(), 'images', 'iconic')]))),
+          Spring(width=4, height=-2, springy=False),
         ),
-	Spring(height=1, springy=False),
+       Spring(height=1, springy=False),
       ),
     ),
     icon=icon,
@@ -366,6 +376,7 @@ class SwiftConsole(HasTraits):
       self.is_valid_directory = False
 
   def update_on_heartbeat(self, sbp_msg, **metadata):
+    self.heartbeat_count += 1
      # First initialize the state to nothing, if we can't update, it will be none
     temp_mode = "None"
     temp_num_sats = 0
