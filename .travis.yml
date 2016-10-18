@@ -2,28 +2,42 @@ sudo: required
 
 language: c
 
-os:
-  - linux
-  - osx
+matrix:
+  include:
+   - os: linux
+   - os: osx
+   - os: osx
+     osx_image: xcode7
+   - os: osx
+     osx_image: xcode6.4
+   - os: osx
+     osx_image: beta-xcode6.2
 
 before_install:
-  - sleep 3 # give xvfb some time to start
+  - sleep 3 #give xvfb some time to start
+  - rm -rf ~/home/.enthought
   - make deps
 
 before_script:
   - "export DISPLAY=:0.0"
   - "export PATH=/usr/local/bin/:./:$PATH"
-  - Xvfb :0.0 -screen 1 800x600x24 &
+  - Xvfb :0.0 -screen 1 800x600x16 &
   - sleep 3
 
 script:
   - tox
   - export TRAITS_DEBUG="1" 
+  - rm -rf ~/home/.enthought
   - PYTHONPATH=. python piksi_tools/console/console.py --file --error -p ./tests/data/piksi.bin & PID=$!
   - sleep 10 
   - kill -n 9  $PID
   - sudo python setup.py install
   - make build_console
+
+cache:
+  directories:
+  - $HOME/.pip/cache/
+  - /Library/Caches/Homebrew/
 
 addons:
   artifacts:
