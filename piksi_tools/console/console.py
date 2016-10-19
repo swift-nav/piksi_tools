@@ -120,6 +120,7 @@ if ETSConfig.toolkit == 'qt4':
   import pyface.ui.qt4.resource_manager
   import pyface.ui.qt4.python_shell
 from pyface.image_resource import ImageResource
+from pyface.timer.api import Timer
 
 basedir = determine_path()
 icon = ImageResource('icon', search_path=['images', os.path.join(basedir, 'images')])
@@ -135,7 +136,7 @@ from piksi_tools.console.update_view import UpdateView
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 
 
-from traits.api import Str, Instance, Dict, HasTraits, Int, Button, List, Enum, Bool, Directory
+from traits.api import Str, Instance, Dict, HasTraits, Any, Int, Button, List, Enum, Bool, Directory
 from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
                          InstanceEditor, EnumEditor, ShellEditor, Handler, Spring, \
                          TableEditor, UItem, Group, ImageEditor
@@ -221,6 +222,9 @@ class SwiftConsole(HasTraits):
   csv_logging = Bool(False)
   cnx_icon = Str('')
   heartbeat_count = Int()
+  last_timer_heartbeat = Int()
+  solid_connection = Bool(False)
+  timer = Any()
   is_valid_directory = Bool (True)
 
 
@@ -305,10 +309,10 @@ class SwiftConsole(HasTraits):
           Item('', label='#SATS:', emphasized=True, tooltip='Number of satellites acquired by Piksi'),
           Item('num_sats', padding=2, show_label=False, style = 'readonly'),
           Spring(springy=True),
-          Item('cnx_icon', show_label = False, padding=0, width=8, height=8, visible_when='heartbeat_count%2==1',
+          Item('cnx_icon', show_label = False, padding=0, width=8, height=8, visible_when='solid_connection',
                springy=False, editor=ImageEditor(allow_clipping=False, image = ImageResource( 'arrows_blue.png', 
                                                 search_path=[os.path.join(determine_path(), 'images', 'iconic')]))),
-          Item('cnx_icon', show_label = False, padding=0, width=8, height=8, visible_when='heartbeat_count%2==0',
+          Item('cnx_icon', show_label = False, padding=0, width=8, height=8, visible_when='not solid_connection',
                springy=False, editor=ImageEditor(allow_clipping=False, image = ImageResource( 'arrows_grey.png',
                                                 search_path=[os.path.join(determine_path(), 'images', 'iconic')]))),
           Spring(width=4, height=-2, springy=False),
@@ -374,7 +378,15 @@ class SwiftConsole(HasTraits):
     else:
       print "Please enter a valid directory!"
       self.is_valid_directory = False
-
+  
+  def check_heartbeat(self):
+    # if our heartbeat hasn't changed since the last timer interval the connection must have dropped
+    if self.heartbeat_count == self.last_timer_heartbeat:
+      self.solid_connection = False
+    else:
+      self.solid_connection = True
+    self.last_timer_heartbeat = self.heartbeat_count
+      
   def update_on_heartbeat(self, sbp_msg, **metadata):
     self.heartbeat_count += 1
      # First initialize the state to nothing, if we can't update, it will be none
@@ -505,7 +517,8 @@ class SwiftConsole(HasTraits):
       if json_logging:
         self._start_json_logging(override_filename)
         self.json_logging = True
-
+      # we set timer interval to 1200 milliseconds because we expect a heartbeat each second
+      self.timer = Timer(1200, self.check_heartbeat) 
       # Once we have received the settings, update device_serial with
       # the Piksi serial number which will be displayed in the window
       # title. This callback will also update the header route as used
