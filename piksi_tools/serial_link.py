@@ -32,7 +32,7 @@ from sbp.client                         import Handler, Framer, Forwarder
 
 
 SERIAL_PORT  = "/dev/ttyUSB0"
-SERIAL_BAUD  = 921600
+SERIAL_BAUD  = 115200
 CHANNEL_UUID = '118db405-b5de-4a05-87b5-605cc85af924'
 DEFAULT_BASE = "http://broker.staging.skylark.swiftnav.com"
 
