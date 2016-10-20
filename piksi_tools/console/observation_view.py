@@ -15,7 +15,7 @@ from traitsui.api import Item, View, HGroup, VGroup, TabularEditor
 from traitsui.tabular_adapter import TabularAdapter
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from piksi_tools.console.utils import determine_path,sopen
-from piksi_tools.console.utils import code_to_str
+from piksi_tools.console.utils import code_to_str, code_is_gps
 from piksi_tools.console.utils import L1CA
 
 import os
@@ -166,7 +166,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
       prn = o.sid.sat
       # compute time difference of carrier phase for display
       cp = float(o.L.i) + float(o.L.f) / (1 << 8)
-      if o.sid.code == 0 or o.sid.code == 1:
+      if code_is_gps(o.sid.code):
         prn += 1
       prn = '{} ({})'.format(prn, code_to_str(o.sid.code))
       if sbp_msg.msg_type == SBP_MSG_OBS_DEP_A or\
@@ -195,7 +195,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
 
   def ephemeris_callback(self, m, **metadata):
     prn = m.common.sid.sat
-    if m.common.sid.code == 0 or m.common.sid.code == 1:
+    if code_is_gps(m.common.sid.code):
       prn += 1
     if self.recording:
       if self.eph_file is None:
