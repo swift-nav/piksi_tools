@@ -19,7 +19,7 @@ from traits.api import Instance, Dict, HasTraits, Float, List, Int, Bool
 from traitsui.api import Item, View, HSplit, VGroup, HGroup
 import numpy as np
 from piksi_tools.acq_results import SNR_THRESHOLD
-from piksi_tools.console.utils import code_to_str
+from piksi_tools.console.utils import code_to_str, code_is_gps
 
 NUM_POINTS = 200
 
@@ -92,7 +92,7 @@ class TrackingView(HasTraits):
     for n, k in enumerate(self.states):
       s = sbp_msg.states[n]
       prn = s.sid.sat
-      if (s.sid.code == 0 or s.sid.code == 1):
+      if code_is_gps(s.sid.code):
         prn += 1
       k.update(s.state, prn, s.cn0, s.sid.code)
     GUI.invoke_later(self.update_plot)

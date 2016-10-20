@@ -18,6 +18,8 @@ from piksi_tools.utils import sopen
 
 L1CA = 'L1CA'
 L2CM = 'L2CM'
+L1P = 'L1P'
+L2P = 'L2P'
 CODE_NOT_AVAILABLE = 'N/A'
 
 
@@ -26,9 +28,25 @@ def code_to_str(code):
     return L1CA
   elif code == 1:
     return L2CM
+  elif code == 5:
+    return L1P
+  elif code == 6:
+    return L2P
   else:
     return CODE_NOT_AVAILABLE
 
+
+def code_is_gps(code):
+  if code == 0:
+    return True
+  elif code == 1:
+    return True
+  elif code == 5:
+    return True
+  elif code == 6:
+    return True
+  else:
+    return False
 
 class MultilineTextEditor(TextEditor):
   """
