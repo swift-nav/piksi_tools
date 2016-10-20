@@ -64,6 +64,8 @@ class SbpRelayView(HasTraits):
   disconnect_rover = Button(label='Disconnect from Skylark', toggle=True, width=32)
   base_pragma = String()
   rover_pragma = String()
+  base_device = String()
+  rover_deivce = String()
   toggle=True
   view = View(
            VGroup(
@@ -97,9 +99,11 @@ class SbpRelayView(HasTraits):
                    spring),
                  HGroup(spring,
                         Item('base_pragma',  label='Base option '),
+                        Item('base_device',  label='Base device '),
                         spring),
                  HGroup(spring,
                         Item('rover_pragma', label='Rover option'),
+                        Item('rover_device', label='Rover device'),
                         spring),),
                VGroup(
                  Item('http_information', label="Notes", height=10,
@@ -112,7 +116,7 @@ class SbpRelayView(HasTraits):
            )
   )
 
-  def __init__(self, link, device_uid=None, base=DEFAULT_BASE, whitelist=None):
+  def __init__(self, link, base=DEFAULT_BASE):
     """
     Traits tab with UI for UDP broadcast of SBP.
 
@@ -120,12 +124,8 @@ class SbpRelayView(HasTraits):
     ----------
     link : sbp.client.handler.Handler
       Link for SBP transfer to/from Piksi.
-    device_uid : str
-      Piksi Device UUID (defaults to None)
     base : str
       HTTP endpoint
-    whitelist : [int] | None
-      Piksi Device UUID (defaults to None)
 
     """
     self.link = link
@@ -137,8 +137,6 @@ class SbpRelayView(HasTraits):
     self.msgs = OBS_MSGS
     # register a callback when the msg_enum trait changes
     self.on_trait_change(self.update_msgs, 'msg_enum')
-    # Whitelist used for Skylark broadcasting
-    self.whitelist = whitelist
     self.device_uid = None
     self.python_console_cmds = {'update': self}
 
@@ -167,8 +165,6 @@ class SbpRelayView(HasTraits):
     """
     device_uid = str(get_uuid(channel, serial_id))
     self.device_uid = device_uid
-    if self.http:
-      self.http.device_uid = device_uid
 
   def _prompt_networking_error(self, text):
     """Nonblocking prompt for a networking error.
@@ -204,7 +200,8 @@ class SbpRelayView(HasTraits):
     i = 0
     repeats = 5
     _rover_pragma = self.rover_pragma
-    while self.http and not self.http.connect_read(pragma=_rover_pragma):
+    _rover_device_uid = self.rover_device_uid or self.device_uid
+    while self.http and not self.http.connect_read(_rover_device_uid, pragma=_rover_pragma):
       print "Attempting to read observation from Skylark..."
       time.sleep(0.1)
       i += 1
@@ -241,7 +238,8 @@ class SbpRelayView(HasTraits):
       return
     try:
       _base_pragma = self.base_pragma
-      if not self.http.connect_write(self.link, self.whitelist, pragma=_base_pragma):
+      _base_device_uid = self.base_device_uid or self.device_uid
+      if not self.http.connect_write(self.link, _base_device_uid, pragma=_base_pragma):
         msg = ("\nUnable to connect to Skylark!\n\n"
                "Please check that you have a network connection.")
         self._prompt_networking_error(msg)
