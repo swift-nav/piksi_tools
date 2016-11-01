@@ -232,6 +232,13 @@ class SbpRelayView(HasTraits):
         if not net_link.is_alive():
           sys.stderr.write("Network observation stream disconnected!")
           break
+    # Unless the user has initiated a reconnection, assume here that the rover
+    # still wants to be connected, so if we break out of the handler loop,
+    # cleanup rover connection and try reconnecting.
+    if self.connected_rover:
+      sys.stderr.write("Going for a networking reconnection!")
+      self._disconnect_rover_fired()
+      self._connect_rover_fired()
 
   def _connect_rover_fired(self):
     """Handle callback for HTTP rover connections.
