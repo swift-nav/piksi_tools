@@ -62,10 +62,10 @@ exe = EXE(pyz,
           a.scripts,
           exclude_binaries=True,
           name='console'+exe_ext,
-          debug=False,
+          debug=True,
           strip=None,
           upx=True,
-          console=False,
+          console=True,
           **kwargs
           )
 coll = COLLECT(exe,

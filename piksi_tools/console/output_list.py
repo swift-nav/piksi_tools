@@ -20,6 +20,7 @@ from traitsui.api import View, UItem, TabularEditor
 from pyface.api import GUI
 from traitsui.tabular_adapter import TabularAdapter
 import time
+import os
 
 # These levels are identical to sys.log levels
 LOG_EMERG      = 0       # system is unusable
@@ -39,6 +40,7 @@ LOG_DEBUG      = 7       # debug-level messages
 CONSOLE_LOG_LEVEL = -1
 DEFAULT_LOG_LEVEL = -2
 
+LOGFILE = time.strftime('console-log-%Y%m%d-%H%M%S.log')
 # This maps the log level numbers to a human readable string
 # The unused log levels are commented out of the dict until used
 
@@ -158,7 +160,8 @@ class LogItem(HasTraits):
     """
     return self.log_level <= log_level
 
-
+  def print_to_log(self):
+    return "{0},{1},{2}\n".format(self.timestamp, self.log_level, self.msg)
 
 class OutputList(HasTraits):
   """This class has methods to emulate an file-like output list of strings.
@@ -188,7 +191,12 @@ class OutputList(HasTraits):
   # back to self.unfiltered_list.
   paused = Bool(False)
 
-
+  def __init__(self, tfile=False, outdir=''):
+    if tfile:
+      self.logfile = open(os.path.join(outdir, LOGFILE), 'w')
+      self.tfile = True
+    else:
+      self.tfile=False 
 
   def write(self, s):
     """
@@ -213,6 +221,9 @@ class OutputList(HasTraits):
         self.append_truncate(self.unfiltered_list, log)
         if log.matches_log_level_filter(self.log_level_filter):
           self.append_truncate(self.filtered_list, log)
+      if self.tfile:
+        self.logfile.write(log.print_to_log())
+       
 
   def write_level(self, s, level):
     """
@@ -262,7 +273,8 @@ class OutputList(HasTraits):
     GUI.process_events()
 
   def close(self):
-    pass
+    if self.tfile:
+      self.logfile.close()
 
   def _log_level_filter_changed(self):
     """
