@@ -189,8 +189,6 @@ class SwiftConsole(HasTraits):
   python_console_env = Dict
   device_serial = Str('')
   dev_id = Str('')
-  a = Int
-  b = Int
   tracking_view = Instance(TrackingView)
   solution_view = Instance(SolutionView)
   baseline_view = Instance(BaselineView)
@@ -217,6 +215,7 @@ class SwiftConsole(HasTraits):
   mode = Str('') 
   num_sats = Int(0)
   port = Str('')
+  latency = Int()
   directory_name = Directory
   json_logging = Bool(True)
   csv_logging = Bool(False)
@@ -308,6 +307,8 @@ class SwiftConsole(HasTraits):
           Item('mode', show_label = False, style = 'readonly'),
           Item('', label='#SATS:', emphasized=True, tooltip='Number of satellites acquired by Piksi'),
           Item('num_sats', padding=2, show_label=False, style = 'readonly'),
+          Item('', label='Base Latency:', emphasized=True, tooltip='Corrections latency (-1 means no corrections)'),
+          Item('latency', padding=2, show_label=False, style = 'readonly'),     
           Spring(springy=True),
           Item('cnx_icon', show_label = False, padding=0, width=8, height=8, visible_when='solid_connection',
                springy=False, editor=ImageEditor(allow_clipping=False, image = ImageResource( 'arrows_blue.png', 
@@ -412,6 +413,8 @@ class SwiftConsole(HasTraits):
       self.settings_view.lat = self.solution_view.latitude
       self.settings_view.lon = self.solution_view.longitude
       self.settings_view.alt = self.solution_view.altitude
+    if self.system_monitor_view:
+      self.latency = self.system_monitor_view.msg_obs_window_latency_ms
 
   def _csv_logging_button_fired(self):
     if self.is_valid_directory:
@@ -462,18 +465,21 @@ class SwiftConsole(HasTraits):
     else: 
       print "Directory not valid"
 
-
+  def __enter__(self):
+    return self
+  
+  def __exit__(self, exc_type, exc_value, traceback):
+    self.console_output.close() 
+  
   def __init__(self, link, update, log_level_filter, skip_settings=False, error=False, 
                port=None, json_logging=False, log_dirname=None):
-    self.console_output = OutputList()
-    self.console_output.write("Console: starting...")
     self.error = error
-    sys.stdout = self.console_output
     self.port = port
     self.dev_id = str(os.path.split(port)[1])
     self.num_sats = 0
     self.mode = ''
     self.forwarder = None
+    self.latency = -1
     # if we have passed a logfile, we set our directory to it
     override_filename = None
     swift_path = None
@@ -489,9 +495,14 @@ class SwiftConsole(HasTraits):
         self.directory_name = log_dirname
     else:
       self.directory_name = swift_path
-
+    
+    # Start swallowing sys.stdout and sys.stderr
+    self.console_output = OutputList(tfile=True, outdir=self.directory_name)
+    sys.stdout = self.console_output
+    self.console_output.write("Console: starting...")
     if not error:
       sys.stderr = self.console_output
+
     self.log_level_filter = log_level_filter
     self.console_output.log_level_filter = str_to_log_level(log_level_filter)
     try:
@@ -618,8 +629,10 @@ with selected_driver as driver:
     log_filter = DEFAULT_LOG_LEVEL_FILTER
     if args.initloglevel[0]:
       log_filter = args.initloglevel[0]
-    SwiftConsole(link, args.update, log_filter, port=port, error=args.error, 
-                 json_logging=args.log, log_dirname=args.log_dirname[0]).configure_traits()
+    
+    with SwiftConsole(link, args.update, log_filter, port=port, error=args.error, 
+                 json_logging=args.log, log_dirname=args.log_dirname[0]) as console: 
+      console.configure_traits()
 
 # Force exit, even if threads haven't joined
 try:
