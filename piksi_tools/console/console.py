@@ -446,10 +446,7 @@ class SwiftConsole(HasTraits):
   
   def __init__(self, link, update, log_level_filter, skip_settings=False, error=False, 
                port=None, json_logging=False, log_dirname=None):
-    self.console_output = OutputList(True)
-    self.console_output.write("Console: starting...")
     self.error = error
-    sys.stdout = self.console_output
     self.port = port
     self.num_sats = 0
     self.mode = ''
@@ -469,9 +466,14 @@ class SwiftConsole(HasTraits):
         self.directory_name = log_dirname
     else:
       self.directory_name = swift_path
-
+    
+    # Start swallowing sys.stdout and sys.stderr
+    self.console_output = OutputList(tfile=True, outdir=self.directory_name)
+    sys.stdout = self.console_output
+    self.console_output.write("Console: starting...")
     if not error:
       sys.stderr = self.console_output
+
     self.log_level_filter = log_level_filter
     self.console_output.log_level_filter = str_to_log_level(log_level_filter)
     try:
