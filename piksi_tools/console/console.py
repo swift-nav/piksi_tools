@@ -438,10 +438,15 @@ class SwiftConsole(HasTraits):
     else: 
       print "Directory not valid"
 
-
+  def __enter__(self):
+    return self
+  
+  def __exit__(self, exc_type, exc_value, traceback):
+    self.console_output.close() 
+  
   def __init__(self, link, update, log_level_filter, skip_settings=False, error=False, 
                port=None, json_logging=False, log_dirname=None):
-    self.console_output = OutputList()
+    self.console_output = OutputList(True)
     self.console_output.write("Console: starting...")
     self.error = error
     sys.stdout = self.console_output
@@ -577,8 +582,10 @@ with selected_driver as driver:
     log_filter = DEFAULT_LOG_LEVEL_FILTER
     if args.initloglevel[0]:
       log_filter = args.initloglevel[0]
-    SwiftConsole(link, args.update, log_filter, port=port, error=args.error, 
-                 json_logging=args.log, log_dirname=args.log_dirname[0]).configure_traits()
+    
+    with SwiftConsole(link, args.update, log_filter, port=port, error=args.error, 
+                 json_logging=args.log, log_dirname=args.log_dirname[0]) as console: 
+      console.configure_traits()
 
 # Force exit, even if threads haven't joined
 try:
