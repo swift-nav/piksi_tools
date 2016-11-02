@@ -145,7 +145,9 @@ function install_python_deps_osx () {
     # Uses brew to install system-wide dependencies and pip to install
     # python dependencies.
     log_info "Installing Python dependencies..."
-    brew install python qt pyside libftdi openssl 
+    wget http://pyside.markus-ullmann.de/pyside-1.2.1-qt4.8.5-py27apple-developer-signed.pkg
+    sudo installer -pkg pyside-1.2.1-qt4.8.5-py27apple-developer-signed.pkg -target /
+    brew install python qt libftdi openssl 
     brew link openssl --forcea
     pip install -r ../requirements.txt
     pip install -r ../requirements_gui.txt
