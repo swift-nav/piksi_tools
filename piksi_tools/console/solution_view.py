@@ -218,7 +218,7 @@ class SolutionView(HasTraits):
       if self.logging_p:
         if self.log_file is None:
           self.log_file = open(filepath_p, 'w')
-          self.log_file.write("time,latitude(degrees),longitude(degrees),altitude(meters),n_sats,flags\n")
+          self.log_file.write("time,latitude(degrees),longitude(degrees),altitude(meters),n_signals,flags\n")
 
         self.log_file.write('%s,%.10f,%.10f,%.4f,%d,%d\n' % (
           str(t),
@@ -229,7 +229,7 @@ class SolutionView(HasTraits):
 
     pos_table.append(('GPS ToW', tow))
 
-    pos_table.append(('Num. sats', soln.n_sats))
+    pos_table.append(('Num. Signals', soln.n_sats))
 
     pos_table.append(('Lat', soln.lat))
     pos_table.append(('Lng', soln.lon))
@@ -328,7 +328,7 @@ class SolutionView(HasTraits):
 
         if self.vel_log_file is None:
           self.vel_log_file = open(filepath_v, 'w')
-          self.vel_log_file.write('time,north(m/s),east(m/s),down(m/s),speed(m/s),num_sats\n')
+          self.vel_log_file.write('time,north(m/s),east(m/s),down(m/s),speed(m/s),num_signals\n')
 
         
 

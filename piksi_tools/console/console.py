@@ -213,7 +213,7 @@ class SwiftConsole(HasTraits):
   """
 
   mode = Str('') 
-  num_sats = Int(0)
+  num_signals = Int(0)
   port = Str('')
   latency = Int()
   directory_name = Directory
@@ -305,8 +305,8 @@ class SwiftConsole(HasTraits):
           Item('port', show_label=False, style = 'readonly'),
           Item('', label='FIX TYPE:', emphasized = True, tooltip='Piksi Mode: SPS, Float RTK, Fixed RTK'),
           Item('mode', show_label = False, style = 'readonly'),
-          Item('', label='#SATS:', emphasized=True, tooltip='Number of satellites acquired by Piksi'),
-          Item('num_sats', padding=2, show_label=False, style = 'readonly'),
+          Item('', label='#Signals:', emphasized=True, tooltip='Number of signals acquired by Piksi'),
+          Item('num_signals', padding=2, show_label=False, style = 'readonly'),
           Item('', label='Base Latency:', emphasized=True, tooltip='Corrections latency (-1 means no corrections)'),
           Item('latency', padding=2, show_label=False, style = 'readonly'),     
           Spring(springy=True),
@@ -392,7 +392,7 @@ class SwiftConsole(HasTraits):
     self.heartbeat_count += 1
      # First initialize the state to nothing, if we can't update, it will be none
     temp_mode = "None"
-    temp_num_sats = 0
+    temp_num_signals = 0
     view = None
     # If we have a recent baseline update, we use the baseline info
     if time.time() - self.baseline_view.last_btime_update < 10:
@@ -404,10 +404,10 @@ class SwiftConsole(HasTraits):
       if view.last_soln:
         # if all is well we update state
         temp_mode = view.mode_string(view.last_soln)
-        temp_num_sats = view.last_soln.n_sats
+        temp_num_signals = view.last_soln.n_sats
     
     self.mode = temp_mode
-    self.num_sats = temp_num_sats
+    self.num_signals = temp_num_signals
 
     if self.settings_view: # for auto populating surveyed fields 
       self.settings_view.lat = self.solution_view.latitude
@@ -476,7 +476,7 @@ class SwiftConsole(HasTraits):
     self.error = error
     self.port = port
     self.dev_id = str(os.path.split(port)[1])
-    self.num_sats = 0
+    self.num_signals = 0
     self.mode = ''
     self.forwarder = None
     self.latency = -1

@@ -194,7 +194,7 @@ class BaselineView(HasTraits):
         if self.log_file is None:
           self.log_file = open(filepath, 'w')
           
-          self.log_file.write('time,north(meters),east(meters),down(meters),distance(meters),num_sats,flags,num_hypothesis\n')
+          self.log_file.write('time,north(meters),east(meters),down(meters),distance(meters),num_signals,flags,num_hypothesis\n')
 
         self.log_file.write('%s,%.4f,%.4f,%.4f,%.4f,%d,0x%02x,%d\n' % (
           str(t),
@@ -211,7 +211,7 @@ class BaselineView(HasTraits):
     table.append(('E', soln.e))
     table.append(('D', soln.d))
     table.append(('Dist.', dist))
-    table.append(('Num. Sats.', soln.n_sats))
+    table.append(('Num. Signals.', soln.n_sats))
     table.append(('Flags', '0x%02x' % soln.flags))
     table.append(('Mode', self.mode_string(soln)))
     if time.time() - self.last_hyp_update < 10 and self.num_hyps != 1:
