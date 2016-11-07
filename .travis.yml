@@ -16,7 +16,7 @@ matrix:
 before_install:
   - sleep 3 #give xvfb some time to start
   - rm -rf ~/home/.enthought
-  - travis_wait 45 make deps
+  - travis_wait 60 make deps
 
 before_script:
   - "export DISPLAY=:0.0"
