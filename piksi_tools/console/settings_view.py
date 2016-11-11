@@ -237,6 +237,7 @@ class SettingsView(HasTraits):
     # Delete settings file
     fio = FileIO(self.link)
     fio.remove('config')
+    fio.remove('/persistent/config.ini')
     # Reset the Piksi
     self.link(MsgReset())
 
