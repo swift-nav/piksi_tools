@@ -19,7 +19,7 @@ from sbp.client.forwarder import Forwarder
 from sbp.client.framer import Framer
 from sbp.client.handler import Handler
 from sbp.client.loggers.udp_logger import UdpLogger
-from sbp.observation import SBP_MSG_OBS, SBP_MSG_OBS_DEP_B, \
+from sbp.observation import SBP_MSG_OBS_DEP_C, SBP_MSG_OBS_DEP_B, \
   SBP_MSG_BASE_POS_LLH, SBP_MSG_BASE_POS_ECEF
 from traits.api import HasTraits, String, Button, Instance, Int, Bool, \
                        on_trait_change, Enum
@@ -31,7 +31,7 @@ import time
 
 DEFAULT_UDP_ADDRESS = "127.0.0.1"
 DEFAULT_UDP_PORT = 13320
-OBS_MSGS = [ SBP_MSG_OBS,
+OBS_MSGS = [ SBP_MSG_OBS_DEP_C,
            SBP_MSG_OBS_DEP_B,
            SBP_MSG_BASE_POS_LLH,
            SBP_MSG_BASE_POS_ECEF
