@@ -169,8 +169,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
       if code_is_gps(o.sid.code):
         prn += 1
       prn = '{} ({})'.format(prn, code_to_str(o.sid.code))
-      if sbp_msg.msg_type == SBP_MSG_OBS_DEP_A or\
-         sbp_msg.msg_type == SBP_MSG_OBS_DEP_B:
+      if sbp_msg.msg_type == SBP_MSG_OBS_DEP_B:
         divisor = 1e2
       else:
         divisor = 5e1
@@ -238,6 +237,6 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     self.eph_file = None
     self.link = link
     self.link.add_callback(self.obs_packed_callback,
-                           [SBP_MSG_OBS, SBP_MSG_OBS_DEP_B])
+                           [SBP_MSG_OBS_DEP_C, SBP_MSG_OBS_DEP_B])
     self.link.add_callback(self.ephemeris_callback, SBP_MSG_EPHEMERIS_GPS)
     self.python_console_cmds = {'obs': self}

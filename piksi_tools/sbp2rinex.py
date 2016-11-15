@@ -106,9 +106,9 @@ class StoreToRINEX(object):
       SBP message payload
 
     """
-    if msg.msg_type == ob.SBP_MSG_OBS_DEP_B or msg.msg_type == ob.SBP_MSG_OBS:
+    if msg.msg_type == ob.SBP_MSG_OBS_DEP_B or msg.msg_type == ob.SBP_MSG_OBS_DEP_C:
       self._process_obs(host_time, msg)
-    if not self.first_spp and msg.msg_type == nav.SBP_MSG_POS_ECEF:
+    if not self.first_spp and msg.msg_type == nav.SBP_MSG_POS_ECEF_DEP_A:
       self._process_spp(host_time, msg)
       self.first_spp = True
 
