@@ -120,7 +120,7 @@ if ETSConfig.toolkit == 'qt4':
   import pyface.ui.qt4.resource_manager
   import pyface.ui.qt4.python_shell
 from pyface.image_resource import ImageResource
-from pyface.timer.api import Timer
+from threading import Timer
 
 basedir = determine_path()
 icon = ImageResource('icon', search_path=['images', os.path.join(basedir, 'images')])
@@ -518,7 +518,7 @@ class SwiftConsole(HasTraits):
         self._start_json_logging(override_filename)
         self.json_logging = True
       # we set timer interval to 1200 milliseconds because we expect a heartbeat each second
-      self.timer = Timer(1200, self.check_heartbeat) 
+      self.timer = Timer(1.2, self.check_heartbeat).start() 
       # Once we have received the settings, update device_serial with
       # the Piksi serial number which will be displayed in the window
       # title. This callback will also update the header route as used
