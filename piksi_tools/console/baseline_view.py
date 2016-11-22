@@ -352,9 +352,9 @@ class BaselineView(HasTraits):
     
 
     self.link = link
-    self.link.add_callback(self._baseline_callback_ned, SBP_MSG_BASELINE_NED)
+    self.link.add_callback(self._baseline_callback_ned, SBP_MSG_BASELINE_NED_DEP_A)
     self.link.add_callback(self.iar_state_callback, SBP_MSG_IAR_STATE)
-    self.link.add_callback(self.gps_time_callback, SBP_MSG_GPS_TIME)
+    self.link.add_callback(self.gps_time_callback, SBP_MSG_GPS_TIME_DEP_A)
 
     self.python_console_cmds = {
       'baseline': self
