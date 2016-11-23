@@ -29,9 +29,18 @@ class SimpleAdapter(TabularAdapter):
     columns = [('PRN', 0),
                ('Pseudorange (m)', 1),
                ('Carrier Phase (cycles)', 2),
-               ('C/N0 (db-hz)', 3),
-               ('Doppler (hz)', 4)]
-
+               ('C/N0 (dB-Hz)', 3),
+               ('Doppler (Hz)', 4),
+               ('Lock', 5)]
+    font='courier'
+    alignment='center'
+    object_1_format = Str("%11.2f")
+    object_2_format = Str("%13.2f")
+    object_3_format = Str("%2.1f")
+    object_4_format = Str("%9.2f")
+    object_5_format = Str("%5d")
+    def _get_object_0_bg_color(self):
+      return 'grey'
 
 class ObservationView(HasTraits):
   python_console_cmds = Dict()
@@ -59,7 +68,7 @@ class ObservationView(HasTraits):
         Item('_obs_table_list', style='readonly',
              editor=TabularEditor(adapter=SimpleAdapter()), show_label=False),
         VGroup(
-          Item('record_button', show_label=False),
+          Item('record_button', show_label=False, visible_when='False'),
         ),
         label=self.name,
         show_border=True
@@ -181,7 +190,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
       self.obs[prn] = (float(o.P) / divisor,
                        float(o.L.i) + float(o.L.f) / (1 << 8),
                        float(o.cn0) / 4,
-                       cf)
+                       cf, o.lock)
     if (count == total - 1):
       self.t = datetime.datetime(1980, 1, 6) + \
                datetime.timedelta(weeks=self.gps_week) + \
