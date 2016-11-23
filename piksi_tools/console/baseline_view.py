@@ -190,6 +190,8 @@ class BaselineView(HasTraits):
       t = datetime.datetime(1980, 1, 6) + \
           datetime.timedelta(weeks=self.week) + \
           datetime.timedelta(seconds=tow)
+      tstr = t.strftime('%Y-%m-%d %H:%M')
+      secs = t.strftime('%S.%f')
      
       if self.directory_name_b == '':
           filepath = time.strftime("baseline_log_%Y%m%d-%H%M%S.csv")
@@ -215,12 +217,13 @@ class BaselineView(HasTraits):
           self.num_hyps)
         )
         self.log_file.flush()
+
     self.last_mode = get_mode(soln)
 
     if self.last_mode < 1:
       table.append(('GPS Time', EMPTY_STR))
       table.append(('GPS Week', EMPTY_STR))
-      table.append(('GPS ToW', EMPTY_STR))
+      table.append(('GPS TOW', EMPTY_STR))
       table.append(('N', EMPTY_STR))
       table.append(('E', EMPTY_STR))
       table.append(('D', EMPTY_STR))
@@ -230,11 +233,10 @@ class BaselineView(HasTraits):
       table.append(('Num. Sats', EMPTY_STR))
       table.append(('Flags', EMPTY_STR))
       table.append(('Mode', EMPTY_STR))
-    
     else:
-      table.append(('GPS Time', t))
+      table.append(('GPS Time', "{0}:{1:06.3f}".format(tstr, float(secs))))
       table.append(('GPS Week', str(self.week)))
-      table.append(('GPS ToW', tow))
+      table.append(('GPS TOW', "{:.3f}".format(tow)))
       table.append(('N', soln.n))
       table.append(('E', soln.e))
       table.append(('D', soln.d))
@@ -245,7 +247,7 @@ class BaselineView(HasTraits):
     
     table.append(('Flags', '0x%02x' % soln.flags))
     table.append(('Mode', mode_dict[self.last_mode]))
-        
+    self.table = table
     # Rotate array, deleting oldest entries to maintain
     # no more than N in plot
     self.n[1:] = self.n[:-1]
@@ -303,7 +305,11 @@ class BaselineView(HasTraits):
     self.plot_data.set_data('ref_e', [0.0])
     self.plot_data.set_data('ref_d', [0.0])
 
-    if self.position_centered:
+    
+    # make the zoomall win over the position centered button 
+    # position centered button has no effect when zoom all enabled  
+
+    if not self.zoomall and self.position_centered:
       d = (self.plot.index_range.high - self.plot.index_range.low) / 2.
       self.plot.index_range.set_bounds(soln.e - d, soln.e + d)
       d = (self.plot.value_range.high - self.plot.value_range.low) / 2.
@@ -311,7 +317,6 @@ class BaselineView(HasTraits):
 
     if self.zoomall:
       plot_square_axes(self.plot, ('e_fixed', 'e_float', 'e_dgnss'), ('n_fixed', 'n_float', 'n_dgnss'))
-    self.table = table
 
   def __init__(self, link, plot_history_max=1000, dirname=''):
     super(BaselineView, self).__init__()
