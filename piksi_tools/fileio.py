@@ -117,7 +117,7 @@ class FileIO(object):
       closure['buf'][req.offset:req.offset+len(resp.contents)] = resp.contents
       if req.chunk_size != len(resp.contents):
         closure['done'] = True
-      
+
     with SelectiveRepeater(self.link, SBP_MSG_FILEIO_READ_RESP, cb) as sr:
       while not closure['done']:
         seq = self.next_seq()
@@ -174,7 +174,7 @@ class FileIO(object):
     msg = MsgFileioRemove(filename=filename)
     self.link(msg)
 
-  def write(self, filename, data, offset=0, trunc=True):
+  def write(self, filename, data, offset=0, trunc=True, progress_cb=None):
     """
     Write to a file.
 
@@ -213,6 +213,8 @@ class FileIO(object):
                                 offset=offset, data='')
         sr.send(msg)
         offset += len(chunk)
+        if progress_cb is not None:
+          progress_cb(offset)
       sr.flush()
 
 def hexdump(data):
