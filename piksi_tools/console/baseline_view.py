@@ -33,6 +33,14 @@ class SimpleAdapter(TabularAdapter):
     width = 80
 
 class BaselineView(HasTraits):
+
+  # This mapping should match the flag definitions in libsbp for
+  # the MsgBaselineNED message. While this isn't strictly necessary
+  # it helps avoid confusion
+  FIXED_MODE = 4
+  FLOAT_MODE = 3
+  DGNSS_MODE = 2
+
   python_console_cmds = Dict()
 
   table = List()
@@ -122,6 +130,9 @@ class BaselineView(HasTraits):
     self.plot_data.set_data('n_float', [])
     self.plot_data.set_data('e_float', [])
     self.plot_data.set_data('d_float', [])
+    self.plot_data.set_data('n_dgnss', [])
+    self.plot_data.set_data('e_dgnss', [])
+    self.plot_data.set_data('d_dgnss', [])
     self.plot_data.set_data('t', [])
     self.plot_data.set_data('cur_fixed_n', [])
     self.plot_data.set_data('cur_fixed_e', [])
@@ -129,6 +140,9 @@ class BaselineView(HasTraits):
     self.plot_data.set_data('cur_float_n', [])
     self.plot_data.set_data('cur_float_e', [])
     self.plot_data.set_data('cur_float_d', [])
+    self.plot_data.set_data('cur_dgnss_n', [])
+    self.plot_data.set_data('cur_dgnss_e', [])
+    self.plot_data.set_data('cur_dgnss_d', [])
 
   def iar_state_callback(self, sbp_msg, **metadata):
     self.num_hyps = sbp_msg.num_hyps
@@ -148,14 +162,23 @@ class BaselineView(HasTraits):
     self.nsec = MsgGPSTimeDepA(sbp_msg).ns
 
   def mode_string(self, msg):
-     if msg:
-       self.fixed = (msg.flags & 1) == 1
-       if self.fixed:
-         return 'Fixed RTK'
-       else:
-         return 'Float'
-     return 'None'
- 
+    if msg.msg_type is MsgBaselineNED:
+      self.mode = msg.flags
+      if msg.flags == 4:
+        return 'Fixed RTK'
+      elif msg.flags == 3:
+        return 'Float'
+      else:
+        return 'DGNSS'
+    elif msg.msg_type is MsgBaselineNEDDepA:
+      self.mode = msg.flags
+      if msg.flags == 1:
+        self.mode = 4
+        return 'Fixed RTK'
+      else
+        self.mode = 3
+        return 'Float'
+    return 'None'
 
   def baseline_callback(self, sbp_msg):
     self.last_btime_update = time.time()
@@ -223,14 +246,15 @@ class BaselineView(HasTraits):
     # Rotate array, deleting oldest entries to maintain
     # no more than N in plot
     self.neds[1:] = self.neds[:-1]
-    self.fixeds[1:] = self.fixeds[:-1]
+    self.mode[1:] = self.mode[:-1]
 
     # Insert latest position
     self.neds[0][:] = [soln.n, soln.e, soln.d]
-    self.fixeds[0] = self.fixed
+    self.mode[0] = self.mode
 
-    neds_fixed = self.neds[self.fixeds]
-    neds_float = self.neds[np.logical_not(self.fixeds)]
+    neds_fixed = self.neds[self.mode == FIXED_MODE]
+    neds_float = self.neds[self.mode == FLOAT_MODE]
+    neds_dgnss = self.neds[self.mode == DGNSS_MODE]
 
     if not all(map(any, np.isnan(neds_fixed))):
       self.plot_data.set_data('n_fixed', neds_fixed.T[0])
@@ -240,21 +264,32 @@ class BaselineView(HasTraits):
       self.plot_data.set_data('n_float', neds_float.T[0])
       self.plot_data.set_data('e_float', neds_float.T[1])
       self.plot_data.set_data('d_float', neds_float.T[2])
+    if not all(map(any, np.isnan(neds_dgnss))):
+      self.plot_data.set_data('n_dgnss', neds_dgnss.T[0])
+      self.plot_data.set_data('e_dgnss', neds_dgnss.T[1])
+      self.plot_data.set_data('d_dgnss', neds_dgnss.T[2])
 
-    if self.fixed:
+    if self.mode == FIXED_MODE:
       self.plot_data.set_data('cur_fixed_n', [soln.n])
       self.plot_data.set_data('cur_fixed_e', [soln.e])
       self.plot_data.set_data('cur_fixed_d', [soln.d])
       self.plot_data.set_data('cur_float_n', [])
       self.plot_data.set_data('cur_float_e', [])
       self.plot_data.set_data('cur_float_d', [])
-    else:
+    elif self.mode == FLOAT_MODE:
       self.plot_data.set_data('cur_float_n', [soln.n])
       self.plot_data.set_data('cur_float_e', [soln.e])
       self.plot_data.set_data('cur_float_d', [soln.d])
       self.plot_data.set_data('cur_fixed_n', [])
       self.plot_data.set_data('cur_fixed_e', [])
       self.plot_data.set_data('cur_fixed_d', [])
+    else:
+      self.plot_data.set_data('cur_dgnss_n', [soln.n])
+      self.plot_data.set_data('cur_dgnss_e', [soln.e])
+      self.plot_data.set_data('cur_dgnss_d', [soln.d])
+      self.plot_data.set_data('cur_dgnss_n', [])
+      self.plot_data.set_data('cur_dgnss_e', [])
+      self.plot_data.set_data('cur_dgnss_d', [])
 
     self.plot_data.set_data('ref_n', [0.0])
     self.plot_data.set_data('ref_e', [0.0])
@@ -267,7 +302,7 @@ class BaselineView(HasTraits):
       self.plot.value_range.set_bounds(soln.n - d, soln.n + d)
 
     if self.zoomall:
-      plot_square_axes(self.plot, ('e_fixed', 'e_float'), ('n_fixed', 'n_float'))
+      plot_square_axes(self.plot, ('e_fixed', 'e_float', 'e_dgnss'), ('n_fixed', 'n_float', 'n_dgnss'))
     self.table = table
 
   def __init__(self, link, plot_history_max=1000, dirname=''):
