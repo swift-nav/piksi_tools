@@ -39,10 +39,10 @@ mode_dict = {
 
 color_dict = {
  NO_FIX_MODE: None,
- SPP_MODE: 'red',
- DGNSS_MODE: (0, 1.0, 1.0),
- FLOAT_MODE: (0, 0, 1.0),
- FIXED_MODE: 'green'}
+ SPP_MODE: (0, 0, 1.0),
+ DGNSS_MODE: (0, 0.7, 1.0),
+ FLOAT_MODE: (0.75, 0, 0.75),
+ FIXED_MODE: 'orange'}
 
 
 def code_to_str(code):
@@ -73,18 +73,20 @@ def code_is_gps(code):
 
 def get_mode(msg):
   mode = msg.flags & 0x7
-  if msg.msg_type is MsgBaselineNEDDepA:
+  if msg.msg_type == SBP_MSG_BASELINE_NED_DEP_A:
     if mode == 1:
       mode = 4
     else:
       mode = 3
-  if msg.msg_type is MsgPosLLHDepA:
+  elif msg.msg_type == SBP_MSG_POS_LLH_DEP_A:
     if mode == 0:
       mode = 1
-    if mode == 1:
+    elif mode == 1:
       mode = 4
-    if mode == 2:
+    elif mode == 2:
       mode = 3
+  else:
+    print "called get_mode with unsupported message type"
   return mode
 
 class MultilineTextEditor(TextEditor):

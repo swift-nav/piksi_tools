@@ -344,7 +344,7 @@ class BaselineView(HasTraits):
         marker_size=1.0)
     ref = self.plot.plot(('ref_e', 'ref_n'),
         type='scatter',
-        color='black',
+        color='red',
         marker='plus',
         marker_size=5,
         line_width=1.5)
@@ -364,11 +364,12 @@ class BaselineView(HasTraits):
         type='scatter',
         color=color_dict[DGNSS_MODE],
         marker='plus',
-        line_width=0.0,
-        marker_size=1.0)
-    plot_labels = ['Base Position','DGPS', 'RTK Float', 'RTK Fixed']
+        line_width=1.5,
+        marker_size=5)
+    plot_labels = [' Base Position','DGPS', 'RTK Float', 'RTK Fixed']
     plots_legend = dict(zip(plot_labels, [ref, cur_dgnss, cur_float, cur_fixed]))
     self.plot.legend.plots = plots_legend
+    self.plot.legend.labels = plot_labels # sets order
     self.plot.legend.visible = True
 
     self.plot.index_axis.tick_label_position = 'inside'

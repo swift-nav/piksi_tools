@@ -405,6 +405,7 @@ class SolutionView(HasTraits):
     plot_labels = ['SPP', 'DGPS', "RTK float", "RTK fixed"]
     plots_legend = dict(zip(plot_labels, [spp, dgps, rtkfloat, rtkfix]))
     self.plot.legend.plots = plots_legend
+    self.plot.legend.labels = plot_labels # sets order
     self.plot.legend.visible = True
 
     self.plot.index_axis.tick_label_position = 'inside'
