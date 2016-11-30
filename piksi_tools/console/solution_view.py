@@ -199,6 +199,8 @@ class SolutionView(HasTraits):
       t = datetime.datetime(1980, 1, 6) + \
           datetime.timedelta(weeks=self.week) + \
           datetime.timedelta(seconds=tow)
+      tstr = t.strftime('%Y-%m-%d %H:%M')
+      secs = t.strftime('%S.%f')
      
       if(self.directory_name_p == ''):
         filepath_p = time.strftime("position_log_%Y%m%d-%H%M%S.csv")
@@ -222,26 +224,27 @@ class SolutionView(HasTraits):
         )
         self.log_file.flush()
 
-    if self.last_pos_mode != 0:
-      pos_table.append(('GPS Time', t))
-      pos_table.append(('GPS Week', str(self.week)))
-      pos_table.append(('GPS ToW', tow))
-      pos_table.append(('Num. Sats', soln.n_sats))
-      pos_table.append(('Lat', soln.lat))
-      pos_table.append(('Lng', soln.lon))
-      pos_table.append(('Height', soln.height))
-      pos_table.append(('h_accuracy', soln.h_accuracy))
-      pos_table.append(('v_accuracy', soln.v_accuracy))
-    else:
+    
+    if self.last_pos_mode == 0:
       pos_table.append(('GPS Time', EMPTY_STR))
       pos_table.append(('GPS Week', EMPTY_STR))
-      pos_table.append(('GPS ToW', EMPTY_STR))
+      pos_table.append(('GPS TOW', EMPTY_STR))
       pos_table.append(('Num. Signals', EMPTY_STR))
       pos_table.append(('Lat', EMPTY_STR))
       pos_table.append(('Lng', EMPTY_STR))
       pos_table.append(('Height', EMPTY_STR))
       pos_table.append(('h_accuracy', EMPTY_STR))
       pos_table.append(('v_accuracy', EMPTY_STR))
+    else:
+      pos_table.append(('GPS Time', "{0}:{1:06.3f}".format(tstr, float(secs))))
+      pos_table.append(('GPS Week', str(self.week)))
+      pos_table.append(('GPS TOW', "{:.3f}".format(tow)))
+      pos_table.append(('Num. Sats', soln.n_sats))
+      pos_table.append(('Lat', soln.lat))
+      pos_table.append(('Lng', soln.lon))
+      pos_table.append(('Height', soln.height))
+      pos_table.append(('h_accuracy', soln.h_accuracy))
+      pos_table.append(('v_accuracy', soln.v_accuracy))
 
     pos_table.append(('Pos Flags', '0x%03x' % soln.flags))
     pos_table.append(('Pos Fix Mode', mode_dict[self.last_pos_mode]))
@@ -311,7 +314,7 @@ class SolutionView(HasTraits):
     # TODO: figure out how to center the graph now that we have two separate messages
     # when we selectively send only SPP, the centering function won't work anymore
 
-    if self.position_centered:
+    if not self.zoomall and self.position_centered:
       d = (self.plot.index_range.high - self.plot.index_range.low) / 2.
       self.plot.index_range.set_bounds(soln.lon - d, soln.lon + d)
       d = (self.plot.value_range.high - self.plot.value_range.low) / 2.
