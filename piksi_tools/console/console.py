@@ -97,7 +97,7 @@ import logging
 logging.basicConfig()
 from piksi_tools.console.output_list import OutputList, LogItem, str_to_log_level, \
   SYSLOG_LEVELS, DEFAULT_LOG_LEVEL_FILTER
-from piksi_tools.console.utils import determine_path
+from piksi_tools.console.utils import determine_path, get_mode, mode_dict
 from piksi_tools.console.deprecated import DeprecatedMessageHandler
 
 # When bundled with pyInstaller, PythonLexer can't be found. The problem is
@@ -403,7 +403,7 @@ class SwiftConsole(HasTraits):
     if view:
       if view.last_soln:
         # if all is well we update state
-        temp_mode = view.mode_string(view.last_soln)
+        temp_mode = mode_dict.get(get_mode(view.last_soln), 'None')
         temp_num_signals = view.last_soln.n_sats
     
     self.mode = temp_mode

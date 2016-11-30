@@ -17,7 +17,8 @@ from chaco.tools.api import ZoomTool, PanTool
 from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.api import GUI
-from piksi_tools.console.utils import plot_square_axes, determine_path, MultilineTextEditor
+from piksi_tools.console.utils import plot_square_axes, determine_path, MultilineTextEditor, get_mode, mode_dict, color_dict,\
+                                      EMPTY_STR, SPP_MODE, FLOAT_MODE, DGNSS_MODE, FIXED_MODE
 
 import math
 import os
@@ -35,9 +36,6 @@ class SolutionView(HasTraits):
   python_console_cmds = Dict()
   # we need to doubleup on Lists to store the psuedo absolutes separately
   # without rewriting everything
-  lats = List()
-  lngs = List()
-  alts = List()
 
   """
   logging_v : toggle logging for velocity files
@@ -45,7 +43,7 @@ class SolutionView(HasTraits):
   logging_p : toggle logging for position files
   directory_name_p : location and name of velocity files
   """
-
+  plot_history_max = Int(1000)
   logging_v = Bool(False)
   directory_name_v = File
 
@@ -56,13 +54,12 @@ class SolutionView(HasTraits):
   lngs_psuedo_abs = List()
   alts_psuedo_abs = List()
 
-  table_spp = List()
-  table_psuedo_abs = List()
+  table = List()
   dops_table = List()
-  pos_table_spp = List()
+  pos_table = List()
   vel_table = List()
 
-  rtk_pos_note = Str("It is necessary to enter the \"Surveyed Position\" settings for the base station in order to view the psuedo-absolute RTK Positions in this tab.")
+  rtk_pos_note = Str("It is necessary to enter the \"Surveyed Position\" settings for the base station in order to view the RTK Positions in this tab.")
 
   plot = Instance(Plot)
   plot_data = Instance(ArrayPlotData)
@@ -96,23 +93,15 @@ class SolutionView(HasTraits):
 
   traits_view = View(
     HSplit(
-      Tabbed(
         VGroup(
-          Item('', label='Single Point Position (SPP)', emphasized=True),
-          Item('table_spp', style='readonly',
+          Item('', label='GNSS Solution', emphasized=True),
+          Item('table', style='readonly',
                 editor=TabularEditor(adapter=SimpleAdapter()),
                 show_label=False, width=0.3),
-          label='Single Point Position'),
-        VGroup(
-          Item('', label='RTK Position', emphasized=True),
-          Item('table_psuedo_abs',style='readonly',
-               editor=TabularEditor(adapter=SimpleAdapter()),
-               show_label=False, width=0.3, height=0.9),
           Item('rtk_pos_note', show_label=False, resizable=True,
             editor=MultilineTextEditor(TextEditor(multi_line=True)), 
             style='readonly', width=0.3, height=-40),
-          label='RTK Position')
-      ),
+          ),
       VGroup(
         HGroup(
           Item('paused_button', show_label=False),
@@ -137,20 +126,23 @@ class SolutionView(HasTraits):
     self.running = not self.running
 
   def _clear_button_fired(self):
+    self.tows = []
     self.lats = []
     self.lngs = []
     self.alts = []
-    self.lats_psuedo_abs = []
-    self.lngs_psuedo_abs = []
-    self.alts_psuedo_abs = []
-    self.plot_data.set_data('lat', [])
-    self.plot_data.set_data('lng', [])
-    self.plot_data.set_data('alt', [])
-    self.plot_data.set_data('t', [])
-    self.plot_data.set_data('lat_ps', [])
-    self.plot_data.set_data('lng_ps', [])
-    self.plot_data.set_data('alt_ps', [])
-    self.plot_data.set_data('t_ps', [])
+    self.modes = []
+    self.plot_data.set_data('lat_spp', [])
+    self.plot_data.set_data('lng_spp', [])
+    self.plot_data.set_data('alt_spp', [])
+    self.plot_data.set_data('lat_dgnss', [])
+    self.plot_data.set_data('lng_dgnss', [])
+    self.plot_data.set_data('alt_dgnss', [])
+    self.plot_data.set_data('lat_float', [])
+    self.plot_data.set_data('lng_float', [])
+    self.plot_data.set_data('alt_float', [])
+    self.plot_data.set_data('lat_fixed', [])
+    self.plot_data.set_data('lng_fixed', [])
+    self.plot_data.set_data('alt_fixed', [])
 
   def _pos_llh_callback(self, sbp_msg, **metadata):
     # Updating an ArrayPlotData isn't thread safe (see chaco issue #9), so
@@ -158,19 +150,8 @@ class SolutionView(HasTraits):
     if self.running:
       GUI.invoke_later(self.pos_llh_callback, sbp_msg)
 
-  def mode_string(self, msg):
-    if msg:
-      if (msg.flags & 0xff) == 0:
-        return 'SPP (single point position)'
-      elif (msg.flags & 0xff) == 1:
-        return 'Fixed RTK'
-      elif (msg.flags & 0xff) == 2:
-        return 'Float RTK'
-    return 'None'
-
   def update_table(self):
     self._table_list = self.table_spp.items()
-
 
   def auto_survey(self):
     if self.counter < 1000:
@@ -189,11 +170,8 @@ class SolutionView(HasTraits):
     self.last_stime_update = time.time()
     soln = MsgPosLLHDepA(sbp_msg)
     self.last_soln = soln
-    masked_flag = soln.flags & 0x7
-    if masked_flag == 0:
-      psuedo_absolutes = False
-    else:
-      psuedo_absolutes = True
+
+    masked_flag = get_mode(soln)
     pos_table = []
 
     tow = soln.tow * 1e-3
@@ -204,8 +182,6 @@ class SolutionView(HasTraits):
       t = datetime.datetime(1980, 1, 6) + \
           datetime.timedelta(weeks=self.week) + \
           datetime.timedelta(seconds=tow)
-      pos_table.append(('GPS Time', t))
-      pos_table.append(('GPS Week', str(self.week)))
      
       if(self.directory_name_p == ''):
         filepath_p = time.strftime("position_log_%Y%m%d-%H%M%S.csv")
@@ -227,71 +203,94 @@ class SolutionView(HasTraits):
         )
         self.log_file.flush()
 
-    pos_table.append(('GPS ToW', tow))
-
-    pos_table.append(('Num. Signals', soln.n_sats))
-
-    pos_table.append(('Lat', soln.lat))
-    pos_table.append(('Lng', soln.lon))
-    pos_table.append(('Alt', soln.height))
-    pos_table.append(('Flags', '0x%02x' % soln.flags))
-
-    pos_table.append(('Mode', self.mode_string(soln)))
+    if masked_flag != 0:
+      pos_table.append(('GPS Time', t))
+      pos_table.append(('GPS Week', str(self.week)))
+      pos_table.append(('GPS ToW', tow))
+      pos_table.append(('Num. Signals', soln.n_sats))
+      pos_table.append(('Lat', soln.lat))
+      pos_table.append(('Lng', soln.lon))
+      pos_table.append(('Alt', soln.height))
+      pos_table.append(('Flags', '0x%02x' % soln.flags))
+      pos_table.append(('Mode', mode_dict[masked_flag]))
+    else:
+      pos_table.append(('GPS Time', EMPTY_STR))
+      pos_table.append(('GPS Week', EMPTY_STR))
+      pos_table.append(('GPS ToW', EMPTY_STR))
+      pos_table.append(('Num. Signals', EMPTY_STR))
+      pos_table.append(('Lat', EMPTY_STR))
+      pos_table.append(('Lng', EMPTY_STR))
+      pos_table.append(('Alt', EMPTY_STR))
+      pos_table.append(('Flags', EMPTY_STR))
+      pos_table.append(('Mode', EMPTY_STR))
 
     self.auto_survey()
 
-    if psuedo_absolutes:
-      # setup_plot variables
-      self.lats_psuedo_abs.append(soln.lat)
-      self.lngs_psuedo_abs.append(soln.lon)
-      self.alts_psuedo_abs.append(soln.height)
+    # setup_plot variables
+    self.lats[1:] = self.lats[:-1]
+    self.lngs[1:] = self.lngs[:-1]
+    self.alts[1:] = self.alts[:-1]
+    self.tows[1:] = self.tows[:-1]
+    self.modes[1:] = self.modes[:-1]
 
-      self.lats_psuedo_abs = self.lats_psuedo_abs[-1000:]
-      self.lngs_psuedo_abs = self.lngs_psuedo_abs[-1000:]
-      self.alts_psuedo_abs = self.alts_psuedo_abs[-1000:]
+    self.lats[0] = soln.lat
+    self.lngs[0] = soln.lon
+    self.alts[0] = soln.height
+    self.tows[0] = soln.tow
+    self.modes[0] = masked_flag
 
-      self.plot_data.set_data('lat_ps', self.lats_psuedo_abs)
-      self.plot_data.set_data('lng_ps', self.lngs_psuedo_abs)
-      self.plot_data.set_data('alt_ps', self.alts_psuedo_abs)
-      self.plot_data.set_data('cur_lat_ps', [soln.lat])
-      self.plot_data.set_data('cur_lng_ps', [soln.lon])
-      t_psuedo_abs = range(len(self.lats))
-      if t is not None:
-        self.plot_data.set_data('t', t)
-      self.plot_data.set_data('t_ps', t_psuedo_abs)
-      # set-up table variables
-      self.table_psuedo_abs = pos_table
+    self.lats = self.lats[-self.plot_history_max:]
+    self.lngs = self.lngs[-self.plot_history_max:]
+    self.alts = self.alts[-self.plot_history_max:]
+    self.tows = self.tows[-self.plot_history_max:]
+    self.modes = self.modes[-self.plot_history_max:]
 
-    else:
-      # setup_plot variables
-      self.lats.append(soln.lat)
-      self.lngs.append(soln.lon)
-      self.alts.append(soln.height)
+    # SPP
+    spp_indexer = (self.modes == SPP_MODE)
+    dgps_indexer = (self.modes == DGNSS_MODE)
+    float_indexer = (self.modes == FLOAT_MODE)
+    fixed_indexer = (self.modes == FIXED_MODE)
 
-      self.lats = self.lats[-1000:]
-      self.lngs = self.lngs[-1000:]
-      self.alts = self.alts[-1000:]
+    self.plot_data.set_data('lat_spp', self.lats[spp_indexer])
+    self.plot_data.set_data('lng_spp', self.lngs[spp_indexer])
+    self.plot_data.set_data('alt_spp', self.alts[spp_indexer])
+    self.plot_data.set_data('lat_dgps', self.lats[dgps_indexer])
+    self.plot_data.set_data('lng_dgps', self.lngs[dgps_indexer])
+    self.plot_data.set_data('alt_dgps', self.alts[dgps_indexer])
+    self.plot_data.set_data('lat_float', self.lats[float_indexer])
+    self.plot_data.set_data('lng_float', self.lngs[float_indexer])
+    self.plot_data.set_data('alt_float', self.alts[float_indexer])
+    self.plot_data.set_data('lat_fixed', self.lats[fixed_indexer])
+    self.plot_data.set_data('lng_fixed', self.lngs[fixed_indexer])
+    self.plot_data.set_data('alt_fixed', self.alts[fixed_indexer])
 
-      self.plot_data.set_data('lat', self.lats)
-      self.plot_data.set_data('lng', self.lngs)
-      self.plot_data.set_data('alt', self.alts)
-      self.plot_data.set_data('cur_lat', [soln.lat])
-      self.plot_data.set_data('cur_lng', [soln.lon])
-      t = range(len(self.lats))
-      self.plot_data.set_data('t', t)
+    if masked_flag == 1:
+      self.plot_data.set_data('cur_lat_spp', [soln.lat])
+      self.plot_data.set_data('cur_lng_spp', [soln.lon])
+    if masked_flag == 2:
+      self.plot_data.set_data('cur_lat_dgps', [soln.lat])
+      self.plot_data.set_data('cur_lng_dgps', [soln.lon])
+    if masked_flag == 3:
+      self.plot_data.set_data('cur_lat_float', [soln.lat])
+      self.plot_data.set_data('cur_lng_float', [soln.lon])
+    if masked_flag == 4:
+      self.plot_data.set_data('cur_lat_fixed', [soln.lat])
+      self.plot_data.set_data('cur_lng_fixed', [soln.lon])
 
-      # set-up table variables
-      self.pos_table_spp = pos_table
-      self.table_spp = self.pos_table_spp + self.vel_table + self.dops_table
-      # TODO: figure out how to center the graph now that we have two separate messages
-      # when we selectivtely send only SPP, the centering function won't work anymore
-      if self.position_centered:
-        d = (self.plot.index_range.high - self.plot.index_range.low) / 2.
-        self.plot.index_range.set_bounds(soln.lon - d, soln.lon + d)
-        d = (self.plot.value_range.high - self.plot.value_range.low) / 2.
-        self.plot.value_range.set_bounds(soln.lat - d, soln.lat + d)
+    # set-up table variables
+    self.pos_table = pos_table
+    self.table = self.pos_table + self.vel_table + self.dops_table
+
+    # TODO: figure out how to center the graph now that we have two separate messages
+    # when we selectively send only SPP, the centering function won't work anymore
+
+    if self.position_centered:
+      d = (self.plot.index_range.high - self.plot.index_range.low) / 2.
+      self.plot.index_range.set_bounds(soln.lon - d, soln.lon + d)
+      d = (self.plot.value_range.high - self.plot.value_range.low) / 2.
+      self.plot.value_range.set_bounds(soln.lat - d, soln.lat + d)
     if self.zoomall:
-      plot_square_axes(self.plot, 'lng', 'lat')
+      plot_square_axes(self.plot, 'lng_spp', 'lat_spp')
 
   def dops_callback(self, sbp_msg, **metadata):
     dops = MsgDopsDepA(sbp_msg)
@@ -302,7 +301,7 @@ class SolutionView(HasTraits):
       ('HDOP', '%.1f' % (dops.hdop * 0.01)),
       ('VDOP', '%.1f' % (dops.vdop * 0.01))
     ]
-    self.table_spp = self.pos_table_spp + self.vel_table + self.dops_table
+    self.table = self.pos_table + self.vel_table + self.dops_table
 
   def vel_ned_callback(self, sbp_msg, **metadata):
     vel_ned = MsgVelNEDDepA(sbp_msg)
@@ -345,7 +344,7 @@ class SolutionView(HasTraits):
       ('Vel. E', '% 8.4f' % (vel_ned.e * 1e-3)),
       ('Vel. D', '% 8.4f' % (vel_ned.d * 1e-3)),
     ]
-    self.table_spp = self.pos_table_spp + self.vel_table + self.dops_table
+    self.table = self.pos_table + self.vel_table + self.dops_table
 
   def gps_time_callback(self, sbp_msg, **metadata):
     self.week = MsgGPSTimeDepA(sbp_msg).wn
@@ -354,6 +353,11 @@ class SolutionView(HasTraits):
   def __init__(self, link, dirname=''):
     super(SolutionView, self).__init__()
 
+    self.lats = np.empty(self.plot_history_max)
+    self.lngs = np.empty(self.plot_history_max)
+    self.alts = np.empty(self.plot_history_max)
+    self.tows = np.empty(self.plot_history_max)
+    self.modes = np.empty(self.plot_history_max)
     self.log_file = None
     self.directory_name_v = dirname
     self.directory_name_p = dirname
@@ -369,29 +373,39 @@ class SolutionView(HasTraits):
     self.longitude = 0
     self.latitude = 0
 
-    self.plot_data = ArrayPlotData(lat=[], lng=[], alt=[], t=[],
-      cur_lat=[], cur_lng=[], cur_lat_ps=[], cur_lng_ps=[],
-      lat_ps=[], lng_ps=[], alt_ps=[], t_ps=[])
+    self.plot_data = ArrayPlotData(lat_spp=[], lng_spp=[], alt_spp=[],
+      cur_lat_spp=[], cur_lng_spp=[], lat_dgps=[], lng_dgps=[], alt_dgps=[],
+      cur_lat_dgps=[], cur_lng_dgps=[], lat_float=[], lng_float=[], alt_float=[],
+      cur_lat_float=[], cur_lng_float=[], lat_fixed=[], lng_fixed=[], alt_fixed=[],
+      cur_lat_fixed=[], cur_lng_fixed=[])
     self.plot = Plot(self.plot_data)
 
     # 1000 point buffer
-    self.plot.plot(('lng', 'lat'), type='line',  name='', color=(0, 0, 0.9, 0.1))
-    self.plot.plot(('lng', 'lat'), type='scatter',  name='',
-      color='blue', marker='dot', line_width=0.0, marker_size=1.0)
-    self.plot.plot(('lng_ps', 'lat_ps'), type='line',  name='', color=(1, 0.4, 0, 0.1))
-    self.plot.plot(('lng_ps', 'lat_ps'), type='scatter', name='',
-      color='orange', marker='diamond', line_width=0.0, marker_size=1.0)
+    self.plot.plot(('lng_spp', 'lat_spp'), type='line', line_width=0.1, name='', color=color_dict[SPP_MODE])
+    self.plot.plot(('lng_spp', 'lat_spp'), type='scatter',  name='', color=color_dict[SPP_MODE],
+      marker='dot', line_width=0.0, marker_size=1.0)
+    self.plot.plot(('lng_dgps', 'lat_dgps'), type='line',  line_width=0.1, name='', color=color_dict[DGNSS_MODE])
+    self.plot.plot(('lng_dgps', 'lat_dgps'), type='scatter', name='', color=color_dict[DGNSS_MODE],
+      marker='dot', line_width=0.0, marker_size=1.0)
+    self.plot.plot(('lng_float', 'lat_float'), type='line',  line_width=0.1, name='', color=color_dict[FLOAT_MODE])
+    self.plot.plot(('lng_float', 'lat_float'), type='scatter', name='', color=color_dict[FLOAT_MODE],
+      marker='dot', line_width=0.0, marker_size=1.0)
+    self.plot.plot(('lng_fixed', 'lat_fixed'), type='line',  line_width=0.1, name='', color=color_dict[FIXED_MODE])
+    self.plot.plot(('lng_fixed', 'lat_fixed'), type='scatter', name='', color=color_dict[FIXED_MODE],
+      marker='dot', line_width=0.0, marker_size=1.0)
     # current values
-    spp = self.plot.plot(('cur_lng', 'cur_lat'), type='scatter', name='SPP',
-      color='blue', marker='plus', line_width=1.5, marker_size=5.0)
-    rtk = self.plot.plot(('cur_lng_ps', 'cur_lat_ps'), type='scatter',
-      name='RTK', color='orange', marker='plus', line_width=1.5, marker_size=5.0)
-    plot_labels = ['SPP','RTK']
-    plots_legend = dict(zip(plot_labels, [spp,rtk]))
+    spp = self.plot.plot(('cur_lng_spp', 'cur_lat_spp'), type='scatter', name=mode_dict[SPP_MODE],
+      color=color_dict[SPP_MODE], marker='plus', line_width=1.5, marker_size=5.0)
+    dgps = self.plot.plot(('cur_lng_dgps', 'cur_lat_dgps'), type='scatter', name=mode_dict[DGNSS_MODE],
+      color=color_dict[DGNSS_MODE], marker='plus', line_width=1.5, marker_size=5.0)
+    rtkfloat = self.plot.plot(('cur_lng_float', 'cur_lat_float'), type='scatter', name=mode_dict[FLOAT_MODE],
+      color=color_dict[FLOAT_MODE], marker='plus', line_width=1.5, marker_size=5.0)
+    rtkfix = self.plot.plot(('cur_lng_fixed', 'cur_lat_fixed'), type='scatter', name=mode_dict[FIXED_MODE],
+      color=color_dict[FIXED_MODE], marker='plus', line_width=1.5, marker_size=5.0)
+    plot_labels = ['SPP', 'DGPS', "RTK float", "RTK fixed"]
+    plots_legend = dict(zip(plot_labels, [spp, dgps, rtkfloat, rtkfix]))
     self.plot.legend.plots = plots_legend
     self.plot.legend.visible = True
-
-
 
     self.plot.index_axis.tick_label_position = 'inside'
     self.plot.index_axis.tick_label_color = 'gray'
@@ -410,10 +424,10 @@ class SolutionView(HasTraits):
     self.plot.overlays.append(zt)
 
     self.link = link
-    self.link.add_callback(self._pos_llh_callback, [SBP_MSG_POS_LLH_DEP_A])
-    self.link.add_callback(self.vel_ned_callback, [SBP_MSG_VEL_NED_DEP_A])
-    self.link.add_callback(self.dops_callback, [SBP_MSG_DOPS_DEP_A])
-    self.link.add_callback(self.gps_time_callback, [SBP_MSG_GPS_TIME_DEP_A])
+    self.link.add_callback(self._pos_llh_callback, [SBP_MSG_POS_LLH_DEP_A, SBP_MSG_POS_LLH])
+    self.link.add_callback(self.vel_ned_callback, [SBP_MSG_VEL_NED_DEP_A, SBP_MSG_VEL_NED])
+    self.link.add_callback(self.dops_callback, [SBP_MSG_DOPS_DEP_A, SBP_MSG_DOPS])
+    self.link.add_callback(self.gps_time_callback, [SBP_MSG_GPS_TIME_DEP_A, SBP_MSG_GPS_TIME])
 
     self.week = None
     self.nsec = 0
