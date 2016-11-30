@@ -10,8 +10,8 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from traits.api import Dict, HasTraits, List, Bool, Str
-from traitsui.api import Item, View, HGroup, VGroup, TabularEditor
+from traits.api import Dict, HasTraits, List, Bool, Str, Float, Int
+from traitsui.api import Item, View, HGroup, VGroup, TabularEditor, Spring
 from traitsui.tabular_adapter import TabularAdapter
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from piksi_tools.console.utils import determine_path,sopen
@@ -30,8 +30,10 @@ class SimpleAdapter(TabularAdapter):
                ('Pseudorange (m)', 1),
                ('Carrier Phase (cycles)', 2),
                ('C/N0 (dB-Hz)', 3),
-               ('Doppler (Hz)', 4),
-               ('Lock', 5)]
+               ('Meas. Doppler (Hz)', 4),
+               ('Comp. Doppler (Hz)', 5),
+               ('Lock', 6),
+               ('Flags', 7)]
     font='courier'
     alignment='center'
     object_1_format = Str("%11.2f")
@@ -39,15 +41,18 @@ class SimpleAdapter(TabularAdapter):
     object_3_format = Str("%2.1f")
     object_4_format = Str("%9.2f")
     object_5_format = Str("%5d")
-    def _get_object_0_bg_color(self):
-      return 'grey'
+    object_5_format = Str("%5d")
 
 class ObservationView(HasTraits):
   python_console_cmds = Dict()
 
   _obs_table_list = List()
   obs = Dict()
-
+  gps_tow = Float()
+  obs_count = Int()
+  gps_week = Int()
+  l1_count = Int()
+  l2_count = Int()
   name = Str('Local')
 
   recording = Bool(False)
@@ -64,14 +69,29 @@ class ObservationView(HasTraits):
 
   def trait_view(self, view):
     return View(
-      HGroup(
-        Item('_obs_table_list', style='readonly',
-             editor=TabularEditor(adapter=SimpleAdapter()), show_label=False),
-        VGroup(
-          Item('record_button', show_label=False, visible_when='False'),
-        ),
-        label=self.name,
-        show_border=True
+      VGroup(
+        HGroup(
+          Spring(width=4, springy=False),
+          Item('', label='GPS Week:', emphasized = True, tooltip='GPS Week Number (since 1980'),
+          Item('gps_week', style='readonly', show_label=False),
+          Item('', label='GPS TOW:', emphasized = True, tooltip='GPS milliseconds in week'),
+          Item('gps_tow', style='readonly', show_label=False),
+          Item('', label='Total obs:', emphasized = True, tooltip='GPS milliseconds in week'),
+          Item('obs_count', style='readonly', show_label=False),
+          Item('', label='L1 obs:', emphasized = True, tooltip='GPS milliseconds in week'),
+          Item('l1_count', style='readonly', show_label=False),
+          Item('', label='L2 obs:', emphasized = True, tooltip='GPS milliseconds in week'),
+          Item('l2_count', style='readonly', show_label=False),
+          ),
+        HGroup(
+          Item('_obs_table_list', style='readonly',
+               editor=TabularEditor(adapter=SimpleAdapter()), show_label=False),
+          VGroup(
+            Item('record_button', show_label=False, visible_when='False'),
+          ),
+          label=self.name,
+          show_border=True
+        )
       )
     )
 
@@ -135,6 +155,9 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     self._obs_table_list =\
       [(prn,) + obs for prn, obs in sorted(self.obs.items(),
                                            key=lambda x: x[0])]
+    self.obs_count = len(self.obs)
+    self.l1_count = sum(['L1' in obs for obs in self.obs])
+    self.l2_count = sum(['L2' in obs for obs in self.obs])
 
   def obs_packed_callback(self, sbp_msg, **metadata):
     if (sbp_msg.sender is not None and
@@ -148,7 +171,6 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
 
     total = seq >> 4
     count = seq & ((1 << 4) - 1)
-
     # Confirm this packet is good.
     # Assumes no out-of-order packets
     if count == 0:
@@ -172,25 +194,39 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     # Save this packet
     # See sbp_piksi.h for format
     for o in sbp_msg.obs:
+      # Handle all the message specific stuff
       prn = o.sid.sat
-      # compute time difference of carrier phase for display
-      cp = float(o.L.i) + float(o.L.f) / (1 << 8)
-      if code_is_gps(o.sid.code):
+      flags = 0
+      msdopp = 0
+      # Old PRN values had to add one for GPS
+      if (code_is_gps(o.sid.code) 
+            and sbp_msg.msg_type in [SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C, SBP_MSG_OBS_DEP_A]):
         prn += 1
       prn = '{} ({})'.format(prn, code_to_str(o.sid.code))
-      if sbp_msg.msg_type == SBP_MSG_OBS_DEP_B:
+      # DEP_B and DEP_A obs had different pseudorange scaling
+      if sbp_msg.msg_type in [SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_A] :
         divisor = 1e2
       else:
         divisor = 5e1
+      if sbp_msg.msg_type not in [SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C, SBP_MSG_OBS_DEP_A]:
+        flags = o.flags
+        msdopp = float(o.D.i) + float(o.D.f) / (1 << 8)
+        self.gps_tow += sbp_msg.header.t.ns * 1e-9
+      
+      # compute time difference of carrier phase for display, only if carrier phase is valid
       try:
         ocp = self.old_obs[prn][1]
       except:
         ocp = 0
-      cf = (cp - ocp) / (self.gps_tow - self.old_tow)
+      cp = float(o.L.i) + float(o.L.f) / (1 << 8)
+      if ocp != 0 and (flags & 0x3) == 0x3:
+        cf = (cp - ocp) / float(self.gps_tow - self.old_tow)
+      else:
+        cf = 0
       self.obs[prn] = (float(o.P) / divisor,
                        float(o.L.i) + float(o.L.f) / (1 << 8),
                        float(o.cn0) / 4,
-                       cf, o.lock)
+                       msdopp, cf, o.lock, "0x{:04X}".format(flags))
     if (count == total - 1):
       self.t = datetime.datetime(1980, 1, 6) + \
                datetime.timedelta(weeks=self.gps_week) + \
@@ -200,7 +236,10 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
       self.rinex_save()
 
     return
+  
 
+  # Epmeris callback is here only as reminder that we need to store 
+  # ephemerides to make RINEX useful for customers
   def ephemeris_callback(self, m, **metadata):
     prn = m.common.sid.sat
     if code_is_gps(m.common.sid.code):
@@ -246,6 +285,6 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     self.eph_file = None
     self.link = link
     self.link.add_callback(self.obs_packed_callback,
-                           [SBP_MSG_OBS_DEP_C, SBP_MSG_OBS_DEP_B])
+                           [SBP_MSG_OBS, SBP_MSG_OBS_DEP_C, SBP_MSG_OBS_DEP_B])
     self.link.add_callback(self.ephemeris_callback, SBP_MSG_EPHEMERIS_GPS)
     self.python_console_cmds = {'obs': self}
