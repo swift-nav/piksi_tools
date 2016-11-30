@@ -15,12 +15,34 @@ import os
 
 from traitsui.api import TextEditor
 from piksi_tools.utils import sopen
+from sbp.navigation import *
 
 L1CA = 'L1CA'
 L2CM = 'L2CM'
 L1P = 'L1P'
 L2P = 'L2P'
 CODE_NOT_AVAILABLE = 'N/A'
+EMPTY_STR = '---'
+
+FIXED_MODE  = 4
+FLOAT_MODE  = 3
+DGNSS_MODE  = 2
+SPP_MODE    = 1
+NO_FIX_MODE = 0
+
+mode_dict = {
+ NO_FIX_MODE: 'No Fix',
+ SPP_MODE:    'SPP',
+ DGNSS_MODE:  'DGPS',
+ FLOAT_MODE:  'Float RTK',
+ FIXED_MODE:  'Fixed RTK'}
+
+color_dict = {
+ NO_FIX_MODE: None,
+ SPP_MODE: (0, 0, 1.0),
+ DGNSS_MODE: (0, 0.7, 1.0),
+ FLOAT_MODE: (0.75, 0, 0.75),
+ FIXED_MODE: 'orange'}
 
 
 def code_to_str(code):
@@ -47,6 +69,25 @@ def code_is_gps(code):
     return True
   else:
     return False
+
+
+def get_mode(msg):
+  mode = msg.flags & 0x7
+  if msg.msg_type == SBP_MSG_BASELINE_NED_DEP_A:
+    if mode == 1:
+      mode = 4
+    else:
+      mode = 3
+  elif msg.msg_type == SBP_MSG_POS_LLH_DEP_A:
+    if mode == 0:
+      mode = 1
+    elif mode == 1:
+      mode = 4
+    elif mode == 2:
+      mode = 3
+  else:
+    print "called get_mode with unsupported message type"
+  return mode
 
 class MultilineTextEditor(TextEditor):
   """

@@ -16,7 +16,8 @@ from chaco.tools.api import ZoomTool, PanTool
 from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.api import GUI
-from piksi_tools.console.utils import plot_square_axes, determine_path
+from piksi_tools.console.utils import plot_square_axes, determine_path, mode_dict, get_mode, color_dict
+from piksi_tools.console.utils import FLOAT_MODE, SPP_MODE, DGNSS_MODE, NO_FIX_MODE, FIXED_MODE, EMPTY_STR        
 
 
 import math
@@ -33,6 +34,11 @@ class SimpleAdapter(TabularAdapter):
     width = 80
 
 class BaselineView(HasTraits):
+
+  # This mapping should match the flag definitions in libsbp for
+  # the MsgBaselineNED message. While this isn't strictly necessary
+  # it helps avoid confusion
+
   python_console_cmds = Dict()
 
   table = List()
@@ -114,21 +120,29 @@ class BaselineView(HasTraits):
     self.link(MsgInitBase())
 
   def _clear_button_fired(self):
-    self.neds[:] = np.NAN
-    self.fixeds[:] = False
+    self.n[:] = np.NAN
+    self.e[:] = np.NAN
+    self.d[:] = np.NAN
+    self.mode[:] = np.NAN
+    self.plot_data.set_data('t', [])
     self.plot_data.set_data('n_fixed', [])
     self.plot_data.set_data('e_fixed', [])
     self.plot_data.set_data('d_fixed', [])
     self.plot_data.set_data('n_float', [])
     self.plot_data.set_data('e_float', [])
     self.plot_data.set_data('d_float', [])
-    self.plot_data.set_data('t', [])
+    self.plot_data.set_data('n_dgnss', [])
+    self.plot_data.set_data('e_dgnss', [])
+    self.plot_data.set_data('d_dgnss', [])
     self.plot_data.set_data('cur_fixed_n', [])
     self.plot_data.set_data('cur_fixed_e', [])
     self.plot_data.set_data('cur_fixed_d', [])
     self.plot_data.set_data('cur_float_n', [])
     self.plot_data.set_data('cur_float_e', [])
     self.plot_data.set_data('cur_float_d', [])
+    self.plot_data.set_data('cur_dgnss_n', [])
+    self.plot_data.set_data('cur_dgnss_e', [])
+    self.plot_data.set_data('cur_dgnss_d', [])
 
   def iar_state_callback(self, sbp_msg, **metadata):
     self.num_hyps = sbp_msg.num_hyps
@@ -147,16 +161,6 @@ class BaselineView(HasTraits):
     self.week = MsgGPSTimeDepA(sbp_msg).wn
     self.nsec = MsgGPSTimeDepA(sbp_msg).ns
 
-  def mode_string(self, msg):
-     if msg:
-       self.fixed = (msg.flags & 1) == 1
-       if self.fixed:
-         return 'Fixed RTK'
-       else:
-         return 'Float'
-     return 'None'
- 
-
   def baseline_callback(self, sbp_msg):
     self.last_btime_update = time.time()
     soln = MsgBaselineNEDDepA(sbp_msg)
@@ -168,7 +172,7 @@ class BaselineView(HasTraits):
     soln.d = soln.d * 1e-3
 
     dist = np.sqrt(soln.n**2 + soln.e**2 + soln.d**2)
-
+    
     tow = soln.tow * 1e-3
     if self.nsec is not None:
       tow += self.nsec * 1e-9
@@ -177,9 +181,6 @@ class BaselineView(HasTraits):
       t = datetime.datetime(1980, 1, 6) + \
           datetime.timedelta(weeks=self.week) + \
           datetime.timedelta(seconds=tow)
-
-      table.append(('GPS Time', t))
-      table.append(('GPS Week', str(self.week)))
      
       if self.directory_name_b == '':
           filepath = time.strftime("baseline_log_%Y%m%d-%H%M%S.csv")
@@ -204,57 +205,84 @@ class BaselineView(HasTraits):
           self.num_hyps)
         )
         self.log_file.flush()
+    self.last_mode = get_mode(soln)
 
-    table.append(('GPS ToW', tow))
-
-    table.append(('N', soln.n))
-    table.append(('E', soln.e))
-    table.append(('D', soln.d))
-    table.append(('Dist.', dist))
-    table.append(('Num. Signals.', soln.n_sats))
-    table.append(('Flags', '0x%02x' % soln.flags))
-    table.append(('Mode', self.mode_string(soln)))
-    if time.time() - self.last_hyp_update < 10 and self.num_hyps != 1:
-      table.append(('IAR Num. Hyps.', self.num_hyps))
+    if self.last_mode < 1:
+      table.append(('GPS Time', EMPTY_STR))
+      table.append(('GPS Week', EMPTY_STR))
+      table.append(('GPS ToW', EMPTY_STR))
+      table.append(('N', EMPTY_STR))
+      table.append(('E', EMPTY_STR))
+      table.append(('D', EMPTY_STR))
+      table.append(('Dist.', EMPTY_STR))
+      table.append(('Num. Signals.', EMPTY_STR))
+      table.append(('Flags', EMPTY_STR))
+      table.append(('Mode', EMPTY_STR))
+    
     else:
-      table.append(('IAR Num. Hyps.', "None"))
-
-      
+      table.append(('GPS Time', t))
+      table.append(('GPS Week', str(self.week)))
+      table.append(('GPS ToW', tow))
+      table.append(('N', soln.n))
+      table.append(('E', soln.e))
+      table.append(('D', soln.d))
+      table.append(('Dist.', dist))
+      table.append(('Num. Signals.', soln.n_sats))
+      table.append(('Flags', '0x%02x' % soln.flags))
+      table.append(('Mode', mode_dict[self.last_mode]))
+        
     # Rotate array, deleting oldest entries to maintain
     # no more than N in plot
-    self.neds[1:] = self.neds[:-1]
-    self.fixeds[1:] = self.fixeds[:-1]
+    self.n[1:] = self.n[:-1]
+    self.e[1:] = self.e[:-1]
+    self.d[1:] = self.d[:-1]
+    self.mode[1:] = self.mode[:-1]
 
     # Insert latest position
-    self.neds[0][:] = [soln.n, soln.e, soln.d]
-    self.fixeds[0] = self.fixed
+    if self.last_mode > 1:
+      self.n[0], self.e[0], self.d[0] = soln.n, soln.e, soln.d
+    else:
+      self.n[0], self.e[0], self.d[0] = [np.NAN, np.NAN, np.NAN]
+    self.mode[0] = self.last_mode
 
-    neds_fixed = self.neds[self.fixeds]
-    neds_float = self.neds[np.logical_not(self.fixeds)]
+    float_indexer = (self.mode == FLOAT_MODE)
+    fixed_indexer = (self.mode == FIXED_MODE)
+    dgps_indexer = (self.mode == DGNSS_MODE)
 
-    if not all(map(any, np.isnan(neds_fixed))):
-      self.plot_data.set_data('n_fixed', neds_fixed.T[0])
-      self.plot_data.set_data('e_fixed', neds_fixed.T[1])
-      self.plot_data.set_data('d_fixed', neds_fixed.T[2])
-    if not all(map(any, np.isnan(neds_float))):
-      self.plot_data.set_data('n_float', neds_float.T[0])
-      self.plot_data.set_data('e_float', neds_float.T[1])
-      self.plot_data.set_data('d_float', neds_float.T[2])
+  #if not any(np.isnan(neds_fixed)):
+    self.plot_data.set_data('n_fixed', self.n[fixed_indexer])
+    self.plot_data.set_data('e_fixed', self.e[fixed_indexer])
+    self.plot_data.set_data('d_fixed', self.d[fixed_indexer])
+  #if not any(np.isnan(neds_float)):
+    self.plot_data.set_data('n_float', self.n[float_indexer])
+    self.plot_data.set_data('e_float', self.e[float_indexer])
+    self.plot_data.set_data('d_float', self.d[float_indexer])
+  #if not any(np.isnan(neds_dgnss)):
+    self.plot_data.set_data('n_dgnss', self.n[dgps_indexer])
+    self.plot_data.set_data('e_dgnss', self.e[dgps_indexer])
+    self.plot_data.set_data('d_dgnss', self.d[dgps_indexer])
 
-    if self.fixed:
+    if self.last_mode == FIXED_MODE:
       self.plot_data.set_data('cur_fixed_n', [soln.n])
       self.plot_data.set_data('cur_fixed_e', [soln.e])
       self.plot_data.set_data('cur_fixed_d', [soln.d])
       self.plot_data.set_data('cur_float_n', [])
       self.plot_data.set_data('cur_float_e', [])
       self.plot_data.set_data('cur_float_d', [])
-    else:
+    elif self.last_mode == FLOAT_MODE:
       self.plot_data.set_data('cur_float_n', [soln.n])
       self.plot_data.set_data('cur_float_e', [soln.e])
       self.plot_data.set_data('cur_float_d', [soln.d])
       self.plot_data.set_data('cur_fixed_n', [])
       self.plot_data.set_data('cur_fixed_e', [])
       self.plot_data.set_data('cur_fixed_d', [])
+    elif self.last_mode == DGNSS_MODE:
+      self.plot_data.set_data('cur_dgnss_n', [soln.n])
+      self.plot_data.set_data('cur_dgnss_e', [soln.e])
+      self.plot_data.set_data('cur_dgnss_d', [soln.d])
+      self.plot_data.set_data('cur_dgnss_n', [])
+      self.plot_data.set_data('cur_dgnss_e', [])
+      self.plot_data.set_data('cur_dgnss_d', [])
 
     self.plot_data.set_data('ref_n', [0.0])
     self.plot_data.set_data('ref_e', [0.0])
@@ -267,7 +295,7 @@ class BaselineView(HasTraits):
       self.plot.value_range.set_bounds(soln.n - d, soln.n + d)
 
     if self.zoomall:
-      plot_square_axes(self.plot, ('e_fixed', 'e_float'), ('n_fixed', 'n_float'))
+      plot_square_axes(self.plot, ('e_fixed', 'e_float', 'e_dgnss'), ('n_fixed', 'n_float', 'n_dgnss'))
     self.table = table
 
   def __init__(self, link, plot_history_max=1000, dirname=''):
@@ -278,36 +306,42 @@ class BaselineView(HasTraits):
     self.last_hyp_update = 0
     self.last_btime_update = 0
     self.last_soln = None
+    self.last_mode = 0
     self.plot_data = ArrayPlotData(n_fixed=[0.0], e_fixed=[0.0], d_fixed=[0.0],
                                    n_float=[0.0], e_float=[0.0], d_float=[0.0],
+                                   n_dgnss=[0.0], e_dgnss=[0.0], d_dgnss=[0.0],
                                    t=[0.0],
                                    ref_n=[0.0], ref_e=[0.0], ref_d=[0.0],
                                    cur_fixed_e=[], cur_fixed_n=[], cur_fixed_d=[],
-                                   cur_float_e=[], cur_float_n=[], cur_float_d=[])
-    self.plot_history_max = plot_history_max
+                                   cur_float_e=[], cur_float_n=[], cur_float_d=[],
+                                   cur_dgnss_e=[], cur_dgnss_n=[], cur_dgnss_d=[])
 
-    self.neds = np.empty((plot_history_max, 3))
-    self.neds[:] = np.NAN
-    self.fixeds = np.zeros(plot_history_max, dtype=bool)
+    self.plot_history_max = plot_history_max
+    self.n = np.empty(plot_history_max)
+    self.e = np.empty(plot_history_max)
+    self.d = np.empty(plot_history_max)
+    self.mode = np.empty(plot_history_max)
+    #self.neds[:] = np.NAN
 
     self.plot = Plot(self.plot_data)
-    color_float = (0.5, 0.5, 1.0)
-    color_fixed = 'orange'
     pts_float = self.plot.plot(('e_float', 'n_float'),
         type='scatter',
-        color=color_float,
+        color=color_dict[FLOAT_MODE],
         marker='dot',
         line_width=0.0,
         marker_size=1.0)
     pts_fixed = self.plot.plot(('e_fixed', 'n_fixed'),
         type='scatter',
-        color=color_fixed,
+        color=color_dict[FIXED_MODE],
         marker='dot',
         line_width=0.0,
         marker_size=1.0)
-    lin = self.plot.plot(('e_fixed', 'n_fixed'),
-        type='line',
-        color=(1, 0.65, 0, 0.1))
+    pts_dgnss = self.plot.plot(('e_dgnss', 'n_dgnss'),
+        type='scatter',
+        color=color_dict[DGNSS_MODE],
+        marker='dot',
+        line_width=0.0,
+        marker_size=1.0)
     ref = self.plot.plot(('ref_e', 'ref_n'),
         type='scatter',
         color='red',
@@ -316,19 +350,26 @@ class BaselineView(HasTraits):
         line_width=1.5)
     cur_fixed = self.plot.plot(('cur_fixed_e', 'cur_fixed_n'),
         type='scatter',
-        color=color_fixed,
+        color=color_dict[FIXED_MODE],
         marker='plus',
         marker_size=5,
         line_width=1.5)
     cur_float = self.plot.plot(('cur_float_e', 'cur_float_n'),
         type='scatter',
-        color=color_float,
+        color=color_dict[FLOAT_MODE],
         marker='plus',
         marker_size=5,
         line_width=1.5)
-    plot_labels = ['Base Position','RTK Fixed','RTK Float']
-    plots_legend = dict(zip(plot_labels, [ref, cur_fixed, cur_float]))
+    cur_dgnss = self.plot.plot(('cur_dgnss_e', 'cur_dgnss_n'),
+        type='scatter',
+        color=color_dict[DGNSS_MODE],
+        marker='plus',
+        line_width=1.5,
+        marker_size=5)
+    plot_labels = [' Base Position','DGPS', 'RTK Float', 'RTK Fixed']
+    plots_legend = dict(zip(plot_labels, [ref, cur_dgnss, cur_float, cur_fixed]))
     self.plot.legend.plots = plots_legend
+    self.plot.legend.labels = plot_labels # sets order
     self.plot.legend.visible = True
 
     self.plot.index_axis.tick_label_position = 'inside'
@@ -352,9 +393,9 @@ class BaselineView(HasTraits):
     
 
     self.link = link
-    self.link.add_callback(self._baseline_callback_ned, SBP_MSG_BASELINE_NED_DEP_A)
+    self.link.add_callback(self._baseline_callback_ned, [SBP_MSG_BASELINE_NED, SBP_MSG_BASELINE_NED_DEP_A])
     self.link.add_callback(self.iar_state_callback, SBP_MSG_IAR_STATE)
-    self.link.add_callback(self.gps_time_callback, SBP_MSG_GPS_TIME_DEP_A)
+    self.link.add_callback(self.gps_time_callback, [SBP_MSG_GPS_TIME, SBP_MSG_GPS_TIME_DEP_A])
 
     self.python_console_cmds = {
       'baseline': self
