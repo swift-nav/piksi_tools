@@ -94,7 +94,6 @@ class SolutionView(HasTraits):
   traits_view = View(
     HSplit(
         VGroup(
-          Item('', label='GNSS Solution', emphasized=True),
           Item('table', style='readonly',
                 editor=TabularEditor(adapter=SimpleAdapter()),
                 show_label=False, width=0.3),
