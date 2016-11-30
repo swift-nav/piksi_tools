@@ -270,29 +270,34 @@ class SolutionView(HasTraits):
 
     # SPP
     spp_indexer = (self.modes == SPP_MODE)
-    dgps_indexer = (self.modes == DGNSS_MODE)
+    dgnss_indexer = (self.modes == DGNSS_MODE)
     float_indexer = (self.modes == FLOAT_MODE)
     fixed_indexer = (self.modes == FIXED_MODE)
-
-    self.plot_data.set_data('lat_spp', self.lats[spp_indexer])
-    self.plot_data.set_data('lng_spp', self.lngs[spp_indexer])
-    self.plot_data.set_data('alt_spp', self.alts[spp_indexer])
-    self.plot_data.set_data('lat_dgps', self.lats[dgps_indexer])
-    self.plot_data.set_data('lng_dgps', self.lngs[dgps_indexer])
-    self.plot_data.set_data('alt_dgps', self.alts[dgps_indexer])
-    self.plot_data.set_data('lat_float', self.lats[float_indexer])
-    self.plot_data.set_data('lng_float', self.lngs[float_indexer])
-    self.plot_data.set_data('alt_float', self.alts[float_indexer])
-    self.plot_data.set_data('lat_fixed', self.lats[fixed_indexer])
-    self.plot_data.set_data('lng_fixed', self.lngs[fixed_indexer])
-    self.plot_data.set_data('alt_fixed', self.alts[fixed_indexer])
+    
+    # make sure that there is at least one true in indexer before setting
+    if any(spp_indexer):
+      self.plot_data.set_data('lat_spp', self.lats[spp_indexer])
+      self.plot_data.set_data('lng_spp', self.lngs[spp_indexer])
+      self.plot_data.set_data('alt_spp', self.alts[spp_indexer])
+    if any(dgnss_indexer):
+      self.plot_data.set_data('lat_dgnss', self.lats[dgnss_indexer])
+      self.plot_data.set_data('lng_dgnss', self.lngs[dgnss_indexer])
+      self.plot_data.set_data('alt_dgnss', self.alts[dgnss_indexer])
+    if any(float_indexer):
+      self.plot_data.set_data('lat_float', self.lats[float_indexer])
+      self.plot_data.set_data('lng_float', self.lngs[float_indexer])
+      self.plot_data.set_data('alt_float', self.alts[float_indexer])
+    if any(fixed_indexer):
+      self.plot_data.set_data('lat_fixed', self.lats[fixed_indexer])
+      self.plot_data.set_data('lng_fixed', self.lngs[fixed_indexer])
+      self.plot_data.set_data('alt_fixed', self.alts[fixed_indexer])
 
     if self.last_pos_mode == SPP_MODE:
       self.plot_data.set_data('cur_lat_spp', [soln.lat])
       self.plot_data.set_data('cur_lng_spp', [soln.lon])
     if self.last_pos_mode == DGNSS_MODE:
-      self.plot_data.set_data('cur_lat_dgps', [soln.lat])
-      self.plot_data.set_data('cur_lng_dgps', [soln.lon])
+      self.plot_data.set_data('cur_lat_dgnss', [soln.lat])
+      self.plot_data.set_data('cur_lng_dgnss', [soln.lon])
     if self.last_pos_mode == FLOAT_MODE:
       self.plot_data.set_data('cur_lat_float', [soln.lat])
       self.plot_data.set_data('cur_lng_float', [soln.lon])
@@ -313,7 +318,8 @@ class SolutionView(HasTraits):
       d = (self.plot.value_range.high - self.plot.value_range.low) / 2.
       self.plot.value_range.set_bounds(soln.lat - d, soln.lat + d)
     if self.zoomall:
-      plot_square_axes(self.plot, 'lng_spp', 'lat_spp')
+      plot_square_axes(self.plot, ('lng_spp', 'lng_dgnss', 'lng_float','lng_fixed'), 
+                        ('lat_spp', 'lat_dgnss', 'lat_float','lat_fixed'))
 
   def dops_callback(self, sbp_msg, **metadata):
     flags = 0
@@ -349,7 +355,7 @@ class SolutionView(HasTraits):
       vel_ned = MsgVelNEDDepA(sbp_msg)
       flags = 1
     else:
-      vel_ned = MsgVelNed(sbp_msg)
+      vel_ned = MsgVelNED(sbp_msg)
       flags = vel_ned.flags
     tow = vel_ned.tow * 1e-3
     if self.nsec is not None:
@@ -399,13 +405,14 @@ class SolutionView(HasTraits):
 
   def gps_time_callback(self, sbp_msg, **metadata):
     if sbp_msg.msg_type == SBP_MSG_GPS_TIME_DEP_A:
-      self.week = MsgGPSTimeDepA(sbp_msg).wn
-      self.nsec = MsgGPSTimeDepA(sbp_msg).ns
+      time_msg = MsgGPSTimeDepA(sbp_msg)
+      flags = 1
     elif sbp_msg.msg_type == SBP_MSG_GPS_TIME:
       time_msg = MsgGPSTime(sbp_msg)
-      if time_msg.flags != 0:
-        self.week = time_msg.week
-        self.nsec = time_msg.nsec
+      flags = time_msg.flags
+      if flags != 0:
+        self.week = time_msg.wn
+        self.nsec = time_msg.ns
 
   def __init__(self, link, dirname=''):
     super(SolutionView, self).__init__()
@@ -432,8 +439,8 @@ class SolutionView(HasTraits):
     self.last_pos_mode = 0
 
     self.plot_data = ArrayPlotData(lat_spp=[], lng_spp=[], alt_spp=[],
-      cur_lat_spp=[], cur_lng_spp=[], lat_dgps=[], lng_dgps=[], alt_dgps=[],
-      cur_lat_dgps=[], cur_lng_dgps=[], lat_float=[], lng_float=[], alt_float=[],
+      cur_lat_spp=[], cur_lng_spp=[], lat_dgnss=[], lng_dgnss=[], alt_dgnss=[],
+      cur_lat_dgnss=[], cur_lng_dgnss=[], lat_float=[], lng_float=[], alt_float=[],
       cur_lat_float=[], cur_lng_float=[], lat_fixed=[], lng_fixed=[], alt_fixed=[],
       cur_lat_fixed=[], cur_lng_fixed=[])
     self.plot = Plot(self.plot_data)
@@ -442,8 +449,8 @@ class SolutionView(HasTraits):
     self.plot.plot(('lng_spp', 'lat_spp'), type='line', line_width=0.1, name='', color=color_dict[SPP_MODE])
     self.plot.plot(('lng_spp', 'lat_spp'), type='scatter',  name='', color=color_dict[SPP_MODE],
       marker='dot', line_width=0.0, marker_size=1.0)
-    self.plot.plot(('lng_dgps', 'lat_dgps'), type='line',  line_width=0.1, name='', color=color_dict[DGNSS_MODE])
-    self.plot.plot(('lng_dgps', 'lat_dgps'), type='scatter', name='', color=color_dict[DGNSS_MODE],
+    self.plot.plot(('lng_dgnss', 'lat_dgnss'), type='line',  line_width=0.1, name='', color=color_dict[DGNSS_MODE])
+    self.plot.plot(('lng_dgnss', 'lat_dgnss'), type='scatter', name='', color=color_dict[DGNSS_MODE],
       marker='dot', line_width=0.0, marker_size=1.0)
     self.plot.plot(('lng_float', 'lat_float'), type='line',  line_width=0.1, name='', color=color_dict[FLOAT_MODE])
     self.plot.plot(('lng_float', 'lat_float'), type='scatter', name='', color=color_dict[FLOAT_MODE],
@@ -454,14 +461,14 @@ class SolutionView(HasTraits):
     # current values
     spp = self.plot.plot(('cur_lng_spp', 'cur_lat_spp'), type='scatter', name=mode_dict[SPP_MODE],
       color=color_dict[SPP_MODE], marker='plus', line_width=1.5, marker_size=5.0)
-    dgps = self.plot.plot(('cur_lng_dgps', 'cur_lat_dgps'), type='scatter', name=mode_dict[DGNSS_MODE],
+    dgnss = self.plot.plot(('cur_lng_dgnss', 'cur_lat_dgnss'), type='scatter', name=mode_dict[DGNSS_MODE],
       color=color_dict[DGNSS_MODE], marker='plus', line_width=1.5, marker_size=5.0)
     rtkfloat = self.plot.plot(('cur_lng_float', 'cur_lat_float'), type='scatter', name=mode_dict[FLOAT_MODE],
       color=color_dict[FLOAT_MODE], marker='plus', line_width=1.5, marker_size=5.0)
     rtkfix = self.plot.plot(('cur_lng_fixed', 'cur_lat_fixed'), type='scatter', name=mode_dict[FIXED_MODE],
       color=color_dict[FIXED_MODE], marker='plus', line_width=1.5, marker_size=5.0)
     plot_labels = ['SPP', 'DGPS', "RTK float", "RTK fixed"]
-    plots_legend = dict(zip(plot_labels, [spp, dgps, rtkfloat, rtkfix]))
+    plots_legend = dict(zip(plot_labels, [spp, dgnss, rtkfloat, rtkfix]))
     self.plot.legend.plots = plots_legend
     self.plot.legend.labels = plot_labels # sets order
     self.plot.legend.visible = True

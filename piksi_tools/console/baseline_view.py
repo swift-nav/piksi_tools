@@ -159,13 +159,14 @@ class BaselineView(HasTraits):
 
   def gps_time_callback(self, sbp_msg, **metadata):
     if sbp_msg.msg_type == SBP_MSG_GPS_TIME_DEP_A:
-      self.week = MsgGPSTimeDepA(sbp_msg).wn
-      self.nsec = MsgGPSTimeDepA(sbp_msg).ns
+      time_msg = MsgGPSTimeDepA(sbp_msg)
+      flags = 1
     elif sbp_msg.msg_type == SBP_MSG_GPS_TIME:
       time_msg = MsgGPSTime(sbp_msg)
-      if time_msg.flags != 0:
-        self.week = time_msg.week
-        self.nsec = time_msg.nsec
+      flags = time_msg.flags
+      if flags != 0:
+        self.week = time_msg.wn
+        self.nsec = time_msg.ns
 
   def baseline_callback(self, sbp_msg):
     self.last_btime_update = time.time()
@@ -261,7 +262,7 @@ class BaselineView(HasTraits):
 
     float_indexer = (self.mode == FLOAT_MODE)
     fixed_indexer = (self.mode == FIXED_MODE)
-    dgps_indexer = (self.mode == DGNSS_MODE)
+    dgnss_indexer = (self.mode == DGNSS_MODE)
 
   #if not any(np.isnan(neds_fixed)):
     self.plot_data.set_data('n_fixed', self.n[fixed_indexer])
@@ -272,9 +273,9 @@ class BaselineView(HasTraits):
     self.plot_data.set_data('e_float', self.e[float_indexer])
     self.plot_data.set_data('d_float', self.d[float_indexer])
   #if not any(np.isnan(neds_dgnss)):
-    self.plot_data.set_data('n_dgnss', self.n[dgps_indexer])
-    self.plot_data.set_data('e_dgnss', self.e[dgps_indexer])
-    self.plot_data.set_data('d_dgnss', self.d[dgps_indexer])
+    self.plot_data.set_data('n_dgnss', self.n[dgnss_indexer])
+    self.plot_data.set_data('e_dgnss', self.e[dgnss_indexer])
+    self.plot_data.set_data('d_dgnss', self.d[dgnss_indexer])
 
     if self.last_mode == FIXED_MODE:
       self.plot_data.set_data('cur_fixed_n', [soln.n])
