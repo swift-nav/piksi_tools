@@ -16,6 +16,7 @@ import os
 from traitsui.api import TextEditor
 from piksi_tools.utils import sopen
 from sbp.navigation import *
+import numpy as np
 
 L1CA = 'L1CA'
 L2CM = 'L2CM'
@@ -99,7 +100,6 @@ class MultilineTextEditor(TextEditor):
     parent.read_only = True
     parent.multi_line = True
 
-
 def plot_square_axes(plot, xnames, ynames):
   try:
     if type(xnames) is str:
@@ -110,10 +110,12 @@ def plot_square_axes(plot, xnames, ynames):
       miny = min(ys)
       maxy = max(ys)
     else:
-      minx = min(min(plot.data.get_data(xname)) for xname in xnames)
-      maxx = max(max(plot.data.get_data(xname)) for xname in xnames)
-      miny = min(min(plot.data.get_data(yname)) for yname in ynames)
-      maxy = max(max(plot.data.get_data(yname)) for yname in ynames)
+      concatx = np.concatenate([plot.data.get_data(xname) for xname in xnames])
+      concaty = np.concatenate([plot.data.get_data(yname) for yname in ynames])
+      minx = min(concatx)
+      maxx = max(concatx)
+      miny = min(concaty)
+      maxy = max(concaty)
     rangex = maxx - minx
     rangey = maxy - miny
     try:
