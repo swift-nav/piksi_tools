@@ -126,11 +126,11 @@ class SolutionView(HasTraits):
     self.running = not self.running
 
   def _clear_button_fired(self):
-    self.tows = []
-    self.lats = []
-    self.lngs = []
-    self.alts = []
-    self.modes = []
+    self.tows = np.empty(self.plot_history_max)
+    self.lats = np.empty(self.plot_history_max)
+    self.lngs = np.empty(self.plot_history_max)
+    self.alts = np.empty(self.plot_history_max)
+    self.modes = np.empty(self.plot_history_max)
     self.plot_data.set_data('lat_spp', [])
     self.plot_data.set_data('lng_spp', [])
     self.plot_data.set_data('alt_spp', [])
@@ -143,6 +143,19 @@ class SolutionView(HasTraits):
     self.plot_data.set_data('lat_fixed', [])
     self.plot_data.set_data('lng_fixed', [])
     self.plot_data.set_data('alt_fixed', [])
+    self.plot_data.set_data('cur_lat_spp', [])
+    self.plot_data.set_data('cur_lng_spp', [])
+    self.plot_data.set_data('cur_alt_spp', [])
+    self.plot_data.set_data('cur_lat_dgnss', [])
+    self.plot_data.set_data('cur_lng_dgnss', [])
+    self.plot_data.set_data('cur_alt_dgnss', [])
+    self.plot_data.set_data('cur_lat_float', [])
+    self.plot_data.set_data('cur_lng_float', [])
+    self.plot_data.set_data('cur_alt_float', [])
+    self.plot_data.set_data('cur_lat_fixed', [])
+    self.plot_data.set_data('cur_lng_fixed', [])
+    self.plot_data.set_data('cur_alt_fixed', [])
+
 
   def _pos_llh_callback(self, sbp_msg, **metadata):
     # Updating an ArrayPlotData isn't thread safe (see chaco issue #9), so
@@ -168,10 +181,13 @@ class SolutionView(HasTraits):
 
   def pos_llh_callback(self, sbp_msg, **metadata):
     self.last_stime_update = time.time()
-    soln = MsgPosLLHDepA(sbp_msg)
+    if sbp_msg.msg_type == SBP_MSG_POS_LLH_DEP_A:
+      soln = MsgPosLLHDepA(sbp_msg)
+    else:
+      soln = MsgPosLLH(sbp_msg)
     self.last_soln = soln
 
-    masked_flag = get_mode(soln)
+    self.last_pos_mode = get_mode(soln)
     pos_table = []
 
     tow = soln.tow * 1e-3
@@ -194,23 +210,27 @@ class SolutionView(HasTraits):
       if self.logging_p:
         if self.log_file is None:
           self.log_file = open(filepath_p, 'w')
-          self.log_file.write("time,latitude(degrees),longitude(degrees),altitude(meters),n_signals,flags\n")
+          self.log_file.write("time,latitude(degrees),longitude(degrees),altitude(meters),"
+                              "h_accuracy(meters),v_accuracy(meters),n_sats,flags\n")
 
-        self.log_file.write('%s,%.10f,%.10f,%.4f,%d,%d\n' % (
+        self.log_file.write('%s,%.10f,%.10f,%.4f,%.4f,%.4f,%d,%d\n' % (
           str(t),
           soln.lat, soln.lon, soln.height,
+          soln.h_accuracy, soln.v_accuracy,
           soln.n_sats, soln.flags)
         )
         self.log_file.flush()
 
-    if masked_flag != 0:
+    if self.last_pos_mode != 0:
       pos_table.append(('GPS Time', t))
       pos_table.append(('GPS Week', str(self.week)))
       pos_table.append(('GPS ToW', tow))
-      pos_table.append(('Num. Signals', soln.n_sats))
+      pos_table.append(('Num. Sats', soln.n_sats))
       pos_table.append(('Lat', soln.lat))
       pos_table.append(('Lng', soln.lon))
-      pos_table.append(('Alt', soln.height))
+      pos_table.append(('Height', soln.height))
+      pos_table.append(('h_accuracy', soln.h_accuracy))
+      pos_table.append(('v_accuracy', soln.v_accuracy))
     else:
       pos_table.append(('GPS Time', EMPTY_STR))
       pos_table.append(('GPS Week', EMPTY_STR))
@@ -218,9 +238,12 @@ class SolutionView(HasTraits):
       pos_table.append(('Num. Signals', EMPTY_STR))
       pos_table.append(('Lat', EMPTY_STR))
       pos_table.append(('Lng', EMPTY_STR))
-      pos_table.append(('Alt', EMPTY_STR))
+      pos_table.append(('Height', EMPTY_STR))
+      pos_table.append(('h_accuracy', EMPTY_STR))
+      pos_table.append(('v_accuracy', EMPTY_STR))
+
     pos_table.append(('Pos Flags', '0x%03x' % soln.flags))
-    pos_table.append(('Pos Fix Mode', mode_dict[masked_flag]))
+    pos_table.append(('Pos Fix Mode', mode_dict[self.last_pos_mode]))
 
     self.auto_survey()
 
@@ -235,7 +258,7 @@ class SolutionView(HasTraits):
     self.lngs[0] = soln.lon
     self.alts[0] = soln.height
     self.tows[0] = soln.tow
-    self.modes[0] = masked_flag
+    self.modes[0] = self.last_pos_mode
 
     self.lats = self.lats[-self.plot_history_max:]
     self.lngs = self.lngs[-self.plot_history_max:]
@@ -262,16 +285,16 @@ class SolutionView(HasTraits):
     self.plot_data.set_data('lng_fixed', self.lngs[fixed_indexer])
     self.plot_data.set_data('alt_fixed', self.alts[fixed_indexer])
 
-    if masked_flag == 1:
+    if self.last_pos_mode == SPP_MODE:
       self.plot_data.set_data('cur_lat_spp', [soln.lat])
       self.plot_data.set_data('cur_lng_spp', [soln.lon])
-    if masked_flag == 2:
+    if self.last_pos_mode == DGNSS_MODE:
       self.plot_data.set_data('cur_lat_dgps', [soln.lat])
       self.plot_data.set_data('cur_lng_dgps', [soln.lon])
-    if masked_flag == 3:
+    if self.last_pos_mode == FLOAT_MODE:
       self.plot_data.set_data('cur_lat_float', [soln.lat])
       self.plot_data.set_data('cur_lng_float', [soln.lon])
-    if masked_flag == 4:
+    if self.last_pos_mode == FIXED_MODE:
       self.plot_data.set_data('cur_lat_fixed', [soln.lat])
       self.plot_data.set_data('cur_lng_fixed', [soln.lon])
 
@@ -295,7 +318,7 @@ class SolutionView(HasTraits):
     if sbp_msg.msg_type == SBP_MSG_DOPS_DEP_A:
       dops = MsgDopsDepA(sbp_msg)
       flags = 1
-    elif sbp_msg.msg_type == SBP_MSG_DOPS:
+    else:
       dops = MsgDops(sbp_msg)
       flags = dops.flags
     if flags != 0:
@@ -323,7 +346,7 @@ class SolutionView(HasTraits):
     if sbp_msg.msg_type == SBP_MSG_VEL_NED_DEP_A:
       vel_ned = MsgVelNEDDepA(sbp_msg)
       flags = 1
-    elif sbp_msg.msg_type == SBP_MSG_VEL_NED:
+    else:
       vel_ned = MsgVelNed(sbp_msg)
       flags = vel_ned.flags
     tow = vel_ned.tow * 1e-3
@@ -347,14 +370,13 @@ class SolutionView(HasTraits):
 
         if self.vel_log_file is None:
           self.vel_log_file = open(filepath_v, 'w')
-          self.vel_log_file.write('time,north(m/s),east(m/s),down(m/s),speed(m/s),num_signals\n')
+          self.vel_log_file.write('time,north(m/s),east(m/s),down(m/s),speed(m/s),flags,num_signals\n')
 
-        
-
-        self.vel_log_file.write('%s,%.6f,%.6f,%.6f,%.6f,%d\n' % (
+        self.vel_log_file.write('%s,%.6f,%.6f,%.6f,%.6f,%d,%d\n' % (
           str(t),
           vel_ned.n * 1e-3, vel_ned.e * 1e-3, vel_ned.d * 1e-3,
           math.sqrt(vel_ned.n*vel_ned.n + vel_ned.e*vel_ned.e) * 1e-3,
+          flags,
           vel_ned.n_sats)
         )
         self.vel_log_file.flush()
@@ -405,6 +427,7 @@ class SolutionView(HasTraits):
     self.altitude = 0
     self.longitude = 0
     self.latitude = 0
+    self.last_pos_mode = 0
 
     self.plot_data = ArrayPlotData(lat_spp=[], lng_spp=[], alt_spp=[],
       cur_lat_spp=[], cur_lng_spp=[], lat_dgps=[], lng_dgps=[], alt_dgps=[],

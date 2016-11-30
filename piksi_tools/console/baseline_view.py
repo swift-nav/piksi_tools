@@ -176,6 +176,8 @@ class BaselineView(HasTraits):
     soln.n = soln.n * 1e-3
     soln.e = soln.e * 1e-3
     soln.d = soln.d * 1e-3
+    soln.h_accuracy = soln.h_accuracy * 1e-3
+    soln.v_accuracy = soln.v_accuracy * 1e-3
 
     dist = np.sqrt(soln.n**2 + soln.e**2 + soln.d**2)
     
@@ -199,12 +201,11 @@ class BaselineView(HasTraits):
 
       if self.logging_b:
         if self.log_file is None:
-          self.log_file = open(filepath, 'w')
-          
-          self.log_file.write('time,north(meters),east(meters),down(meters),distance(meters),num_signals,flags,num_hypothesis\n')
-
-        self.log_file.write('%s,%.4f,%.4f,%.4f,%.4f,%d,0x%02x,%d\n' % (
-          str(t),
+          self.log_file = open(filepath, 'w')          
+          self.log_file.write('time,north(meters),east(meters),down(meters),h_accuracy(meters),v_accuracy(meters),'
+                              'distance(meters),num_sats,flags,num_hypothesis\n')
+        self.log_file.write('%s,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%d,%d,%d\n' % (
+          str(t), #todo - better time format
           soln.n, soln.e, soln.d, dist,
           soln.n_sats,
           soln.flags,
@@ -220,8 +221,10 @@ class BaselineView(HasTraits):
       table.append(('N', EMPTY_STR))
       table.append(('E', EMPTY_STR))
       table.append(('D', EMPTY_STR))
+      table.append(('h_accuracy', EMPTY_STR))
+      table.append(('v_accuracy', EMPTY_STR))
       table.append(('Dist.', EMPTY_STR))
-      table.append(('Num. Signals.', EMPTY_STR))
+      table.append(('Num. Sats', EMPTY_STR))
       table.append(('Flags', EMPTY_STR))
       table.append(('Mode', EMPTY_STR))
     
@@ -232,10 +235,13 @@ class BaselineView(HasTraits):
       table.append(('N', soln.n))
       table.append(('E', soln.e))
       table.append(('D', soln.d))
+      table.append(('h_accuracy', soln.h_accuracy))
+      table.append(('v_accuracy', soln.v_accuracy))
       table.append(('Dist.', dist))
-      table.append(('Num. Signals.', soln.n_sats))
-      table.append(('Flags', '0x%02x' % soln.flags))
-      table.append(('Mode', mode_dict[self.last_mode]))
+      table.append(('Num. Sats', soln.n_sats))
+    
+    table.append(('Flags', '0x%02x' % soln.flags))
+    table.append(('Mode', mode_dict[self.last_mode]))
         
     # Rotate array, deleting oldest entries to maintain
     # no more than N in plot
