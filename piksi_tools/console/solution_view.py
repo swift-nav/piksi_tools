@@ -211,8 +211,6 @@ class SolutionView(HasTraits):
       pos_table.append(('Lat', soln.lat))
       pos_table.append(('Lng', soln.lon))
       pos_table.append(('Alt', soln.height))
-      pos_table.append(('Flags', '0x%02x' % soln.flags))
-      pos_table.append(('Mode', mode_dict[masked_flag]))
     else:
       pos_table.append(('GPS Time', EMPTY_STR))
       pos_table.append(('GPS Week', EMPTY_STR))
@@ -221,8 +219,8 @@ class SolutionView(HasTraits):
       pos_table.append(('Lat', EMPTY_STR))
       pos_table.append(('Lng', EMPTY_STR))
       pos_table.append(('Alt', EMPTY_STR))
-      pos_table.append(('Flags', EMPTY_STR))
-      pos_table.append(('Mode', EMPTY_STR))
+    pos_table.append(('Pos Flags', '0x%03x' % soln.flags))
+    pos_table.append(('Pos Fix Mode', mode_dict[masked_flag]))
 
     self.auto_survey()
 
@@ -293,19 +291,41 @@ class SolutionView(HasTraits):
       plot_square_axes(self.plot, 'lng_spp', 'lat_spp')
 
   def dops_callback(self, sbp_msg, **metadata):
-    dops = MsgDopsDepA(sbp_msg)
-    self.dops_table = [
-      ('PDOP', '%.1f' % (dops.pdop * 0.01)),
-      ('GDOP', '%.1f' % (dops.gdop * 0.01)),
-      ('TDOP', '%.1f' % (dops.tdop * 0.01)),
-      ('HDOP', '%.1f' % (dops.hdop * 0.01)),
-      ('VDOP', '%.1f' % (dops.vdop * 0.01))
-    ]
+    flags = 0
+    if sbp_msg.msg_type == SBP_MSG_DOPS_DEP_A:
+      dops = MsgDopsDepA(sbp_msg)
+      flags = 1
+    elif sbp_msg.msg_type == SBP_MSG_DOPS:
+      dops = MsgDops(sbp_msg)
+      flags = dops.flags
+    if flags != 0:
+      self.dops_table = [
+        ('PDOP', '%.1f' % (dops.pdop * 0.01)),
+        ('GDOP', '%.1f' % (dops.gdop * 0.01)),
+        ('TDOP', '%.1f' % (dops.tdop * 0.01)),
+        ('HDOP', '%.1f' % (dops.hdop * 0.01)),
+        ('VDOP', '%.1f' % (dops.vdop * 0.01))
+      ]
+    else:
+      self.dops_table = [
+        ('PDOP', EMPTY_STR),
+        ('GDOP', EMPTY_STR),
+        ('TDOP', EMPTY_STR),
+        ('HDOP', EMPTY_STR),
+        ('VDOP', EMPTY_STR)
+      ]
+    
+    self.dops_table.append(('DOPS Flags', '0x%03x' % flags))
     self.table = self.pos_table + self.vel_table + self.dops_table
 
   def vel_ned_callback(self, sbp_msg, **metadata):
-    vel_ned = MsgVelNEDDepA(sbp_msg)
-
+    flags = 0
+    if sbp_msg.msg_type == SBP_MSG_VEL_NED_DEP_A:
+      vel_ned = MsgVelNEDDepA(sbp_msg)
+      flags = 1
+    elif sbp_msg.msg_type == SBP_MSG_VEL_NED:
+      vel_ned = MsgVelNed(sbp_msg)
+      flags = vel_ned.flags
     tow = vel_ned.tow * 1e-3
     if self.nsec is not None:
       tow += self.nsec * 1e-9
@@ -338,17 +358,30 @@ class SolutionView(HasTraits):
           vel_ned.n_sats)
         )
         self.vel_log_file.flush()
-
-    self.vel_table = [
-      ('Vel. N', '% 8.4f' % (vel_ned.n * 1e-3)),
-      ('Vel. E', '% 8.4f' % (vel_ned.e * 1e-3)),
-      ('Vel. D', '% 8.4f' % (vel_ned.d * 1e-3)),
-    ]
+    if flags != 0: 
+      self.vel_table = [
+        ('Vel. N', '% 8.4f' % (vel_ned.n * 1e-3)),
+        ('Vel. E', '% 8.4f' % (vel_ned.e * 1e-3)),
+        ('Vel. D', '% 8.4f' % (vel_ned.d * 1e-3)),
+      ]
+    else:
+      self.vel_table = [
+        ('Vel. N', EMPTY_STR),
+        ('Vel. E', EMPTY_STR),
+        ('Vel. D', EMPTY_STR),
+      ]
+    self.vel_table.append(('Vel Flags', '0x%03x' % flags))
     self.table = self.pos_table + self.vel_table + self.dops_table
 
   def gps_time_callback(self, sbp_msg, **metadata):
-    self.week = MsgGPSTimeDepA(sbp_msg).wn
-    self.nsec = MsgGPSTimeDepA(sbp_msg).ns
+    if sbp_msg.msg_type == SBP_MSG_GPS_TIME_DEP_A:
+      self.week = MsgGPSTimeDepA(sbp_msg).wn
+      self.nsec = MsgGPSTimeDepA(sbp_msg).ns
+    elif sbp_msg.msg_type == SBP_MSG_GPS_TIME:
+      time_msg = MsgGPSTime(sbp_msg)
+      if time_msg.flags != 0:
+        self.week = time_msg.week
+        self.nsec = time_msg.nsec
 
   def __init__(self, link, dirname=''):
     super(SolutionView, self).__init__()

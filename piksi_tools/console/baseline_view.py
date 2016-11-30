@@ -158,8 +158,14 @@ class BaselineView(HasTraits):
     self._table_list = self.table.items()
 
   def gps_time_callback(self, sbp_msg, **metadata):
-    self.week = MsgGPSTimeDepA(sbp_msg).wn
-    self.nsec = MsgGPSTimeDepA(sbp_msg).ns
+    if sbp_msg.msg_type == SBP_MSG_GPS_TIME_DEP_A:
+      self.week = MsgGPSTimeDepA(sbp_msg).wn
+      self.nsec = MsgGPSTimeDepA(sbp_msg).ns
+    elif sbp_msg.msg_type == SBP_MSG_GPS_TIME:
+      time_msg = MsgGPSTime(sbp_msg)
+      if time_msg.flags != 0:
+        self.week = time_msg.week
+        self.nsec = time_msg.nsec
 
   def baseline_callback(self, sbp_msg):
     self.last_btime_update = time.time()

@@ -85,8 +85,9 @@ def get_mode(msg):
       mode = 4
     elif mode == 2:
       mode = 3
-  else:
-    print "called get_mode with unsupported message type"
+  elif msg.msg_type not in [SBP_MSG_BASELINE_NED_DEP_A, SBP_MSG_POS_LLH_DEP_A, 
+                            SBP_MSG_POS_LLH, SBP_MSG_BASELINE_NED] :
+    print "called get_mode with unsupported message type: {0}".format(msg.msg_type)
   return mode
 
 class MultilineTextEditor(TextEditor):
