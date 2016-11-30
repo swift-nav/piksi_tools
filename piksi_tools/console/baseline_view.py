@@ -245,7 +245,8 @@ class BaselineView(HasTraits):
     
     table.append(('Flags', '0x%02x' % soln.flags))
     table.append(('Mode', mode_dict[self.last_mode]))
-        
+    self.table = table
+  
     # Rotate array, deleting oldest entries to maintain
     # no more than N in plot
     self.n[1:] = self.n[:-1]
@@ -303,15 +304,19 @@ class BaselineView(HasTraits):
     self.plot_data.set_data('ref_e', [0.0])
     self.plot_data.set_data('ref_d', [0.0])
 
-    if self.position_centered:
+
+    if self.zoomall:
+      plot_square_axes(self.plot, ('e_fixed', 'e_float', 'e_dgnss'), 
+                        ('n_fixed', 'n_float', 'n_dgnss'))
+    
+    # make the zoomall win over the position centered button 
+    # position centered button has no effect when zoom all enabled  
+    
+    if not zelf.zoomall and self.position_centered:
       d = (self.plot.index_range.high - self.plot.index_range.low) / 2.
       self.plot.index_range.set_bounds(soln.e - d, soln.e + d)
       d = (self.plot.value_range.high - self.plot.value_range.low) / 2.
       self.plot.value_range.set_bounds(soln.n - d, soln.n + d)
-
-    if self.zoomall:
-      plot_square_axes(self.plot, ('e_fixed', 'e_float', 'e_dgnss'), ('n_fixed', 'n_float', 'n_dgnss'))
-    self.table = table
 
   def __init__(self, link, plot_history_max=1000, dirname=''):
     super(BaselineView, self).__init__()

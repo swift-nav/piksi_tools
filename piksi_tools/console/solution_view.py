@@ -248,6 +248,7 @@ class SolutionView(HasTraits):
 
     self.auto_survey()
 
+<<<<<<< HEAD
     # setup_plot variables
     self.lats[1:] = self.lats[:-1]
     self.lngs[1:] = self.lngs[:-1]
@@ -310,15 +311,16 @@ class SolutionView(HasTraits):
 
     # TODO: figure out how to center the graph now that we have two separate messages
     # when we selectively send only SPP, the centering function won't work anymore
-
-    if self.position_centered:
-      d = (self.plot.index_range.high - self.plot.index_range.low) / 2.
-      self.plot.index_range.set_bounds(soln.lon - d, soln.lon + d)
-      d = (self.plot.value_range.high - self.plot.value_range.low) / 2.
-      self.plot.value_range.set_bounds(soln.lat - d, soln.lat + d)
     if self.zoomall:
       plot_square_axes(self.plot, ('lng_spp', 'lng_dgnss', 'lng_float','lng_fixed'), 
                         ('lat_spp', 'lat_dgnss', 'lat_float','lat_fixed'))
+    # make the zoomall win over the position centered button 
+    # position centered button has no effect when zoom all enabled  
+    if not self.zoomall and self.position_centered:
+      d = (self.plot.index_range.high - self.plot.index_range.low) / 2.
+      self.plot.index_range.set_bounds(soln.lon - d, soln.lon + d)
+      d = (self.plot.value_range.high - self.plot.value_range.low) / 2.
+      self.plot.value_range.set_bounds(soln.lat - d, soln.lat + d)  
 
   def dops_callback(self, sbp_msg, **metadata):
     flags = 0
