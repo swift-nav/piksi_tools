@@ -213,9 +213,9 @@ class SwiftConsole(HasTraits):
   """
 
   mode = Str('') 
-  num_signals = Int(0)
+  num_sats = Int(0)
   port = Str('')
-  latency = Int()
+  latency = Str('')
   directory_name = Directory
   json_logging = Bool(True)
   csv_logging = Bool(False)
@@ -305,8 +305,8 @@ class SwiftConsole(HasTraits):
           Item('port', show_label=False, style = 'readonly'),
           Item('', label='FIX TYPE:', emphasized = True, tooltip='Piksi Mode: SPS, Float RTK, Fixed RTK'),
           Item('mode', show_label = False, style = 'readonly'),
-          Item('', label='#Signals:', emphasized=True, tooltip='Number of signals acquired by Piksi'),
-          Item('num_signals', padding=2, show_label=False, style = 'readonly'),
+          Item('', label='#Sats:', emphasized=True, tooltip='Number of satellites used in solution'),
+          Item('num_sats', padding=2, show_label=False, style = 'readonly'),
           Item('', label='Base Latency:', emphasized=True, tooltip='Corrections latency (-1 means no corrections)'),
           Item('latency', padding=2, show_label=False, style = 'readonly'),     
           Spring(springy=True),
@@ -392,7 +392,7 @@ class SwiftConsole(HasTraits):
     self.heartbeat_count += 1
      # First initialize the state to nothing, if we can't update, it will be none
     temp_mode = "None"
-    temp_num_signals = 0
+    temp_num_sats = 0
     view = None
     # If we have a recent baseline update, we use the baseline info
     if time.time() - self.baseline_view.last_btime_update < 10:
@@ -407,14 +407,14 @@ class SwiftConsole(HasTraits):
         temp_num_signals = view.last_soln.n_sats
     
     self.mode = temp_mode
-    self.num_signals = temp_num_signals
+    self.num_sats = temp_num_sats
 
     if self.settings_view: # for auto populating surveyed fields 
       self.settings_view.lat = self.solution_view.latitude
       self.settings_view.lon = self.solution_view.longitude
       self.settings_view.alt = self.solution_view.altitude
     if self.system_monitor_view:
-      self.latency = self.system_monitor_view.msg_obs_window_latency_ms
+      self.latency = "{0}ms".format(self.system_monitor_view.msg_obs_window_latency_ms)
 
   def _csv_logging_button_fired(self):
     if self.is_valid_directory:
@@ -476,10 +476,10 @@ class SwiftConsole(HasTraits):
     self.error = error
     self.port = port
     self.dev_id = str(os.path.split(port)[1])
-    self.num_signals = 0
+    self.num_sats = 0
     self.mode = ''
     self.forwarder = None
-    self.latency = -1
+    self.latency = ''
     # if we have passed a logfile, we set our directory to it
     override_filename = None
     swift_path = None
