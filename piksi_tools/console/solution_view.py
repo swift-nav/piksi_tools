@@ -189,6 +189,8 @@ class SolutionView(HasTraits):
 
     self.last_pos_mode = get_mode(soln)
     pos_table = []
+    soln.h_accuracy *= 1e-3
+    soln.v_accuracy *= 1e-3
 
     tow = soln.tow * 1e-3
     if self.nsec is not None:

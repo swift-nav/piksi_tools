@@ -206,7 +206,9 @@ class BaselineView(HasTraits):
                               'distance(meters),num_sats,flags,num_hypothesis\n')
         self.log_file.write('%s,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%d,%d,%d\n' % (
           str(t), #todo - better time format
-          soln.n, soln.e, soln.d, dist,
+          soln.n, soln.e, soln.d, 
+          soln.h_accuracy, soln.v_accuracy,
+          dist,
           soln.n_sats,
           soln.flags,
           self.num_hyps)
