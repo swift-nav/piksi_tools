@@ -72,7 +72,7 @@ def code_is_gps(code):
 
 
 def get_mode(msg):
-  mode = msg.flags
+  mode = msg.flags & 0x7
   if msg.msg_type is MsgBaselineNEDDepA:
     if mode == 1:
       mode = 4

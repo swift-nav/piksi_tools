@@ -276,7 +276,7 @@ class BaselineView(HasTraits):
       self.plot_data.set_data('cur_fixed_n', [])
       self.plot_data.set_data('cur_fixed_e', [])
       self.plot_data.set_data('cur_fixed_d', [])
-    else:
+    elif self.last_mode == DGNSS_MODE:
       self.plot_data.set_data('cur_dgnss_n', [soln.n])
       self.plot_data.set_data('cur_dgnss_e', [soln.e])
       self.plot_data.set_data('cur_dgnss_d', [soln.d])
