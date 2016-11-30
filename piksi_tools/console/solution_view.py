@@ -236,8 +236,9 @@ class SolutionView(HasTraits):
       pos_table.append(('h_accuracy', EMPTY_STR))
       pos_table.append(('v_accuracy', EMPTY_STR))
     else:
-      pos_table.append(('GPS Time', "{0}:{1:06.3f}".format(tstr, float(secs))))
-      pos_table.append(('GPS Week', str(self.week)))
+      if self.week is not None:
+        pos_table.append(('GPS Time', "{0}:{1:06.3f}".format(tstr, float(secs))))
+        pos_table.append(('GPS Week', str(self.week)))
       pos_table.append(('GPS TOW', "{:.3f}".format(tow)))
       pos_table.append(('Num. Sats', soln.n_sats))
       pos_table.append(('Lat', soln.lat))

@@ -234,8 +234,9 @@ class BaselineView(HasTraits):
       table.append(('Flags', EMPTY_STR))
       table.append(('Mode', EMPTY_STR))
     else:
-      table.append(('GPS Time', "{0}:{1:06.3f}".format(tstr, float(secs))))
-      table.append(('GPS Week', str(self.week)))
+      if self.week is not None:
+        table.append(('GPS Time', "{0}:{1:06.3f}".format(tstr, float(secs))))
+        table.append(('GPS Week', str(self.week)))
       table.append(('GPS TOW', "{:.3f}".format(tow)))
       table.append(('N', soln.n))
       table.append(('E', soln.e))
