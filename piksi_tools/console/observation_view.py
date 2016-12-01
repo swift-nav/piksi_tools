@@ -17,13 +17,13 @@ from enable.savage.trait_defs.ui.svg_button import SVGButton
 from piksi_tools.console.utils import determine_path,sopen
 from piksi_tools.console.utils import code_to_str, code_is_gps
 from piksi_tools.console.utils import L1CA
+from piksi_tools.console.utils import EMPTY_STR
 
 import os
 import datetime
 import copy
 
 from sbp.observation import *
-
 
 class SimpleAdapter(TabularAdapter):
     columns = [('PRN', 0),
@@ -36,18 +36,15 @@ class SimpleAdapter(TabularAdapter):
                ('Flags', 7)]
     font='courier'
     alignment='center'
-    object_1_format = Str("%11.2f")
-    object_2_format = Str("%13.2f")
-    object_3_format = Str("%2.1f")
-    object_4_format = Str("%9.2f")
-    object_5_format = Str("%5d")
-    object_5_format = Str("%5d")
 
 class ObservationView(HasTraits):
   python_console_cmds = Dict()
 
   _obs_table_list = List()
   obs = Dict()
+  old_cp = Dict()
+  new_cp = Dict()
+  old_tow = Float()
   gps_tow = Float()
   obs_count = Int()
   gps_week = Int()
@@ -108,8 +105,8 @@ class ObservationView(HasTraits):
       self.gps_week = wn
       self.prev_obs_total = total
       self.prev_obs_count = 0
-      self.old_obs = copy.deepcopy(self.obs)
-      self.obs = {}
+      self.old_cp = self.new_cp
+      self.new_cp = {}
     elif self.gps_tow != tow or\
          self.gps_week != wn or\
          self.prev_obs_count + 1 != count or\
@@ -127,35 +124,83 @@ class ObservationView(HasTraits):
       prn = o.sid.sat
       flags = 0
       msdopp = 0
+
       # Old PRN values had to add one for GPS
       if (code_is_gps(o.sid.code)
-            and sbp_msg.msg_type in [SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C, SBP_MSG_OBS_DEP_A]):
+            and sbp_msg.msg_type in [SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C]):
         prn += 1
+
       prn = '{} ({})'.format(prn, code_to_str(o.sid.code))
+
       # DEP_B and DEP_A obs had different pseudorange scaling
-      if sbp_msg.msg_type in [SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_A] :
+      if sbp_msg.msg_type in [SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B] :
         divisor = 1e2
       else:
         divisor = 5e1
-      if sbp_msg.msg_type not in [SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C, SBP_MSG_OBS_DEP_A]:
+
+      if sbp_msg.msg_type not in [SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C]:
         flags = o.flags
         msdopp = float(o.D.i) + float(o.D.f) / (1 << 8)
         self.gps_tow += sbp_msg.header.t.ns * 1e-9
 
-      # compute time difference of carrier phase for display, only if carrier phase is valid
       try:
-        ocp = self.old_obs[prn][1]
+        ocp = self.old_cp[prn]
       except:
         ocp = 0
+
       cp = float(o.L.i) + float(o.L.f) / (1 << 8)
-      if ocp != 0 and (flags & 0x3) == 0x3:
-        cf = (cp - ocp) / float(self.gps_tow - self.old_tow)
+
+      # Compute time difference of carrier phase for display, but only if carrier phase is valid
+      if ocp != 0 and ((sbp_msg.msg_type in [SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C]) or (flags & 0x3) == 0x3):
+        # Doppler per RINEX has opposite sign direction to carrier phase
+        cpdopp = (ocp - cp) / float(self.gps_tow - self.old_tow)
+
+        # Older messages had flipped sign carrier phase values
+        if sbp_msg.msg_type in [SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B]:
+          cpdopp = -cpdopp
       else:
-        cf = 0
-      self.obs[prn] = (float(o.P) / divisor,
-                       float(o.L.i) + float(o.L.f) / (1 << 8),
-                       float(o.cn0) / 4,
-                       msdopp, cf, o.lock, "0x{:04X}".format(flags))
+        cpdopp = 0
+
+      # Save carrier phase value, but only if value is valid
+      if (sbp_msg.msg_type in [SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C]) or (flags & 0x3) == 0x3:
+        self.new_cp[prn] = cp
+
+      flags_str = "0x{:04X} = ".format(flags)
+
+      # Add some indicators to help understand the flags values
+      # Bit 0 is Pseudorange valid
+      if (flags & 0x01):
+        flags_str += "PR "
+      # Bit 1 is Carrier phase valid
+      if (flags & 0x02):
+        flags_str += "CP "
+      # Bit 2 is Half-cycle ambiguity
+      if (flags & 0x04):
+        flags_str += "1/2C "
+      # Bit 3 is Measured Doppler Valid
+      if (flags & 0x08):
+        flags_str += "MD "
+
+      pr_str = "{:11.2f}".format(float(o.P) / divisor)
+      cp_str = "{:13.2f}".format(cp)
+      cn0_str = "{:2.1f}".format(float(o.cn0) / 4)
+      msdopp_str = "{:9.2f}".format(msdopp)
+      cpdopp_str = "{:9.2f}".format(cpdopp)
+      lock_str = "{:5d}".format(o.lock)
+
+      # Sets invalid values to zero
+      if sbp_msg.msg_type not in [SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C]:
+        if not (flags & 0x01):
+          pr_str = EMPTY_STR
+        if not (flags & 0x02):
+          cp_str = EMPTY_STR
+        if not (flags & 0x08):
+          msdopp_str = EMPTY_STR
+      if (cpdopp == 0):
+        cpdopp_str = EMPTY_STR
+
+      self.obs[prn] = (pr_str, cp_str, cn0_str, msdopp_str, cpdopp_str, lock_str, flags_str)
+
     if (count == total - 1):
       self.t = datetime.datetime(1980, 1, 6) + \
                datetime.timedelta(weeks=self.gps_week) + \
@@ -164,7 +209,6 @@ class ObservationView(HasTraits):
       self.update_obs()
 
     return
-
 
   def __init__(self, link, name='Local', relay=False, dirname=None):
     super(ObservationView, self).__init__()
@@ -178,5 +222,8 @@ class ObservationView(HasTraits):
     self.eph_file = None
     self.link = link
     self.link.add_callback(self.obs_packed_callback,
-                           [SBP_MSG_OBS, SBP_MSG_OBS_DEP_C, SBP_MSG_OBS_DEP_B])
+                           [SBP_MSG_OBS,
+                            SBP_MSG_OBS_DEP_A,
+                            SBP_MSG_OBS_DEP_B,
+                            SBP_MSG_OBS_DEP_C])
     self.python_console_cmds = {'obs': self}
