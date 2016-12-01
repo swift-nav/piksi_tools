@@ -80,6 +80,8 @@ def get_args():
                       If TCP is selected, the port is interpreted as host:port")
   parser.add_argument('--error', action='store_true',
                       help="Do not swallow exceptions.")
+  parser.add_argument('--log-console', action='store_true',
+                      help="Log console stdout/err to file.")
   return parser.parse_args()
 
 args = get_args()
@@ -97,7 +99,7 @@ import logging
 logging.basicConfig()
 from piksi_tools.console.output_list import OutputList, LogItem, str_to_log_level, \
   SYSLOG_LEVELS, DEFAULT_LOG_LEVEL_FILTER
-from piksi_tools.console.utils import determine_path, get_mode, mode_dict
+from piksi_tools.console.utils import determine_path, get_mode, mode_dict, EMPTY_STR
 from piksi_tools.console.deprecated import DeprecatedMessageHandler
 
 # When bundled with pyInstaller, PythonLexer can't be found. The problem is
@@ -403,7 +405,7 @@ class SwiftConsole(HasTraits):
     if view:
       if view.last_soln:
         # if all is well we update state
-        temp_mode = mode_dict.get(get_mode(view.last_soln), 'None')
+        temp_mode = mode_dict.get(get_mode(view.last_soln), EMPTY_STR)
         temp_num_sats = view.last_soln.n_sats
     
     self.mode = temp_mode
@@ -414,7 +416,11 @@ class SwiftConsole(HasTraits):
       self.settings_view.lon = self.solution_view.longitude
       self.settings_view.alt = self.solution_view.altitude
     if self.system_monitor_view:
-      self.latency = "{0}ms".format(self.system_monitor_view.msg_obs_window_latency_ms)
+      if self.system_monitor_view.msg_obs_window_latency_ms != -1:
+        self.latency = "{0} ms".format(self.system_monitor_view.msg_obs_window_latency_ms)
+      else:
+        self.latency = EMPTY_STR
+
 
   def _csv_logging_button_fired(self):
     if self.is_valid_directory:
@@ -472,14 +478,14 @@ class SwiftConsole(HasTraits):
     self.console_output.close() 
   
   def __init__(self, link, update, log_level_filter, skip_settings=False, error=False, 
-               port=None, json_logging=False, log_dirname=None):
+               port=None, json_logging=False, log_dirname=None, log_console=False):
     self.error = error
     self.port = port
     self.dev_id = str(os.path.split(port)[1])
     self.num_sats = 0
     self.mode = ''
     self.forwarder = None
-    self.latency = ''
+    self.latency = '--'
     # if we have passed a logfile, we set our directory to it
     override_filename = None
     swift_path = None
@@ -497,7 +503,7 @@ class SwiftConsole(HasTraits):
       self.directory_name = swift_path
     
     # Start swallowing sys.stdout and sys.stderr
-    self.console_output = OutputList(tfile=True, outdir=self.directory_name)
+    self.console_output = OutputList(tfile=log_console, outdir=self.directory_name)
     sys.stdout = self.console_output
     self.console_output.write("Console: starting...")
     if not error:
@@ -631,7 +637,7 @@ with selected_driver as driver:
       log_filter = args.initloglevel[0]
     
     with SwiftConsole(link, args.update, log_filter, port=port, error=args.error, 
-                 json_logging=args.log, log_dirname=args.log_dirname[0]) as console: 
+                 json_logging=args.log, log_dirname=args.log_dirname[0], log_console=args.log_console) as console: 
       console.configure_traits()
 
 # Force exit, even if threads haven't joined
