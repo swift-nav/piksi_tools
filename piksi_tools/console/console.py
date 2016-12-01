@@ -404,7 +404,7 @@ class SwiftConsole(HasTraits):
       if view.last_soln:
         # if all is well we update state
         temp_mode = mode_dict.get(get_mode(view.last_soln), 'None')
-        temp_num_signals = view.last_soln.n_sats
+        temp_num_sats = view.last_soln.n_sats
     
     self.mode = temp_mode
     self.num_sats = temp_num_sats
