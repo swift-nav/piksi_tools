@@ -23,7 +23,7 @@ L2CM = 'L2CM'
 L1P = 'L1P'
 L2P = 'L2P'
 CODE_NOT_AVAILABLE = 'N/A'
-EMPTY_STR = '---'
+EMPTY_STR = '--'
 
 FIXED_MODE  = 4
 FLOAT_MODE  = 3
@@ -45,6 +45,8 @@ color_dict = {
  FLOAT_MODE: (0.75, 0, 0.75),
  FIXED_MODE: 'orange'}
 
+L1_CODES = [0,2,3]
+L2_CODES = [1,4]
 
 def code_to_str(code):
   if code == 0:
