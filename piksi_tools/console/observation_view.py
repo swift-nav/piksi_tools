@@ -55,18 +55,6 @@ class ObservationView(HasTraits):
   l2_count = Int()
   name = Str('Local')
 
-  recording = Bool(False)
-
-  record_button = SVGButton(
-    label='Record', tooltip='Record Raw Observations',
-    toggle_tooltip='Stop Recording', toggle=True,
-    filename=os.path.join(determine_path(),
-                          'images', 'fontawesome', 'floppy-o.svg'),
-    toggle_filename=os.path.join(determine_path(),
-                                 'images', 'fontawesome', 'stop.svg'),
-    width=16, height=16
-  )
-
   def trait_view(self, view):
     return View(
       VGroup(
@@ -86,70 +74,11 @@ class ObservationView(HasTraits):
         HGroup(
           Item('_obs_table_list', style='readonly',
                editor=TabularEditor(adapter=SimpleAdapter()), show_label=False),
-          VGroup(
-            Item('record_button', show_label=False, visible_when='False'),
-          ),
           label=self.name,
           show_border=True
         )
       )
     )
-
-  def _record_button_fired(self):
-    self.recording = not self.recording
-    if not self.recording:
-      if self.rinex_file is not None:
-        self.rinex_file.close()
-      self.rinex_file = None
-
-  def rinex_save(self):
-    if self.recording:
-      if self.rinex_file is None:
-        # If the file is being opened for the first time, write the RINEX header
-        self.rinex_file = sopen(os.path.join(self.dirname, self.name + self.t.strftime(
-                               "-%Y%m%d-%H%M%S.obs")), 'w')
-        header = '     ' +\
-"""2.11           OBSERVATION DATA    G (GPS)             RINEX VERSION / TYPE
-pyNEX                                   %s UTC PGM / RUN BY / DATE
-                                                            MARKER NAME
-                                                            OBSERVER / AGENCY
-                                                            REC # / TYPE / VERS
-                                                            ANT # / TYPE
-   808673.9171 -4086658.5368  4115497.9775                  APPROX POSITION XYZ
-        0.0000        0.0000        0.0000                  ANTENNA: DELTA H/E/N
-     1     0                                                WAVELENGTH FACT L1/2
-     3    C1    L1    S1                                    # / TYPES OF OBSERV
-%s%13.7f     GPS         TIME OF FIRST OBS
-                                                            END OF HEADER
-""" % (
-            datetime.datetime.utcnow().strftime("%Y%m%d %H%M%S"),
-            self.t.strftime("  %Y    %m    %d    %H    %M"),
-                            self.t.second + self.t.microsecond * 1e-6)
-        self.rinex_file.write(header)
-
-      # L1CA only
-      copy_prns = prns = [s for s in self.obs.iterkeys() if L1CA in s]
-      self.rinex_file.write("%s %10.7f  0 %2d" %
-                            (self.t.strftime(" %y %m %d %H %M"),
-                             self.t.second + self.t.microsecond * 1e-6,
-                             len(prns)))
-
-      while len(copy_prns) > 0:
-        prns_ = copy_prns[:12]
-        copy_prns = copy_prns[12:]
-        for prn in prns_:
-          # take only the leading prn number
-          self.rinex_file.write('G%2d' % (int(prn.split()[0])))
-        self.rinex_file.write('   ' * (12 - len(prns_)))
-        self.rinex_file.write('\n')
-
-      for prn in prns:
-        # G    3 C1C L1C D1C
-        self.rinex_file.write("%14.3f  " % self.obs[prn][0])
-        self.rinex_file.write("%14.3f  " % self.obs[prn][1])
-        self.rinex_file.write("%14.3f  \n" % self.obs[prn][2])
-
-      self.rinex_file.flush()
 
   def update_obs(self):
     self._obs_table_list =\
@@ -199,7 +128,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
       flags = 0
       msdopp = 0
       # Old PRN values had to add one for GPS
-      if (code_is_gps(o.sid.code) 
+      if (code_is_gps(o.sid.code)
             and sbp_msg.msg_type in [SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C, SBP_MSG_OBS_DEP_A]):
         prn += 1
       prn = '{} ({})'.format(prn, code_to_str(o.sid.code))
@@ -212,7 +141,7 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
         flags = o.flags
         msdopp = float(o.D.i) + float(o.D.f) / (1 << 8)
         self.gps_tow += sbp_msg.header.t.ns * 1e-9
-      
+
       # compute time difference of carrier phase for display, only if carrier phase is valid
       try:
         ocp = self.old_obs[prn][1]
@@ -233,45 +162,9 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
                datetime.timedelta(seconds=self.gps_tow)
 
       self.update_obs()
-      self.rinex_save()
 
     return
-  
 
-  # Epmeris callback is here only as reminder that we need to store 
-  # ephemerides to make RINEX useful for customers
-  def ephemeris_callback(self, m, **metadata):
-    prn = m.common.sid.sat
-    if code_is_gps(m.common.sid.code):
-      prn += 1
-    if self.recording:
-      if self.eph_file is None:
-        self.eph_file = sopen(os.path.join(self.dirname, self.name + self.t.strftime("-%Y%m%d-%H%M%S.eph")),
-                             'w')
-        header = "time, " \
-               + "tgd, " \
-               + "crs, crc, cuc, cus, cic, cis, " \
-               + "dn, m0, ecc, sqrta, omega0, omegadot, w, inc, inc_dot, " \
-               + "af0, af1, af2, " \
-               + "toe_tow, toe_wn, toc_tow, toc_wn, " \
-               + "valid, " \
-               + "healthy, " \
-               + "prn\n"
-        self.eph_file.write(header)
-
-      strout = "%s %10.7f" % (self.t.strftime(" %y %m %d %H %M"),
-                              self.t.second + self.t.microsecond * 1e-6)
-      strout += "," + str([m.tgd,
-                           m.c_rs, m.c_rc, m.c_uc, m.c_us, m.c_ic, m.c_is,
-                           m.dn, m.m0, m.ecc, m.sqrta, m.omega0, m.omegadot,
-                           m.w, m.inc, m.inc_dot,
-                           m.af0, m.af1, m.af2,
-                           m.common.toe.tow, m.common.toe.wn, m.toc.tow, m.toc.wn,
-                           m.common.valid,
-                           m.common.health_bits,
-                           prn])[1: -1] + "\n"
-      self.eph_file.write(strout)
-      self.eph_file.flush()
 
   def __init__(self, link, name='Local', relay=False, dirname=None):
     super(ObservationView, self).__init__()
@@ -286,5 +179,4 @@ pyNEX                                   %s UTC PGM / RUN BY / DATE
     self.link = link
     self.link.add_callback(self.obs_packed_callback,
                            [SBP_MSG_OBS, SBP_MSG_OBS_DEP_C, SBP_MSG_OBS_DEP_B])
-    self.link.add_callback(self.ephemeris_callback, SBP_MSG_EPHEMERIS_GPS)
     self.python_console_cmds = {'obs': self}
