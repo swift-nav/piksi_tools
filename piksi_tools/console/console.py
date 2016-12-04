@@ -211,12 +211,12 @@ class SwiftConsole(HasTraits):
   port : which port is Piksi connected to
   directory_name : location of logged files
   json_logging : enable JSON logging
-  csv_logging : enable CSV logging 
+  csv_logging : enable CSV logging
   is_valid_directory : check to see if chosen directory is valid
 
   """
 
-  mode = Str('') 
+  mode = Str('')
   num_sats = Int(0)
   port = Str('')
   latency = Str('')
@@ -232,14 +232,14 @@ class SwiftConsole(HasTraits):
 
 
   csv_logging_button = SVGButton(
-   toggle=True, label='CSV log', tooltip='start CSV logging', toggle_tooltip='stop CSV logging', 
+   toggle=True, label='CSV log', tooltip='start CSV logging', toggle_tooltip='stop CSV logging',
    filename=os.path.join(determine_path(), 'images', 'iconic', 'pause.svg'),
    toggle_filename=os.path.join(determine_path(), 'images', 'iconic', 'play.svg'),
    orientation = 'vertical',
    width=2, height=2,
   )
   json_logging_button = SVGButton(
-   toggle=True, label='JSON log', tooltip='start JSON logging', toggle_tooltip='stop JSON logging', 
+   toggle=True, label='JSON log', tooltip='start JSON logging', toggle_tooltip='stop JSON logging',
    filename=os.path.join(determine_path(), 'images', 'iconic', 'pause.svg'),
    toggle_filename=os.path.join(determine_path(), 'images', 'iconic', 'play.svg'),
    orientation = 'vertical',
@@ -290,11 +290,11 @@ class SwiftConsole(HasTraits):
             Item('', label='Console Log', emphasized=True),
             Item('csv_logging_button', emphasized=True, show_label=False, width=12, height=-30, padding=0),
             Item('json_logging_button', emphasized=True, show_label=False, width=12, height=-30, padding=0),
-            Item('directory_name', show_label=False, springy=True, tooltip='Choose location for file logs. Default is home/SwiftNav.', 
+            Item('directory_name', show_label=False, springy=True, tooltip='Choose location for file logs. Default is home/SwiftNav.',
               height=-25, enabled_when='not(json_logging or csv_logging)'),
             UItem('log_level_filter', style='simple', padding=0, height=8, show_label=True,
                 tooltip='Show log levels up to and including the selected level of severity.\nThe CONSOLE log level is always visible.'),
-        ),       
+        ),
         Item(
           'console_output',
           style='custom',
@@ -313,10 +313,10 @@ class SwiftConsole(HasTraits):
           Item('', label='#Sats:', emphasized=True, tooltip='Number of satellites used in solution'),
           Item('num_sats', padding=2, show_label=False, style = 'readonly'),
           Item('', label='Base Latency:', emphasized=True, tooltip='Corrections latency (-1 means no corrections)'),
-          Item('latency', padding=2, show_label=False, style = 'readonly'),     
+          Item('latency', padding=2, show_label=False, style = 'readonly'),
           Spring(springy=True),
           Item('cnx_icon', show_label = False, padding=0, width=8, height=8, visible_when='solid_connection',
-               springy=False, editor=ImageEditor(allow_clipping=False, image = ImageResource( 'arrows_blue.png', 
+               springy=False, editor=ImageEditor(allow_clipping=False, image = ImageResource( 'arrows_blue.png',
                                                 search_path=[os.path.join(determine_path(), 'images', 'iconic')]))),
           Item('cnx_icon', show_label = False, padding=0, width=8, height=8, visible_when='not solid_connection',
                springy=False, editor=ImageEditor(allow_clipping=False, image = ImageResource( 'arrows_grey.png',
@@ -334,7 +334,7 @@ class SwiftConsole(HasTraits):
     title=CONSOLE_TITLE
   )
 
-  
+
   def print_message_callback(self, sbp_msg, **metadata):
     try:
       encoded = sbp_msg.payload.encode('ascii', 'ignore')
@@ -384,7 +384,7 @@ class SwiftConsole(HasTraits):
     else:
       print "Please enter a valid directory!"
       self.is_valid_directory = False
-  
+
   def check_heartbeat(self):
     # if our heartbeat hasn't changed since the last timer interval the connection must have dropped
     if self.heartbeat_count == self.last_timer_heartbeat:
@@ -392,7 +392,7 @@ class SwiftConsole(HasTraits):
     else:
       self.solid_connection = True
     self.last_timer_heartbeat = self.heartbeat_count
-      
+
   def update_on_heartbeat(self, sbp_msg, **metadata):
     self.heartbeat_count += 1
      # First initialize the state to nothing, if we can't update, it will be none
@@ -410,11 +410,11 @@ class SwiftConsole(HasTraits):
         # if all is well we update state
         temp_mode = mode_dict.get(get_mode(view.last_soln), EMPTY_STR)
         temp_num_sats = view.last_soln.n_sats
-    
+
     self.mode = temp_mode
     self.num_sats = temp_num_sats
 
-    if self.settings_view: # for auto populating surveyed fields 
+    if self.settings_view: # for auto populating surveyed fields
       self.settings_view.lat = self.solution_view.latitude
       self.settings_view.lon = self.solution_view.longitude
       self.settings_view.alt = self.solution_view.altitude
@@ -434,7 +434,7 @@ class SwiftConsole(HasTraits):
         self.solution_view.logging_p = False
         self.solution_view.logging_v = False
 
-      else: 
+      else:
         print "Started CSV logging at %s" % self.directory_name
         self.csv_logging = True
         self.baseline_view.logging_b = True
@@ -442,7 +442,7 @@ class SwiftConsole(HasTraits):
         self.solution_view.logging_v = True
     else:
       print "Directory not valid"
-      
+
   def _start_json_logging(self, override_filename=None):
     if override_filename:
       filename = override_filename
@@ -471,16 +471,16 @@ class SwiftConsole(HasTraits):
         self._start_json_logging()
         self.json_logging = True
       self.first_json_press = False
-    else: 
+    else:
       print "Directory not valid"
 
   def __enter__(self):
     return self
-  
+
   def __exit__(self, exc_type, exc_value, traceback):
-    self.console_output.close() 
-  
-  def __init__(self, link, update, log_level_filter, skip_settings=False, error=False, 
+    self.console_output.close()
+
+  def __init__(self, link, update, log_level_filter, skip_settings=False, error=False,
                port=None, json_logging=False, log_dirname=None, log_console=False):
     self.error = error
     self.port = port
@@ -494,7 +494,7 @@ class SwiftConsole(HasTraits):
     swift_path = None
     home = expanduser("~")
     swift_path = os.path.normpath(os.path.join(home, 'SwiftNav'))
-    try: 
+    try:
       os.makedirs(swift_path)
     except OSError:
       if not os.path.isdir(swift_path):
@@ -504,7 +504,7 @@ class SwiftConsole(HasTraits):
         self.directory_name = log_dirname
     else:
       self.directory_name = swift_path
-    
+
     # Start swallowing sys.stdout and sys.stderr
     self.console_output = OutputList(tfile=log_console, outdir=self.directory_name)
     sys.stdout = self.console_output
@@ -539,7 +539,7 @@ class SwiftConsole(HasTraits):
         self._start_json_logging(override_filename)
         self.json_logging = True
       # we set timer interval to 1200 milliseconds because we expect a heartbeat each second
-      self.timer = Timer(1.2, self.check_heartbeat).start() 
+      self.timer = Timer(1.2, self.check_heartbeat).start()
       # Once we have received the settings, update device_serial with
       # the Piksi serial number which will be displayed in the window
       # title. This callback will also update the header route as used
@@ -593,8 +593,8 @@ class PortChooser(HasTraits):
       VGroup(
         Item(" ", height=-8),
         Label('Baudrate:'),
-        Item('baudrate', editor=EnumEditor(values=BAUD_LIST), show_label=False, visible_when='choose_baud'), 
-        Item('baudrate', show_label=False, visible_when='not choose_baud', style='readonly'), 
+        Item('baudrate', editor=EnumEditor(values=BAUD_LIST), show_label=False, visible_when='choose_baud'),
+        Item('baudrate', show_label=False, visible_when='not choose_baud', style='readonly'),
       ),
     ),
     buttons = ['OK', 'Cancel'],
@@ -640,9 +640,9 @@ with selected_driver as driver:
     log_filter = DEFAULT_LOG_LEVEL_FILTER
     if args.initloglevel[0]:
       log_filter = args.initloglevel[0]
-    
-    with SwiftConsole(link, args.update, log_filter, port=port, error=args.error, 
-                 json_logging=args.log, log_dirname=args.log_dirname[0], log_console=args.log_console) as console: 
+
+    with SwiftConsole(link, args.update, log_filter, port=port, error=args.error,
+                 json_logging=args.log, log_dirname=args.log_dirname[0], log_console=args.log_console) as console:
       console.configure_traits()
 
 # Force exit, even if threads haven't joined
