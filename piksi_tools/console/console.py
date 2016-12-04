@@ -135,6 +135,7 @@ from piksi_tools.console.sbp_relay_view import SbpRelayView
 from piksi_tools.console.system_monitor_view import SystemMonitorView
 from piksi_tools.console.settings_view import SettingsView
 from piksi_tools.console.update_view import UpdateView
+from piksi_tools.console.imu_view import IMUView
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 
 
@@ -200,6 +201,7 @@ class SwiftConsole(HasTraits):
   system_monitor_view = Instance(SystemMonitorView)
   settings_view = Instance(SettingsView)
   update_view = Instance(UpdateView)
+  imu_view = Instance(IMUView)
   log_level_filter = Enum(list(SYSLOG_LEVELS.itervalues()))
 
 
@@ -270,6 +272,7 @@ class SwiftConsole(HasTraits):
         Item('update_view', style='custom', label='Firmware Update'),
         Tabbed(
           Item('system_monitor_view', style='custom', label='System Monitor'),
+          Item('imu_view', style='custom', label='IMU'),
           Item('networking_view', label='Networking', style='custom', show_label=False),
           Item('python_console_env', style='custom',
             label='Python Console', editor=ShellEditor()),
@@ -526,6 +529,7 @@ class SwiftConsole(HasTraits):
       self.observation_view_base = ObservationView(self.link, name='Remote', relay=True, dirname=self.directory_name)
       self.system_monitor_view = SystemMonitorView(self.link)
       self.update_view = UpdateView(self.link, prompt=update)
+      self.imu_view = IMUView(self.link)
       settings_read_finished_functions.append(self.update_view.compare_versions)
       self.networking_view = SbpRelayView(self.link)
       self.json_logging = json_logging
@@ -559,6 +563,7 @@ class SwiftConsole(HasTraits):
       self.python_console_env.update(self.networking_view.python_console_cmds)
       self.python_console_env.update(self.system_monitor_view.python_console_cmds)
       self.python_console_env.update(self.update_view.python_console_cmds)
+      self.python_console_env.update(self.imu_view.python_console_cmds)
       self.python_console_env.update(self.settings_view.python_console_cmds)
 
     except:
