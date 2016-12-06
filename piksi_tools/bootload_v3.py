@@ -61,8 +61,8 @@ def shell_command(link, cmd, timeout=None):
     if msg.sequence == seq:
       ret['code'] = msg.code
       ev.set()
-  link.add_callback(resp_handler, SBP_MSG_SHELL_COMMAND_RESP)
-  link(MsgShellCommandReq(sequence=seq, command=cmd))
+  link.add_callback(resp_handler, SBP_MSG_COMMAND_RESP)
+  link(MsgCommandReq(sequence=seq, command=cmd))
   ev.wait(timeout)
   return ret['code']
 
