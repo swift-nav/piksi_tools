@@ -68,7 +68,7 @@ class TrackingView(HasTraits):
              Spring(width=8, springy=False),  
              Item('show_l1', label = "Show L1:"),
              Spring(width=8, springy=False), 
-             Item('show_l2', label = "show L2:")),
+             Item('show_l2', label = "Show L2:")),
     )
   )
 
