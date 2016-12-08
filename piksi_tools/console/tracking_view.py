@@ -45,7 +45,14 @@ color_dict = {'(0, 1)': 0xe58a8a, '(0, 2)': 0x664949, '(0, 3)': 0x590c00,
 }
 
 
-
+def get_color(key):
+  color = 0xff0000
+  try:
+   key = str((key[0], key[1]%32))
+   color = color_dict.get(key, 0xff0000)
+  except:
+   pass
+  return color
 
 class TrackingView(HasTraits):
   python_console_cmds = Dict()
@@ -112,14 +119,17 @@ class TrackingView(HasTraits):
     # Remove any stale plots that got removed from the dictionary
     for each in self.plot_data.list_data():
       if each not in self.CN0_dict.items() and each != 't':
-        self.plot_data.del_data(str(each))
-        self.plot.delplot(str(each))
+        try:
+          self.plot_data.del_data(str(each))
+          self.plot.delplot(str(each))
+        except KeyError:
+          pass
     for key, cno_array in self.CN0_dict.items():
       # set plot data and create plot for any selected for display
       if ((self.show_l2 and key[0] in L2_CODES) or
           (self.show_l1 and key[0] in L1_CODES)):
           self.plot_data.set_data(str(key), cno_array)
-          pl = self.plot.plot(('t', str(key)), type='line', color=color_dict[str((key[0],key[1]))],
+          pl = self.plot.plot(('t', str(key)), type='line', color=get_color(key),
                               name=str(key))
           # if channel is still active:
           if cno_array[-1] != 0:
