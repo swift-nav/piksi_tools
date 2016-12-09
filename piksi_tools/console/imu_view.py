@@ -14,7 +14,7 @@ from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
 from pyface.api import GUI
-from sbp.imu import SBP_MSG_IMU_RAW
+from sbp.imu import SBP_MSG_IMU_RAW, SBP_MSG_IMU_AUX
 from traits.api import Instance, Dict, HasTraits, Float, List, Int, Bool
 from traitsui.api import Item, View, HSplit, VGroup, HGroup
 import numpy as np
@@ -38,6 +38,11 @@ class IMUView(HasTraits):
   python_console_cmds = Dict()
   plot = Instance(Plot)
   plot_data = Instance(ArrayPlotData)
+  imu_temp = Float(0)
+  imu_conf = Int(0)
+  rms_acc_x = Float(0)
+  rms_acc_y = Float(0)
+  rms_acc_z = Float(0)
 
   traits_view = View(
     VGroup(
@@ -45,9 +50,23 @@ class IMUView(HasTraits):
         'plot',
         editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8)),
         show_label=False,
-      )
+      ),
+      HGroup(
+        Item('imu_temp', format_str='%.2f C'),
+        Item('imu_conf', format_str='0x%02X'),
+        Item('rms_acc_x', format_str='%.2f g'),
+        Item('rms_acc_y', format_str='%.2f g'),
+        Item('rms_acc_z', format_str='%.2f g'),
+      ),
     )
   )
+
+  def imu_aux_callback(self, sbp_msg, **metadata):
+      if sbp_msg.imu_type == 0:
+          self.imu_temp = 23 + sbp_msg.temp / 2.**9
+          self.imu_conf = sbp_msg.imu_conf
+      else:
+          print "IMU type %d not known" % sbp_msg.imu_type
 
   def imu_raw_callback(self, sbp_msg, **metadata):
       self.acc[:-1,:] = self.acc[1:,:]
@@ -60,6 +79,13 @@ class IMUView(HasTraits):
       self.plot_data.set_data('gyr_x', self.gyro[:,0])
       self.plot_data.set_data('gyr_y', self.gyro[:,1])
       self.plot_data.set_data('gyr_z', self.gyro[:,2])
+
+      if self.imu_conf is not None:
+          acc_range = self.imu_conf & 0xF
+          sf = 2.**(acc_range + 1) / 2.**15
+          self.rms_acc_x = sf * np.sqrt(np.mean(np.square(self.acc[:,0])))
+          self.rms_acc_y = sf * np.sqrt(np.mean(np.square(self.acc[:,1])))
+          self.rms_acc_z = sf * np.sqrt(np.mean(np.square(self.acc[:,2])))
 
   def __init__(self, link):
     super(IMUView, self).__init__()
@@ -106,6 +132,7 @@ class IMUView(HasTraits):
 
     self.link = link
     self.link.add_callback(self.imu_raw_callback, SBP_MSG_IMU_RAW)
+    self.link.add_callback(self.imu_aux_callback, SBP_MSG_IMU_AUX)
     self.python_console_cmds = {
       'track': self
     }
