@@ -107,6 +107,7 @@ class ObservationView(HasTraits):
       self.prev_obs_count = 0
       self.old_cp = self.new_cp
       self.new_cp = {}
+      self.obs = {}
     elif self.gps_tow != tow or\
          self.gps_week != wn or\
          self.prev_obs_count + 1 != count or\
