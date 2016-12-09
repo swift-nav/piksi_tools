@@ -20,6 +20,7 @@ endif
 
 console: $(spec_file)
 	make clean
+	echo $(UNAME)
 	pyinstaller --clean --log-level=WARN --paths=$(piksi_tools_directory) --debug $(PLAT_ARGS) $(spec_file) -y
 	echo "Pyinstaller completed. Building platform installer."
 	make $(UNAME)
@@ -30,6 +31,9 @@ Cygwin:
 	makensis '-XOutfile piksi_console_v$(VERSION)_setup.exe' win_installer.nsi
 Darwin:
 	sudo ./create-dmg-installer.sh
+Linux:
+	tar cfvz piksi_console_v$(VERSION).tar.gz ./dist/console 
+	mv piksi_console_v$(VERSION).tar.gz ./dist/
 clean:
 	rm -rf build dist
 
