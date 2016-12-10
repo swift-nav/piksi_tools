@@ -448,6 +448,8 @@ class UpdateView(HasTraits):
     """
     # Check that settings received from Piksi contain FW versions.
     try:
+      if self.piksi_hw_rev !=self.settings['system_info']['hw_revision'].value:
+        self.get_latest_version_info()
       self.piksi_hw_rev = \
         self.settings['system_info']['hw_revision'].value
       self.piksi_stm_vers = \
@@ -485,7 +487,7 @@ class UpdateView(HasTraits):
             "Local Console Version :\n\t" + \
                 "v" + CONSOLE_VERSION + \
             "\nNewest Console Version :\n\t" + \
-                self.update_dl.index['piksi_v2.3.1']['console']['version'] + "\n"
+                self.update_dl.index[self.piksi_hw_rev]['console']['version'] + "\n"
 
         console_outdated_prompt.run()
 
@@ -516,9 +518,9 @@ class UpdateView(HasTraits):
             "New Piksi firmware available.\n\n" + \
             "Please use the Firmware Update tab to update.\n\n" + \
             "Newest STM Version :\n\t%s\n\n" % \
-                self.update_dl.index['piksi_v2.3.1']['stm_fw']['version'] + \
+                self.update_dl.index[self.piksi_hw_rev]['stm_fw']['version'] + \
             "Newest SwiftNAP Version :\n\t%s\n\n" % \
-                self.update_dl.index['piksi_v2.3.1']['nap_fw']['version']
+                self.update_dl.index[self.piksi_hw_rev]['nap_fw']['version']
 
         fw_update_prompt.run()
 
@@ -546,9 +548,12 @@ class UpdateView(HasTraits):
 
     # Make sure index contains all keys we are interested in.
     try:
-      self.newest_stm_vers = self.update_dl.index['piksi_v2.3.1']['stm_fw']['version']
-      self.newest_nap_vers = self.update_dl.index['piksi_v2.3.1']['nap_fw']['version']
-      self.newest_console_vers = self.update_dl.index['piksi_v2.3.1']['console']['version']
+      if self.update_dl.index[self.piksi_hw_rev].has_key('fw'):
+        self.newest_stm_vers = self.update_dl.index[self.piksi_hw_rev]['fw']['version']
+      else:
+        self.newest_stm_vers = self.update_dl.index[self.piksi_hw_rev]['stm_fw']['version']
+        self.newest_nap_vers = self.update_dl.index[self.piksi_hw_rev]['nap_fw']['version']
+      self.newest_console_vers = self.update_dl.index[self.piksi_hw_rev]['console']['version']
     except KeyError:
       self._write("\nError: Index downloaded from Swift Navigation's website (%s) doesn't contain all keys. Please contact Swift Navigation.\n" % INDEX_URL)
       return
