@@ -171,6 +171,7 @@ class PulsableProgressDialog(ProgressDialog):
     sleep(0.2)
 
 class UpdateView(HasTraits):
+  piksi_hw_rev = String('Waiting for Piksi to send settings...')
 
   piksi_stm_vers = String('Waiting for Piksi to send settings...', width=COLUMN_WIDTH)
   newest_stm_vers = String('Downloading Newest Firmware info...')
@@ -204,6 +205,7 @@ class UpdateView(HasTraits):
 
   view = View(
     VGroup(
+      Item('piksi_hw_rev', label='Hardware Revision', resizable=True),
       HGroup(
         VGroup(
           Item('piksi_stm_vers', label='Current', resizable=True),
@@ -446,6 +448,8 @@ class UpdateView(HasTraits):
     """
     # Check that settings received from Piksi contain FW versions.
     try:
+      self.piksi_hw_rev = \
+        self.settings['system_info']['hw_revision'].value
       self.piksi_stm_vers = \
         self.settings['system_info']['firmware_version'].value
       self.piksi_nap_vers = \
