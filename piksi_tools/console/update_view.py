@@ -519,7 +519,14 @@ class UpdateView(HasTraits):
                                   actions=[prompt.close_button]
                                  )
 
-        fw_update_prompt.text = \
+        if self.update_dl.index[self.piksi_hw_rev].has_key('fw'):
+          fw_update_prompt.text = \
+            "New Piksi firmware available.\n\n" + \
+            "Please use the Firmware Update tab to update.\n\n" + \
+            "Newest Firmware Version :\n\t%s\n\n" % \
+                self.update_dl.index[self.piksi_hw_rev]['fw']['version']
+        else:
+          fw_update_prompt.text = \
             "New Piksi firmware available.\n\n" + \
             "Please use the Firmware Update tab to update.\n\n" + \
             "Newest STM Version :\n\t%s\n\n" % \
