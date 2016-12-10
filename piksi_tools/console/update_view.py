@@ -172,6 +172,7 @@ class PulsableProgressDialog(ProgressDialog):
 
 class UpdateView(HasTraits):
   piksi_hw_rev = String('Waiting for Piksi to send settings...')
+  is_v2 = Bool(False)
 
   piksi_stm_vers = String('Waiting for Piksi to send settings...', width=COLUMN_WIDTH)
   newest_stm_vers = String('Downloading Newest Firmware info...')
@@ -205,7 +206,8 @@ class UpdateView(HasTraits):
 
   view = View(
     VGroup(
-      Item('piksi_hw_rev', label='Hardware Revision', resizable=True),
+      Item('piksi_hw_rev', label='Hardware Revision',
+           editor_args={'enabled': False}, resizable=True),
       HGroup(
         VGroup(
           Item('piksi_stm_vers', label='Current', resizable=True),
@@ -215,7 +217,7 @@ class UpdateView(HasTraits):
           HGroup(Item('update_stm_firmware', show_label=False, \
                      enabled_when='update_stm_en'),
                 Item('erase_stm', label='Erase STM flash\n(recommended)', \
-                      enabled_when='erase_en', show_label=True)),
+                      enabled_when='erase_en', show_label=True, visible_when='is_v2')),
           show_border=True, label="STM Firmware Version"
         ),
         VGroup(
@@ -226,7 +228,8 @@ class UpdateView(HasTraits):
           HGroup(Item('update_nap_firmware', show_label=False, \
                       enabled_when='update_nap_en'),
                  Item(width=50, label="                  ")),
-          show_border=True, label="NAP Firmware Version"
+          show_border=True, label="NAP Firmware Version",
+          visible_when='is_v2'
           ),
         VGroup(
           Item('local_console_vers', label='Current', resizable=True),
@@ -234,7 +237,7 @@ class UpdateView(HasTraits):
           label="Piksi Console Version", show_border=True),
           ),
       UItem('download_firmware', enabled_when='download_fw_en'),
-      UItem('update_full_firmware', enabled_when='update_en'),
+      UItem('update_full_firmware', enabled_when='update_en', visible_when='is_v2'),
       Item(
         'stream',
         style='custom',
@@ -459,6 +462,8 @@ class UpdateView(HasTraits):
     except KeyError:
       self._write("\nError: Settings received from Piksi don't contain firmware version keys. Please contact Swift Navigation.\n")
       return
+
+    self.is_v2 = self.piksi_hw_rev.startswith('piksi_2')
 
     # Check that we received the index file from the website.
     if self.update_dl == None:
