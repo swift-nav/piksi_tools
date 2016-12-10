@@ -29,7 +29,7 @@ from piksi_tools import flash
 import piksi_tools.console.callback_prompt as prompt
 from piksi_tools.console.utils import determine_path
 
-from update_downloader import UpdateDownloader
+from update_downloader import UpdateDownloader, INDEX_URL
 from output_stream import OutputStream
 
 import sys, os
@@ -44,7 +44,6 @@ else:
 icon = ImageResource('icon',
          search_path=['images', os.path.join(basedir, 'images')])
 
-INDEX_URL = 'http://downloads.swiftnav.com/index.json'
 HT = 8
 COLUMN_WIDTH = 100
 
