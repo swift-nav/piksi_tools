@@ -43,6 +43,16 @@ class UpdateDownloader:
       raise URLError("Error: Failed to download latest NAP firmware from Swift Navigation's website")
     return filepath
 
+  def download_multi_firmware(self):
+    try:
+      url = self.index['piksi_multi']['fw']['url']
+      filepath = self._download_file_from_url(url)
+    except KeyError:
+      raise KeyError("Error downloading firmware: URL not present in index")
+    except URLError:
+      raise URLError("Error: Failed to download latest NAP firmware from Swift Navigation's website")
+    return filepath
+
   def _download_file_from_url(self, url):
     url = url.encode('ascii')
     urlpath = urlparse(url).path
