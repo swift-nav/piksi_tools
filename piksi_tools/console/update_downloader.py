@@ -23,9 +23,9 @@ class UpdateDownloader:
     self.index = jsonload(f)
     f.close()
 
-  def download_stm_firmware(self):
+  def download_stm_firmware(self, hwrev):
     try:
-      url = self.index['piksi_v2.3.1']['stm_fw']['url']
+      url = self.index[hwrev]['stm_fw']['url']
       filepath = self._download_file_from_url(url)
     except KeyError:
       raise KeyError("Error downloading firmware: URL not present in index")
@@ -33,9 +33,9 @@ class UpdateDownloader:
       raise URLError("Error: Failed to download latest NAP firmware from Swift Navigation's website")
     return filepath
 
-  def download_nap_firmware(self):
+  def download_nap_firmware(self, hwrev):
     try:
-      url = self.index['piksi_v2.3.1']['nap_fw']['url']
+      url = self.index[hwrev]['nap_fw']['url']
       filepath = self._download_file_from_url(url)
     except KeyError:
       raise KeyError("Error downloading firmware: URL not present in index")
@@ -43,9 +43,9 @@ class UpdateDownloader:
       raise URLError("Error: Failed to download latest NAP firmware from Swift Navigation's website")
     return filepath
 
-  def download_multi_firmware(self):
+  def download_multi_firmware(self, hwrev):
     try:
-      url = self.index['piksi_multi']['fw']['url']
+      url = self.index[hwrev]['fw']['url']
       filepath = self._download_file_from_url(url)
     except KeyError:
       raise KeyError("Error downloading firmware: URL not present in index")

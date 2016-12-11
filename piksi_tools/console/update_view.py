@@ -382,9 +382,26 @@ class UpdateView(HasTraits):
     self._write(status)
 
     # Get firmware files from Swift Nav's website, save to disk, and load.
+    if self.update_dl.index[self.piksi_hw_rev].has_key('fw'):
+      try:
+        self._write('Downloading Newest Multi firmware')
+        filepath = self.update_dl.download_multi_firmware(self.piksi_hw_rev)
+        self._write('Saved file to %s' % filepath)
+      except AttributeError:
+        self.nap_fw.clear("Error downloading firmware")
+        self._write("Error downloading firmware: index file not downloaded yet")
+      except KeyError:
+        self.nap_fw.clear("Error downloading firmware")
+        self._write("Error downloading firmware: URL not present in index")
+      except URLError:
+        self.nap_fw.clear("Error downloading firmware")
+        self._write("Error: Failed to download latest NAP firmware from Swift Navigation's website")
+      self.downloading = False
+      return
+
     try:
       self._write('Downloading Newest NAP firmware')
-      filepath = self.update_dl.download_nap_firmware()
+      filepath = self.update_dl.download_nap_firmware(self.piksi_hw_rev)
       self._write('Saved file to %s' % filepath)
       self.nap_fw.load_ihx(filepath)
     except AttributeError:
@@ -399,7 +416,7 @@ class UpdateView(HasTraits):
 
     try:
       self._write('Downloading Newest STM firmware')
-      filepath = self.update_dl.download_stm_firmware()
+      filepath = self.update_dl.download_stm_firmware(self.piksi_hw_rev)
       self._write('Saved file to %s' % filepath)
       self.stm_fw.load_ihx(filepath)
     except AttributeError:
