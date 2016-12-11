@@ -47,7 +47,7 @@ icon = ImageResource('icon',
 HT = 8
 COLUMN_WIDTH = 100
 
-class IntelHexFileDialog(HasTraits):
+class FirmwareFileDialog(HasTraits):
 
   file_wildcard = String("Intel HEX File (*.hex)|*.hex|All files|*")
 
@@ -62,16 +62,25 @@ class IntelHexFileDialog(HasTraits):
     """
     Pop-up file dialog to choose an IntelHex file, with status and button to
     display in traitsui window.
+    """
+    self.set_flash_type(flash_type)
 
+  def set_flash_type(self, flash_type):
+    """
     Parameters
     ----------
     flash_type : string
       Which Piksi flash to interact with ("M25" or "STM").
     """
-    if not flash_type == 'M25' and not flash_type == 'STM':
-      raise ValueError("flash_type must be 'M25' or 'STM'")
+    if not flash_type in ('bin', 'M25', 'STM'):
+      raise ValueError("flash_type must be 'bin', 'M25' or 'STM'")
+    if flash_type == 'bin':
+      self.file_wildcard = "Binary image set (*.bin)|*.bin|All files|*"
+    else:
+      self.file_wildcard = "Intel HEX File (*.hex)|*.hex|All files|*"
     self._flash_type = flash_type
     self.ihx = None
+    self.blob = None
 
   def clear(self, status):
     """
@@ -83,6 +92,7 @@ class IntelHexFileDialog(HasTraits):
       Error text to replace status box text with.
     """
     self.ihx = None
+    self.blob = None
     self.status = status
 
   def load_ihx(self, filepath):
@@ -95,6 +105,10 @@ class IntelHexFileDialog(HasTraits):
     filepath : string
       Path to IntelHex file.
     """
+    if self._flash_type not in ('M25', 'STM'):
+      self.clear("Error: Can't load Intel HEX File as image set binary")
+      return
+
     try:
       self.ihx = IntelHex(filepath)
       self.status = os.path.split(filepath)[1]
@@ -116,6 +130,17 @@ class IntelHexFileDialog(HasTraits):
         self.clear('Error: HEX File contains restricted address ' + \
                         '(NAP Firmware File Chosen?)')
 
+  def load_bin(self, filepath):
+    if self._flash_type != 'bin':
+      self.clear("Error: Can't load binary file for M25 or STM flash")
+      return
+
+    try:
+      self.blob = open(filepath, 'r').read()
+      self.status = os.path.split(filepath)[1]
+    except:
+      self.clear('Error: Failed to read binary file')
+
   def _choose_fw_fired(self):
     """ Activate file dialog window to choose IntelHex firmware file. """
     dialog = FileDialog(label='Choose Firmware File',
@@ -123,7 +148,10 @@ class IntelHexFileDialog(HasTraits):
     dialog.open()
     if dialog.return_code == OK:
       filepath = os.path.join(dialog.directory, dialog.filename)
-      self.load_ihx(filepath)
+      if self._flash_type == 'bin':
+        self.load_bin(filepath)
+      else:
+        self.load_ihx(filepath)
     else:
       self.clear('Error while selecting file')
 
@@ -199,8 +227,8 @@ class UpdateView(HasTraits):
   downloading = Bool(False)
   download_fw_en = Bool(True)
 
-  stm_fw = Instance(IntelHexFileDialog)
-  nap_fw = Instance(IntelHexFileDialog)
+  stm_fw = Instance(FirmwareFileDialog)
+  nap_fw = Instance(FirmwareFileDialog)
 
   stream = Instance(OutputStream)
 
@@ -267,9 +295,9 @@ class UpdateView(HasTraits):
     }
     self.update_dl = None
     self.erase_en = True
-    self.stm_fw = IntelHexFileDialog('STM')
+    self.stm_fw = FirmwareFileDialog('STM')
     self.stm_fw.on_trait_change(self._manage_enables, 'status')
-    self.nap_fw = IntelHexFileDialog('M25')
+    self.nap_fw = FirmwareFileDialog('M25')
     self.nap_fw.on_trait_change(self._manage_enables, 'status')
     self.stream = OutputStream()
     self.get_latest_version_info()
@@ -285,7 +313,7 @@ class UpdateView(HasTraits):
     else:
       self.download_fw_en = True
       self.erase_en = True
-      if self.stm_fw.ihx is not None:
+      if self.stm_fw.ihx is not None or self.stm_fw.blob is not None:
         self.update_stm_en = True
       else:
         self.update_stm_en = False
@@ -387,6 +415,7 @@ class UpdateView(HasTraits):
         self._write('Downloading Newest Multi firmware')
         filepath = self.update_dl.download_multi_firmware(self.piksi_hw_rev)
         self._write('Saved file to %s' % filepath)
+        self.stm_fw.load_bin(filepath)
       except AttributeError:
         self.nap_fw.clear("Error downloading firmware")
         self._write("Error downloading firmware: index file not downloaded yet")
@@ -481,6 +510,10 @@ class UpdateView(HasTraits):
       return
 
     self.is_v2 = self.piksi_hw_rev.startswith('piksi_2')
+    if self.is_v2:
+      self.stm_fw.set_flash_type('STM')
+    else:
+      self.stm_fw.set_flash_type('bin')
 
     # Check that we received the index file from the website.
     if self.update_dl == None:
