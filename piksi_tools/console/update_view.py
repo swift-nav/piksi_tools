@@ -32,6 +32,10 @@ from piksi_tools.console.utils import determine_path
 from update_downloader import UpdateDownloader, INDEX_URL
 from output_stream import OutputStream
 
+from piksi_tools.bootload_v3 import shell_command
+from piksi_tools.fileio import FileIO
+from sbp.logging import SBP_MSG_LOG
+
 import sys, os
 from pyface.image_resource import ImageResource
 if getattr(sys, 'frozen', False):
@@ -46,6 +50,11 @@ icon = ImageResource('icon',
 
 HT = 8
 COLUMN_WIDTH = 100
+
+HW_REV_LOOKUP = {
+  'Piksi Multi': 'piksi_multi',
+  'piksi_2.3.1': 'piksi_v2.3.1',
+}
 
 class FirmwareFileDialog(HasTraits):
 
@@ -497,10 +506,10 @@ class UpdateView(HasTraits):
     """
     # Check that settings received from Piksi contain FW versions.
     try:
-      if self.piksi_hw_rev !=self.settings['system_info']['hw_revision'].value:
+      tmp = HW_REV_LOOKUP[self.settings['system_info']['hw_revision'].value]
+      if self.piksi_hw_rev != tmp:
         self.get_latest_version_info()
-      self.piksi_hw_rev = \
-        self.settings['system_info']['hw_revision'].value
+      self.piksi_hw_rev = tmp
       self.piksi_stm_vers = \
         self.settings['system_info']['firmware_version'].value
       self.piksi_nap_vers = \
@@ -686,6 +695,33 @@ class UpdateView(HasTraits):
       self._write("")
       return False
 
+  def manage_multi_firmware_update(self):
+    # Set up progress dialog and transfer file to Piksi using SBP FileIO
+    progress_dialog = PulsableProgressDialog(len(self.stm_fw.blob))
+    progress_dialog.title = "Transferring image file"
+    GUI.invoke_later(progress_dialog.open)
+    self._write("Transferring image file...")
+    FileIO(self.link).write("upgrade.image_set.bin", self.stm_fw.blob,
+                            progress_cb=progress_dialog.progress)
+    progress_dialog.close()
+
+    # Setup up pulsed progress dialog and commit to flash
+    progress_dialog = PulsableProgressDialog(100, True)
+    progress_dialog.title = "Committing to flash"
+    GUI.invoke_later(progress_dialog.open)
+    self._write("Committing file to flash...")
+    def log_cb(msg, **kwargs): self._write(msg.text)
+    self.link.add_callback(log_cb, SBP_MSG_LOG)
+    code = shell_command(self.link, "upgrade_tool upgrade.image_set.bin", 240)
+    self.link.remove_callback(log_cb, SBP_MSG_LOG)
+    progress_dialog.close()
+
+    if code != 0:
+      self._write('Failed to perform upgrade (code = %d)' % code)
+      return
+    self._write('Resetting Piksi...')
+    self.link(MsgReset())
+
   # Executed in GUI thread, called from Handler.
   def manage_firmware_updates(self, device):
     """
@@ -695,8 +731,11 @@ class UpdateView(HasTraits):
     self.updating = True
     update_nap = False
     self._write('')
-
-    if device == "STM":
+    if not self.is_v2:
+      self.manage_multi_firmware_update()
+      self.updating = False
+      return
+    elif device == "STM":
       self.manage_stm_firmware_update()
     elif device == "M25":
       update_nap = self.manage_nap_firmware_update()
