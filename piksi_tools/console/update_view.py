@@ -221,7 +221,7 @@ class UpdateView(HasTraits):
   erase_stm = Bool(True)
   erase_en = Bool(True)
 
-  update_stm_firmware = Button(label='Update STM')
+  update_stm_firmware = Button(label='Update FW')
   update_nap_firmware = Button(label='Update NAP')
   update_full_firmware = Button(label='Update Piksi STM and NAP Firmware')
 
@@ -255,7 +255,7 @@ class UpdateView(HasTraits):
                      enabled_when='update_stm_en'),
                 Item('erase_stm', label='Erase STM flash\n(recommended)', \
                       enabled_when='erase_en', show_label=True, visible_when='is_v2')),
-          show_border=True, label="STM Firmware Version"
+          show_border=True, label="Firmware Version"
         ),
         VGroup(
           Item('piksi_nap_vers', label='Current', resizable=True),
@@ -265,7 +265,7 @@ class UpdateView(HasTraits):
           HGroup(Item('update_nap_firmware', show_label=False, \
                       enabled_when='update_nap_en'),
                  Item(width=50, label="                  ")),
-          show_border=True, label="NAP Firmware Version",
+          show_border=True, label="NAP Version",
           visible_when='is_v2'
           ),
         VGroup(
