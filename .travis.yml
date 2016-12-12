@@ -42,7 +42,7 @@ addons:
     paths:
       - ./piksi_tools/console/pyinstaller/dist
     working_dir: $TRAVIS_BUILD_DIR
-    target_paths: $TRAVIS_BUILD_NUMBER_$TRAVIS_OS_NAME
+    target_paths: $TRAVIS_BUILD_NUMBER$TRAVIS_OS_NAME
     bucket: console-ci-builds
     s3_region: us-west-2
 deploy:
