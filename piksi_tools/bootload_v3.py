@@ -56,7 +56,7 @@ def get_args():
 def shell_command(link, cmd, timeout=None):
   ev = threading.Event()
   seq = random.randint(0, 0xffffffff)
-  ret = {}
+  ret = {'code':'NO_COMMAND_RESP Received'}
   def resp_handler(msg, **kwargs):
     if msg.sequence == seq:
       ret['code'] = msg.code
