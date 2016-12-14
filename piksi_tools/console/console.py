@@ -452,6 +452,7 @@ class SwiftConsole(HasTraits):
     self.logger = s.get_logger(True, filename)
     self.forwarder = sbpc.Forwarder(self.link, self.logger)
     self.forwarder.start()
+    self.settings_view._settings_read_button_fired()
 
   def _stop_json_logging(self):
     fwd = self.forwarder
