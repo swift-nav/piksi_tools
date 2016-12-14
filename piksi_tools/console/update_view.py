@@ -309,7 +309,6 @@ class UpdateView(HasTraits):
     self.nap_fw = FirmwareFileDialog('M25')
     self.nap_fw.on_trait_change(self._manage_enables, 'status')
     self.stream = OutputStream()
-    self.get_latest_version_info()
 
   def _manage_enables(self):
     """ Manages whether traits widgets are enabled in the UI or not. """
@@ -506,10 +505,8 @@ class UpdateView(HasTraits):
     """
     # Check that settings received from Piksi contain FW versions.
     try:
-      tmp = HW_REV_LOOKUP[self.settings['system_info']['hw_revision'].value]
-      if self.piksi_hw_rev != tmp:
-        self.get_latest_version_info()
-      self.piksi_hw_rev = tmp
+      self.piksi_hw_rev = \
+        HW_REV_LOOKUP[self.settings['system_info']['hw_revision'].value]
       self.piksi_stm_vers = \
         self.settings['system_info']['firmware_version'].value
       self.piksi_nap_vers = \
@@ -523,6 +520,8 @@ class UpdateView(HasTraits):
       self.stm_fw.set_flash_type('STM')
     else:
       self.stm_fw.set_flash_type('bin')
+
+    self._get_latest_version_info()
 
     # Check that we received the index file from the website.
     if self.update_dl == None:
@@ -594,20 +593,6 @@ class UpdateView(HasTraits):
                 self.update_dl.index[self.piksi_hw_rev]['nap_fw']['version']
 
         fw_update_prompt.run()
-
-  def get_latest_version_info(self):
-    """
-    Get latest firmware / console version from website. Starts thread so as not
-    to block the GUI thread.
-    """
-    try:
-      if self._get_latest_version_info_thread.is_alive():
-        return
-    except AttributeError:
-      pass
-
-    self._get_latest_version_info_thread = Thread(target=self._get_latest_version_info)
-    self._get_latest_version_info_thread.start()
 
   def _get_latest_version_info(self):
     """ Get latest firmware / console version from website. """
