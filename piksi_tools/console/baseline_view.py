@@ -263,22 +263,23 @@ class BaselineView(HasTraits):
       self.n[0], self.e[0], self.d[0] = [np.NAN, np.NAN, np.NAN]
     self.mode[0] = self.last_mode
 
-    float_indexer = (self.mode == FLOAT_MODE)
-    fixed_indexer = (self.mode == FIXED_MODE)
-    dgnss_indexer = (self.mode == DGNSS_MODE)
+    if np.any(self.mode):
+      float_indexer = (self.mode == FLOAT_MODE)
+      fixed_indexer = (self.mode == FIXED_MODE)
+      dgnss_indexer = (self.mode == DGNSS_MODE)
 
-  #if not any(np.isnan(neds_fixed)):
-    self.plot_data.set_data('n_fixed', self.n[fixed_indexer])
-    self.plot_data.set_data('e_fixed', self.e[fixed_indexer])
-    self.plot_data.set_data('d_fixed', self.d[fixed_indexer])
-  #if not any(np.isnan(neds_float)):
-    self.plot_data.set_data('n_float', self.n[float_indexer])
-    self.plot_data.set_data('e_float', self.e[float_indexer])
-    self.plot_data.set_data('d_float', self.d[float_indexer])
-  #if not any(np.isnan(neds_dgnss)):
-    self.plot_data.set_data('n_dgnss', self.n[dgnss_indexer])
-    self.plot_data.set_data('e_dgnss', self.e[dgnss_indexer])
-    self.plot_data.set_data('d_dgnss', self.d[dgnss_indexer])
+    if np.any(fixed_indexer):
+      self.plot_data.set_data('n_fixed', self.n[fixed_indexer])
+      self.plot_data.set_data('e_fixed', self.e[fixed_indexer])
+      self.plot_data.set_data('d_fixed', self.d[fixed_indexer])
+    if np.any(float_indexer):
+      self.plot_data.set_data('n_float', self.n[float_indexer])
+      self.plot_data.set_data('e_float', self.e[float_indexer])
+      self.plot_data.set_data('d_float', self.d[float_indexer])
+    if np.any(dgnss_indexer):
+      self.plot_data.set_data('n_dgnss', self.n[dgnss_indexer])
+      self.plot_data.set_data('e_dgnss', self.e[dgnss_indexer])
+      self.plot_data.set_data('d_dgnss', self.d[dgnss_indexer])
 
     if self.last_mode == FIXED_MODE:
       self.plot_data.set_data('cur_fixed_n', [soln.n])
@@ -338,11 +339,10 @@ class BaselineView(HasTraits):
                                    cur_dgnss_e=[], cur_dgnss_n=[], cur_dgnss_d=[])
 
     self.plot_history_max = plot_history_max
-    self.n = np.empty(plot_history_max)
-    self.e = np.empty(plot_history_max)
-    self.d = np.empty(plot_history_max)
-    self.mode = np.empty(plot_history_max)
-    #self.neds[:] = np.NAN
+    self.n = np.zeros(plot_history_max)
+    self.e = np.zeros(plot_history_max)
+    self.d = np.zeros(plot_history_max)
+    self.mode = np.zeros(plot_history_max)
 
     self.plot = Plot(self.plot_data)
     pts_float = self.plot.plot(('e_float', 'n_float'),

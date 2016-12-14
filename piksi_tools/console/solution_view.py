@@ -275,28 +275,30 @@ class SolutionView(HasTraits):
     self.modes = self.modes[-self.plot_history_max:]
 
     # SPP
-    spp_indexer = (self.modes == SPP_MODE)
-    dgnss_indexer = (self.modes == DGNSS_MODE)
-    float_indexer = (self.modes == FLOAT_MODE)
-    fixed_indexer = (self.modes == FIXED_MODE)
+    spp_indexer, dgnss_indexer, float_indexer, fixed_indexer = None, None, None, None
+    if np.any(self.modes):
+      spp_indexer = (self.modes == SPP_MODE)
+      dgnss_indexer = (self.modes == DGNSS_MODE)
+      float_indexer = (self.modes == FLOAT_MODE)
+      fixed_indexer = (self.modes == FIXED_MODE)
     
     # make sure that there is at least one true in indexer before setting
-    if any(spp_indexer):
-      self.plot_data.set_data('lat_spp', self.lats[spp_indexer])
-      self.plot_data.set_data('lng_spp', self.lngs[spp_indexer])
-      self.plot_data.set_data('alt_spp', self.alts[spp_indexer])
-    if any(dgnss_indexer):
-      self.plot_data.set_data('lat_dgnss', self.lats[dgnss_indexer])
-      self.plot_data.set_data('lng_dgnss', self.lngs[dgnss_indexer])
-      self.plot_data.set_data('alt_dgnss', self.alts[dgnss_indexer])
-    if any(float_indexer):
-      self.plot_data.set_data('lat_float', self.lats[float_indexer])
-      self.plot_data.set_data('lng_float', self.lngs[float_indexer])
-      self.plot_data.set_data('alt_float', self.alts[float_indexer])
-    if any(fixed_indexer):
-      self.plot_data.set_data('lat_fixed', self.lats[fixed_indexer])
-      self.plot_data.set_data('lng_fixed', self.lngs[fixed_indexer])
-      self.plot_data.set_data('alt_fixed', self.alts[fixed_indexer])
+      if any(spp_indexer):
+        self.plot_data.set_data('lat_spp', self.lats[spp_indexer])
+        self.plot_data.set_data('lng_spp', self.lngs[spp_indexer])
+        self.plot_data.set_data('alt_spp', self.alts[spp_indexer])
+      if any(dgnss_indexer):
+        self.plot_data.set_data('lat_dgnss', self.lats[dgnss_indexer])
+        self.plot_data.set_data('lng_dgnss', self.lngs[dgnss_indexer])
+        self.plot_data.set_data('alt_dgnss', self.alts[dgnss_indexer])
+      if any(float_indexer):
+        self.plot_data.set_data('lat_float', self.lats[float_indexer])
+        self.plot_data.set_data('lng_float', self.lngs[float_indexer])
+        self.plot_data.set_data('alt_float', self.alts[float_indexer])
+      if any(fixed_indexer):
+        self.plot_data.set_data('lat_fixed', self.lats[fixed_indexer])
+        self.plot_data.set_data('lng_fixed', self.lngs[fixed_indexer])
+        self.plot_data.set_data('alt_fixed', self.alts[fixed_indexer])
 
     self.reset_remove_current()
     if self.last_pos_mode == SPP_MODE:
@@ -424,11 +426,11 @@ class SolutionView(HasTraits):
   def __init__(self, link, dirname=''):
     super(SolutionView, self).__init__()
 
-    self.lats = np.empty(self.plot_history_max)
-    self.lngs = np.empty(self.plot_history_max)
-    self.alts = np.empty(self.plot_history_max)
-    self.tows = np.empty(self.plot_history_max)
-    self.modes = np.empty(self.plot_history_max)
+    self.lats = np.zeros(self.plot_history_max)
+    self.lngs = np.zeros(self.plot_history_max)
+    self.alts = np.zeros(self.plot_history_max)
+    self.tows = np.zeros(self.plot_history_max)
+    self.modes = np.zeros(self.plot_history_max)
     self.log_file = None
     self.directory_name_v = dirname
     self.directory_name_p = dirname
