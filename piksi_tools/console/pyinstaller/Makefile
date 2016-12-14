@@ -26,14 +26,14 @@ console: $(spec_file)
 	make $(UNAME)
 
 Windows:
-	makensis "-XOutfile piksi_console_v$(VERSION)_setup.exe" win_installer.nsi
+	makensis "-XOutfile swift_console_v$(VERSION)_setup.exe" win_installer.nsi
 Cygwin:
-	makensis '-XOutfile piksi_console_v$(VERSION)_setup.exe' win_installer.nsi
+	makensis '-XOutfile swift_console_v$(VERSION)_setup.exe' win_installer.nsi
 Darwin:
 	sudo ./create-dmg-installer.sh
 Linux:
-	tar cfvz piksi_console_v$(VERSION).tar.gz ./dist/console 
-	mv piksi_console_v$(VERSION).tar.gz ./dist/
+	tar cfvz swift_console_v$(VERSION).tar.gz ./dist/console 
+	mv swift_console_v$(VERSION).tar.gz ./dist/
 clean:
 	rm -rf build dist
 

@@ -3,13 +3,13 @@
 ;--------------------------------
 
 ; The name of the installer
-Name "Piksi Console"
+Name "Swift Console"
 
 ; The default installation directory
-InstallDir "$PROGRAMFILES\Swift Navigation\Piksi Console"
+InstallDir "$PROGRAMFILES\Swift Navigation\Swift Console"
 
 ; The text to prompt the user to enter a directory
-DirText "This will install Piksi Console on your computer. Choose a directory"
+DirText "This will install Swift Console on your computer. Choose a directory"
 
 ;--------------------------------
 
@@ -24,11 +24,11 @@ File /r dist\console\*
 
 ; Now create shortcuts
 CreateDirectory "$SMPROGRAMS\Swift Navigation"
-CreateShortCut "$SMPROGRAMS\Swift Navigation\Piksi Console.lnk" "$INSTDIR\console.exe"
+CreateShortCut "$SMPROGRAMS\Swift Navigation\Swift Console.lnk" "$INSTDIR\console.exe"
 CreateShortCut "$SMPROGRAMS\Swift Navigation\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
 
 ;create desktop shortcut
-CreateShortCut "$DESKTOP\Piksi Console.lnk" "$INSTDIR\console.exe" ""
+CreateShortCut "$DESKTOP\Swift Console.lnk" "$INSTDIR\console.exe" ""
 
 ; Tell the compiler to write an uninstaller and to look for a "Uninstall" section
 WriteUninstaller $INSTDIR\Uninstall.exe
@@ -41,7 +41,7 @@ Section "Uninstall"
 RMDir /r /REBOOTOK "$INSTDIR/.."
 
 ; Now remove shortcuts too
-Delete "$SMPROGRAMS\Swift Navigation\Piksi Console.lnk"
+Delete "$SMPROGRAMS\Swift Navigation\Swift Console.lnk"
 Delete "$SMPROGRAMS\Swift Navigation\Uninstall.lnk"
 RMDir "$SMPROGRAMS\Swift Navigation"
 

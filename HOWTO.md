@@ -67,7 +67,7 @@ Linux (no generated binary):
   snapshot.
 
 Upload the console binaries from `dist/` to the
-[AWS S3 bucket](http://downloads.swiftnav.com/piksi_console/) and
+[AWS S3 bucket](http://downloads.swiftnav.com/swift_console/) and
 update the console version number in the `index.json` there.
 
 # Contributions
