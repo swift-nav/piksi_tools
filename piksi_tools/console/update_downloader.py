@@ -30,7 +30,7 @@ class UpdateDownloader:
     except KeyError:
       raise KeyError("Error downloading firmware: URL not present in index")
     except URLError:
-      raise URLError("Error: Failed to download latest NAP firmware from Swift Navigation's website")
+      raise URLError("Error: Failed to download latest STM firmware from Swift Navigation's website")
     return filepath
 
   def download_nap_firmware(self, hwrev):
@@ -50,7 +50,7 @@ class UpdateDownloader:
     except KeyError:
       raise KeyError("Error downloading firmware: URL not present in index")
     except URLError:
-      raise URLError("Error: Failed to download latest NAP firmware from Swift Navigation's website")
+      raise URLError("Error: Failed to download latest Multi firmware from Swift Navigation's website")
     return filepath
 
   def _download_file_from_url(self, url):
