@@ -79,5 +79,5 @@ coll = COLLECT(exe,
 
 if sys.platform.startswith('darwin'):
   app = BUNDLE(coll,
-               name='Piksi Console.app',
+               name='Piksi v2 Console.app',
                icon='icon.icns')
