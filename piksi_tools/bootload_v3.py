@@ -93,7 +93,7 @@ def main():
         print('Failed to perform upgrade (code = %d)' % code)
         return
       print('Resetting Piksi...')
-      link(MsgReset())
+      link(MsgReset(flags=0))
 
 if __name__ == "__main__":
   main()

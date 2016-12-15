@@ -67,7 +67,7 @@ class Settings(object):
     self.link(MsgSettingsSave())
 
   def reset(self):
-    self.link(MsgReset())
+    self.link(MsgReset(flags=0))
 
   def _print_callback(self, msg, **metadata):
     print msg.text
