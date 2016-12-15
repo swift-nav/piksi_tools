@@ -57,8 +57,8 @@ def get_color(key):
 class TrackingView(HasTraits):
   python_console_cmds = Dict()
   legend_visible = Bool()
-  show_l1 = Bool(True)
-  show_l2 = Bool(True)
+  show_l1 = Bool()
+  show_l2 = Bool()
   plot = Instance(Plot)
   plots = List()
   plot_data = Instance(ArrayPlotData)
@@ -86,11 +86,12 @@ class TrackingView(HasTraits):
     # first we loop over all the SIDs / channel keys we have stored and set 0 in for CN0
     for key, cno_array in self.CN0_dict.items():
       # p
-      self.CN0_dict[key][0:-1] = cno_array[1:]
-      self.CN0_dict[key][-1] = 0
-      # If the whole array is 0 we remove it
       if (cno_array==0).all():
         self.CN0_dict.pop(key)
+      else:
+        self.CN0_dict[key][0:-1] = cno_array[1:]
+        self.CN0_dict[key][-1] = 0
+      # If the whole array is 0 we remove it
     # for each satellite, we have a (code, prn, channel) keyed dict
     # for each SID, an array of size MAX PLOT with the history of CN0's stored
     # If there is no CN0 or not tracking for an epoch, 0 will be used
@@ -100,12 +101,10 @@ class TrackingView(HasTraits):
       if code_is_gps(s.sid.code):
         prn += 1
       key = (s.sid.code, prn, i)
-      if len(self.CN0_dict.get(key, [])) == 0:
-        self.CN0_dict[key] = np.zeros(NUM_POINTS)
       if s.state != 0:
+        if len(self.CN0_dict.get(key, [])) == 0:
+          self.CN0_dict[key] = np.zeros(NUM_POINTS)
         self.CN0_dict[key][-1] = s.cn0
-      else:
-        self.CN0_dict[key][-1] = 0
     GUI.invoke_later(self.update_plot)
 
   def update_plot(self):
@@ -114,30 +113,33 @@ class TrackingView(HasTraits):
     self.plot_data.set_data('t', self.time)
     # Remove any stale plots that got removed from the dictionary
     for each in self.plot_data.list_data():
-      if each not in self.CN0_dict.items() and each != 't':
+      if each not in [str(a) for a in self.CN0_dict.keys()] and each != 't':
         try:
-          self.plot_data.del_data(str(each))
-          self.plot.delplot(str(each))
+          self.plot_data.del_data(each)
+          self.plot.delplot(each)
         except KeyError:
           pass
-    for key, cno_array in self.CN0_dict.items():
+    for k, cno_array in self.CN0_dict.iteritems():
+      key = str(k)
       # set plot data and create plot for any selected for display
-      if ((self.show_l2 and key[0] in L2_CODES) or
-          (self.show_l1 and key[0] in L1_CODES)):
-          self.plot_data.set_data(str(key), cno_array)
-          pl = self.plot.plot(('t', str(key)), type='line', color=get_color(key),
-                              name=str(key))
+      if ((self.show_l2 and int(k[0]) in L2_CODES) or
+          (self.show_l1 and int(k[0]) in L1_CODES)):
+          self.plot_data.set_data(key, cno_array)
+          if key not in self.plot.plots.keys():
+            pl = self.plot.plot(('t', key), type='line', color=get_color(k),
+                                name=key)
+          else:
+            pl = self.plot.plots[key]
           # if channel is still active:
-          if cno_array[-1] != 0:
-            self.plots.append(pl)
-            plot_labels.append('Ch %02d (PRN%02d (%s))' %
-            (key[2], key[1], code_to_str(key[0])))
+          self.plots.append(pl)
+          plot_labels.append('Ch %02d (PRN%02d (%s))' %
+            (k[2], k[1], code_to_str(k[0])))
       # Remove plot data and plots not selected
       else:
-        if str(key) in self.plot_data.list_data():
-          self.plot_data.del_data(str(key))
-        if str(key) in self.plot.plots:
-          self.plot.delplot(str(key))
+        if key in self.plot_data.list_data():
+          self.plot_data.del_data(key)
+        if key in self.plot.plots.keys():
+          self.plot.delplot(key)
     plots = dict(zip(plot_labels, self.plots))
     self.plot.legend.plots = plots
 
@@ -169,6 +171,8 @@ class TrackingView(HasTraits):
     self.plot.value_axis.title = 'dB-Hz'
     self.plot_data.set_data('t', self.time)
     self.legend_visible = True
+    self.show_l1 = True
+    self.show_l2 = True
     self.plot.legend.visible = True
     self.plot.legend.align = 'll'
     self.plot.legend.line_spacing = 1
