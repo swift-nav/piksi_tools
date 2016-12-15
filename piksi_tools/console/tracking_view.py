@@ -80,10 +80,6 @@ class TrackingView(HasTraits):
   )
 
   def tracking_state_callback(self, sbp_msg, **metadata):
-    if self.first == True:
-      self.t_init = time.time()
-      self.first = False
-      self.time = range(-NUM_POINTS, 0, 1)
     t = time.time() - self.t_init
     self.time[0:-1] = self.time[1:]
     self.time[-1] = t
@@ -156,8 +152,8 @@ class TrackingView(HasTraits):
 
   def __init__(self, link):
     super(TrackingView, self).__init__()
-    self.first = True
-    self.time = np.empty(NUM_POINTS)
+    self.t_init = time.time()
+    self.time = range(-NUM_POINTS, 0, 1)
     self.CN0_dict = {}
     self.n_channels = None
     self.plot_data = ArrayPlotData(t=[0.0])
@@ -171,7 +167,6 @@ class TrackingView(HasTraits):
     self.plot.value_axis.orientation = 'right'
     self.plot.value_axis.axis_line_visible = False
     self.plot.value_axis.title = 'dB-Hz'
-    #t = range(NUM_POINTS)
     self.plot_data.set_data('t', self.time)
     self.legend_visible = True
     self.plot.legend.visible = True
