@@ -447,11 +447,12 @@ class SwiftConsole(HasTraits):
     if override_filename:
       filename = override_filename
     else:
-      filename = s.logfilename()
+      filename = time.strftime("swift-console-%Y%m%d-%H%M%S.log.json")
     filename = os.path.normpath(os.path.join(self.directory_name, filename))
     self.logger = s.get_logger(True, filename)
     self.forwarder = sbpc.Forwarder(self.link, self.logger)
     self.forwarder.start()
+    self.settings_view._settings_read_button_fired()
 
   def _stop_json_logging(self):
     fwd = self.forwarder
