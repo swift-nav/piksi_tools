@@ -47,7 +47,7 @@ def get_args():
   parser = argparse.ArgumentParser(description='Swift Nav Console.')
   parser.add_argument('-p', '--port', nargs=1, default=[None],
                       help='specify the port to use.')
-  parser.add_argument('-b', '--baud', nargs=1, default=[s.SERIAL_BAUD],
+  parser.add_argument('-b', '--baud', nargs=1, default=[1000000],
                       help='specify the baud rate to use.')
   parser.add_argument("-v", "--verbose",
                       help="print extra debugging information.",
