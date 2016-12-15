@@ -686,8 +686,13 @@ class UpdateView(HasTraits):
     progress_dialog.title = "Transferring image file"
     GUI.invoke_later(progress_dialog.open)
     self._write("Transferring image file...")
-    FileIO(self.link).write("upgrade.image_set.bin", self.stm_fw.blob,
-                            progress_cb=progress_dialog.progress)
+    try:
+      FileIO(self.link).write("upgrade.image_set.bin", self.stm_fw.blob,
+                              progress_cb=progress_dialog.progress)
+    except Exception as e:
+      self._write("Failed to transfer image file to Piksi: %s\n" % e)
+      progress_dialog.close()
+      return
     progress_dialog.close()
 
     # Setup up pulsed progress dialog and commit to flash
