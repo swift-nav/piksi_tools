@@ -29,8 +29,12 @@ from piksi_tools import flash
 import piksi_tools.console.callback_prompt as prompt
 from piksi_tools.console.utils import determine_path
 
-from update_downloader import UpdateDownloader
+from update_downloader import UpdateDownloader, INDEX_URL
 from output_stream import OutputStream
+
+from piksi_tools.bootload_v3 import shell_command
+from piksi_tools.fileio import FileIO
+from sbp.logging import SBP_MSG_LOG
 
 import sys, os
 from pyface.image_resource import ImageResource
@@ -44,11 +48,15 @@ else:
 icon = ImageResource('icon',
          search_path=['images', os.path.join(basedir, 'images')])
 
-INDEX_URL = 'http://downloads.swiftnav.com/index.json'
 HT = 8
 COLUMN_WIDTH = 100
 
-class IntelHexFileDialog(HasTraits):
+HW_REV_LOOKUP = {
+  'Piksi Multi': 'piksi_multi',
+  'piksi_2.3.1': 'piksi_v2.3.1',
+}
+
+class FirmwareFileDialog(HasTraits):
 
   file_wildcard = String("Intel HEX File (*.hex)|*.hex|All files|*")
 
@@ -63,16 +71,25 @@ class IntelHexFileDialog(HasTraits):
     """
     Pop-up file dialog to choose an IntelHex file, with status and button to
     display in traitsui window.
+    """
+    self.set_flash_type(flash_type)
 
+  def set_flash_type(self, flash_type):
+    """
     Parameters
     ----------
     flash_type : string
       Which Piksi flash to interact with ("M25" or "STM").
     """
-    if not flash_type == 'M25' and not flash_type == 'STM':
-      raise ValueError("flash_type must be 'M25' or 'STM'")
+    if not flash_type in ('bin', 'M25', 'STM'):
+      raise ValueError("flash_type must be 'bin', 'M25' or 'STM'")
+    if flash_type == 'bin':
+      self.file_wildcard = "Binary image set (*.bin)|*.bin|All files|*"
+    else:
+      self.file_wildcard = "Intel HEX File (*.hex)|*.hex|All files|*"
     self._flash_type = flash_type
     self.ihx = None
+    self.blob = None
 
   def clear(self, status):
     """
@@ -84,6 +101,7 @@ class IntelHexFileDialog(HasTraits):
       Error text to replace status box text with.
     """
     self.ihx = None
+    self.blob = None
     self.status = status
 
   def load_ihx(self, filepath):
@@ -96,6 +114,10 @@ class IntelHexFileDialog(HasTraits):
     filepath : string
       Path to IntelHex file.
     """
+    if self._flash_type not in ('M25', 'STM'):
+      self.clear("Error: Can't load Intel HEX File as image set binary")
+      return
+
     try:
       self.ihx = IntelHex(filepath)
       self.status = os.path.split(filepath)[1]
@@ -117,6 +139,17 @@ class IntelHexFileDialog(HasTraits):
         self.clear('Error: HEX File contains restricted address ' + \
                         '(NAP Firmware File Chosen?)')
 
+  def load_bin(self, filepath):
+    if self._flash_type != 'bin':
+      self.clear("Error: Can't load binary file for M25 or STM flash")
+      return
+
+    try:
+      self.blob = open(filepath, 'r').read()
+      self.status = os.path.split(filepath)[1]
+    except:
+      self.clear('Error: Failed to read binary file')
+
   def _choose_fw_fired(self):
     """ Activate file dialog window to choose IntelHex firmware file. """
     dialog = FileDialog(label='Choose Firmware File',
@@ -124,7 +157,10 @@ class IntelHexFileDialog(HasTraits):
     dialog.open()
     if dialog.return_code == OK:
       filepath = os.path.join(dialog.directory, dialog.filename)
-      self.load_ihx(filepath)
+      if self._flash_type == 'bin':
+        self.load_bin(filepath)
+      else:
+        self.load_ihx(filepath)
     else:
       self.clear('Error while selecting file')
 
@@ -172,6 +208,8 @@ class PulsableProgressDialog(ProgressDialog):
     sleep(0.2)
 
 class UpdateView(HasTraits):
+  piksi_hw_rev = String('Waiting for Piksi to send settings...')
+  is_v2 = Bool(False)
 
   piksi_stm_vers = String('Waiting for Piksi to send settings...', width=COLUMN_WIDTH)
   newest_stm_vers = String('Downloading Newest Firmware info...')
@@ -183,7 +221,7 @@ class UpdateView(HasTraits):
   erase_stm = Bool(True)
   erase_en = Bool(True)
 
-  update_stm_firmware = Button(label='Update STM')
+  update_stm_firmware = Button(label='Update FW')
   update_nap_firmware = Button(label='Update NAP')
   update_full_firmware = Button(label='Update Piksi STM and NAP Firmware')
 
@@ -198,13 +236,15 @@ class UpdateView(HasTraits):
   downloading = Bool(False)
   download_fw_en = Bool(True)
 
-  stm_fw = Instance(IntelHexFileDialog)
-  nap_fw = Instance(IntelHexFileDialog)
+  stm_fw = Instance(FirmwareFileDialog)
+  nap_fw = Instance(FirmwareFileDialog)
 
   stream = Instance(OutputStream)
 
   view = View(
     VGroup(
+      Item('piksi_hw_rev', label='Hardware Revision',
+           editor_args={'enabled': False}, resizable=True),
       HGroup(
         VGroup(
           Item('piksi_stm_vers', label='Current', resizable=True),
@@ -214,8 +254,8 @@ class UpdateView(HasTraits):
           HGroup(Item('update_stm_firmware', show_label=False, \
                      enabled_when='update_stm_en'),
                 Item('erase_stm', label='Erase STM flash\n(recommended)', \
-                      enabled_when='erase_en', show_label=True)),
-          show_border=True, label="STM Firmware Version"
+                      enabled_when='erase_en', show_label=True, visible_when='is_v2')),
+          show_border=True, label="Firmware Version"
         ),
         VGroup(
           Item('piksi_nap_vers', label='Current', resizable=True),
@@ -225,7 +265,8 @@ class UpdateView(HasTraits):
           HGroup(Item('update_nap_firmware', show_label=False, \
                       enabled_when='update_nap_en'),
                  Item(width=50, label="                  ")),
-          show_border=True, label="NAP Firmware Version"
+          show_border=True, label="NAP Version",
+          visible_when='is_v2'
           ),
         VGroup(
           Item('local_console_vers', label='Current', resizable=True),
@@ -233,7 +274,7 @@ class UpdateView(HasTraits):
           label="Piksi Console Version", show_border=True),
           ),
       UItem('download_firmware', enabled_when='download_fw_en'),
-      UItem('update_full_firmware', enabled_when='update_en'),
+      UItem('update_full_firmware', enabled_when='update_en', visible_when='is_v2'),
       Item(
         'stream',
         style='custom',
@@ -263,12 +304,11 @@ class UpdateView(HasTraits):
     }
     self.update_dl = None
     self.erase_en = True
-    self.stm_fw = IntelHexFileDialog('STM')
+    self.stm_fw = FirmwareFileDialog('STM')
     self.stm_fw.on_trait_change(self._manage_enables, 'status')
-    self.nap_fw = IntelHexFileDialog('M25')
+    self.nap_fw = FirmwareFileDialog('M25')
     self.nap_fw.on_trait_change(self._manage_enables, 'status')
     self.stream = OutputStream()
-    self.get_latest_version_info()
 
   def _manage_enables(self):
     """ Manages whether traits widgets are enabled in the UI or not. """
@@ -281,7 +321,7 @@ class UpdateView(HasTraits):
     else:
       self.download_fw_en = True
       self.erase_en = True
-      if self.stm_fw.ihx is not None:
+      if self.stm_fw.ihx is not None or self.stm_fw.blob is not None:
         self.update_stm_en = True
       else:
         self.update_stm_en = False
@@ -378,9 +418,27 @@ class UpdateView(HasTraits):
     self._write(status)
 
     # Get firmware files from Swift Nav's website, save to disk, and load.
+    if self.update_dl.index[self.piksi_hw_rev].has_key('fw'):
+      try:
+        self._write('Downloading Newest Multi firmware')
+        filepath = self.update_dl.download_multi_firmware(self.piksi_hw_rev)
+        self._write('Saved file to %s' % filepath)
+        self.stm_fw.load_bin(filepath)
+      except AttributeError:
+        self.nap_fw.clear("Error downloading firmware")
+        self._write("Error downloading firmware: index file not downloaded yet")
+      except KeyError:
+        self.nap_fw.clear("Error downloading firmware")
+        self._write("Error downloading firmware: URL not present in index")
+      except URLError:
+        self.nap_fw.clear("Error downloading firmware")
+        self._write("Error: Failed to download latest NAP firmware from Swift Navigation's website")
+      self.downloading = False
+      return
+
     try:
       self._write('Downloading Newest NAP firmware')
-      filepath = self.update_dl.download_nap_firmware()
+      filepath = self.update_dl.download_nap_firmware(self.piksi_hw_rev)
       self._write('Saved file to %s' % filepath)
       self.nap_fw.load_ihx(filepath)
     except AttributeError:
@@ -395,7 +453,7 @@ class UpdateView(HasTraits):
 
     try:
       self._write('Downloading Newest STM firmware')
-      filepath = self.update_dl.download_stm_firmware()
+      filepath = self.update_dl.download_stm_firmware(self.piksi_hw_rev)
       self._write('Saved file to %s' % filepath)
       self.stm_fw.load_ihx(filepath)
     except AttributeError:
@@ -447,6 +505,8 @@ class UpdateView(HasTraits):
     """
     # Check that settings received from Piksi contain FW versions.
     try:
+      self.piksi_hw_rev = \
+        HW_REV_LOOKUP[self.settings['system_info']['hw_revision'].value]
       self.piksi_stm_vers = \
         self.settings['system_info']['firmware_version'].value
       self.piksi_nap_vers = \
@@ -454,6 +514,14 @@ class UpdateView(HasTraits):
     except KeyError:
       self._write("\nError: Settings received from Piksi don't contain firmware version keys. Please contact Swift Navigation.\n")
       return
+
+    self.is_v2 = self.piksi_hw_rev.startswith('piksi_2')
+    if self.is_v2:
+      self.stm_fw.set_flash_type('STM')
+    else:
+      self.stm_fw.set_flash_type('bin')
+
+    self._get_latest_version_info()
 
     # Check that we received the index file from the website.
     if self.update_dl == None:
@@ -482,7 +550,7 @@ class UpdateView(HasTraits):
             "Local Console Version :\n\t" + \
                 "v" + CONSOLE_VERSION + \
             "\nNewest Console Version :\n\t" + \
-                self.update_dl.index['piksi_v2.3.1']['console']['version'] + "\n"
+                self.update_dl.index[self.piksi_hw_rev]['console']['version'] + "\n"
 
         console_outdated_prompt.run()
 
@@ -509,29 +577,22 @@ class UpdateView(HasTraits):
                                   actions=[prompt.close_button]
                                  )
 
-        fw_update_prompt.text = \
+        if self.update_dl.index[self.piksi_hw_rev].has_key('fw'):
+          fw_update_prompt.text = \
+            "New Piksi firmware available.\n\n" + \
+            "Please use the Firmware Update tab to update.\n\n" + \
+            "Newest Firmware Version :\n\t%s\n\n" % \
+                self.update_dl.index[self.piksi_hw_rev]['fw']['version']
+        else:
+          fw_update_prompt.text = \
             "New Piksi firmware available.\n\n" + \
             "Please use the Firmware Update tab to update.\n\n" + \
             "Newest STM Version :\n\t%s\n\n" % \
-                self.update_dl.index['piksi_v2.3.1']['stm_fw']['version'] + \
+                self.update_dl.index[self.piksi_hw_rev]['stm_fw']['version'] + \
             "Newest SwiftNAP Version :\n\t%s\n\n" % \
-                self.update_dl.index['piksi_v2.3.1']['nap_fw']['version']
+                self.update_dl.index[self.piksi_hw_rev]['nap_fw']['version']
 
         fw_update_prompt.run()
-
-  def get_latest_version_info(self):
-    """
-    Get latest firmware / console version from website. Starts thread so as not
-    to block the GUI thread.
-    """
-    try:
-      if self._get_latest_version_info_thread.is_alive():
-        return
-    except AttributeError:
-      pass
-
-    self._get_latest_version_info_thread = Thread(target=self._get_latest_version_info)
-    self._get_latest_version_info_thread.start()
 
   def _get_latest_version_info(self):
     """ Get latest firmware / console version from website. """
@@ -543,9 +604,12 @@ class UpdateView(HasTraits):
 
     # Make sure index contains all keys we are interested in.
     try:
-      self.newest_stm_vers = self.update_dl.index['piksi_v2.3.1']['stm_fw']['version']
-      self.newest_nap_vers = self.update_dl.index['piksi_v2.3.1']['nap_fw']['version']
-      self.newest_console_vers = self.update_dl.index['piksi_v2.3.1']['console']['version']
+      if self.update_dl.index[self.piksi_hw_rev].has_key('fw'):
+        self.newest_stm_vers = self.update_dl.index[self.piksi_hw_rev]['fw']['version']
+      else:
+        self.newest_stm_vers = self.update_dl.index[self.piksi_hw_rev]['stm_fw']['version']
+        self.newest_nap_vers = self.update_dl.index[self.piksi_hw_rev]['nap_fw']['version']
+      self.newest_console_vers = self.update_dl.index[self.piksi_hw_rev]['console']['version']
     except KeyError:
       self._write("\nError: Index downloaded from Swift Navigation's website (%s) doesn't contain all keys. Please contact Swift Navigation.\n" % INDEX_URL)
       return
@@ -616,6 +680,38 @@ class UpdateView(HasTraits):
       self._write("")
       return False
 
+  def manage_multi_firmware_update(self):
+    # Set up progress dialog and transfer file to Piksi using SBP FileIO
+    progress_dialog = PulsableProgressDialog(len(self.stm_fw.blob))
+    progress_dialog.title = "Transferring image file"
+    GUI.invoke_later(progress_dialog.open)
+    self._write("Transferring image file...")
+    try:
+      FileIO(self.link).write("upgrade.image_set.bin", self.stm_fw.blob,
+                              progress_cb=progress_dialog.progress)
+    except Exception as e:
+      self._write("Failed to transfer image file to Piksi: %s\n" % e)
+      progress_dialog.close()
+      return
+    progress_dialog.close()
+
+    # Setup up pulsed progress dialog and commit to flash
+    progress_dialog = PulsableProgressDialog(100, True)
+    progress_dialog.title = "Committing to flash"
+    GUI.invoke_later(progress_dialog.open)
+    self._write("Committing file to flash...")
+    def log_cb(msg, **kwargs): self._write(msg.text)
+    self.link.add_callback(log_cb, SBP_MSG_LOG)
+    code = shell_command(self.link, "upgrade_tool upgrade.image_set.bin", 240)
+    self.link.remove_callback(log_cb, SBP_MSG_LOG)
+    progress_dialog.close()
+
+    if code != 0:
+      self._write('Failed to perform upgrade (code = %d)' % code)
+      return
+    self._write('Resetting Piksi...')
+    self.link(MsgReset())
+
   # Executed in GUI thread, called from Handler.
   def manage_firmware_updates(self, device):
     """
@@ -625,8 +721,11 @@ class UpdateView(HasTraits):
     self.updating = True
     update_nap = False
     self._write('')
-
-    if device == "STM":
+    if not self.is_v2:
+      self.manage_multi_firmware_update()
+      self.updating = False
+      return
+    elif device == "STM":
       self.manage_stm_firmware_update()
     elif device == "M25":
       update_nap = self.manage_nap_firmware_update()
