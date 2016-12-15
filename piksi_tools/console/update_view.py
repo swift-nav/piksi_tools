@@ -489,6 +489,24 @@ class UpdateView(HasTraits):
     # For timing aesthetics between windows popping up.
     sleep(0.5)
 
+    try:
+      hw_version = self.settings['system_info']['hw_revision'].value
+    except KeyError:
+      return
+    if hw_version != "piksi_2.3.1":
+      hdw_outdated_prompt = \
+          prompt.CallbackPrompt(
+                                title='Console Outdated',
+                                actions=[prompt.close_button]
+                               )
+
+      hdw_outdated_prompt.text = \
+          "Your Console is compatible with hardware version \n\tPiksi 2.3.1\n\n" + \
+          "Your detected hardware version is:\n\t" + hw_version + "\n\n" + \
+          "Please visit support.swiftnav.com to\ndownload a compatible console version."
+      hdw_outdated_prompt.run()
+      return
+
     # Check if firmware is out of date and notify user if so.
     if self.prompt:
       local_stm_version = parse_version(
@@ -518,6 +536,9 @@ class UpdateView(HasTraits):
                 self.update_dl.index['piksi_v2.3.1']['nap_fw']['version']
 
         fw_update_prompt.run()
+
+
+
 
   def get_latest_version_info(self):
     """
