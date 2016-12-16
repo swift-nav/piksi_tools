@@ -102,7 +102,7 @@ class Bootloader():
       t0 = time.time()
     self.handshake_received = False
     expire = time.time() + 15.0
-    self.link(MsgReset())
+    self.link(MsgResetDep())
     while not self.handshake_received:
       time.sleep(0.1)
       if timeout is not None:
@@ -110,7 +110,7 @@ class Bootloader():
           return False
       if time.time() > expire:
         expire = time.time() + 15.0
-        self.link(MsgReset())
+        self.link(MsgResetDep())
     # < 0.45 of SBP protocol, reuse single handshake message.
     if self.sbp_version < (0, 45):
       self.link(MsgBootloaderHandshakeDepA(handshake=''))

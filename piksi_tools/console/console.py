@@ -29,7 +29,7 @@ from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.network_drivers import TCPDriver
 from sbp.ext_events import *
 from sbp.logging import *
-from sbp.piksi import SBP_MSG_RESET, MsgReset
+from sbp.piksi import MsgReset
 from sbp.piksi import *
 from sbp.navigation import *
 from sbp.system import SBP_MSG_HEARTBEAT
@@ -638,7 +638,7 @@ else:
 with selected_driver as driver:
   with sbpc.Handler(sbpc.Framer(driver.read, driver.write, args.verbose)) as link:
     if args.reset:
-      link(MsgReset())
+      link(MsgReset(flags=0))
     log_filter = DEFAULT_LOG_LEVEL_FILTER
     if args.initloglevel[0]:
       log_filter = args.initloglevel[0]

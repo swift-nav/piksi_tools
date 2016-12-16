@@ -74,12 +74,12 @@ class Diagnostics(object):
     # Wait for the handshake
     print "received settings"
     expire = time.time() + 10.0
-    self.link(MsgReset())
+    self.link(MsgReset(flags=0))
     while not self.handshake_received:
       time.sleep(0.1)
       if time.time() > expire:
         expire = time.time() + 10.0
-        self.link(MsgReset())
+        self.link(MsgReset(flags=0))
       if timeout is not None and time.time() > timeout:
         print "timeout waiting for handshake"
         return

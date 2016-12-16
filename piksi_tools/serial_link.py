@@ -245,7 +245,7 @@ def run(args, link):
   """
   timeout = args.timeout
   if args.reset:
-    link(MsgReset())
+    link(MsgReset(flags=0))
   try:
     if args.timeout is not None:
       expire = time.time() + float(args.timeout)

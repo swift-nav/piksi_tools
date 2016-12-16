@@ -171,7 +171,7 @@ class SystemMonitorView(HasTraits):
     self.threads.append((sbp_msg.name, sbp_msg))
 
   def _piksi_reset_button_fired(self):
-    self.link(MsgReset())
+    self.link(MsgReset(flags=0))
 
   def uart_state_callback(self, m, **metadata):
     self.uart_a_tx_KBps = m.uart_a.tx_throughput

@@ -234,13 +234,8 @@ class SettingsView(HasTraits):
     confirm_prompt.run(block=False)
 
   def reset_factory_defaults(self):
-    # Delete settings file
-    fio = FileIO(self.link)
-    fio.remove('config')
-    fio.remove('/persistent/config.ini')
-    # Reset the Piksi
-    self.link(MsgReset())
-
+    # Reset the Piksi, with flag set to restore default settings
+    self.link(MsgReset(flags=1))
 
   def _auto_survey_fired(self):
     confirm_prompt = prompt.CallbackPrompt(

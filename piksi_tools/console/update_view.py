@@ -727,7 +727,7 @@ class UpdateView(HasTraits):
       self._write('Failed to perform upgrade (code = %d)' % code)
       return
     self._write('Resetting Piksi...')
-    self.link(MsgReset())
+    self.link(MsgReset(flags=0))
 
   # Executed in GUI thread, called from Handler.
   def manage_firmware_updates(self, device):
@@ -769,7 +769,7 @@ class UpdateView(HasTraits):
       Either "STM" or "M25".
     """
     # Reset device if the application is running to put into bootloader mode.
-    self.link(MsgReset())
+    self.link(MsgReset(flags=0))
 
     self.pk_boot = bootload.Bootloader(self.link)
 
