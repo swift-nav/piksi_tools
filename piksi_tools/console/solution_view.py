@@ -182,7 +182,6 @@ class SolutionView(HasTraits):
     self.longitude = (sum(self.longitude_list))/self.counter
 
   def pos_llh_callback(self, sbp_msg, **metadata):
-    self.last_stime_update = time.time()
     if sbp_msg.msg_type == SBP_MSG_POS_LLH_DEP_A:
       soln = MsgPosLLHDepA(sbp_msg)
     else:
@@ -239,6 +238,7 @@ class SolutionView(HasTraits):
       pos_table.append(('h_accuracy', EMPTY_STR))
       pos_table.append(('v_accuracy', EMPTY_STR))
     else:
+      self.last_stime_update = time.time()
       if self.week is not None:
         pos_table.append(('GPS Time', "{0}:{1:06.3f}".format(tstr, float(secs))))
         pos_table.append(('GPS Week', str(self.week)))
