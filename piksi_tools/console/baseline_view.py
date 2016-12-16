@@ -169,7 +169,6 @@ class BaselineView(HasTraits):
         self.nsec = time_msg.ns
 
   def baseline_callback(self, sbp_msg):
-    self.last_btime_update = time.time()
     soln = MsgBaselineNEDDepA(sbp_msg)
     self.last_soln = soln
     table = []
@@ -234,6 +233,7 @@ class BaselineView(HasTraits):
       table.append(('Flags', EMPTY_STR))
       table.append(('Mode', EMPTY_STR))
     else:
+      self.last_btime_update = time.time()
       if self.week is not None:
         table.append(('GPS Time', "{0}:{1:06.3f}".format(tstr, float(secs))))
         table.append(('GPS Week', str(self.week)))
@@ -268,18 +268,18 @@ class BaselineView(HasTraits):
       fixed_indexer = (self.mode == FIXED_MODE)
       dgnss_indexer = (self.mode == DGNSS_MODE)
 
-    if np.any(fixed_indexer):
-      self.plot_data.set_data('n_fixed', self.n[fixed_indexer])
-      self.plot_data.set_data('e_fixed', self.e[fixed_indexer])
-      self.plot_data.set_data('d_fixed', self.d[fixed_indexer])
-    if np.any(float_indexer):
-      self.plot_data.set_data('n_float', self.n[float_indexer])
-      self.plot_data.set_data('e_float', self.e[float_indexer])
-      self.plot_data.set_data('d_float', self.d[float_indexer])
-    if np.any(dgnss_indexer):
-      self.plot_data.set_data('n_dgnss', self.n[dgnss_indexer])
-      self.plot_data.set_data('e_dgnss', self.e[dgnss_indexer])
-      self.plot_data.set_data('d_dgnss', self.d[dgnss_indexer])
+      if np.any(fixed_indexer):
+        self.plot_data.set_data('n_fixed', self.n[fixed_indexer])
+        self.plot_data.set_data('e_fixed', self.e[fixed_indexer])
+        self.plot_data.set_data('d_fixed', self.d[fixed_indexer])
+      if np.any(float_indexer):
+        self.plot_data.set_data('n_float', self.n[float_indexer])
+        self.plot_data.set_data('e_float', self.e[float_indexer])
+        self.plot_data.set_data('d_float', self.d[float_indexer])
+      if np.any(dgnss_indexer):
+        self.plot_data.set_data('n_dgnss', self.n[dgnss_indexer])
+        self.plot_data.set_data('e_dgnss', self.e[dgnss_indexer])
+        self.plot_data.set_data('d_dgnss', self.d[dgnss_indexer])
 
     if self.last_mode == FIXED_MODE:
       self.plot_data.set_data('cur_fixed_n', [soln.n])
