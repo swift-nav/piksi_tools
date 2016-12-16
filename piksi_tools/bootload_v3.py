@@ -56,7 +56,7 @@ def get_args():
 def shell_command(link, cmd, timeout=None):
   ev = threading.Event()
   seq = random.randint(0, 0xffffffff)
-  ret = {}
+  ret = {'code': -255}
   def resp_handler(msg, **kwargs):
     if msg.sequence == seq:
       ret['code'] = msg.code
@@ -88,7 +88,7 @@ def main():
       print('Transferring image file...')
       FileIO(link).write("upgrade.image_set.bin", data, progress_cb=progress_cb)
       print('Committing file to flash...')
-      code = shell_command(link, "upgrade_tool upgrade.image_set.bin", 240)
+      code = shell_command(link, "upgrade_tool upgrade.image_set.bin", 300)
       if code != 0:
         print('Failed to perform upgrade (code = %d)' % code)
         return
