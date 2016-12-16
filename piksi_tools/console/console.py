@@ -73,9 +73,9 @@ def get_args():
   parser.add_argument("--file",
                       help="Read with a filedriver rather than pyserial.",
                       action="store_true")
-  parser.add_argument('-t', '--toolkit', nargs=1, default=[None],
+  parser.add_argument('--toolkit', nargs=1, default=[None],
                       help="specify the TraitsUI toolkit to use, either 'wx' or 'qt4'.")
-  parser.add_argument("--tcp", action="store_true", default=False,
+  parser.add_argument("-t", "--tcp", action="store_true", default=False,
                       help="Use a TCP connection instead of a local serial port. \
                       If TCP is selected, the port is interpreted as host:port")
   parser.add_argument('--error', action='store_true',
