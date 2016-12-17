@@ -109,7 +109,7 @@ class TrackingView(HasTraits):
 
   def update_plot(self):
     plot_labels = []
-    self.plots = []
+    plots = []
     self.plot_data.set_data('t', self.time)
     # Remove any stale plots that got removed from the dictionary
     for each in self.plot_data.list_data():
@@ -131,7 +131,7 @@ class TrackingView(HasTraits):
           else:
             pl = self.plot.plots[key]
           # if channel is still active:
-          self.plots.append(pl)
+          plots.append(pl)
           plot_labels.append('Ch %02d (PRN%02d (%s))' %
             (k[2], k[1], code_to_str(k[0])))
       # Remove plot data and plots not selected
@@ -140,7 +140,7 @@ class TrackingView(HasTraits):
           self.plot_data.del_data(key)
         if key in self.plot.plots.keys():
           self.plot.delplot(key)
-    plots = dict(zip(plot_labels, self.plots))
+    plots = dict(zip(plot_labels, plots))
     self.plot.legend.plots = plots
 
   def _legend_visible_changed(self):
