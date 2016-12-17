@@ -8,7 +8,7 @@ Tools for the Piksi GNSS receiver
     :target: https://pypi.python.org/pypi/piksi_tools
 
 Python tools for the Piksi GNSS receiver. This repository includes a
-Piksi console UI application, as well as a variety of command line
+Swift console UI application, as well as a variety of command line
 utilities (firmware bootloader, serial port data logging, etc.).
 
 Setup
@@ -39,9 +39,9 @@ Bootloader example
 Console example
 ~~~~~~~~~~~~~~~
 
-To use the Piksi console, binary installers (Windows and OS X) are here_.
+To use the Swift console, binary installers (Windows and OS X) are here_.
 
-.. _here: http://downloads.swiftnav.com/piksi_console/
+.. _here: http://downloads.swiftnav.com/swift_console/
 
 Testing
 -------

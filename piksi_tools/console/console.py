@@ -149,7 +149,7 @@ from traitsui.table_filter \
 from traitsui.table_column \
     import ObjectColumn, ExpressionColumn
 
-CONSOLE_TITLE = 'Piksi Console v:' + CONSOLE_VERSION
+CONSOLE_TITLE = 'Swift Console v:' + CONSOLE_VERSION
 BAUD_LIST = [57600, 115200, 921600, 1000000]
 
 
@@ -208,7 +208,7 @@ class SwiftConsole(HasTraits):
   """"
   mode : baseline and solution view - SPP, Fixed or Float
   num_sat : baseline and solution view - number of satellites
-  port : which port is Piksi connected to
+  port : which port is Swift Device is connected to
   directory_name : location of logged files
   json_logging : enable JSON logging
   csv_logging : enable CSV logging
@@ -306,9 +306,9 @@ class SwiftConsole(HasTraits):
         ),
         HGroup(
           Spring(width=4, springy=False),
-          Item('', label='PORT:', emphasized=True, tooltip='Serial Port that Piksi is connected to'),
+          Item('', label='PORT:', emphasized=True, tooltip='Serial Port that Swift device is connected to'),
           Item('port', show_label=False, style = 'readonly'),
-          Item('', label='FIX TYPE:', emphasized = True, tooltip='Piksi Mode: SPS, Float RTK, Fixed RTK'),
+          Item('', label='FIX TYPE:', emphasized = True, tooltip='Device Mode: SPS, Float RTK, Fixed RTK'),
           Item('mode', show_label = False, style = 'readonly'),
           Item('', label='#Sats:', emphasized=True, tooltip='Number of satellites used in solution'),
           Item('num_sats', padding=2, show_label=False, style = 'readonly'),
@@ -448,7 +448,7 @@ class SwiftConsole(HasTraits):
     if override_filename:
       filename = override_filename
     else:
-      filename = time.strftime("swift-console-%Y%m%d-%H%M%S.log.json")
+      filename = time.strftime("swift-gnss-%Y%m%d-%H%M%S.sbp.json")
     filename = os.path.normpath(os.path.join(self.directory_name, filename))
     self.logger = s.get_logger(True, filename)
     self.forwarder = sbpc.Forwarder(self.link, self.logger)
@@ -544,7 +544,7 @@ class SwiftConsole(HasTraits):
       # we set timer interval to 1200 milliseconds because we expect a heartbeat each second
       self.timer = Timer(1.2, self.check_heartbeat).start()
       # Once we have received the settings, update device_serial with
-      # the Piksi serial number which will be displayed in the window
+      # the Swift serial number which will be displayed in the window
       # title. This callback will also update the header route as used
       # by the networking view.
       def update_serial():
@@ -590,7 +590,7 @@ class PortChooser(HasTraits):
     HGroup(
       VGroup(
         Item(" ", height=-8),
-        Label('Select Piksi device:'),
+        Label('Select Swift device:'),
         Item('port', editor=EnumEditor(name='ports'), show_label=False),
       ),
       VGroup(

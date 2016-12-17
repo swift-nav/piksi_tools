@@ -33,14 +33,14 @@
 function print_usage() {
 	echo 'create-dmg-installer.sh --app BUILD_APP_PATH --out OUTPUT_BUNDLE.dmg
 
-Create an disk image installer (.dmg) for Piksi Console OSX application.
+Create an disk image installer (.dmg) for Swift Console OSX application.
 
 Options:
 
-    -a --app PATH      Path to a build Piksi Console.app to include in the disk image.
-                       (default dist/Piksi Console.app)
+    -a --app PATH      Path to a build Swift Console.app to include in the disk image.
+                       (default dist/Swift Console.app)
     -o --out PATH      Name for the generated the disk image.
-                       (default dist/piksi_console_VERSION.dmg)
+                       (default dist/swift_console_VERSION.dmg)
     -k --keep-temp     Keep the temporary files after creating the final image.
     -h --help          Print this help
 '
@@ -51,8 +51,8 @@ DIRNAME=$(dirname "$0")
 # Path to dmg resources (volume icon, background, ...)
 RES=$DIRNAME/dmg-resources
 
-APP="dist/Piksi Console.app"
-DMG="dist/piksi_console_`git describe --dirty --tags --always`.dmg"
+APP="dist/Swift Console.app"
+DMG="dist/swift_console_`git describe --dirty --tags --always`.dmg"
 
 KEEP_TEMP=0
 
@@ -96,7 +96,7 @@ fi
 
 TMP_DIR=$(mktemp -d -t console-dmg)
 TMP_TEMPLATE=$TMP_DIR/template
-TMP_DMG=$TMP_DIR/piksi_console_`git describe --dirty --tags --always`.dmg
+TMP_DMG=$TMP_DIR/swift_console_`git describe --dirty --tags --always`.dmg
 
 echo "Preparing an image template in $TMP_TEMPLATE"
 echo "============================================="
@@ -114,10 +114,10 @@ cp -a "$RES"/VolumeIcon.icns "$TMP_TEMPLATE"/.VolumeIcon.icns
 ln -s /Applications/ "$TMP_TEMPLATE"/Applications
 
 # Copy the .app directory in place
-cp -a "$APP" "$TMP_TEMPLATE/Piksi Console.app"
+cp -a "$APP" "$TMP_TEMPLATE/Swift Console.app"
 
 # Remove unnecesary files.
-#find "$TMP_TEMPLATE"/Piksi Console.app/Contents/ \( -name '*~' -or -name '*.bak' -or -name '*.pyc' -or -name '*.pyo' \) -delete
+#find "$TMP_TEMPLATE"/Swift Console.app/Contents/ \( -name '*~' -or -name '*.bak' -or -name '*.pyc' -or -name '*.pyo' \) -delete
 
 # Create a regular .fseventsd/no_log file
 # (see http://hostilefork.com/2009/12/02/trashes-fseventsd-and-spotlight-v100/ )
@@ -127,13 +127,13 @@ touch "$TMP_TEMPLATE"/.fseventsd/no_log
 
 
 echo "Creating a temporary disk image"
-hdiutil create -format UDRW -volname "Piksi Console" -fs HFS+ \
+hdiutil create -format UDRW -volname "Swift Console" -fs HFS+ \
        -fsargs "-c c=64,a=16,e=16" \
        -srcfolder "$TMP_TEMPLATE" \
        "$TMP_DMG"
 
 # Force detatch an image it it is mounted
-hdiutil detach "/Volumes/Piksi Console" -force || true
+hdiutil detach "/Volumes/Swift Console" -force || true
 
 # Mount in RW mode
 echo "Mounting temporary disk image"
