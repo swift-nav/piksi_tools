@@ -208,11 +208,6 @@ class PulsableProgressDialog(ProgressDialog):
       self.max = 100
       GUI.invoke_later(self.update, int(100*float(count)/self.passed_max))
 
-  def close(self):
-    """ Close progress bar window. """
-    GUI.invoke_after(0.1, super(PulsableProgressDialog, self).close)
-    sleep(0.2)
-
 class UpdateView(HasTraits):
   piksi_hw_rev = String('Waiting for Piksi to send settings...')
   is_v2 = Bool(False)
@@ -654,8 +649,10 @@ class UpdateView(HasTraits):
         erase_count += 1
       self.stop_flash()
       self._write("")
-      progress_dialog.close()
-
+      try:
+        progress_dialog.close()
+      except AttributeError:
+        pass
     # Flash STM.
     text = "Updating STM"
     self._write(text)
@@ -671,7 +668,10 @@ class UpdateView(HasTraits):
                             erase = not self.erase_stm)
     self.stop_flash()
     self._write("")
-    progress_dialog.close()
+    try:
+      progress_dialog.close()
+    except AttributeError:
+      pass
 
   def manage_nap_firmware_update(self, check_version=False):
     # Flash NAP if out of date.
@@ -694,7 +694,10 @@ class UpdateView(HasTraits):
                               elapsed_ops_cb = progress_dialog.progress)
       self.stop_flash()
       self._write("")
-      progress_dialog.close()
+      try:
+        progress_dialog.close()
+      except AttributeError:
+        pass
       return True
     else:
       text = "NAP is already to latest version, not updating!"
@@ -715,7 +718,10 @@ class UpdateView(HasTraits):
       self._write("Failed to transfer image file to Piksi: %s\n" % e)
       progress_dialog.close()
       return
-    progress_dialog.close()
+    try:
+      progress_dialog.close()
+    except AttributeError:
+      pass
 
     # Setup up pulsed progress dialog and commit to flash
     progress_dialog = PulsableProgressDialog(100, True)
