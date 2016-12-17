@@ -119,6 +119,17 @@ class BaselineView(HasTraits):
   def _init_base_button_fired(self):
     self.link(MsgInitBase())
 
+  def _reset_remove_current(self):
+    self.plot_data.set_data('cur_fixed_n', [])
+    self.plot_data.set_data('cur_fixed_e', [])
+    self.plot_data.set_data('cur_fixed_d', [])
+    self.plot_data.set_data('cur_float_n', [])
+    self.plot_data.set_data('cur_float_e', [])
+    self.plot_data.set_data('cur_float_d', [])
+    self.plot_data.set_data('cur_dgnss_n', [])
+    self.plot_data.set_data('cur_dgnss_e', [])
+    self.plot_data.set_data('cur_dgnss_d', [])
+
   def _clear_button_fired(self):
     self.n[:] = np.NAN
     self.e[:] = np.NAN
@@ -134,15 +145,8 @@ class BaselineView(HasTraits):
     self.plot_data.set_data('n_dgnss', [])
     self.plot_data.set_data('e_dgnss', [])
     self.plot_data.set_data('d_dgnss', [])
-    self.plot_data.set_data('cur_fixed_n', [])
-    self.plot_data.set_data('cur_fixed_e', [])
-    self.plot_data.set_data('cur_fixed_d', [])
-    self.plot_data.set_data('cur_float_n', [])
-    self.plot_data.set_data('cur_float_e', [])
-    self.plot_data.set_data('cur_float_d', [])
-    self.plot_data.set_data('cur_dgnss_n', [])
-    self.plot_data.set_data('cur_dgnss_e', [])
-    self.plot_data.set_data('cur_dgnss_d', [])
+    self._reset_remove_current()
+    
 
   def iar_state_callback(self, sbp_msg, **metadata):
     self.num_hyps = sbp_msg.num_hyps
@@ -280,32 +284,24 @@ class BaselineView(HasTraits):
         self.plot_data.set_data('n_dgnss', self.n[dgnss_indexer])
         self.plot_data.set_data('e_dgnss', self.e[dgnss_indexer])
         self.plot_data.set_data('d_dgnss', self.d[dgnss_indexer])
-
+     
+    self._reset_remove_current()
     if self.last_mode == FIXED_MODE:
       self.plot_data.set_data('cur_fixed_n', [soln.n])
       self.plot_data.set_data('cur_fixed_e', [soln.e])
       self.plot_data.set_data('cur_fixed_d', [soln.d])
-      self.plot_data.set_data('cur_float_n', [])
-      self.plot_data.set_data('cur_float_e', [])
-      self.plot_data.set_data('cur_float_d', [])
+
     elif self.last_mode == FLOAT_MODE:
       self.plot_data.set_data('cur_float_n', [soln.n])
       self.plot_data.set_data('cur_float_e', [soln.e])
       self.plot_data.set_data('cur_float_d', [soln.d])
-      self.plot_data.set_data('cur_fixed_n', [])
-      self.plot_data.set_data('cur_fixed_e', [])
-      self.plot_data.set_data('cur_fixed_d', [])
+
     elif self.last_mode == DGNSS_MODE:
       self.plot_data.set_data('cur_dgnss_n', [soln.n])
       self.plot_data.set_data('cur_dgnss_e', [soln.e])
       self.plot_data.set_data('cur_dgnss_d', [soln.d])
-      self.plot_data.set_data('cur_dgnss_n', [])
-      self.plot_data.set_data('cur_dgnss_e', [])
-      self.plot_data.set_data('cur_dgnss_d', [])
 
-    self.plot_data.set_data('ref_n', [0.0])
-    self.plot_data.set_data('ref_e', [0.0])
-    self.plot_data.set_data('ref_d', [0.0])
+
 
     
     # make the zoomall win over the position centered button 

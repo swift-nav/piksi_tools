@@ -124,7 +124,7 @@ class SolutionView(HasTraits):
   def _paused_button_fired(self):
     self.running = not self.running
 
-  def reset_remove_current(self):
+  def _reset_remove_current(self):
     self.plot_data.set_data('cur_lat_spp', [])
     self.plot_data.set_data('cur_lng_spp', [])
     self.plot_data.set_data('cur_alt_spp', [])
@@ -156,7 +156,7 @@ class SolutionView(HasTraits):
     self.plot_data.set_data('lat_fixed', [])
     self.plot_data.set_data('lng_fixed', [])
     self.plot_data.set_data('alt_fixed', [])
-    self.reset_remove_current()
+    self._reset_remove_current()
 
 
   def _pos_llh_callback(self, sbp_msg, **metadata):
@@ -300,7 +300,7 @@ class SolutionView(HasTraits):
         self.plot_data.set_data('lng_fixed', self.lngs[fixed_indexer])
         self.plot_data.set_data('alt_fixed', self.alts[fixed_indexer])
 
-    self.reset_remove_current()
+    self._reset_remove_current()
     if self.last_pos_mode == SPP_MODE:
       self.plot_data.set_data('cur_lat_spp', [soln.lat])
       self.plot_data.set_data('cur_lng_spp', [soln.lon])

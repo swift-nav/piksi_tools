@@ -12,7 +12,7 @@
 from urllib2 import URLError
 from time import sleep
 from intelhex import IntelHex, HexRecordError
-from pkg_resources import parse_version
+from pkg_resources import parse_version as pkparse_version
 
 from sbp.bootload import MsgBootloaderJumpToApp
 from sbp.piksi import MsgReset
@@ -55,6 +55,12 @@ HW_REV_LOOKUP = {
   'Piksi Multi': 'piksi_multi',
   'piksi_2.3.1': 'piksi_v2.3.1',
 }
+
+def parse_version(version):
+  comp_string = version
+  if version[0] == 'v':
+    version = version[1:-1]
+  pkparse_version(version.replace("dirty", "",))
 
 class FirmwareFileDialog(HasTraits):
 
@@ -202,21 +208,16 @@ class PulsableProgressDialog(ProgressDialog):
       self.max = 100
       GUI.invoke_later(self.update, int(100*float(count)/self.passed_max))
 
-  def close(self):
-    """ Close progress bar window. """
-    GUI.invoke_after(0.1, super(PulsableProgressDialog, self).close)
-    sleep(0.2)
-
 class UpdateView(HasTraits):
   piksi_hw_rev = String('Waiting for Piksi to send settings...')
   is_v2 = Bool(False)
 
   piksi_stm_vers = String('Waiting for Piksi to send settings...', width=COLUMN_WIDTH)
-  newest_stm_vers = String('Downloading Newest Firmware info...')
+  newest_stm_vers = String('Downloading Latest Firmware info...')
   piksi_nap_vers = String('Waiting for Piksi to send settings...')
-  newest_nap_vers = String('Downloading Newest Firmware info...')
+  newest_nap_vers = String('Downloading Latest Firmware info...')
   local_console_vers = String('v' + CONSOLE_VERSION)
-  newest_console_vers = String('Downloading Newest Console info...')
+  newest_console_vers = String('Downloading Latest Console info...')
 
   erase_stm = Bool(True)
   erase_en = Bool(True)
@@ -230,7 +231,7 @@ class UpdateView(HasTraits):
   update_nap_en = Bool(False)
   update_en = Bool(False)
 
-  download_firmware = Button(label='Download Newest Firmware Files')
+  download_firmware = Button(label='Download Latest Firmware Files')
   download_stm = Button(label='Download', height=HT)
   download_nap = Button(label='Download', height=HT)
   downloading = Bool(False)
@@ -411,8 +412,7 @@ class UpdateView(HasTraits):
       return
 
     self.downloading = True
-
-    status = 'Downloading Newest Firmware...'
+    status = 'Downloading Latest Firmware...'
     self.nap_fw.clear(status)
     self.stm_fw.clear(status)
     self._write(status)
@@ -420,7 +420,7 @@ class UpdateView(HasTraits):
     # Get firmware files from Swift Nav's website, save to disk, and load.
     if self.update_dl.index[self.piksi_hw_rev].has_key('fw'):
       try:
-        self._write('Downloading Newest Multi firmware')
+        self._write('Downloading Latest Multi firmware')
         filepath = self.update_dl.download_multi_firmware(self.piksi_hw_rev)
         self._write('Saved file to %s' % filepath)
         self.stm_fw.load_bin(filepath)
@@ -437,7 +437,7 @@ class UpdateView(HasTraits):
       return
 
     try:
-      self._write('Downloading Newest NAP firmware')
+      self._write('Downloading Latest NAP firmware')
       filepath = self.update_dl.download_nap_firmware(self.piksi_hw_rev)
       self._write('Saved file to %s' % filepath)
       self.nap_fw.load_ihx(filepath)
@@ -452,7 +452,7 @@ class UpdateView(HasTraits):
       self._write("Error: Failed to download latest NAP firmware from Swift Navigation's website")
 
     try:
-      self._write('Downloading Newest STM firmware')
+      self._write('Downloading Latest STM firmware')
       filepath = self.update_dl.download_stm_firmware(self.piksi_hw_rev)
       self._write('Saved file to %s' % filepath)
       self.stm_fw.load_ihx(filepath)
@@ -649,8 +649,10 @@ class UpdateView(HasTraits):
         erase_count += 1
       self.stop_flash()
       self._write("")
-      progress_dialog.close()
-
+      try:
+        progress_dialog.close()
+      except AttributeError:
+        pass
     # Flash STM.
     text = "Updating STM"
     self._write(text)
@@ -666,7 +668,10 @@ class UpdateView(HasTraits):
                             erase = not self.erase_stm)
     self.stop_flash()
     self._write("")
-    progress_dialog.close()
+    try:
+      progress_dialog.close()
+    except AttributeError:
+      pass
 
   def manage_nap_firmware_update(self, check_version=False):
     # Flash NAP if out of date.
@@ -689,7 +694,10 @@ class UpdateView(HasTraits):
                               elapsed_ops_cb = progress_dialog.progress)
       self.stop_flash()
       self._write("")
-      progress_dialog.close()
+      try:
+        progress_dialog.close()
+      except AttributeError:
+        pass
       return True
     else:
       text = "NAP is already to latest version, not updating!"
@@ -710,7 +718,10 @@ class UpdateView(HasTraits):
       self._write("Failed to transfer image file to Piksi: %s\n" % e)
       progress_dialog.close()
       return
-    progress_dialog.close()
+    try:
+      progress_dialog.close()
+    except AttributeError:
+      pass
 
     # Setup up pulsed progress dialog and commit to flash
     progress_dialog = PulsableProgressDialog(100, True)

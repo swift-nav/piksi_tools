@@ -71,9 +71,9 @@ class ObservationView(HasTraits):
         HGroup(
           Item('_obs_table_list', style='readonly',
                editor=TabularEditor(adapter=SimpleAdapter()), show_label=False),
-          label=self.name,
-          show_border=True
-        )
+        ),
+        label=self.name,
+        show_border=True
       )
     )
 
