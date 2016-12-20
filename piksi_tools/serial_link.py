@@ -298,9 +298,26 @@ def main(args):
           if use_broker and base and serial_id:
             device_id = get_uuid(channel, serial_id)
             with HTTPDriver(str(device_id), base) as http:
-              with Handler(Framer(http.read, http.write, args.verbose)) as slink:
-                Forwarder(slink, swriter(link)).start()
-                run(args, link)
+              if not http.connect_write(link, DEFAULT_WHITELIST):
+                err_msg = ("\nUnable to connect to Skylark!\n\n"
+                           "Please check that you have a network connection.")
+                print err_msg
+              else:
+                print "Connected to Skylark as a base!"
+                i = 0
+                repeats = 5
+                while http and not http.connect_read():
+                  print "Attempting to read observation from Skylark..."
+                  time.sleep(0.1)
+                  i += 1
+                  if i >= repeats:
+                    print "Unable to connect to Skylark as a rover..."
+                    break
+                if http and http.read_ok:
+                  print "Connected to Skylark as a rover!"
+                  with Handler(Framer(http.read, http.write, args.verbose)) as slink:
+                    Forwarder(slink, swriter(link)).start()
+              run(args, link)
           else:
             run(args, link)
 
