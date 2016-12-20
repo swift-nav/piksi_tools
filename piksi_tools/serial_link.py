@@ -229,6 +229,8 @@ def get_uuid(channel, serial_id):
   """
   if isinstance(channel, str) and isinstance(serial_id, int) and serial_id > 0:
     return uuid.uuid5(uuid.UUID(channel), str(serial_id))
+  elif isinstance(channel, str) and isinstance(serial_id, int) and serial_id < 0:
+    return uuid.uuid5(uuid.UUID(channel), str(-serial_id))
   else:
     return None
 
