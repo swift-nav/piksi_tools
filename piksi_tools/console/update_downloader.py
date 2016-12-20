@@ -59,10 +59,9 @@ class UpdateDownloader:
     filename = os.path.split(urlparse(url).path)[1]
 
     url_file = urlopen(url)
-    lines = url_file.readlines()
-    with open(filename, 'w') as f:
-      for line in lines:
-        f.write(line)
+    blob = url_file.read()
+    with open(filename, 'wb') as f:
+      f.write(blob)
     url_file.close()
 
     return os.path.abspath(filename)
