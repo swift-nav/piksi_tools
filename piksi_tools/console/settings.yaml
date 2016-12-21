@@ -398,8 +398,9 @@
 - group: solution
   name: elevation_mask
   type: float
+  expert: true
   units: degrees
-  default value: '5'
+  default value: '10'
   enumerated possible values:
   Description: SPP / RTK elevation mask
   Notes: Satellites must be above the horizon by at least this angle before they
@@ -699,6 +700,17 @@
     reporting the event, including a timestamp accurate to better than
     a microsecond.
     Requires NAP firmware >= 0.12.
+
+- group: track
+  name: elevation_mask
+  expert: true
+  type: float
+  units: degrees
+  default value: '0'
+  enumerated possible values:
+  Description: Tracking elevation mask
+  Notes: Satellites must be above the horizon by at least this angle before they
+    will be tracked.
 
 - group: track
   name: iq_output_mask
