@@ -151,7 +151,7 @@ class FirmwareFileDialog(HasTraits):
       return
 
     try:
-      self.blob = open(filepath, 'r').read()
+      self.blob = open(filepath, 'rb').read()
       self.status = os.path.split(filepath)[1]
     except:
       self.clear('Error: Failed to read binary file')

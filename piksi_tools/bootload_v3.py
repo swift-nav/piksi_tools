@@ -81,7 +81,7 @@ def main():
       link.add_callback(serial_link.log_printer, SBP_MSG_LOG)
       link.add_callback(serial_link.printer, SBP_MSG_PRINT_DEP)
 
-      data = open(args.file).read()
+      data = open(args.file, 'rb').read()
       def progress_cb(size):
           sys.stdout.write("\rProgress: %d%%    \r" % (100 * size / len(data)))
           sys.stdout.flush();
