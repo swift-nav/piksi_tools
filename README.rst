@@ -39,9 +39,11 @@ Bootloader example
 Console example
 ~~~~~~~~~~~~~~~
 
-To use the Swift console, binary installers (Windows and OS X) are here_.
+To use the Swift console, download binary installers for Windows and OS X.
 
-.. _here: http://downloads.swiftnav.com/swift_console/
+Latest console for `Piksi Multi <http://downloads.swiftnav.com/swift_console>`__
+
+Older versions of console for use with `Piksi v2 <http://downloads.swiftnav.com/piksi_console>`__
 
 Testing
 -------
