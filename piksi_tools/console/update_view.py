@@ -469,7 +469,7 @@ class UpdateView(HasTraits):
         hw_version = self.settings['system_info']['hw_revision'].value
       except KeyError:
         return
-      if self.console_outdated:
+      if self.console_outdated or not hw_version.startswith("piksi_2"):
         console_outdated_prompt = \
             prompt.CallbackPrompt(
                                   title="Piksi Console Outdated",
