@@ -14,6 +14,14 @@ utilities (firmware bootloader, serial port data logging, etc.).
 Setup
 -----
 
+Note on ``virtualenv`` and ``conda``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+If want to use a `virtualenv <http://docs.python-guide.org/en/latest/dev/virtualenvs/>`__ while developing the console, you should activate it before running the install scripts, as they will ``pip install`` requirements.
+
+The unittests do not work with the ``conda`` package manager because ``tox`` uses ``virtualenv``, which is not compatible with ``conda``.
+
+Scripts
+~~~~~~~
 Install all dependencies (including console libraries)::
 
   $ make deps
@@ -30,6 +38,9 @@ Install package from pypi::
 
   $ sudo pip install piksi_tools
 
+On OS X, you may need to add ``export PYTHONPATH=/usr/local/lib/python2.7/site-packages:$PYTHONPATH`` to your ``~/.bash_profile`` in order to use libraries installed via ``brew``.
+
+
 Usage Examples
 --------------
 
@@ -39,11 +50,15 @@ Bootloader example
 Console example
 ~~~~~~~~~~~~~~~
 
-To use the Swift console, download binary installers for Windows and OS X.
+To just use the Swift console, download binary installers for Windows and OS X.
 
-Latest console for `Piksi Multi <http://downloads.swiftnav.com/swift_console>`__
+  Latest console for `Piksi Multi <http://downloads.swiftnav.com/swift_console>`__
 
-Older versions of console for use with `Piksi v2 <http://downloads.swiftnav.com/piksi_console>`__
+  Older versions of console for use with `Piksi v2 <http://downloads.swiftnav.com/piksi_console>`__
+
+To run the console GUI from the command line, install dependencies and run ``python piksi_console/console/console.py``.
+
+For command line arguments, see `console.py <https://github.com/swift-nav/piksi_tools/blob/master/piksi_tools/console/console.py>`__
 
 Testing
 -------
@@ -51,6 +66,10 @@ Testing
 To run the tests and check for coverage::
 
   $  PYTHONPATH=. tox
+
+USB issues on OS X
+------------------
+The ftdi USB drivers are finicky on some versions of OS X. See their `docs <http://pylibftdi.readthedocs.io/en/latest/troubleshooting.html#where-did-my-ttyusb-devices-go>`__ for help debugging (tl;dr if you try to plug in multiple USB devices to the same port, the subsequent ones may not appear through ftdi even if they appear in the result of ``sudo dmesg``. Only restarting your machine will fix this.)
 
 License
 -------
