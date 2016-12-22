@@ -119,7 +119,7 @@ class TrackingView(HasTraits):
           self.plot.delplot(each)
         except KeyError:
           pass
-    for k, cno_array in self.CN0_dict.iteritems():
+    for k, cno_array in self.CN0_dict.items():
       key = str(k)
       # set plot data and create plot for any selected for display
       if ((self.show_l2 and int(k[0]) in L2_CODES) or
