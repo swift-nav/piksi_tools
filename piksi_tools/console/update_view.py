@@ -730,12 +730,15 @@ class UpdateView(HasTraits):
     self._write("Committing file to flash...")
     def log_cb(msg, **kwargs): self._write(msg.text)
     self.link.add_callback(log_cb, SBP_MSG_LOG)
-    code = shell_command(self.link, "upgrade_tool upgrade.image_set.bin", 240)
+    code = shell_command(self.link, "upgrade_tool upgrade.image_set.bin", 600,
+                         progress_cb=progress_dialog.progress)
     self.link.remove_callback(log_cb, SBP_MSG_LOG)
     progress_dialog.close()
 
     if code != 0:
       self._write('Failed to perform upgrade (code = %d)' % code)
+      if code == -255:
+        self._write('Shell command timed out.  Please try again.')
       return
     self._write('Resetting Piksi...')
     self.link(MsgReset(flags=0))

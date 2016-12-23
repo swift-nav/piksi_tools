@@ -367,7 +367,7 @@ class SwiftConsole(HasTraits):
       "good" if (e.flags & (1<<1)) else "unknown")
 
   def cmd_resp_callback(self, sbp_msg, **metadata):
-    r = MsgCmdResponse(sbp_msg)
+    r = MsgCommandResp(sbp_msg)
     print "Received a command response message with code {0}".format(
            r.code)
 
