@@ -131,9 +131,10 @@ class TrackingView(HasTraits):
           else:
             pl = self.plot.plots[key]
           # if channel is still active:
-          plots.append(pl)
-          plot_labels.append('Ch %02d (PRN%02d (%s))' %
-            (k[2], k[1], code_to_str(k[0])))
+          if cno_array[-1] != 0:
+            plots.append(pl)
+            plot_labels.append('Ch %02d (PRN%02d (%s))' %
+              (k[2], k[1], code_to_str(k[0])))
       # Remove plot data and plots not selected
       else:
         if key in self.plot_data.list_data():
