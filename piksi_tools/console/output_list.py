@@ -40,7 +40,7 @@ LOG_DEBUG      = 7       # debug-level messages
 CONSOLE_LOG_LEVEL = -1
 DEFAULT_LOG_LEVEL = -2
 
-LOGFILE = time.strftime('console-log-%Y%m%d-%H%M%S.log')
+LOGFILE = time.strftime('swift-console-%Y%m%d-%H%M%S.log')
 # This maps the log level numbers to a human readable string
 # The unused log levels are commented out of the dict until used
 
