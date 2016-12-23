@@ -202,12 +202,17 @@ class FileIO(object):
 
     # How do we calculate this from the MsgFileioWriteRequest class?
     chunksize = MAX_PAYLOAD_SIZE - len(filename) - 9
+    current_index=0
 
     with SelectiveRepeater(self.link, SBP_MSG_FILEIO_WRITE_RESP) as sr:
-      while data:
+      while offset < len(data):
         seq = self.next_seq()
-        chunk = data[:chunksize]
-        data = data[chunksize:]
+        end_index = offset+chunksize-1
+        if end_index > len(data):
+          end_index = len(data)
+        #print "going from {0} to {1} in array for chunksize {2}".format(offset, end_index, chunksize)
+        chunk = data[offset:offset+chunksize-1]
+        #print "len is {0}".format(len(chunk))
         msg = MsgFileioWriteReq(sequence=seq,
                                 filename=(filename + '\0' + chunk),
                                 offset=offset, data='')
