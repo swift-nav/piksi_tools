@@ -122,7 +122,7 @@ if ETSConfig.toolkit == 'qt4':
   import pyface.ui.qt4.resource_manager
   import pyface.ui.qt4.python_shell
 from pyface.image_resource import ImageResource
-from threading import Timer
+from threading import Thread, Event
 
 basedir = determine_path()
 icon = ImageResource('icon', search_path=['images', os.path.join(basedir, 'images')])
@@ -171,6 +171,13 @@ class ConsoleHandler(Handler):
     if info.initialized:
       info.ui.title =  info.object.dev_id + "(" + info.object.device_serial +") " + CONSOLE_TITLE
 
+def call_repeatedly(interval, func, *args):
+    stopped = Event()
+    def loop():
+        while not stopped.wait(interval): # the first call is in `interval` secs
+            func(*args)
+    Thread(target=loop).start()    
+    return stopped.set
 
 class SwiftConsole(HasTraits):
   """Traits-defined Swift Console.
@@ -227,7 +234,6 @@ class SwiftConsole(HasTraits):
   heartbeat_count = Int()
   last_timer_heartbeat = Int()
   solid_connection = Bool(False)
-  timer = Any()
   is_valid_directory = Bool (True)
 
 
@@ -357,6 +363,11 @@ class SwiftConsole(HasTraits):
     print 'External event: %s edge on pin %d at wn=%d, tow=%d, time qual=%s' % (
       "Rising" if (e.flags & (1<<0)) else "Falling", e.pin, e.wn, e.tow,
       "good" if (e.flags & (1<<1)) else "unknown")
+
+  def cmd_resp_callback(self, sbp_msg, **metadata):
+    r = MsgCmdResponse(sbp_msg)
+    print "Received a command response message with code {0}".format(
+           r.code)
 
   def _paused_button_fired(self):
     self.console_output.paused = not self.console_output.paused
@@ -522,6 +533,7 @@ class SwiftConsole(HasTraits):
       self.link.add_callback(self.print_message_callback, SBP_MSG_PRINT_DEP)
       self.link.add_callback(self.log_message_callback, SBP_MSG_LOG)
       self.link.add_callback(self.ext_event_callback, SBP_MSG_EXT_EVENT)
+      self.link.add_callback(self.cmd_resp_callback, SBP_MSG_COMMAND_RESP)
       self.link.add_callback(self.update_on_heartbeat, SBP_MSG_HEARTBEAT)
       self.dep_handler = DeprecatedMessageHandler(link)
       settings_read_finished_functions = []
@@ -542,7 +554,7 @@ class SwiftConsole(HasTraits):
         self._start_json_logging(override_filename)
         self.json_logging = True
       # we set timer interval to 1200 milliseconds because we expect a heartbeat each second
-      self.timer = Timer(1.2, self.check_heartbeat).start()
+      self.timer_cancel = call_repeatedly(1.2, self.check_heartbeat)
       # Once we have received the settings, update device_serial with
       # the Swift serial number which will be displayed in the window
       # title. This callback will also update the header route as used
