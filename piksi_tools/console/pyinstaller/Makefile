@@ -32,8 +32,8 @@ Cygwin:
 Darwin:
 	sudo ./create-dmg-installer.sh
 Linux:
-	tar cfvz swift_console_v$(VERSION).tar.gz ./dist/console 
-	mv swift_console_v$(VERSION).tar.gz ./dist/
+	mv ./dist/console ./dist/swift_console_v$(VERSION)
+	cd dist && tar cfvz swift_console_v$(VERSION).tar.gz ./swift_console_v$(VERSION)
 clean:
 	rm -rf build dist
 
