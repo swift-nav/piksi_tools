@@ -117,7 +117,9 @@ class SbpRelayView(HasTraits):
            )
   )
 
-  def __init__(self, link, device_uid=None, base=DEFAULT_BASE, whitelist=None):
+  def __init__(self, link, device_uid=None, base=DEFAULT_BASE, 
+               whitelist=None, rover_pragma='', base_pragma='', rover_uuid='', base_uuid='',
+               connect=False):
     """
     Traits tab with UI for UDP broadcast of SBP.
 
@@ -146,6 +148,15 @@ class SbpRelayView(HasTraits):
     self.whitelist = whitelist
     self.device_uid = None
     self.python_console_cmds = {'update': self}
+    self.rover_pragma = rover_pragma
+    self.base_pragma = base_pragma
+    self.rover_device_uid = rover_uuid
+    print "rover uuid is " + rover_uuid
+    self.base_device_uid = base_uuid
+    if connect:
+      self.connect_when_uuid_received=True
+    else:
+      self.connect_when_uuid_received=False
 
   def update_msgs(self):
     """Updates the instance variable msgs which store the msgs that we
