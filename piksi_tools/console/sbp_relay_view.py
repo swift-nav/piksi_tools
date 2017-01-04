@@ -151,7 +151,6 @@ class SbpRelayView(HasTraits):
     self.rover_pragma = rover_pragma
     self.base_pragma = base_pragma
     self.rover_device_uid = rover_uuid
-    print "rover uuid is " + rover_uuid
     self.base_device_uid = base_uuid
     if connect:
       self.connect_when_uuid_received=True

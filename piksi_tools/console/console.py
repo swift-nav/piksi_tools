@@ -548,13 +548,11 @@ class SwiftConsole(HasTraits):
       self.update_view = UpdateView(self.link, prompt=update)
       self.imu_view = IMUView(self.link)
       settings_read_finished_functions.append(self.update_view.compare_versions)
-      print skylark
       if skylark:
         import yaml
         skylark_dict = yaml.load(skylark)
       else:
         skylark_dict = {}
-      print skylark_dict
 
       self.networking_view = SbpRelayView(self.link, **skylark_dict)
       self.json_logging = json_logging
