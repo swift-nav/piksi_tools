@@ -26,7 +26,7 @@ from sbp.piksi                          import MsgReset
 from sbp.client.drivers.network_drivers import HTTPDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.pyftdi_driver   import PyFTDIDriver
-from sbp.client.drivers.base_driver     import BaseDriver
+from sbp.client.drivers.cdc_driver     import CdcDriver
 from sbp.client.loggers.json_logger     import JSONLogger
 from sbp.client.loggers.null_logger     import NullLogger
 from sbp.client                         import Handler, Framer, Forwarder
@@ -128,7 +128,7 @@ def get_driver(use_ftdi=False, port=SERIAL_PORT, baud=SERIAL_BAUD, file=False):
       if port == each[0]:
         if each[1].startswith("Gadget Serial"):
           print "opening a file driver"
-          return BaseDriver(open(port, 'w+b', 0 ))
+          return CdcDriver(open(port, 'w+b', 0 ))
     return PySerialDriver(port, baud)
   # if finding the driver fails we should exit with a return code
   # currently sbp's py serial driver raises SystemExit, so we trap it
