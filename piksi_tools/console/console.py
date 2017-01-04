@@ -550,7 +550,13 @@ class SwiftConsole(HasTraits):
       settings_read_finished_functions.append(self.update_view.compare_versions)
       if skylark:
         import yaml
-        skylark_dict = yaml.load(skylark)
+        try:
+          skylark_dict = yaml.load(skylark)
+        except yaml.YAMLError:
+          print "Unable to interpret Skylark cmdline argument.  It will be ignored."
+          import traceback
+          print traceback.format_exc()
+          skylark_dict = {}
       else:
         skylark_dict = {}
 
