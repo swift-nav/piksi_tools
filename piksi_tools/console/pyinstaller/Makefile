@@ -31,9 +31,11 @@ Cygwin:
 	makensis '-XOutfile swift_console_v$(VERSION)_setup.exe' win_installer.nsi
 Darwin:
 	sudo ./create-dmg-installer.sh
-Linux:
+tar:
 	tar cfvz swift_console_v$(VERSION).tar.gz ./dist/console 
 	mv swift_console_v$(VERSION).tar.gz ./dist/
+Linux:
+	make tar
 clean:
 	rm -rf build dist
 
