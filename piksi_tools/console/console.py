@@ -82,6 +82,8 @@ def get_args():
                       help="Do not swallow exceptions.")
   parser.add_argument('--log-console', action='store_true',
                       help="Log console stdout/err to file.")
+  parser.add_argument('--skylark', default='',
+                      help="key value pairs to pass to sbp_relay_view initializer for skylark")
   return parser.parse_args()
 
 args = get_args()
@@ -493,9 +495,9 @@ class SwiftConsole(HasTraits):
 
   def __exit__(self, exc_type, exc_value, traceback):
     self.console_output.close()
-
-  def __init__(self, link, update, log_level_filter, skip_settings=False, error=False,
-               port=None, json_logging=False, log_dirname=None, log_console=False):
+  
+  def __init__(self, link, update, log_level_filter, skip_settings=False, error=False, 
+               port=None, json_logging=False, log_dirname=None, log_console=False, skylark=""):
     self.error = error
     self.port = port
     self.dev_id = str(os.path.split(port)[1])
@@ -546,7 +548,13 @@ class SwiftConsole(HasTraits):
       self.update_view = UpdateView(self.link, prompt=update)
       self.imu_view = IMUView(self.link)
       settings_read_finished_functions.append(self.update_view.compare_versions)
-      self.networking_view = SbpRelayView(self.link)
+      if skylark:
+        import yaml
+        skylark_dict = yaml.load(skylark)
+      else:
+        skylark_dict = {}
+
+      self.networking_view = SbpRelayView(self.link, **skylark_dict)
       self.json_logging = json_logging
       self.csv_logging = False
       self.first_json_press = True
@@ -564,6 +572,8 @@ class SwiftConsole(HasTraits):
         self.device_serial = 'PK%04d' % int(serial_string)
         if serial_string:
           self.networking_view.set_route(int(serial_string))
+          if self.networking_view.connect_when_uuid_received:
+             self.networking_view._connect_rover_fired()
       settings_read_finished_functions.append(update_serial)
       self.settings_view = SettingsView(self.link,
                                         settings_read_finished_functions,
@@ -655,9 +665,10 @@ with selected_driver as driver:
     log_filter = DEFAULT_LOG_LEVEL_FILTER
     if args.initloglevel[0]:
       log_filter = args.initloglevel[0]
-
-    with SwiftConsole(link, args.update, log_filter, port=port, error=args.error,
-                 json_logging=args.log, log_dirname=args.log_dirname[0], log_console=args.log_console) as console:
+    
+    with SwiftConsole(link, args.update, log_filter, port=port, error=args.error, 
+                 json_logging=args.log, log_dirname=args.log_dirname[0], log_console=args.log_console,
+                 skylark=args.skylark) as console: 
       console.configure_traits()
 
 # Force exit, even if threads haven't joined
