@@ -145,7 +145,7 @@ function install_python_deps_osx () {
     # Uses brew to install system-wide dependencies and pip to install
     # python dependencies.
     log_info "Installing Python dependencies..."
-    brew install python
+    brew outdated python || brew install python
     brew install https://gist.github.com/denniszollo/65c51cbbeb658077df030ea33f569934/raw/40b2511d7179cf33b9ad1f290a6ee642c4ef91fa/qt
     brew install https://gist.github.com/denniszollo/7274e7d1c35fb96ae463cf5709c90f62/raw/468d6c718f1f8f9d95b8f602579aef3abd7001d2/shiboken.rb
     brew install https://gist.github.com/denniszollo/cb3295c9efc0ba53f3524adb988df5d6/raw/e9f7a2ac57864a58d54e03c01fe4e0a95ee764ae/pyside.rb
