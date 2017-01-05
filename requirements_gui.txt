@@ -5,6 +5,7 @@ traits==4.5.0
 traitsui==4.4.0 
 pyface==4.4.0 
 wsgiref==0.1.2 
-#pyside (required but installed through apt / brew)
+shiboken
+pyside==1.2.2
 #sip (required but installed through apt / brew)
 #qt4 (required but installed through apt / brew)
