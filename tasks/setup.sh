@@ -1,4 +1,4 @@
-#!/bin/bash
+!/bin/bash
 
 # Copyright (C) 2014-2015 Swift Navigation Inc.
 # Contact: Bhaskar Mookerji <mookerji@swiftnav.com>
@@ -122,7 +122,7 @@ function bootstrap_osx () {
         homebrew_install
     fi
     brew update
-    brew outdated xctool || brew upgrade xctool
+    #brew outdated xctool || brew upgrade xctool
     brew tap homebrew/boneyard
     # Download and install Homebrew Python
     # if [[ ! -x /usr/local/bin/python ]]; then
@@ -153,8 +153,7 @@ function install_python_deps_osx () {
     else
       brew install python
     fi
-    brew install https://gist.github.com/denniszollo/65c51cbbeb658077df030ea33f569934/raw/40b2511d7179cf33b9ad1f290a6ee642c4ef91fa/qt
-    brew install https://gist.github.com/denniszollo/cb3295c9efc0ba53f3524adb988df5d6/raw/0bc39653c8e9269170653794c855b5f30068c33e/pyside.rb
+    brew install https://gist.github.com/denniszollo/cb3295c9efc0ba53f3524adb988df5d6/raw/c196e8a3a6c4d18017ebde0e8adfaed34f485b2d/pyside.rb
     brew install libftdi openssl sip
     brew link openssl --forcea
     pip install -r ../requirements.txt
