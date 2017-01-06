@@ -122,7 +122,7 @@ function bootstrap_osx () {
         homebrew_install
     fi
     brew update
-    brew outdated xctool || brew upgrade xctool
+    #brew outdated xctool || brew upgrade xctool
     brew tap homebrew/boneyard
     # Download and install Homebrew Python
     # if [[ ! -x /usr/local/bin/python ]]; then
@@ -145,7 +145,16 @@ function install_python_deps_osx () {
     # Uses brew to install system-wide dependencies and pip to install
     # python dependencies.
     log_info "Installing Python dependencies..."
-    brew install python qt pyside libftdi openssl sip
+    ispython=$(brew list | grep python)
+    echo $ispython
+    if [[ $ispython == *"python"* ]]
+    then
+      echo "python installed already"
+    else
+      brew install python
+    fi
+    brew install https://gist.github.com/denniszollo/cb3295c9efc0ba53f3524adb988df5d6/raw/6834992b22bb2e1caf8f8bf44f403885aa6338f1/pyside.rb
+    brew install libftdi openssl sip
     brew link openssl --forcea
     pip install -r ../requirements.txt
     pip install -r ../requirements_gui.txt
