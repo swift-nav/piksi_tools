@@ -153,7 +153,7 @@ function install_python_deps_osx () {
     else
       brew install python
     fi
-    brew install https://gist.github.com/denniszollo/cb3295c9efc0ba53f3524adb988df5d6/raw/c196e8a3a6c4d18017ebde0e8adfaed34f485b2d/pyside.rb
+    brew install https://gist.github.com/denniszollo/cb3295c9efc0ba53f3524adb988df5d6/raw/af1033536aaa4be4b262abb553e0675612d648dd/pyside.rb
     brew install libftdi openssl sip
     brew link openssl --forcea
     pip install -r ../requirements.txt
