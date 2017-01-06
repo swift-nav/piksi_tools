@@ -19,8 +19,8 @@ from sbp.piksi import MsgReset
 
 from threading import Thread
 
-from traits.api import HasTraits, String, Button, Instance, Bool
-from traitsui.api import View, Item, UItem, VGroup, HGroup, InstanceEditor
+from traits.api import HasTraits, String, Button, Instance, Bool, Directory
+from traitsui.api import View, Item, UItem, VGroup, HGroup, InstanceEditor, Spring
 from pyface.api import GUI, FileDialog, OK, ProgressDialog
 
 from piksi_tools.version import VERSION as CONSOLE_VERSION
@@ -209,7 +209,7 @@ class PulsableProgressDialog(ProgressDialog):
       GUI.invoke_later(self.update, int(100*float(count)/self.passed_max))
 
 class UpdateView(HasTraits):
-  piksi_hw_rev = String('Waiting for Piksi to send settings...')
+  piksi_hw_rev = String('piksi_multi')
   is_v2 = Bool(False)
 
   piksi_stm_vers = String('Waiting for Piksi to send settings...', width=COLUMN_WIDTH)
@@ -230,8 +230,11 @@ class UpdateView(HasTraits):
   update_stm_en = Bool(False)
   update_nap_en = Bool(False)
   update_en = Bool(False)
+  serial_upgrade = Bool(False)
+  upgrade_instructions = String("Firmware upgrade instructions:")
 
-  download_firmware = Button(label='Download Latest Firmware Files')
+  download_firmware = Button(label='Download Latest Firmware')
+  download_directory = Directory("  Please choose a directory for downloaded firmware files...")
   download_stm = Button(label='Download', height=HT)
   download_nap = Button(label='Download', height=HT)
   downloading = Bool(False)
@@ -248,44 +251,60 @@ class UpdateView(HasTraits):
            editor_args={'enabled': False}, resizable=True),
       HGroup(
         VGroup(
-          Item('piksi_stm_vers', label='Current', resizable=True),
-          Item('newest_stm_vers', label='Latest', resizable=True),
+          Item('piksi_stm_vers', label='Current', resizable=True, 
+                 editor_args={'enabled': False}),
+          Item('newest_stm_vers', label='Latest', resizable=True, 
+                 editor_args={'enabled': False, 
+                              'readonly_allow_selection': True}),
           Item('stm_fw', style='custom', show_label=True, \
-               label="Local File", enabled_when='download_fw_en'),
+               label="Local File", enabled_when='download_fw_en',
+               visible_when='serial_upgrade',
+               editor_args={'enabled': False}),
           HGroup(Item('update_stm_firmware', show_label=False, \
-                     enabled_when='update_stm_en'),
+                     enabled_when='update_stm_en', visible_when='serial_upgrade'),
                 Item('erase_stm', label='Erase STM flash\n(recommended)', \
                       enabled_when='erase_en', show_label=True, visible_when='is_v2')),
           show_border=True, label="Firmware Version"
         ),
         VGroup(
-          Item('piksi_nap_vers', label='Current', resizable=True),
-          Item('newest_nap_vers', label='Latest', resizable=True),
+          Item('piksi_nap_vers', label='Current', resizable=True, 
+               editor_args={'enabled': False}),
+          Item('newest_nap_vers', label='Latest', resizable=True,
+               editor_args={'enabled': False}),
           Item('nap_fw', style='custom', show_label=True, \
-               label="Local File", enabled_when='download_fw_en'),
+               label="Local File", enabled_when='download_fw_en',
+               editor_args={'enabled': False}),
           HGroup(Item('update_nap_firmware', show_label=False, \
-                      enabled_when='update_nap_en'),
+                      enabled_when='update_nap_en', visible_when='serial_upgrade'),
                  Item(width=50, label="                  ")),
           show_border=True, label="NAP Version",
           visible_when='is_v2'
           ),
         VGroup(
-          Item('local_console_vers', label='Current', resizable=True),
-          Item('newest_console_vers', label='Latest'),
+          Item('local_console_vers', label='Current', resizable=True,
+               editor_args={'enabled': False}),
+          Item('newest_console_vers', label='Latest',
+                editor_args={'enabled': False}),
           label="Piksi Console Version", show_border=True),
           ),
+      UItem('download_directory', enabled_when='download_fw_en'),
       UItem('download_firmware', enabled_when='download_fw_en'),
       UItem('update_full_firmware', enabled_when='update_en', visible_when='is_v2'),
-      Item(
-        'stream',
-        style='custom',
-        editor=InstanceEditor(),
-        show_label=False,
-      ),
+      VGroup(
+        UItem('upgrade_instructions', 
+              visible_when='not serial_upgrade', style='readonly'),
+        Item(
+          'stream',
+          style='custom',
+          editor=InstanceEditor(),
+          show_label=False,
+        ),
+      show_border=True,
+      )
     )
   )
 
-  def __init__(self, link, prompt=True):
+  def __init__(self, link, prompt=True, serial_upgrade=False):
     """
     Traits tab with UI for updating Piksi firmware.
 
@@ -303,13 +322,26 @@ class UpdateView(HasTraits):
       'update': self
 
     }
-    self.update_dl = None
+    self.update_dl = UpdateDownloader()
     self.erase_en = True
-    self.stm_fw = FirmwareFileDialog('STM')
+    self.stm_fw = FirmwareFileDialog('bin')
     self.stm_fw.on_trait_change(self._manage_enables, 'status')
     self.nap_fw = FirmwareFileDialog('M25')
     self.nap_fw.on_trait_change(self._manage_enables, 'status')
     self.stream = OutputStream()
+    self.serial_upgrade = serial_upgrade
+    if not self.serial_upgrade:
+      self.stream.write(
+           "Please choose the usb flashdrive root directory and press the "
+           "Download Latest Firmware button.  This will download the latest "
+           "Piksi Multi firmware file onto " 
+           "the usb flashdrive provided with your Piksi Multi. Eject " 
+           "the drive from the PC and plug it into the evaluation board.\n\n"
+           "Reset your Piksi and it will upgrade to the version on the flashdrive. " 
+           "During the upgrade, you should receive info messages in the console. "
+           "When the upgrade completes the .bin firmware file will be "
+           "deleted from the flash drive and expected version should be "
+           "reflected above.")
 
   def _manage_enables(self):
     """ Manages whether traits widgets are enabled in the UI or not. """
@@ -334,6 +366,10 @@ class UpdateView(HasTraits):
         self.update_en = False
       if self.nap_fw.ihx is not None and self.stm_fw.ihx is not None:
         self.update_en = True
+
+  def _download_directory_changed(self):
+    if self.update_dl:
+      self.update_dl.set_root_path(self.download_directory)
 
   def _updating_changed(self):
     """ Handles self.updating trait being changed. """
@@ -518,6 +554,7 @@ class UpdateView(HasTraits):
     self.is_v2 = self.piksi_hw_rev.startswith('piksi_v2')
     if self.is_v2:
       self.stm_fw.set_flash_type('STM')
+      self.serial_upgrade = True
     else:
       self.stm_fw.set_flash_type('bin')
 
