@@ -53,17 +53,26 @@ def get_args():
                       action="store_true")
   return parser.parse_args()
 
-def shell_command(link, cmd, timeout=None):
+def shell_command(link, cmd, timeout=None, progress_cb=None):
   ev = threading.Event()
   seq = random.randint(0, 0xffffffff)
-  ret = {'code': -255}
+  ret = {}
+  elapsed_intervals = 0;
   def resp_handler(msg, **kwargs):
     if msg.sequence == seq:
       ret['code'] = msg.code
       ev.set()
   link.add_callback(resp_handler, SBP_MSG_COMMAND_RESP)
   link(MsgCommandReq(sequence=seq, command=cmd))
-  ev.wait(timeout)
+  while(elapsed_intervals < timeout):
+    ev.wait(timeout)
+    if progress_cb:
+      progress_cb(float(elapsed_intervals) / float(timeout) * 100)
+    elapsed_intervals += 1
+  if len(ret.items()) == 0:
+    printf(("Shell command timeout: execution exceeded {0} "
+           "seconds with no response.").format(timeout))
+    return -255
   return ret['code']
 
 def main():

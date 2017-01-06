@@ -84,6 +84,8 @@ def get_args():
                       help="Log console stdout/err to file.")
   parser.add_argument('--skylark', default='',
                       help="key value pairs to pass to sbp_relay_view initializer for skylark")
+  parser.add_argument('--serial-upgrade', action='store_true',
+                      help="Allow software upgrade over serial.")
   return parser.parse_args()
 
 args = get_args()
@@ -367,7 +369,7 @@ class SwiftConsole(HasTraits):
       "good" if (e.flags & (1<<1)) else "unknown")
 
   def cmd_resp_callback(self, sbp_msg, **metadata):
-    r = MsgCmdResponse(sbp_msg)
+    r = MsgCommandResp(sbp_msg)
     print "Received a command response message with code {0}".format(
            r.code)
 
@@ -497,7 +499,8 @@ class SwiftConsole(HasTraits):
     self.console_output.close()
   
   def __init__(self, link, update, log_level_filter, skip_settings=False, error=False, 
-               port=None, json_logging=False, log_dirname=None, log_console=False, skylark=""):
+               port=None, json_logging=False, log_dirname=None, log_console=False, skylark="",
+               serial_upgrade=False):
     self.error = error
     self.port = port
     self.dev_id = str(os.path.split(port)[1])
@@ -545,7 +548,7 @@ class SwiftConsole(HasTraits):
       self.observation_view = ObservationView(self.link, name='Local', relay=False, dirname=self.directory_name)
       self.observation_view_base = ObservationView(self.link, name='Remote', relay=True, dirname=self.directory_name)
       self.system_monitor_view = SystemMonitorView(self.link)
-      self.update_view = UpdateView(self.link, prompt=update)
+      self.update_view = UpdateView(self.link, prompt=update, serial_upgrade=serial_upgrade)
       self.imu_view = IMUView(self.link)
       settings_read_finished_functions.append(self.update_view.compare_versions)
       if skylark:
@@ -674,7 +677,7 @@ with selected_driver as driver:
     
     with SwiftConsole(link, args.update, log_filter, port=port, error=args.error, 
                  json_logging=args.log, log_dirname=args.log_dirname[0], log_console=args.log_console,
-                 skylark=args.skylark) as console: 
+                 skylark=args.skylark, serial_upgrade=args.serial_upgrade) as console: 
       console.configure_traits()
 
 # Force exit, even if threads haven't joined

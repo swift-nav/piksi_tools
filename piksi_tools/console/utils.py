@@ -98,7 +98,7 @@ class MultilineTextEditor(TextEditor):
   Override of TextEditor Class for a multi-line read only
   """
 
-  def init(self, parent):
+  def init(self, parent=TextEditor(multi_line=True)):
     parent.read_only = True
     parent.multi_line = True
 
