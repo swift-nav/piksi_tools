@@ -147,7 +147,7 @@ function install_python_deps_osx () {
     log_info "Installing Python dependencies..."
     brew install python
     brew install https://gist.github.com/denniszollo/65c51cbbeb658077df030ea33f569934/raw/40b2511d7179cf33b9ad1f290a6ee642c4ef91fa/qt
-    brew install https://gist.githubusercontent.com/denniszollo/cb3295c9efc0ba53f3524adb988df5d6/raw/d8f76cbe6819e41aa5a9f5e399737522297c6586/pyside.rb
+    brew install https://gist.github.com/denniszollo/cb3295c9efc0ba53f3524adb988df5d6/raw/70efea56e32d0099c31f710645f2ba4fec941992/pyside.rb
     brew install libftdi openssl sip
     brew link openssl --forcea
     pip install -r ../requirements.txt
