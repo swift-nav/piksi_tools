@@ -317,7 +317,7 @@ class SolutionView(HasTraits):
         self.reset_remove_current()
         self.plot_data.set_data('cur_lat_fixed', [soln.lat])
         self.plot_data.set_data('cur_lng_fixed', [soln.lon])
-      else
+      else:
         pass
 
     # set-up table variables
