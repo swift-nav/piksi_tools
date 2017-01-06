@@ -284,26 +284,25 @@ class BaselineView(HasTraits):
         self.plot_data.set_data('n_dgnss', self.n[dgnss_indexer])
         self.plot_data.set_data('e_dgnss', self.e[dgnss_indexer])
         self.plot_data.set_data('d_dgnss', self.d[dgnss_indexer])
-     
-    self._reset_remove_current()
-    if self.last_mode == FIXED_MODE:
-      self.plot_data.set_data('cur_fixed_n', [soln.n])
-      self.plot_data.set_data('cur_fixed_e', [soln.e])
-      self.plot_data.set_data('cur_fixed_d', [soln.d])
-
-    elif self.last_mode == FLOAT_MODE:
-      self.plot_data.set_data('cur_float_n', [soln.n])
-      self.plot_data.set_data('cur_float_e', [soln.e])
-      self.plot_data.set_data('cur_float_d', [soln.d])
-
-    elif self.last_mode == DGNSS_MODE:
-      self.plot_data.set_data('cur_dgnss_n', [soln.n])
-      self.plot_data.set_data('cur_dgnss_e', [soln.e])
-      self.plot_data.set_data('cur_dgnss_d', [soln.d])
-
-
-
-    
+      
+      # Update our last solution icon 
+      if self.last_mode == FIXED_MODE:
+        self._reset_remove_current()
+        self.plot_data.set_data('cur_fixed_n', [soln.n])
+        self.plot_data.set_data('cur_fixed_e', [soln.e])
+        self.plot_data.set_data('cur_fixed_d', [soln.d])
+      elif self.last_mode == FLOAT_MODE:
+        self._reset_remove_current()
+        self.plot_data.set_data('cur_float_n', [soln.n])
+        self.plot_data.set_data('cur_float_e', [soln.e])
+        self.plot_data.set_data('cur_float_d', [soln.d])
+      elif self.last_mode == DGNSS_MODE:
+        self._reset_remove_current()
+        self.plot_data.set_data('cur_dgnss_n', [soln.n])
+        self.plot_data.set_data('cur_dgnss_e', [soln.e])
+        self.plot_data.set_data('cur_dgnss_d', [soln.d])
+      else:
+        pass
     # make the zoomall win over the position centered button 
     # position centered button has no effect when zoom all enabled  
 
