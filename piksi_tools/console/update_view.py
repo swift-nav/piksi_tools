@@ -334,14 +334,11 @@ class UpdateView(HasTraits):
       self.stream.write(
            "Please choose the usb flashdrive root directory and press the "
            "Download Latest Firmware button.  This will download the latest "
-           "Piksi Multi firmware file onto " 
-           "the usb flashdrive provided with your Piksi Multi. Eject " 
-           "the drive from the PC and plug it into the evaluation board.\n\n"
-           "Reset your Piksi and it will upgrade to the version on the flashdrive. " 
-           "During the upgrade, you should receive info messages in the console. "
-           "When the upgrade completes the .bin firmware file will be "
-           "deleted from the flash drive and expected version should be "
-           "reflected above.")
+           "Piksi Multi firmware file onto the usb flashdrive provided with "
+           "your Piksi Multi. Eject the drive from the PC and plug it into the evaluation board.\n\n"
+           "Reboot your Piksi and it will upgrade to the version on the usb flashdrive. "
+           "When the upgrade completes you will be prompted to remove the usb flashdrive "
+           "and reboot your Piksi Multi.")
 
   def _manage_enables(self):
     """ Manages whether traits widgets are enabled in the UI or not. """
