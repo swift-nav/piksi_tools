@@ -1,4 +1,4 @@
-!/bin/bash
+#!/bin/bash
 
 # Copyright (C) 2014-2015 Swift Navigation Inc.
 # Contact: Bhaskar Mookerji <mookerji@swiftnav.com>
