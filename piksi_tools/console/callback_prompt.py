@@ -27,6 +27,8 @@ reset_button = Action(name = "Reset", action = "set_execute_callback_true", \
                              show_label=False)
 close_button = Action(name = "Close", action = "set_execute_callback_false", \
                              show_label=False)
+ok_button = Action(name = "Ok", action = "set_execute_callback_true", \
+                             show_label=False)
 
 from new import instancemethod
 

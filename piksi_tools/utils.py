@@ -13,7 +13,6 @@ import sys
 import time
 import os
 import errno
-from piksi_tools.bootload import Bootloader
 from piksi_tools.flash import Flash
 from piksi_tools.timeout import *
 from piksi_tools.heartbeat import Heartbeat
@@ -21,6 +20,7 @@ from sbp.system import SBP_MSG_HEARTBEAT
 from sbp.piksi import SBP_MSG_RESET
 
 def set_app_mode(handler, verbose=False):
+  from piksi_tools.bootload import Bootloader
   """
   Set Piksi into the application firmware, regardless of whether it is
   currently in the application firmware or the bootloader. Will raise a

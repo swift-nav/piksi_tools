@@ -17,8 +17,8 @@ from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.api import GUI
 from piksi_tools.console.utils import plot_square_axes, determine_path, mode_dict, get_mode, color_dict
-from piksi_tools.console.utils import FLOAT_MODE, SPP_MODE, DGNSS_MODE, NO_FIX_MODE, FIXED_MODE, EMPTY_STR        
-
+from piksi_tools.console.utils import FLOAT_MODE, SPP_MODE, DGNSS_MODE, NO_FIX_MODE, FIXED_MODE, EMPTY_STR
+from piksi_tools.console.utils import sopen        
 
 import math
 import os
@@ -207,11 +207,11 @@ class BaselineView(HasTraits):
 
       if self.logging_b:
         if self.log_file is None:
-          self.log_file = open(filepath, 'w')          
+          self.log_file = sopen(filepath, 'w')          
           self.log_file.write('time,north(meters),east(meters),down(meters),h_accuracy(meters),v_accuracy(meters),'
                               'distance(meters),num_sats,flags,num_hypothesis\n')
         self.log_file.write('%s,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%d,%d,%d\n' % (
-          str(t), #todo - better time format
+         "{0}:{1:06.6f}".format(tstr, float(secs)),
           soln.n, soln.e, soln.d, 
           soln.h_accuracy, soln.v_accuracy,
           dist,
