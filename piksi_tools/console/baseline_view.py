@@ -211,7 +211,7 @@ class BaselineView(HasTraits):
           self.log_file.write('time,north(meters),east(meters),down(meters),h_accuracy(meters),v_accuracy(meters),'
                               'distance(meters),num_sats,flags,num_hypothesis\n')
         self.log_file.write('%s,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%d,%d,%d\n' % (
-          str(t), #todo - better time format
+         "{0}:{1:06.6f}".format(tstr, float(secs)),
           soln.n, soln.e, soln.d, 
           soln.h_accuracy, soln.v_accuracy,
           dist,

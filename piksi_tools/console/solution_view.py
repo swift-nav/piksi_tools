@@ -219,7 +219,7 @@ class SolutionView(HasTraits):
           self.log_file.write("time,latitude(degrees),longitude(degrees),altitude(meters),"
                               "h_accuracy(meters),v_accuracy(meters),n_sats,flags\n")
         self.log_file.write('%s,%.10f,%.10f,%.4f,%.4f,%.4f,%d,%d\n' % (
-          "{0}:{1:06.3f}".format(tstr, float(secs)),
+          "{0}:{1:06.6f}".format(tstr, float(secs)),
           soln.lat, soln.lon, soln.height,
           soln.h_accuracy, soln.v_accuracy,
           soln.n_sats, soln.flags)
@@ -302,19 +302,19 @@ class SolutionView(HasTraits):
       
       # update our "current solution" icon 
       if self.last_pos_mode == SPP_MODE:
-        self.reset_remove_current()
+        self._reset_remove_current()
         self.plot_data.set_data('cur_lat_spp', [soln.lat])
         self.plot_data.set_data('cur_lng_spp', [soln.lon])
       elif self.last_pos_mode == DGNSS_MODE:
-        self.reset_remove_current()
+        self._reset_remove_current()
         self.plot_data.set_data('cur_lat_dgnss', [soln.lat])
         self.plot_data.set_data('cur_lng_dgnss', [soln.lon])
       elif self.last_pos_mode == FLOAT_MODE:
-        self.reset_remove_current()
+        self._reset_remove_current()
         self.plot_data.set_data('cur_lat_float', [soln.lat])
         self.plot_data.set_data('cur_lng_float', [soln.lon])
       elif self.last_pos_mode == FIXED_MODE:
-        self.reset_remove_current()
+        self._reset_remove_current()
         self.plot_data.set_data('cur_lat_fixed', [soln.lat])
         self.plot_data.set_data('cur_lng_fixed', [soln.lon])
       else:
@@ -380,6 +380,8 @@ class SolutionView(HasTraits):
       t = datetime.datetime(1980, 1, 6) + \
           datetime.timedelta(weeks=self.week) + \
           datetime.timedelta(seconds=tow)
+      tstr = t.strftime('%Y-%m-%d %H:%M')
+      secs = t.strftime('%S.%f')
      
       if self.directory_name_v == '':
           filepath_v = time.strftime("velocity_log_%Y%m%d-%H%M%S.csv")
@@ -395,7 +397,7 @@ class SolutionView(HasTraits):
           self.vel_log_file = sopen(filepath_v, 'w')
           self.vel_log_file.write('time,north(m/s),east(m/s),down(m/s),speed(m/s),flags,num_signals\n')
         self.vel_log_file.write('%s,%.6f,%.6f,%.6f,%.6f,%d,%d\n' % (
-          str(t),
+          "{0}:{1:06.6f}".format(tstr, float(secs)),
           vel_ned.n * 1e-3, vel_ned.e * 1e-3, vel_ned.d * 1e-3,
           math.sqrt(vel_ned.n*vel_ned.n + vel_ned.e*vel_ned.e) * 1e-3,
           flags,
