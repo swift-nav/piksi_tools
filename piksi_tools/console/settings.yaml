@@ -672,7 +672,7 @@
   name: baudrate
   type: integer
   units: baud
-  default value: '115200'
+  default value: '1000000'
   enumerated possible values:
   Description: The baudrate for the uart
   Notes:
