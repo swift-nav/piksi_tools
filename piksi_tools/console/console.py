@@ -45,7 +45,7 @@ def get_args():
   """
   import argparse
   parser = s.base_cl_options()
-  parser.description = 'Piksi Console'
+  parser.description = 'Swift Console'
   parser.add_argument("-i", "--initloglevel",
                       default=[None], nargs=1,
                       help="Set log level filter.")

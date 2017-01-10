@@ -2,7 +2,7 @@ piksi_tools Development Procedures
 ==================================
 
 This document summarizes some practices around contributions to Piksi
-tools. This repository includes the Piksi console, bootloader, and a
+tools. This repository includes the console, bootloader, and a
 smattering of other tools. Of these, we typically do binary releases
 of the console. These instructions don't come with a warranty yet, so
 please feel free to update it to mirror reality.

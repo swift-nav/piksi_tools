@@ -56,7 +56,9 @@ To just use the Swift console, download binary installers for Windows and OS X.
 
   Older versions of console for use with `Piksi v2 <http://downloads.swiftnav.com/piksi_console>`__
 
-To run the console GUI from the command line, install dependencies and run ``python piksi_console/console/console.py``.
+  For x86-64 Linux, tar.gz distributions are available for Swift Console `Piksi Multi <http://downloads.swiftnav.com/swift_console>`__
+
+To run the console GUI from the command line, install dependencies and run ``PYTHONPATH=. python piksi_tools/console/console.py``.
 
 For command line arguments, see `console.py <https://github.com/swift-nav/piksi_tools/blob/master/piksi_tools/console/console.py>`__
 
