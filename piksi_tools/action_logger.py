@@ -234,8 +234,8 @@ def main():
   Modeled after serial_link main function.
   """
   args = get_args()
-  port = args.port[0]
-  baud = args.baud[0]
+  port = args.port
+  baud = args.baud
   timeout = args.timeout[0]
   log_filename = args.log_filename[0]
   append_log_filename = args.append_log_filename[0]
