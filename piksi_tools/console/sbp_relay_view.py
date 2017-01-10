@@ -169,18 +169,27 @@ class SbpRelayView(HasTraits):
     else:
       raise NotImplementedError
 
-  def set_route(self, serial_id, channel=CHANNEL_UUID):
+  def set_route(self, uuid=None, serial_id=None, channel=CHANNEL_UUID):
     """Sets serial_id hash for HTTP headers.
 
     Parameters
     ----------
+    uuid: str
+      real uuid of device
     serial_id : int
       Piksi device ID
     channel : str
       UUID namespace for device UUID
 
     """
-    device_uid = str(get_uuid(channel, serial_id))
+    if uuid:
+      device_uid = uuid
+    elif serial_id:
+      device_uid = str(get_uuid(channel, serial_id))
+    else:
+      print "Improper call of set_route, either a serial number or UUID should be passed"
+      device_uid = str(get_uuid(channel, '1234'))
+      print "Setting UUID to default value of {0}".format(device_uid)
     self.device_uid = device_uid
     if self.http:
       self.http.device_uid = device_uid

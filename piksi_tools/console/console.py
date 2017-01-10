@@ -561,12 +561,18 @@ class SwiftConsole(HasTraits):
       # title. This callback will also update the header route as used
       # by the networking view.
       def update_serial():
-        serial_string = self.settings_view.settings['system_info']['serial_number'].value
-        self.device_serial = 'PK%04d' % int(serial_string)
-        if serial_string:
-          self.networking_view.set_route(int(serial_string))
-          if self.networking_view.connect_when_uuid_received:
-             self.networking_view._connect_rover_fired()
+        uuid = None
+        mfg_id = None
+        try:
+          uuid = self.settings_view.settings['system_info']['uuid'].value
+          mfg_id = self.settings_view.settings['system_info']['serial_number'].value
+        except KeyError:
+          pass
+        if mfg_id:
+          self.device_serial = 'PK' + str(mfg_id)[-6:]
+        self.networking_view.set_route(uuid=uuid, serial_id=mfg_id)
+        if self.networking_view.connect_when_uuid_received:
+            self.networking_view._connect_rover_fired()
       settings_read_finished_functions.append(update_serial)
       self.settings_view = SettingsView(self.link,
                                         settings_read_finished_functions,

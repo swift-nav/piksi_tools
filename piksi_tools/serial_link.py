@@ -52,7 +52,7 @@ def base_cl_options():
   import argparse
   parser = argparse.ArgumentParser(description="Swift Navigation SBP Client.")
   parser.add_argument("-p", "--port",
-                      default=SERIAL_PORT,
+                      default=None,
                       help="specify the serial port to use.")
   parser.add_argument("-b", "--baud",
                       default=SERIAL_BAUD,
