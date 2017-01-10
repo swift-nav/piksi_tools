@@ -1,4 +1,4 @@
-; Piksi Console NSIS Installer script
+; Swift Console NSIS Installer script
 
 ;--------------------------------
 

@@ -285,7 +285,7 @@ class UpdateView(HasTraits):
                editor_args={'enabled': False}),
           Item('newest_console_vers', label='Latest',
                 editor_args={'enabled': False}),
-          label="Piksi Console Version", show_border=True),
+          label="Swift Console Version", show_border=True),
           ),
       UItem('download_directory', enabled_when='download_fw_en'),
       UItem('download_firmware', enabled_when='download_fw_en'),
@@ -573,11 +573,11 @@ class UpdateView(HasTraits):
         if not self.is_v2:
           console_outdated_prompt = \
           prompt.CallbackPrompt(
-                                title="Piksi Console Outdated",
+                                title="Swift Console Outdated",
                                 actions=[prompt.close_button],
                                 )
           console_outdated_prompt.text = \
-              "Your Piksi Console is out of date and may be incompatible\n" + \
+              "Your console is out of date and may be incompatible\n" + \
               "with current firmware. We highly recommend upgrading to\n" + \
               "ensure proper behavior.\n\n" + \
               "Please visit http://support.swiftnav.com to\n" + \
@@ -589,11 +589,11 @@ class UpdateView(HasTraits):
         else:
           console_outdated_prompt = \
           prompt.CallbackPrompt(
-                                title="Piksi Console Incompatible",
+                                title="Swift Console Incompatible",
                                 actions=[prompt.close_button],
                                 )
           console_outdated_prompt.text = \
-              "Your Piksi Console is incompatible with your hardware revision.\n" + \
+              "Your console is incompatible with your hardware revision.\n" + \
               "We highly recommend using a compatible console version\n" + \
               "to ensure proper behavior.\n\n" + \
               "Please visit http://support.swiftnav.com to\n" + \
