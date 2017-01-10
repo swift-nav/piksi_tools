@@ -78,6 +78,7 @@ function all_dependencies_debian () {
          python-software-properties
     sudo pip install -r ../requirements.txt
     sudo pip install -r ../requirements_gui.txt
+    sudo pip install PyInstaller==3.1
 }
 
 
@@ -158,6 +159,7 @@ function install_python_deps_osx () {
     brew link openssl --forcea
     pip install -r ../requirements.txt
     pip install -r ../requirements_gui.txt
+    pip install PyInstaller==3.2
 }
 
 
