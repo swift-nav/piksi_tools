@@ -13,7 +13,8 @@ matrix:
 before_install:
   - sleep 3 #give xvfb some time to start
   - rm -rf ~/home/.enthought
-  - travis_wait 60 make deps
+  - travis_wait 60 make deps 
+  - pip list
 
 before_script:
   - "export DISPLAY=:0.0"
@@ -28,8 +29,8 @@ script:
   - PYTHONPATH=. python piksi_tools/console/console.py --file --error -p ./tests/data/piksi.bin & PID=$!
   - sleep 10 
   - kill -n 9  $PID
-  - sudo python setup.py install
   - make build_console
+  - sudo python setup.py install
 
 cache:
   directories:
