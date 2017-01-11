@@ -332,12 +332,17 @@ class UpdateView(HasTraits):
     self.serial_upgrade = serial_upgrade
     if not self.serial_upgrade:
       self.stream.write(
-           "Please choose the usb flashdrive root directory and press the "
-           "Download Latest Firmware button.  This will download the latest "
-           "Piksi Multi firmware file onto the usb flashdrive provided with "
-           "your Piksi Multi. Eject the drive from the PC and plug it into the evaluation board.\n\n"
-           "Reboot your Piksi and it will upgrade to the version on the usb flashdrive. "
-           "When the upgrade completes you will be prompted to remove the usb flashdrive "
+           "Insert the USB flash drive provided with your Piki Multi into " 
+           "your computer.  Select the flash drive root directory as the "
+           "firmware download destination using the \"Please "
+           "choose a directory for downloaded firmware files\" directory "
+           "chooser above.  Press the \"Download Latest Firmware\" button.  "
+           "This will download the latest Piksi Multi firmware file onto the "
+           "USB flashdrive.  Eject the drive from your computer and plug it "
+           "into the Piksi Multi evaluation board.  "
+           "Reboot your Piksi Multi and it will upgrade to the version on the "
+           "USB flash drive.  "
+           "When the upgrade completes you will be prompted to remove the USB flash drive "
            "and reboot your Piksi Multi.")
 
   def _manage_enables(self):
