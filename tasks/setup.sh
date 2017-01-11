@@ -123,18 +123,7 @@ function bootstrap_osx () {
         homebrew_install
     fi
     brew update
-    #brew outdated xctool || brew upgrade xctool
     brew tap homebrew/boneyard
-    # Download and install Homebrew Python
-    # if [[ ! -x /usr/local/bin/python ]]; then
-    #     log_info "Installing homebrew python..."
-    #     brew install python --framework --with-brewed-openssl 2> /dev/null
-    #     # Check for bash profile and add Homebrew Python to path.
-    #     touch ~/.bash_profile
-    #     echo '' >> ~/.bash_profile
-    #     echo "export PATH=/usr/local/bin:/usr/local/sbin:$PATH" >> ~/.bash_profile
-    #     source ~/.bash_profile
-    # fi
 }
 
 function install_swig_osx () {
@@ -146,17 +135,12 @@ function install_python_deps_osx () {
     # Uses brew to install system-wide dependencies and pip to install
     # python dependencies.
     log_info "Installing Python dependencies..."
-    ispython=$(brew list | grep python)
-    echo $ispython
-    if [[ $ispython == *"python"* ]]
-    then
-      echo "python installed already"
-    else
-      brew install python
+    if [[ ! -x /usr/local/bin/python ]]; then 
+      brew install python --framework --with-brewed-openssl 2>&1 || :
     fi
     brew install https://gist.github.com/denniszollo/cb3295c9efc0ba53f3524adb988df5d6/raw/6834992b22bb2e1caf8f8bf44f403885aa6338f1/pyside.rb
-    brew install libftdi openssl sip
-    brew link openssl --forcea
+    brew install libftdi openssl sip --force 2>&1 || :
+    brew link openssl --forcea 2>&1 || :
     pip install -r ../requirements.txt
     pip install -r ../requirements_gui.txt
     pip install PyInstaller==3.2
