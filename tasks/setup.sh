@@ -136,10 +136,7 @@ function install_python_deps_osx () {
     # python dependencies.
     log_info "Installing Python dependencies..."
     ispython=$(brew list | grep python)
-    if [[ $ispython == *"python"* ]]
-    then
-      log_info "Homebrew python exists, not installing."
-    else
+    if [[ ! -x /usr/local/bin/python ]]; then 
       brew install python --framework --with-brewed-openssl 2>&1 || :
     fi
     brew install https://gist.github.com/denniszollo/cb3295c9efc0ba53f3524adb988df5d6/raw/6834992b22bb2e1caf8f8bf44f403885aa6338f1/pyside.rb
