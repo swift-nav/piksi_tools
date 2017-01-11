@@ -135,7 +135,6 @@ function install_python_deps_osx () {
     # Uses brew to install system-wide dependencies and pip to install
     # python dependencies.
     log_info "Installing Python dependencies..."
-    ispython=$(brew list | grep python)
     if [[ ! -x /usr/local/bin/python ]]; then 
       brew install python --framework --with-brewed-openssl 2>&1 || :
     fi
