@@ -140,8 +140,8 @@ function install_python_deps_osx () {
       brew install python --framework --with-brewed-openssl 2>&1 || :
     fi
     brew install https://gist.github.com/denniszollo/cb3295c9efc0ba53f3524adb988df5d6/raw/6834992b22bb2e1caf8f8bf44f403885aa6338f1/pyside.rb
-    brew install libftdi openssl sip
-    brew link openssl --forcea
+    brew install libftdi openssl sip --force 2>&1 || :
+    brew link openssl --forcea 2>&1 || :
     pip install -r ../requirements.txt
     pip install -r ../requirements_gui.txt
     pip install PyInstaller==3.2
