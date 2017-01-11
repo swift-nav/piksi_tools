@@ -332,10 +332,9 @@ class UpdateView(HasTraits):
     self.serial_upgrade = serial_upgrade
     if not self.serial_upgrade:
       self.stream.write(
-           "Insert a USB flash drive into your computer, with at least 16mb "
-           "free space.  The USB flash drive provided with your Piki Multi "
-           "can be used for this purpose.  Select the flash drive root "
-           "directory as the firmware download destination using the \"Please "
+           "Insert the USB flash drive provided with your Piki Multi into " 
+           "your computer.  Select the flash drive root directory as the "
+           "firmware download destination using the \"Please "
            "choose a directory for downloaded firmware files\" directory "
            "chooser above.  Press the \"Download Latest Firmware\" button.  "
            "This will download the latest Piksi Multi firmware file onto the "
