@@ -645,7 +645,7 @@ if args.tcp:
     raise Exception('Invalid host and/or port')
 else:
   if not port:
-    port_chooser = PortChooser(baudrate=int(args.baud[0]))
+    port_chooser = PortChooser(baudrate=int(args.baud))
     is_ok = port_chooser.configure_traits()
     port = port_chooser.port
     baud = port_chooser.baudrate
