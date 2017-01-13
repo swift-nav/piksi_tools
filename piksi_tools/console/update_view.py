@@ -547,8 +547,6 @@ class UpdateView(HasTraits):
         HW_REV_LOOKUP[self.settings['system_info']['hw_revision'].value]
       self.piksi_stm_vers = \
         self.settings['system_info']['firmware_version'].value
-      self.piksi_nap_vers = \
-        self.settings['system_info']['nap_version'].value
     except KeyError:
       self._write("\nError: Settings received from Piksi don't contain firmware version keys. Please contact Swift Navigation.\n")
       return
