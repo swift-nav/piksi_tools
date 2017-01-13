@@ -617,12 +617,7 @@ class UpdateView(HasTraits):
           self.settings['system_info']['firmware_version'].value)
       remote_stm_version = parse_version(self.newest_stm_vers)
 
-      local_nap_version = parse_version(
-          self.settings['system_info']['nap_version'].value)
-      remote_nap_version = parse_version(self.newest_nap_vers)
-
-      self.fw_outdated = remote_nap_version > local_nap_version or \
-                         remote_stm_version > local_stm_version
+      self.fw_outdated = remote_stm_version > local_stm_version
 
       if self.fw_outdated:
         fw_update_prompt = \
