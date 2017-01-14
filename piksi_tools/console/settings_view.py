@@ -278,13 +278,12 @@ class SettingsView(HasTraits):
         self.settings_list.append(SectionHeading(sec))
         self.settings_list += this_section
     # call read_finished_functions as needed
-    if do_read_finished and not self.called_read_finished:
+    if do_read_finished:
       for cb in self.read_finished_functions:
         if self.gui_mode:
           GUI.invoke_later(cb)
         else:
           cb()
-      self.called_read_finished=True
 
   def settings_read_by_index_done_callback(self, sbp_msg, **metadata):
     self.settings_display_setup()
@@ -374,7 +373,6 @@ class SettingsView(HasTraits):
     # List of functions to be executed after all settings are read.
     # No support for arguments currently.
     self.read_finished_functions = read_finished_functions
-    self.called_read_finished = False
     self.setting_detail = SettingBase()
     if not skip:
       try:
