@@ -231,7 +231,7 @@ class UpdateView(HasTraits):
   update_nap_en = Bool(False)
   update_en = Bool(False)
   serial_upgrade = Bool(False)
-  upgrade_instructions = String("Firmware upgrade instructions:")
+  upgrade_steps = String("Firmware upgrade steps:")
 
   download_firmware = Button(label='Download Latest Firmware')
   download_directory = Directory("  Please choose a directory for downloaded firmware files...")
@@ -291,7 +291,7 @@ class UpdateView(HasTraits):
       UItem('download_firmware', enabled_when='download_fw_en'),
       UItem('update_full_firmware', enabled_when='update_en', visible_when='is_v2'),
       VGroup(
-        UItem('upgrade_instructions', 
+        UItem('upgrade_steps', 
               visible_when='not serial_upgrade', style='readonly'),
         Item(
           'stream',
@@ -335,18 +335,22 @@ class UpdateView(HasTraits):
     self.serial_upgrade = serial_upgrade
     if not self.serial_upgrade:
       self.stream.write(
-           "Insert the USB flash drive provided with your Piki Multi into " 
+           "1. Insert the USB flash drive provided with your Piki Multi into "
            "your computer.  Select the flash drive root directory as the "
            "firmware download destination using the \"Please "
            "choose a directory for downloaded firmware files\" directory "
            "chooser above.  Press the \"Download Latest Firmware\" button.  "
            "This will download the latest Piksi Multi firmware file onto the "
-           "USB flashdrive.  Eject the drive from your computer and plug it "
-           "into the Piksi Multi evaluation board.  "
-           "Reboot your Piksi Multi and it will upgrade to the version on the "
-           "USB flash drive.  "
-           "When the upgrade completes you will be prompted to remove the USB flash drive "
-           "and reboot your Piksi Multi.")
+           "USB flashdrive.\n"
+           "2. Eject the drive from your computer and plug it "
+           "into the Piksi Multi evaluation board.\n"
+           "3. Reset your Piksi Multi and it will upgrade to the version "
+           "on the USB flash drive. This should take less than 5 minutes.\n"
+           "4. When the upgrade completes you will be prompted to remove the "
+           "USB flash drive and reset your Piksi Multi.\n"
+           "5. Verify that the firmware version has upgraded via inspection "
+           "of the Current Firmware Version box on the Firmware Update Tab "
+           "of the Swift Console.\n")
 
   def _manage_enables(self):
     """ Manages whether traits widgets are enabled in the UI or not. """
