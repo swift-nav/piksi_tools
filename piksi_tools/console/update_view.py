@@ -208,6 +208,11 @@ class PulsableProgressDialog(ProgressDialog):
       self.max = 100
       GUI.invoke_later(self.update, int(100*float(count)/self.passed_max))
 
+
+
+
+
+
 class UpdateView(HasTraits):
   piksi_hw_rev = String('piksi_multi')
   is_v2 = Bool(False)
@@ -333,6 +338,7 @@ class UpdateView(HasTraits):
     self.nap_fw.on_trait_change(self._manage_enables, 'status')
     self.stream = OutputStream()
     self.serial_upgrade = serial_upgrade
+    self.last_call_fw_version = None
     if not self.serial_upgrade:
       self.stream.write(
            "1. Insert the USB flash drive provided with your Piki Multi into "
@@ -530,8 +536,9 @@ class UpdateView(HasTraits):
   def compare_versions(self):
     """
     To be called after latest Piksi firmware info has been received from
-    device, to decide if current firmware on Piksi is out of date. Starts a
-    thread so as not to block GUI thread.
+    device, to decide if current firmware on Piksi is out of date. Also informs
+    user if the firmware was successfully upgraded. Starts a thread so as not
+    to block GUI thread.
     """
     try:
       if self._compare_versions_thread.is_alive():
@@ -546,7 +553,8 @@ class UpdateView(HasTraits):
     """
     Compares version info between received firmware version / current console
     and firmware / console info from website to decide if current firmware or
-    console is out of date. Prompt user to update if so.
+    console is out of date. Prompt user to update if so. Informs user if
+    firmware successfully upgraded.
     """
     # Check that settings received from Piksi contain FW versions.
     try:
@@ -615,16 +623,18 @@ class UpdateView(HasTraits):
 
         console_outdated_prompt.run()
 
-    # For timing aesthetics between windows popping up.
-    sleep(0.5)
+      # For timing aesthetics between windows popping up.
+      sleep(0.5)
 
-    # Check if firmware is out of date and notify user if so.
-    if self.prompt:
+      # Check if firmware is out of date and notify user if so.
       local_stm_version = parse_version(
           self.settings['system_info']['firmware_version'].value)
       remote_stm_version = parse_version(self.newest_stm_vers)
 
       self.fw_outdated = remote_stm_version > local_stm_version
+
+      # Record firmware version reported each time this callback is called.
+      self.last_call_fw_version = local_stm_version
 
       if self.fw_outdated:
         fw_update_prompt = \
@@ -649,6 +659,22 @@ class UpdateView(HasTraits):
                 self.update_dl.index[self.piksi_hw_rev]['nap_fw']['version']
 
         fw_update_prompt.run()
+
+      # Check if firmware successfully upgraded and notify user if so.
+      if not self.fw_outdated and self.last_call_fw_version is not None and \
+          self.last_call_fw_version != local_stm_version:
+        success_prompt = \
+            prompt.CallbackPrompt(
+                                  title='Firmware Update Success',
+                                  actions=[prompt.close_button]
+                                 )
+        success_prompt.text = \
+            "Firmware successfully upgraded.\n\n" + \
+            "Old Firmware :\n\t%s\n\n" % \
+                self.last_call_fw_version + \
+            "Current Firmware :\n\t%s\n\n" % \
+                local_stm_version
+        success_prompt.run(block=False)
 
   def _get_latest_version_info(self):
     """ Get latest firmware / console version from website. """
