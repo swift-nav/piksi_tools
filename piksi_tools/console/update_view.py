@@ -322,7 +322,10 @@ class UpdateView(HasTraits):
       'update': self
 
     }
-    self.update_dl = UpdateDownloader()
+    try:
+      self.update_dl = UpdateDownloader()
+    except URLError:
+      pass
     self.erase_en = True
     self.stm_fw = FirmwareFileDialog('bin')
     self.stm_fw.on_trait_change(self._manage_enables, 'status')
