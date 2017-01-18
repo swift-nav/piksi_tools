@@ -208,11 +208,6 @@ class PulsableProgressDialog(ProgressDialog):
       self.max = 100
       GUI.invoke_later(self.update, int(100*float(count)/self.passed_max))
 
-
-
-
-
-
 class UpdateView(HasTraits):
   piksi_hw_rev = String('piksi_multi')
   is_v2 = Bool(False)
@@ -674,7 +669,7 @@ class UpdateView(HasTraits):
                 self.last_call_fw_version + \
             "Current Firmware :\n\t%s\n\n" % \
                 local_stm_version
-        success_prompt.run(block=False)
+        success_prompt.run()
 
   def _get_latest_version_info(self):
     """ Get latest firmware / console version from website. """
