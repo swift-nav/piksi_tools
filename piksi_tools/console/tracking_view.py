@@ -23,6 +23,7 @@ from piksi_tools.acq_results import SNR_THRESHOLD
 from piksi_tools.console.utils import code_to_str, code_is_gps, L1_CODES, L2_CODES
 
 NUM_POINTS = 200
+TRK_RATE = 2.0
 
 # These colors should be distinguishable from eachother
 color_dict = {'(0, 1)': 0xe58a8a, '(0, 2)': 0x664949, '(0, 3)': 0x590c00, 
@@ -156,7 +157,7 @@ class TrackingView(HasTraits):
   def __init__(self, link):
     super(TrackingView, self).__init__()
     self.t_init = time.time()
-    self.time = range(-NUM_POINTS, 0, 1)
+    self.time = [x * 1/TRK_RATE for x in range(-NUM_POINTS, 0, 1)]
     self.CN0_dict = {}
     self.n_channels = None
     self.plot_data = ArrayPlotData(t=[0.0])
@@ -171,6 +172,8 @@ class TrackingView(HasTraits):
     self.plot.value_axis.axis_line_visible = False
     self.plot.value_axis.title = 'dB-Hz'
     self.plot_data.set_data('t', self.time)
+    self.plot.index_axis.title = 'seconds'
+    self.plot.index_range.bounds_func = lambda l, h, m, tb: (h - 100, h) 
     self.legend_visible = True
     self.show_l1 = True
     self.show_l2 = True
