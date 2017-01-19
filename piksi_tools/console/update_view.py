@@ -651,23 +651,11 @@ class UpdateView(HasTraits):
 
         fw_update_prompt.run()
 
-      # Check if firmware successfully upgraded and notify user if so. Don't
-      # prompt if firmware is outdated as user has already been prompted about
-      # this.
-      if not self.fw_outdated and self.last_call_fw_version is not None and \
-          self.last_call_fw_version != local_stm_version:
-        success_prompt = \
-            prompt.CallbackPrompt(
-                                  title='Firmware Update Success',
-                                  actions=[prompt.close_button]
-                                 )
-        success_prompt.text = \
-            "Device firmware was successfully upgraded.\n\n" + \
-            "Old Firmware :\n\t%s\n\n" % \
-                self.last_call_fw_version + \
-            "Current Firmware :\n\t%s\n\n" % \
-                local_stm_version
-        success_prompt.run()
+    # Check if firmware successfully upgraded and notify user if so.
+    if not self.fw_outdated and self.last_call_fw_version is not None and \
+        self.last_call_fw_version != local_stm_version:
+      print "Firmware successfully upgraded from %s to %s." %
+            (self.last_call_fw_version, local_stm_version)
 
     # Record firmware version reported each time this callback is called.
     self.last_call_fw_version = local_stm_version
