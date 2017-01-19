@@ -36,8 +36,8 @@ class SettingsList():
         returnvar = thisdict.get(field,"")
       else:
         if not self.warned_dict.get(name+group, False):
-          print "Error in settings list parsed yaml file."
-          print "No entry for name  {0} and group is {1}".format(name,group)
+          print ("No settings documentation entry "
+                "for name {0} and group is {1}").format(name,group)
           self.warned_dict[name+group] = True
     if not returnvar:
       returnvar = ""
