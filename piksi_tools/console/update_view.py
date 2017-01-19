@@ -335,7 +335,7 @@ class UpdateView(HasTraits):
     self.serial_upgrade = serial_upgrade
     self.last_call_fw_version = None
     if not self.serial_upgrade:
-      self.stream.write(
+      self._write(
            "1. Insert the USB flash drive provided with your Piki Multi into "
            "your computer.  Select the flash drive root directory as the "
            "firmware download destination using the \"Please "
@@ -654,8 +654,10 @@ class UpdateView(HasTraits):
     # Check if firmware successfully upgraded and notify user if so.
     if not self.fw_outdated and self.last_call_fw_version is not None and \
         self.last_call_fw_version != local_stm_version:
-      print "Firmware successfully upgraded from %s to %s." %
-            (self.last_call_fw_version, local_stm_version)
+      fw_success_str = "Firmware successfully upgraded from %s to %s." %
+                       (self.last_call_fw_version, local_stm_version)
+      print fw_success_str
+      self._write(fw_success_str)
 
     # Record firmware version reported each time this callback is called.
     self.last_call_fw_version = local_stm_version
