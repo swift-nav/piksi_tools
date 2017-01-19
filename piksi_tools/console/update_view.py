@@ -622,14 +622,10 @@ class UpdateView(HasTraits):
       sleep(0.5)
 
       # Check if firmware is out of date and notify user if so.
-      local_stm_version = parse_version(
-          self.settings['system_info']['firmware_version'].value)
-      remote_stm_version = parse_version(self.newest_stm_vers)
+      local_stm_version = self.settings['system_info']['firmware_version'].value
+      remote_stm_version = self.newest_stm_vers
 
       self.fw_outdated = remote_stm_version > local_stm_version
-
-      # Record firmware version reported each time this callback is called.
-      self.last_call_fw_version = local_stm_version
 
       if self.fw_outdated:
         fw_update_prompt = \
@@ -655,7 +651,9 @@ class UpdateView(HasTraits):
 
         fw_update_prompt.run()
 
-      # Check if firmware successfully upgraded and notify user if so.
+      # Check if firmware successfully upgraded and notify user if so. Don't
+      # prompt if firmware is outdated as user has already been prompted about
+      # this.
       if not self.fw_outdated and self.last_call_fw_version is not None and \
           self.last_call_fw_version != local_stm_version:
         success_prompt = \
@@ -664,12 +662,15 @@ class UpdateView(HasTraits):
                                   actions=[prompt.close_button]
                                  )
         success_prompt.text = \
-            "Firmware successfully upgraded.\n\n" + \
+            "Device firmware was successfully upgraded.\n\n" + \
             "Old Firmware :\n\t%s\n\n" % \
                 self.last_call_fw_version + \
             "Current Firmware :\n\t%s\n\n" % \
                 local_stm_version
         success_prompt.run()
+
+    # Record firmware version reported each time this callback is called.
+    self.last_call_fw_version = local_stm_version
 
   def _get_latest_version_info(self):
     """ Get latest firmware / console version from website. """
