@@ -31,10 +31,10 @@
 }
 
 % Define our alternate color
-\definecolor{alt}{RGB}{140,0,0}
+\definecolor{alt}{RGB}{255,131,0}
 
 % Colored section headings
-\titleformat*{\section}{\color{alt}\normalfont\huge\bfseries}
+\titleformat*{\section}{\color{alt}\normalfont\LARGE\bfseries}
 \titleformat*{\subsection}{\color{alt}\normalfont\Large\bfseries}
 
 % Tweak the page layout
@@ -88,7 +88,7 @@
 }
 
 % Bullet point symbols
-\renewcommand{\labelitemi}{\color{alt}\footnotesize{$\blacksquare$}}
+\renewcommand{\labelitemi}{\color{black}\footnotesize{$\blacksquare$}}
 % Bullet point style with no indent
 \newcommand{\bulletnoindent}{
   \setlength{\itemsep}{0pt}
@@ -157,7 +157,7 @@
           anchor=south east,
           text width=15cm,
           align=right
-        ] at (\textwidth, -1.5cm) {\Huge{\textbf{\color{alt}\@title}}};%
+        ] at (\textwidth, -1.5cm) {\huge{\textbf{\color{black}\@title}}};%
         \node [
           anchor=south east,
           text width=15cm,
