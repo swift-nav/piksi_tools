@@ -231,7 +231,7 @@ class UpdateView(HasTraits):
   update_nap_en = Bool(False)
   update_en = Bool(False)
   serial_upgrade = Bool(False)
-  upgrade_instructions = String("Firmware upgrade instructions:")
+  upgrade_steps = String("Firmware upgrade steps:")
 
   download_firmware = Button(label='Download Latest Firmware')
   download_directory = Directory("  Please choose a directory for downloaded firmware files...")
@@ -291,7 +291,7 @@ class UpdateView(HasTraits):
       UItem('download_firmware', enabled_when='download_fw_en'),
       UItem('update_full_firmware', enabled_when='update_en', visible_when='is_v2'),
       VGroup(
-        UItem('upgrade_instructions', 
+        UItem('upgrade_steps', 
               visible_when='not serial_upgrade', style='readonly'),
         Item(
           'stream',
@@ -333,20 +333,25 @@ class UpdateView(HasTraits):
     self.nap_fw.on_trait_change(self._manage_enables, 'status')
     self.stream = OutputStream()
     self.serial_upgrade = serial_upgrade
+    self.last_call_fw_version = None
     if not self.serial_upgrade:
-      self.stream.write(
-           "Insert the USB flash drive provided with your Piki Multi into " 
+      self._write(
+           "1. Insert the USB flash drive provided with your Piki Multi into "
            "your computer.  Select the flash drive root directory as the "
            "firmware download destination using the \"Please "
            "choose a directory for downloaded firmware files\" directory "
            "chooser above.  Press the \"Download Latest Firmware\" button.  "
            "This will download the latest Piksi Multi firmware file onto the "
-           "USB flashdrive.  Eject the drive from your computer and plug it "
-           "into the Piksi Multi evaluation board.  "
-           "Reboot your Piksi Multi and it will upgrade to the version on the "
-           "USB flash drive.  "
-           "When the upgrade completes you will be prompted to remove the USB flash drive "
-           "and reboot your Piksi Multi.")
+           "USB flashdrive.\n"
+           "2. Eject the drive from your computer and plug it "
+           "into the Piksi Multi evaluation board.\n"
+           "3. Reset your Piksi Multi and it will upgrade to the version "
+           "on the USB flash drive. This should take less than 5 minutes.\n"
+           "4. When the upgrade completes you will be prompted to remove the "
+           "USB flash drive and reset your Piksi Multi.\n"
+           "5. Verify that the firmware version has upgraded via inspection "
+           "of the Current Firmware Version box on the Firmware Update Tab "
+           "of the Swift Console.\n")
 
   def _manage_enables(self):
     """ Manages whether traits widgets are enabled in the UI or not. """
@@ -526,8 +531,9 @@ class UpdateView(HasTraits):
   def compare_versions(self):
     """
     To be called after latest Piksi firmware info has been received from
-    device, to decide if current firmware on Piksi is out of date. Starts a
-    thread so as not to block GUI thread.
+    device, to decide if current firmware on Piksi is out of date. Also informs
+    user if the firmware was successfully upgraded. Starts a thread so as not
+    to block GUI thread.
     """
     try:
       if self._compare_versions_thread.is_alive():
@@ -542,7 +548,8 @@ class UpdateView(HasTraits):
     """
     Compares version info between received firmware version / current console
     and firmware / console info from website to decide if current firmware or
-    console is out of date. Prompt user to update if so.
+    console is out of date. Prompt user to update if so. Informs user if
+    firmware successfully upgraded.
     """
     # Check that settings received from Piksi contain FW versions.
     try:
@@ -611,14 +618,12 @@ class UpdateView(HasTraits):
 
         console_outdated_prompt.run()
 
-    # For timing aesthetics between windows popping up.
-    sleep(0.5)
+      # For timing aesthetics between windows popping up.
+      sleep(0.5)
 
-    # Check if firmware is out of date and notify user if so.
-    if self.prompt:
-      local_stm_version = parse_version(
-          self.settings['system_info']['firmware_version'].value)
-      remote_stm_version = parse_version(self.newest_stm_vers)
+      # Check if firmware is out of date and notify user if so.
+      local_stm_version = self.settings['system_info']['firmware_version'].value
+      remote_stm_version = self.newest_stm_vers
 
       self.fw_outdated = remote_stm_version > local_stm_version
 
@@ -645,6 +650,17 @@ class UpdateView(HasTraits):
                 self.update_dl.index[self.piksi_hw_rev]['nap_fw']['version']
 
         fw_update_prompt.run()
+
+    # Check if firmware successfully upgraded and notify user if so.
+    if self.last_call_fw_version is not None and \
+        self.last_call_fw_version != local_stm_version:
+      fw_success_str = "Firmware successfully upgraded from %s to %s." % \
+                       (self.last_call_fw_version, local_stm_version)
+      print fw_success_str
+      self._write(fw_success_str)
+
+    # Record firmware version reported each time this callback is called.
+    self.last_call_fw_version = local_stm_version
 
   def _get_latest_version_info(self):
     """ Get latest firmware / console version from website. """
