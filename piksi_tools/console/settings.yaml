@@ -871,7 +871,7 @@
   enumerated possible values: 25,50,100,200
   units: hz
   description: The date rate (in hz) for imu raw output
-  notes: It is recommended to use ethernet or USB for IMU data output 
+  Notes: It is recommended to use ethernet or USB for IMU data output 
     for data rates over 25hz
 
 - group: imu
@@ -880,7 +880,7 @@
   enumerated possible values: 2g,4g,8g,16g
   units: g
   description: the approximate range of accelerations that can be measured
-  notes: When 2g is chosen, it means the accelerometer is scaled to measured
+  Notes: When 2g is chosen, it means the accelerometer is scaled to measured
     about +-2g of acceleration. Refer to the IMU datasheet for detailed information.
 
 - group: imu
@@ -889,7 +889,7 @@
   enumerated possible values: 125,250,500,1000,2000 
   units: deg/s
   description: the approximate range of angular rate that can be measured
-  notes: When 125 is chosen, it means the accelerometer is scaled to measured
+  Notes: When 125 is chosen, it means the accelerometer is scaled to measured
     about +-125 deg/s of angular rate. Refer to the IMU datasheet for detailed information.
 
 - group: ndb
