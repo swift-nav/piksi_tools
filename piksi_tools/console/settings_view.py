@@ -203,7 +203,7 @@ class SettingsView(HasTraits):
   )
   
   def _selected_setting_changed(self):
-    if selected_setting != None:
+    if self.selected_setting:
       if self.selected_setting.name in ['surveyed_position','broadcast','surveyed_lat', 
                                         'surveyed_lon', 'surveyed_alt']:
         self.show_auto_survey = True
