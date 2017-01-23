@@ -119,7 +119,7 @@ class SbpRelayView(HasTraits):
 
   def __init__(self, link, device_uid=None, base=DEFAULT_BASE, 
                whitelist=None, rover_pragma='', base_pragma='', rover_uuid='', base_uuid='',
-               connect=False):
+               connect=False, debug=True):
     """
     Traits tab with UI for UDP broadcast of SBP.
 
@@ -140,6 +140,7 @@ class SbpRelayView(HasTraits):
     self.net_link = None
     self.fwd = None
     self.func = None
+    self.executor = None
     # Whitelist used for UDP broadcast view
     self.msgs = OBS_MSGS
     # register a callback when the msg_enum trait changes
@@ -152,6 +153,7 @@ class SbpRelayView(HasTraits):
     self.base_pragma = base_pragma
     self.rover_device_uid = rover_uuid
     self.base_device_uid = base_uuid
+    self.debug = debug
     if connect:
       self.connect_when_uuid_received=True
     else:
@@ -246,17 +248,24 @@ class SbpRelayView(HasTraits):
     with Handler(Framer(self.http.read, self.http.write)) as net_link:
       self.net_link = net_link
       self.fwd = Forwarder(net_link, swriter(self.link))
+      if self.debug:
+        print "Starting forwarder"
       self.fwd.start()
-      while True:
-        time.sleep(1)
-        if not net_link.is_alive():
-          sys.stderr.write("Network observation stream disconnected!")
-          break
+      while net_link.is_alive():
+        time.sleep(0.1)
+      sys.stderr.write("Network observation stream disconnected!")
     # Unless the user has initiated a reconnection, assume here that the rover
     # still wants to be connected, so if we break out of the handler loop,
     # cleanup rover connection and try reconnecting.
     if self.connected_rover:
       sys.stderr.write("Going for a networking reconnection!")
+      if self.debug:
+        print ("Current skylark state: "
+               "local netlink: {0} local netlink alive: {1}\n"
+               "Object net link: {2} object net_link alive{3}"
+               " fwd:{4} fwd_alive{5}").format(net_link, net_link.is_alive(),
+                                              self.net_link, self.net_link.is_alive(),
+                                              self.fwd, self.fwd.is_alive())
       self._disconnect_rover_fired()
       self._connect_rover_fired()
 
@@ -283,8 +292,8 @@ class SbpRelayView(HasTraits):
         return
       self.connected_rover = True
       print "Connected as a base station!"
-      executor = ThreadPoolExecutor(max_workers=2)
-      executor.submit(self._retry_read)
+      self.executor = ThreadPoolExecutor(max_workers=1)
+      self.executor.submit(self._retry_read)
     except:
       self.connected_rover = False
       import traceback
@@ -304,9 +313,17 @@ class SbpRelayView(HasTraits):
     try:
       if self.connected_rover:
         self.http.close()
-        self.connected_rover = False
-        if self.fwd and self.net_link:
+        if self.net_link:
+          if self.debug:
+            print "Stopping netlink"
           self.net_link.stop()
+        if self.fwd:
+          if self.debug:
+            print "Stopping fwder"
+          self.fwd.stop()
+        if self.executor:
+          self.executor.shutdown()
+        self.connected_rover = False
     except:
       self.connected_rover = False
       import traceback
