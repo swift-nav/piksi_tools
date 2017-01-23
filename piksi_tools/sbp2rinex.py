@@ -103,9 +103,9 @@ class StoreToRINEX(object):
       SBP message payload
 
     """
-    if msg.msg_type == ob.SBP_MSG_OBS_DEP_B or msg.msg_type == ob.SBP_MSG_OBS_DEP_C:
+    if msg.msg_type == ob.SBP_MSG_OBS:
       self._process_obs(msg)
-    if not self.first_spp and msg.msg_type == nav.SBP_MSG_POS_ECEF_DEP_A:
+    if not self.first_spp and msg.msg_type == nav.SBP_MSG_POS_ECEF:
       self._process_spp(msg)
       self.first_spp = True
 
@@ -142,7 +142,7 @@ sbp2rinex                               %s UTC PGM / RUN BY / DATE
                                       len(sats)))
 
         for prn, obs in sorted(sats.iteritems()):
-          f.write('G%02d' % (prn + 1))
+          f.write('G%02d' % (prn))
         f.write('   ' * (12 - len(sats)))
         f.write('\n')
 
