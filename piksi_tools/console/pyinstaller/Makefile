@@ -17,6 +17,8 @@ else
 endif
 endif
 
+UNAME_LOWER = $(shell echo $(UNAME) | tr A-Z a-z)
+
 
 console: $(spec_file)
 	make clean
@@ -32,11 +34,9 @@ Cygwin:
 Darwin:
 	sudo ./create-dmg-installer.sh
 tar:
-	mv ./dist/console ./dist/swift_console_v$(VERSION)
-	cd dist && tar cfvz swift_console_v$(VERSION).tar.gz ./swift_console_v$(VERSION)
+	mv ./dist/console ./dist/swift_console_$(UNAME_LOWER)_v$(VERSION)
+	cd dist && tar cfvz swift_console_$(UNAME_LOWER)_v$(VERSION).tar.gz swift_console_$(UNAME_LOWER)_v$(VERSION)
 Linux:
 	make tar
 clean:
 	rm -rf build dist
-
-
