@@ -10,7 +10,6 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 from callback_prompt import CallbackPrompt, close_button
-from concurrent.futures import ThreadPoolExecutor
 from piksi_tools.serial_link import swriter, get_uuid, \
   DEFAULT_BASE, CHANNEL_UUID
 from piksi_tools.console.utils import MultilineTextEditor
@@ -24,10 +23,11 @@ from sbp.observation import SBP_MSG_OBS, SBP_MSG_OBS_DEP_C, SBP_MSG_OBS_DEP_B, \
 from traits.api import HasTraits, String, Button, Instance, Int, Bool, \
                        on_trait_change, Enum
 from traitsui.api import View, Item, VGroup, UItem, HGroup, TextEditor, \
-  spring
+  spring, Spring
 
 import sys
 import time
+import threading
 
 DEFAULT_UDP_ADDRESS = "127.0.0.1"
 DEFAULT_UDP_PORT = 13320
@@ -38,10 +38,176 @@ OBS_MSGS = [ SBP_MSG_OBS_DEP_C,
            SBP_MSG_OBS
           ]
 
+
+class SkylarkConsoleConnectConfig(object):
+  """ This class here to sanify the parameters for a 
+       skylark api connetion and separate them from the Gui"""
+  def __init__(self, link, device_uid, skylark_url, whitelist,
+               rover_pragma, base_pragma, rover_uuid, base_uuid):
+    self.link = link
+    self.skylark_url = skylark_url
+    self.device_uid = device_uid
+    self.whitelist = whitelist
+    self.rover_pragma = rover_pragma
+    self.base_pragma = base_pragma
+    self.rover_uuid = rover_uuid
+    self.base_uuid = base_uuid
+
+  def __repr__(self):
+    return ("link: {0}, skylark_url {1}, device_uid: {2}, whitelist {3}, rover pragme: {4}, "
+            "base_pragma: {5}, rover_uuid: {6}, base_uuid {7}").format(self.link, self.skylark_url,
+                                                                       self.device_uid, self.whitelist,
+                                                                      self.rover_pragma, self.base_pragma,
+                                                                      self.rover_uuid, self.base_uuid)
+
+
+class SkylarkWatchdogThread(threading.Thread):
+  """ This thread handles connecting to skylark and auto reconnecting
+      Parameters
+        ----------
+        link : - SbpHandlerObject
+        skylark_config : SkylarkConsoleConnectConfig 
+          object storing all skylark settings
+        stopped_callback : function pointer 
+          function to call when thread is stopped
+        kwargs : dict 
+           all remainng thread constructor arguments
+  """
+  def __init__(self, link=None, skylark_config=None, stopped_callback=None, 
+               group=None, target=None, name=None,
+               args=(), kwargs=None, verbose=None):
+    threading.Thread.__init__(self, group=group, target=target, name=name,
+                              verbose=verbose)
+    self.args = args
+    self.kwargs = kwargs
+    self.link = link
+    self.skylark_config = skylark_config
+    self._stop = threading.Event()
+    self.stopped_callback = stopped_callback
+    self.verbose = verbose
+    self._init_time = time.time()
+    self._connect_time = None
+    self._stop_time = None
+
+    assert isinstance(self.skylark_config, SkylarkConsoleConnectConfig)
+    assert isinstance(self.link, Handler)
+    return
+
+  def get_init_time(self):
+    return self._init_time
+
+  def get_connect_time(self):
+    return self._connect_time
+
+  def get_stop_time(self):
+    return self._stop_time
+
+  def stop(self):
+    self._stop.set()
+    if self.stopped_callback:
+       self.stopped_callback()
+    self._stop_time = time.time()
+    if self.verbose:
+      print ("SkylarkWatchdogThread initialized "
+            "at {0} and connected since {1} stopped at {2}").format(self.get_init_time(), 
+                                                                     self.get_connect_time(), self.get_stop_time())
+
+  def stopped(self):
+    return self._stop.isSet()
+
+  def _prompt_networking_error(self, text):
+    """Nonblocking prompt for a networking error.
+
+    Parameters
+    ----------
+    text : str
+      Helpful error message for the user
+
+    """
+    prompt = CallbackPrompt(title="Networking Error", actions=[close_button])
+    prompt.text = text
+    prompt.run(block=False)
+
+  def connect(self, link, read_config):
+    """Retry read connections. Intended to be called when thread started
+    Only shared resource here is the self.link
+    Parameters
+    ----------
+    link : SbpHandler
+    read_config :  SkylarkConsoleConnectConfig object 
+    
+    Returns
+    ----------
+    ret : int
+       0 if exited normally by thread stopping
+      -1 if unable to connect as base station
+      -2 if unable to connect as rover
+      -3 if we lost our net connection to skylark (we restart in this case unless stopped)
+
+    """
+    assert isinstance(read_config, SkylarkConsoleConnectConfig)
+    self._connect_time = time.time()
+    if self.verbose:
+      print "SkylarkWatchdogThread connection attempted at time {0} with parameters {1}".format(
+                 self.get_connect_time(), read_config) 
+    i = 0
+    repeats = 40
+    http = HTTPDriver(device_uid=read_config.base_uuid, url=read_config.skylark_url, timeout=15)
+    if not http.connect_write(link, read_config.whitelist, pragma=read_config.base_pragma):
+        msg = ("\nUnable to connect to Skylark!\n\n" + 
+               "Please check that you have a network connection.")
+        self._prompt_networking_error(msg)
+        http.close()
+        self.stop()
+        return -1 # unable to connect as base
+    time.sleep(1)
+    while (not self.stopped() and http 
+           and not http.connect_read(device_uid=read_config.rover_uuid, pragma=read_config.rover_pragma)):
+      print "Attempting to read observation from Skylark..."
+      time.sleep(0.1)
+      i += 1
+      if i >= repeats:
+        msg = ("\nUnable to receive observations from Skylark!\n\n"
+               "Please check that:\n"
+               " - you have a network connection\n"
+               " - your Piksi has a single-point position\n"
+               " - a Skylark-connected Piksi receiver \n   is nearby (within 5km)")
+        self._prompt_networking_error(msg)
+        http.read_close()
+        self.stop()
+        return -2 # Unable to connect as rover
+    print "Connected as a rover!"
+    with Handler(Framer(http.read, http.write)) as net_link:
+      fwd = Forwarder(net_link, swriter(link))
+      if self.verbose:
+        print "Starting forwarder"
+      fwd.start()
+      while not self.stopped() and net_link.is_alive():
+          time.sleep(0.1)
+    if self.verbose:
+      print "Stopping forwarder"
+    fwd.stop()
+    if self.stopped():
+      return 0 # If we stop from the event, it it intended and we return 0
+    else:
+      return -3 # Lost connection
+  
+  def run(self):
+    """ Continuously try and reconnect until thread stopped by other means """
+    while not self.stopped():
+      print "Attempting to connect to skylark..."
+      ret = self.connect(self.link, self.skylark_config)
+      if self.verbose:
+        "Returned from SkylarkWatchdogThread.connect with code {0}".format(ret)
+      time.sleep(0.25)
+      print "Network Observation Stream Disconnected."
+
+
+
 class SbpRelayView(HasTraits):
   """
-  UDP Relay view- Class allows user to specify port, IP address, and message set
-  to relay over UDP
+  SBP Relay view- Class allows user to specify port, IP address, and message set
+  to relay over UDP and to configure a skylark connection
   """
   running = Bool(False)
   configured = Bool(False)
@@ -63,6 +229,7 @@ class SbpRelayView(HasTraits):
   connected_rover = Bool(False)
   connect_rover = Button(label='Connect to Skylark', toggle=True, width=32)
   disconnect_rover = Button(label='Disconnect from Skylark', toggle=True, width=32)
+  skylark_url = String()
   base_pragma = String()
   rover_pragma = String()
   base_device_uid = String()
@@ -98,6 +265,10 @@ class SbpRelayView(HasTraits):
                    UItem('connect_rover', enabled_when='not connected_rover', show_label=False),
                    UItem('disconnect_rover', enabled_when='connected_rover', show_label=False),
                    spring),
+                   HGroup(Spring(springy=False, width=2),
+                          Item('skylark_url', enabled_when='not connected_rover', show_label=True),
+                          Spring(springy=False, width=2)
+                          ),
                  HGroup(spring,
                         Item('base_pragma',  label='Base option '),
                         Item('base_device_uid',  label='Base device '),
@@ -119,7 +290,7 @@ class SbpRelayView(HasTraits):
 
   def __init__(self, link, device_uid=None, base=DEFAULT_BASE, 
                whitelist=None, rover_pragma='', base_pragma='', rover_uuid='', base_uuid='',
-               connect=False, debug=True):
+               connect=False, verbose=False):
     """
     Traits tab with UI for UDP broadcast of SBP.
 
@@ -136,11 +307,6 @@ class SbpRelayView(HasTraits):
 
     """
     self.link = link
-    self.http = HTTPDriver(None, base)
-    self.net_link = None
-    self.fwd = None
-    self.func = None
-    self.executor = None
     # Whitelist used for UDP broadcast view
     self.msgs = OBS_MSGS
     # register a callback when the msg_enum trait changes
@@ -153,11 +319,13 @@ class SbpRelayView(HasTraits):
     self.base_pragma = base_pragma
     self.rover_device_uid = rover_uuid
     self.base_device_uid = base_uuid
-    self.debug = debug
+    self.verbose = verbose
+    self.skylark_watchdog_thread = None
+    self.skylark_url = base
     if connect:
-      self.connect_when_uuid_received=True
+      self.connect_when_uuid_received = True
     else:
-      self.connect_when_uuid_received=False
+      self.connect_when_uuid_received = False
 
   def update_msgs(self):
     """Updates the instance variable msgs which store the msgs that we
@@ -193,8 +361,6 @@ class SbpRelayView(HasTraits):
       device_uid = str(get_uuid(channel, 1234))
       print "Setting UUID to default value of {0}".format(device_uid)
     self.device_uid = device_uid
-    if self.http:
-      self.http.device_uid = device_uid
 
   def _prompt_networking_error(self, text):
     """Nonblocking prompt for a networking error.
@@ -222,109 +388,44 @@ class SbpRelayView(HasTraits):
     prompt.text = text
     prompt.run(block=False)
 
-  def _retry_read(self):
-    """Retry read connections. Intended to be called by
-    _connect_rover_fired.
+  def _disconnect_rover_fired(self):
+    """Handle callback for HTTP rover disconnects.
 
     """
-    i = 0
-    repeats = 5
-    _rover_pragma = self.rover_pragma
-    _rover_device_uid = self.rover_device_uid or self.device_uid
-    while self.http and not self.http.connect_read(device_uid=_rover_device_uid, pragma=_rover_pragma):
-      print "Attempting to read observation from Skylark..."
-      time.sleep(0.1)
-      i += 1
-      if i >= repeats:
-        msg = ("\nUnable to receive observations from Skylark!\n\n"
-               "Please check that:\n"
-               " - you have a network connection\n"
-               " - your Piksi has a single-point position\n"
-               " - a Skylark-connected Piksi receiver \n   is nearby (within 5km)")
-        self._prompt_networking_error(msg)
-        self.http.read_close()
-        return
-    print "Connected as a rover!"
-    with Handler(Framer(self.http.read, self.http.write)) as net_link:
-      self.net_link = net_link
-      self.fwd = Forwarder(net_link, swriter(self.link))
-      if self.debug:
-        print "Starting forwarder"
-      self.fwd.start()
-      while net_link.is_alive():
-        time.sleep(0.1)
-      sys.stderr.write("Network observation stream disconnected!")
-    # Unless the user has initiated a reconnection, assume here that the rover
-    # still wants to be connected, so if we break out of the handler loop,
-    # cleanup rover connection and try reconnecting.
-    if self.connected_rover:
-      sys.stderr.write("Going for a networking reconnection!")
-      if self.debug:
-        print ("Current skylark state: "
-               "local netlink: {0} local netlink alive: {1}\n"
-               "Object net link: {2} object net_link alive{3}"
-               " fwd:{4} fwd_alive{5}").format(net_link, net_link.is_alive(),
-                                              self.net_link, self.net_link.is_alive(),
-                                              self.fwd, self.fwd.is_alive())
-      self._disconnect_rover_fired()
-      self._connect_rover_fired()
-
-  def _connect_rover_fired(self):
-    """Handle callback for HTTP rover connections.
-
-    """
-    if not self.device_uid:
-      msg = "\nDevice ID not found!\n\nConnection requires a valid Piksi device ID."
-      self._prompt_setting_error(msg)
-      return
-    if not self.http:
-      self._prompt_networking_error("\nNetworking disabled!")
-      return
     try:
-      _base_pragma = self.base_pragma
-      _base_device_uid = self.base_device_uid or self.device_uid
-      if not self.http.connect_write(self.link, self.whitelist, device_uid=_base_device_uid, pragma=_base_pragma):
-        msg = ("\nUnable to connect to Skylark!\n\n"
-               "Please check that you have a network connection.")
-        self._prompt_networking_error(msg)
-        self.http.close()
-        self.connected_rover = False
-        return
-      self.connected_rover = True
-      print "Connected as a base station!"
-      self.executor = ThreadPoolExecutor(max_workers=1)
-      self.executor.submit(self._retry_read)
+      if isinstance(self.skylark_watchdog_thread, threading.Thread) and not self.skylark_watchdog_thread.stopped():
+        self.skylark_watchdog_thread.stop()
+      else:
+        print ("Skylark thread connected "
+               "inititalized at {0} and "
+              "connected since {1} already stopped").format(self.skylark_watchdog_thread.get_init_time(),
+                                                            self.skylark_watchdog_thread.get_connect_time())
+      self.connected_rover = False
     except:
       self.connected_rover = False
       import traceback
       print traceback.format_exc()
 
-  def _disconnect_rover_fired(self):
-    """Handle callback for HTTP rover disconnects.
-
+  def _connect_rover_fired(self):
+    """Handle callback for HTTP rover connections.  Launches an instance of skylark_watchdog_thread.
     """
     if not self.device_uid:
       msg = "\nDevice ID not found!\n\nConnection requires a valid Piksi device ID."
       self._prompt_setting_error(msg)
       return
-    if not self.http:
-      self._prompt_networking_error("\nNetworking disabled!")
-      return
     try:
-      if self.connected_rover:
-        self.http.close()
-        if self.net_link:
-          if self.debug:
-            print "Stopping netlink"
-          self.net_link.stop()
-        if self.fwd:
-          if self.debug:
-            print "Stopping fwder"
-          self.fwd.stop()
-        if self.executor:
-          self.executor.shutdown()
-        self.connected_rover = False
+      _base_device_uid = self.base_device_uid or self.device_uid
+      _rover_device_uid = self.rover_device_uid or self.device_uid
+      config = SkylarkConsoleConnectConfig(self.link, self.device_uid, self.skylark_url, self.whitelist,
+               self.rover_pragma, self.base_pragma, _rover_device_uid, _base_device_uid)
+      self.skylark_watchdog_thread = SkylarkWatchdogThread(link=self.link, skylark_config=config, 
+                                                           stopped_callback=self._disconnect_rover_fired,
+                                                           verbose=self.verbose)
+      self.connected_rover = True
+      self.skylark_watchdog_thread.start()
     except:
+      if isinstance(self.skylark_watchdog_thread, threading.Thread) and self.skylark_watchdog_thread.stopped():
+        self.skylark_watchdog_thread.stop()
       self.connected_rover = False
       import traceback
       print traceback.format_exc()
