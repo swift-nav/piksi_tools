@@ -325,6 +325,7 @@ class UpdateView(HasTraits):
     try:
       self.update_dl = UpdateDownloader()
     except URLError:
+      self.update_dl = None
       pass
     self.erase_en = True
     self.stm_fw = FirmwareFileDialog('bin')
