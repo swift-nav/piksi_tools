@@ -108,9 +108,14 @@ class SkylarkWatchdogThread(threading.Thread):
   def stop(self):
     """ stops thread, sets _stop event"""
     self._stop.set()
-    if self.stopped_callback:
-       self.stopped_callback()
     self._stop_time = time.time()
+    if self.stopped_callback:
+      try:
+        self.stopped_callback()
+      except:
+        print "Error stopping SkylarkWatchdogThread: User supplied callback has unhandeled exception") 
+        import traceback
+        print traceback.format_exc()        
     if self.verbose:
       print ("SkylarkWatchdogThread initialized "
              "at {0} and connected since {1} stopped at {2}").format(
