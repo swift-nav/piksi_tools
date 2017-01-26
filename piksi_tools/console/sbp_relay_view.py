@@ -113,7 +113,7 @@ class SkylarkWatchdogThread(threading.Thread):
       try:
         self.stopped_callback()
       except:
-        print "Error stopping SkylarkWatchdogThread: User supplied callback has unhandeled exception") 
+        print "Error stopping SkylarkWatchdogThread: User supplied callback has unhandeled exception"
         import traceback
         print traceback.format_exc()        
     if self.verbose:
