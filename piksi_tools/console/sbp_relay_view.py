@@ -27,6 +27,7 @@ from traitsui.api import View, Item, VGroup, UItem, HGroup, TextEditor, \
   spring
 
 import sys
+import threading
 import time
 
 DEFAULT_UDP_ADDRESS = "127.0.0.1"
@@ -117,8 +118,15 @@ class SbpRelayView(HasTraits):
            )
   )
 
-  def __init__(self, link, device_uid=None, base=DEFAULT_BASE, 
-               whitelist=None, rover_pragma='', base_pragma='', rover_uuid='', base_uuid='',
+  def __init__(self,
+               link,
+               device_uid=None,
+               base=DEFAULT_BASE,
+               whitelist=None,
+               rover_pragma='',
+               base_pragma='',
+               rover_uuid='',
+               base_uuid='',
                connect=False):
     """
     Traits tab with UI for UDP broadcast of SBP.
@@ -152,10 +160,8 @@ class SbpRelayView(HasTraits):
     self.base_pragma = base_pragma
     self.rover_device_uid = rover_uuid
     self.base_device_uid = base_uuid
-    if connect:
-      self.connect_when_uuid_received=True
-    else:
-      self.connect_when_uuid_received=False
+    self.http_executor = ThreadPoolExecutor(max_workers=1)
+    self.connect_when_uuid_received = bool(connect)
 
   def update_msgs(self):
     """Updates the instance variable msgs which store the msgs that we
@@ -244,6 +250,7 @@ class SbpRelayView(HasTraits):
         return
     print "Connected as a rover!"
     with Handler(Framer(self.http.read, self.http.write)) as net_link:
+      print "Starting with thread %d" % threading.current_thread().ident
       self.net_link = net_link
       self.fwd = Forwarder(net_link, swriter(self.link))
       self.fwd.start()
@@ -283,8 +290,7 @@ class SbpRelayView(HasTraits):
         return
       self.connected_rover = True
       print "Connected as a base station!"
-      executor = ThreadPoolExecutor(max_workers=2)
-      executor.submit(self._retry_read)
+      self.http_executor.submit(self._retry_read)
     except:
       self.connected_rover = False
       import traceback
