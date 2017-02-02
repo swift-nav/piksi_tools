@@ -634,32 +634,51 @@ class ShowUsage(HasTraits):
 class PortChooser(HasTraits):
   ports = List()
   port = Str(None)
+  ip_port = Int(55555)
+  ip_address = Str('192.168.0.222')
   choose_baud = Bool(True)
+  is_tcpip = Bool(False)
   baudrate = Int() #um(57600, 115200, 921600, 1000000)
   traits_view = View(
     HGroup(
       VGroup(
-        Item(" ", height=-8),
-        Label('Select Swift device:'),
-        Item('port', editor=EnumEditor(name='ports'), show_label=False),
+        VGroup(
+          Label('Select Swift device:'),
+          Item('port', editor=EnumEditor(name='ports'), show_label=False),
+          visible_when='True'
+        ),
       ),
       VGroup(
-        Item(" ", height=-8),
-        Label('Baudrate:'),
-        Item('baudrate', editor=EnumEditor(values=BAUD_LIST), show_label=False, visible_when='choose_baud'),
-        Item('baudrate', show_label=False, visible_when='not choose_baud', style='readonly'),
+        VGroup(
+          Label('Baudrate:'),
+          Item('baudrate', editor=EnumEditor(values=BAUD_LIST), show_label=False, visible_when='choose_baud'),
+          Item('baudrate', show_label=False, visible_when='not choose_baud', style='readonly'), 
+          visible_when="not is_tcpip"),
+        VGroup( 
+          Item(" ", height=-8),
+          Item('ip_address', label="IP Address", style='simple', show_label=True, width=100),
+          Item('ip_port', label="IP Port", style='simple', show_label=True, width=100 ),
+          visible_when="is_tcpip"
+        ),
       ),
     ),
     buttons = ['OK', 'Cancel'],
     close_result=False,
     icon = icon,
-    width = 350,
+    width = 400,
     title = 'Select serial Configuration',
   )
+  def _port_changed(self, name, old, new):
+    if new  == "TCP/IP":
+      self.is_tcpip = True
+    else:
+      self.is_tcpip = False
 
   def __init__(self, baudrate=None):
+    self.is_tcpip = False
     try:
       self.ports = [p for p, _, _ in s.get_ports()]
+      self.ports.append("TCP/IP")
       if baudrate not in BAUD_LIST:
         self.choose_baud = False
       self.baudrate = baudrate
@@ -676,19 +695,26 @@ if args.tcp:
     selected_driver = TCPDriver(host, int(port))
   except:
     raise Exception('Invalid host and/or port')
+    sys.exit(1)
+
 else:
   if not port:
     port_chooser = PortChooser(baudrate=int(args.baud))
     is_ok = port_chooser.configure_traits()
+    ip_address = port_chooser.ip_address
+    ip_port = port_chooser.ip_port
     port = port_chooser.port
     baud = port_chooser.baudrate
     if not port or not is_ok:
       print "No serial device selected!"
       sys.exit(1)
     else:
-      print "Using serial device '%s'" % port
-
-  selected_driver = s.get_driver(args.ftdi, port, baud, args.file)
+      if port == "TCP/IP":
+        print "Using TCP/IP at address %s and port %d" % (ip_address, ip_port)
+        selected_driver = TCPDriver(ip_address, int(ip_port))
+      else:
+        print "Using serial device '%s'" % port
+        selected_driver = s.get_driver(args.ftdi, port, baud, args.file)
 
 with selected_driver as driver:
   with sbpc.Handler(sbpc.Framer(driver.read, driver.write, args.verbose)) as link:
