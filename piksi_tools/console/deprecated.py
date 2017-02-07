@@ -23,8 +23,6 @@ from sbp.tracking import SBP_MSG_TRACKING_STATE_DEP_A
 DEPRECATED_SBP_MESSAGES = [SBP_MSG_ACQ_RESULT_DEP_A,
                            SBP_MSG_EPHEMERIS_DEP_A,
                            SBP_MSG_EPHEMERIS_DEP_B,
-                           SBP_MSG_EPHEMERIS_DEP_C,
-                           SBP_MSG_EPHEMERIS_DEP_D,
                            SBP_MSG_TRACKING_STATE_DEP_A]
 
 class DeprecatedMessageHandler(object):
