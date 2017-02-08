@@ -174,7 +174,8 @@ def get_append_logger(filename, tags):
   if not filename:
     return NullLogger()
   print "Append logging at %s" % filename
-  return JSONLogger(filename, "a", tags)
+  infile = open(filename, 'r')
+  return JSONLogger(infile, "a", tags)
 
 def printer(sbp_msg, **metadata):
   """
