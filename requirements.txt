@@ -8,7 +8,7 @@ pep8==1.5.7
 intelhex==2.0
 pyserial==2.7
 pylibftdi==0.14.2
-pyparsing==1.5.7
+pyparsing==2.1.0
 pygments==2.0.2
 requests>=2.8.1
 kiwisolver>=0.1.3
