@@ -4,13 +4,13 @@
   name: broadcast
   type: boolean
   units:
-  default value: 'false'
+  default value: 'False'
   enumerated possible values: true,false
-  Description: Broadcast surveyed base station location
+  Description: Broadcast surveyed base station position
   Notes: This flag ultimately determines whether the SBP message with identifier
     MSG_BASE_POS_ECEF will be calculated and sent.  Logically, setting this attribute to
     "true" sets the Local Piksi as a base station and configures the unit to send
-    its surveyed location coordinates to the other Piksi(s) with which the base
+    its surveyed position coordinates to the other Piksi(s) with which the base
     station is communicating.  If "true", the remote Piksi that receives the
     surveyed position will calculate and communicate a pseudo absolute
     RTK position based upon the received position.
@@ -66,20 +66,20 @@
 - group: frontend
   name: antenna_selection
   type: enum
-  units:
+  units: N/A
   default value: 'Primary'
   enumerated possible values: Primary,Secondary
   Description: Determines which antenna to use.
-  Notes: This setting selects the antenna input that should be used by the Piksi.  
+  Notes: This setting selects the antenna input that should be used by the Piksi.
     Most Piksi Multi boards ship with only a "Primary" antenna connector, so this should
     always be set to "Primary."
 
 - group: frontend
   name: antenna_bias
   type: bool
-  units:
+  units: N/A
   default value: 'True'
-  Description: enable/disable 5v antenna bias.
+  Description: Enable/Disable 5 V antenna bias.
   Notes: Most active antennas require an antenna bias in order to power
     the amplifier in the antenna.
 
@@ -102,8 +102,8 @@
 - group: simulator
   name: enabled
   type: boolean
-  units:
-  default value: 'false'
+  units: N/A
+  default value: 'False'
   enumerated possible values: true,false
   Description: Toggles the Piksi internal simulator on and off
   Notes: The Piksi simulator will provide simulated outputs of a
@@ -116,33 +116,33 @@
   name: base_ecef_x
   type: double
   units: meters
-  default value:
+  default value: '-2706098.845'
   enumerated possible values:
   Description: Simulated base station position
-  Notes: Earth centered earth fixed (ECEF) x position of the simulated base station.
+  Notes: Earth Centered Earth Fixed (ECEF) x position of the simulated base station.
 
 - group: simulator
   name: base_ecef_y
   type: double
   units: meters
-  default value:
+  default value: '-4261216.475'
   enumerated possible values:
   Description: Simulated base station position
-  Notes: Earth centered earth fixed (ECEF) y position of the simulated base station.
+  Notes: Earth Centered Earth Fixed (ECEF) y position of the simulated base station.
 
 - group: simulator
   name: base_ecef_z
   type: double
   units: meters
-  default value:
+  default value: '3885597.912'
   enumerated possible values:
   Description: Simulated base station position
-  Notes: Earth centered earth fixed (ECEF) z position of the simulated base station.
+  Notes: Earth Centered Earth Fixed (ECEF) z position of the simulated base station.
 
 - group: simulator
   name: speed
   type: double
-  units: meters/s
+  units: m/s
   default value: '4'
   enumerated possible values:
   Description: Simulated tangential speed of Piksi
@@ -178,7 +178,7 @@
 - group: simulator
   name: cn0_sigma
   type: double
-  units: dbm hz
+  units: dBm-Hz
   default value: '0.1'
   enumerated possible values:
   Description: Standard deviation of noise added to the simulated signal to noise
@@ -228,10 +228,10 @@
 - group: solution
   name: soln_freq
   type: integer
-  units: hz
+  units: Hz
   default value: '10'
   enumerated possible values:
-  Description: The rate at which a solution is generated internally to the Piksi.
+  Description: The frequency at which a position solution is computed.
   Notes:
 
 - group: solution
@@ -240,20 +240,20 @@
   units: seconds
   default value: '30'
   enumerated possible values:
-  Description: The maximum age of corrections for which an RTK solution will be generated
+  Description: The maximum age of corrections for which an RTK solution will be generated.
   Notes:
 
 - group: solution
   name: output_every_n_obs
   type: integer
-  units:
+  units: N/A
   default value: '2'
   enumerated possible values:
   Description: Integer divisor of solution frequency for which the observations will
     be output.
-  Notes: For instance, if the solution frequency is 10 hz, and the "output every n
+  Notes: For instance, if the solution frequency is 10 Hz, and the "output every n
     obs" parameter is 2, it means that the observation output will occur at a rate
-    of 5hz.  Since the observations are the information used by the Piksi receiving
+    of 5 Hz.  Since the observations are the information used by the Piksi receiving
     corrections from the connected Piksi, this determines the rate of information
     sharing for RTK solution output. This parameter is designed to tune the rate at
     which correction information is passed from one Piksi to the other as to efficiently
@@ -262,34 +262,35 @@
 - group: solution
   name: dgnss_solution_mode
   type: enum
-  units:
-  default value:
-  enumerated possible values: Low Latency, Time Matched, No DGNss
-  Description: Determines the type of RTK solution which will be output.
+  units: N/A
+  default value: 'Low Latency'
+  enumerated possible values: Low Latency, Time Matched, No DGNSS
+  Description: Selects the type of RTK solution to output.
   Notes: A "Low Latency" solution uses an internal model of anticipated satellite observations
-    to provide RTK output with minimal latency but slightly reduced accuracy.  "Low Latency" mode
+    to provide RTK output with minimal latency but slightly reduced accuracy. "Low Latency" mode
     assumes that the base station is stationary. For applications where accuracy is desired over timelieness
-    or when both Piksi's are moving, "Time matched" mode can be chosen.  This
+    or when both Piksi's are moving, "Time matched" mode can be chosen. This
     means that the RTK output will require a corresponding set of correction observations
-    for each timestamp.  When No DGNSS is chosen, no differential output will be 
+    for each timestamp. When "No DGNSS" is chosen, no differential output will be
     attempted by Piksi.
 
 - group: solution
   name: dgnss_filter
   expert: true
   type: enum
-  units:
-  default value: Fixed
+  units: N/A
+  default value: 'Fixed'
   enumerated possible values: Fixed,Float
   Description: Determines the type of carrier phase ambiguity resolution that the Piksi will attempt to achieve.
   Notes: If "fixed", the Piksi will output a integer fixed ambiguity estimate.  If
     no fixed solution is available, it will revert to the float solution.  If "float",
     the device will only output the float ambiguity estimate.
+    This settings is not used by Piksi Multi.
 
 - group: solution
   name: known_baseline_n
   type: double
-  units: meters (north)
+  units: meters
   default value: '0'
   enumerated possible values:
   Description: Determines the baseline vector for the "init known baseline" feature.
@@ -299,7 +300,7 @@
 - group: solution
   name: known_baseline_e
   type: double
-  units: meters (east)
+  units: meters
   default value: '0'
   enumerated possible values:
   Description: Determines the baseline vector for the "init known baseline" feature.
@@ -309,7 +310,7 @@
 - group: solution
   name: known_baseline_d
   type: double
-  units: meters (down)
+  units: meters
   default value: '0'
   enumerated possible values:
   Description: Determines the baseline vector for the "init known baseline" feature.
@@ -323,7 +324,7 @@
   units: degrees
   default value: '10'
   enumerated possible values:
-  Description: SPP / RTK elevation mask
+  Description: SPP / RTK solution elevation mask
   Notes: Satellites must be above the horizon by at least this angle before they
     will be used in a solution.
 
@@ -341,85 +342,84 @@
   name: send_heading
   type: boolean
   expert: true
-  units:
+  units:  N/A
   default value: False
   enumerated possible values: True,False
-  Description: Enables SBP heading output.  Heading is caculated from base station to 
+  Description: Enables SBP heading output.  Heading is caculated from base station to
     rover and represents the inverse tangent of the north and east components of the baseline.
   Notes: No smoothing or additional processing is provided to improve heading output.
 
 - group: system_info
   name: serial_number
   type: integer
-  units:
-  default value:
+  units: N/A
+  default value: N/A
   enumerated possible values:
-  Description: The serial number of the Piksi
-  Notes: This number should match the number on the barcode and cannot be modified
+  Description: The serial number of the Piksi receiver
+  Notes: This number should match the number on the barcode on the board and cannot be modified.
 
 - group: system_info
   name: mac_address
   type: string
-  units:
-  default value:
+  units: N/A
+  default value: N/A
   enumerated possible values:
-  Description: The mac address of the Piksi
+  Description: The MAC address of the Piksi
   Notes: This is a read only setting.
 
 - group: system_info
   name: uuid
   type: string
-  units:
-  default value:
+  units: N/A
+  default value: N/A
   enumerated possible values:
   Description: The UUID of the Piksi
   Notes: The UUID is a universally unique identifier for this Piksi.
-    The lower 16 bits of the UUID are used for the SBP Sender ID.
+    The lower 16 bits of the UUID are used for the SBP Sender ID. This is a read only setting.
 
 - group: system_info
   name: firmware_version
   type: string
-  units:
-  default value:
+  units: N/A
+  default value: N/A
   enumerated possible values:
   Description: Indicates the firmware version for the Local Piksi
-  Notes: The githash is removed from this version identifier
-
+  Notes: The githash is removed from this version identifier. This is a read only setting.
 
 - group: system_info
   name: hw_revision
   type: string
-  units:
-  default value:
+  units: N/A
+  default value: N/A
   enumerated possible values:
   Description: hardware revision for Piksi
-  Notes:
+  Notes: This is a read only setting.
 
 - group: system_info
   name: firmware_build_id
   type: string
-  units:
-  default value:
+  units: N/A
+  default value: N/A
   enumerated possible values:
   Description: Full build id for firmware version
   Notes: For user generated images, this will appear
-    the same as the command "git describe --dirty"
+    the same as the command "git describe --dirty". This is a read only setting.
 
 - group: system_info
   name: firmware_build_date
   type: string
-  units:
-  default value:
+  units: N/A
+  default value: N/A
   enumerated possible values:
-  Description: build date for firmware version
-  Notes:
+  Description: firmware build date
+  Notes: This is a read only setting.
 
 - group: system_info
   name: loader_build_id
   expert: true
   type: string
-  units:
-  default value:
+  units: N/A
+  default value: N/A
   enumerated possible values:
   Description: build id for loader (uboot)
   Notes: This is a read only setting
@@ -428,18 +428,18 @@
   name: loader_build_date
   expert: true
   type: string
-  units:
-  default value:
+  units: N/A
+  default value: N/A
   enumerated possible values:
-  Description: build date for loader (uboot)
+  Description: build date for boot loader (uboot)
   Notes: This is a read only setting.
 
 - group: system_info
   name: nap_build_id
   expert: true
   type: string
-  units:
-  default value:
+  units: N/A
+  default value: N/A
   enumerated possible values:
   Description: build id for SwiftNap FPGA bitstream
   Notes: This is a read only setting.
@@ -448,8 +448,8 @@
   name: nap_build_date
   expert: true
   type: string
-  units:
-  default value:
+  units: N/A
+  default value: N/A
   enumerated possible values:
   Description: build date for SwiftNap FPGA bitstream
   Notes: This is a read only setting.
@@ -458,8 +458,8 @@
   name: pfwp_build_id
   type: string
   expert: true
-  units:
-  default value:
+  units: N/A
+  default value: N/A
   enumerated possible values:
   Description: build id for real-time GNSS firmware (piksi_firmware)
   Notes: This is a read only setting.
@@ -468,8 +468,8 @@
   name: pfwp_build_date
   type: string
   expert: true
-  units:
-  default value:
+  units: N/A
+  default value: N/A
   enumerated possible values:
   Description: build date for real-time GNSS firmware (piksi_firmware)
   Notes: This is a read only setting.
@@ -477,17 +477,27 @@
 - group: system_info
   name: sbp_sender_id
   type: string
-  units:
-  default value:
+  units: N/A
+  default value: N/A
   enumerated possible values:
   Description: The SBP sender ID for any messages sent by the device
+  Notes: ID value is equal to the lower 16 bits of the UUID. This is a read only setting.
+
+- group: system_info
+  name: nap_channels
+  expert: true
+  type: string
+  units: N/A
+  default value: '24'
+  enumerated possible values:
+  Description: Number of channels in SwiftNap FPGA
   Notes: This is a read only setting.
 
 - group: system_monitor
   name: heartbeat_period_milliseconds
   type: integer
-  units:
-  default value:
+  units: ms
+  default value: '1000'
   enumerated possible values:
   Description: Period for sending the SBP_HEARTBEAT messages
   Notes:
@@ -495,8 +505,8 @@
 - group: system_monitor
   name: watchdog
   type: boolean
-  units:
-  default value: 'true'
+  units: N/A
+  default value: 'True'
   enumerated possible values: true,false
   Description: Enable hardware watchdog timer to reset the Piksi if it locks up for
     any reason.
@@ -505,84 +515,83 @@
 - group: usb
   name: enabled_sbp_messages
   type: string
-  units:
-  default value: ''
+  units: N/A
+  default value: 'blank - all messages are enabled'
   Description: Configure which messages should be sent on the port
-  Notes: The enabled sbp messages settings is a whitelist of message types
-    and divisors that will be sent out of the interface. If left blank, all 
-    messages will be sent.  If not blank, a comma separated list of 
-    SBP message ids in base 10 integer format should be provided.  Optionally,
-    a divisor can be specified after the / character for each id.  For example, an entry of 
-    3456/10 would provide message with id 3456 at 1/10th the normal rate.  For uart1,
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided.  Optionally,
+    a divisor can be specified after the / character for each id.  For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For uart1,
     the default value is optimal for logging and communication with the console.
 
 - group: uart1
   name: baudrate
   type: integer
-  units: baud
-  default value: '57600'
+  units: bps
+  default value: '115200'
   enumerated possible values:
-  Description: The baudrate for the UART
-  Notes: The radio baudrate may be constrained by the particular RF equipment used
-    for the telemetry radio.
+  Description: The baudrate for the UART 1
+  Notes:
 
 - group: uart1
   name: mode
   type: enum
-  units:
+  units: N/A
   default value: SBP
   enumerated possible values: SBP,NMEA
-  Description: Configure mode for UART
+  Description: Communication protocol for UART 1
 
 - group: uart1
   name: enabled_sbp_messages
   type: string
-  units:
-  default value: ''
+  units: N/A
+  default value: 'blank - all messages are enabled'
   Description: Configure which messages should be sent on the port
-  Notes: The enabled sbp messages settings is a whitelist of message types
-    and divisors that will be sent out of the interface. If left blank, all 
-    messages will be sent.  If not blank, a comma separated list of 
-    SBP message ids in base 10 integer format should be provided.  Optionally,
-    a divisor can be specified after the / character for each id.  For example, an entry of 
-    3456/10 would provide message with id 3456 at 1/10th the normal rate.  For uart1,
-    the default value is optimal for communication with the console.
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided.  Optionally,
+    a divisor can be specified after the / character for each id.  For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For uart1,
+    the default value is optimal for logging and communication with the console.
 
 - group: uart0
   name: baudrate
   type: integer
-  units: baud
+  units: bps
   default value: '115200'
   enumerated possible values:
-  Description: The baudrate for the uart
+  Description: The baudrate for the UART 0
   Notes:
 
 - group: uart0
   name: mode
   type: enum
-  units:
+  units: N/A
   default value: 'SBP'
   enumerated possible values: SBP,NMEA
-  Description: Configure mode for UART
+  Description: Communication protocol for UART 0
 
 - group: uart0
   name: enabled_sbp_messages
   type: string
-  units:
+  units: N/A
   default value: '68,72,73,74,65535'
   Description: Configure which messages should be sent on the port
-  Notes: The enabled sbp messages settings is a whitelist of message types
-    and divisors that will be sent out of the interface. If left blank, all 
-    messages will be sent.  If not blank, a comma separated list of 
-    SBP message ids in base 10 integer format should be provided.  Optionally,
-    a divisor can be specified after the / character for each id.  For example, an entry of 
-    3456/10 would provide message with id 3456 at 1/10th the normal rate.  For uart0,
-    the default value is optimal to send RTK corrections to another Piksi.
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided.  Optionally,
+    a divisor can be specified after the / character for each id.  For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For uart1,
+    the default value is optimal for logging and communication with the console.
 
 - group: ext_events
   name: edge_trigger
   type: enum
-  units:
+  units: N/A
   default value: None
   enumerated possible values: None,Rising,Falling,Both
   Description: Select DEBUG0 edges to trigger timestamped event capture.
@@ -591,7 +600,6 @@
     detecting the event, Piksi will generate a MSG_EXT_EVENT message
     reporting the event, including a timestamp accurate to better than
     a microsecond.
-    Requires NAP firmware >= 0.12.
 
 - group: track
   name: elevation_mask
@@ -610,13 +618,13 @@
   type: boolean
   default value: false
   Description: send detailed tracking state message
-  Notes: 
+  Notes:
 
 - group: track
   name: iq_output_mask
   expert: true
   type: integer
-  units:
+  units: N/A
   default value: 0
   enumerated possible values:
   Description: Output raw I/Q correlations
@@ -715,216 +723,205 @@
 - group: nmea
   name: gpgsv_msg_rate
   type: integer
-  units: Ticks
+  units: Solution Period
   default value: '10'
-  Description: Number of ticks between GPGSV NMEA messages being sent.
-  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5hz.  If this setting is 0, the msg will be suppressed.
+  Description: Number of Solution Periods between GPGSV NMEA messages being sent.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
   name: gprmc_msg_rate
   type: integer
-  units: Ticks
+  units: Solution Period
   default value: '10'
-  Description: Number of ticks between GPRMC NMEA messages being sent.
-  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5hz.  If this setting is 0, the msg will be suppressed.
+  Description: Number of Solution Periods between GPRMC NMEA messages being sent.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
   name: gpvtg_msg_rate
   type: integer
-  units: Ticks
-  default value: '10'
-  Description: Number of ticks between GPVTG NMEA messages being sent.
-  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5hz.  If this setting is 0, the msg will be suppressed.
+  units: Solution Period
+  default value: '1'
+  Description: Number of Solution Periods between GPVTG NMEA messages being sent.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
   name: gpgll_msg_rate
   type: integer
-  units: Ticks
+  units: Solution Period
   default value: '10'
-  Description: Number of ticks between GPGLL NMEA messages being sent.
-  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5hz.  If this setting is 0, the msg will be suppressed.
-  
+  Description: Number of Solution Periods between GPGLL NMEA messages being sent.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
+
 - group: nmea
   name: gpzda_msg_rate
   type: integer
-  units: Ticks
+  units: Solution Period
   default value: '10'
   enumerated possible values:
-  Description: Number of ticks between GPZDA NMEA messages being sent.
-  Notes:
+  Description: Number of Solution Periods between GPZDA NMEA messages being sent.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
   name: gpgsa_msg_rate
   type: integer
-  units: Ticks
+  units: Solution Periods
   default value: '10'
   enumerated possible values:
   Description: Number of ticks between GPGSA NMEA messages being sent.
-  Notes:
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: pps
   name: width
   type: integer
-  units: microseconds
+  units: us (microseconds)
   default value: '200000'
   enumerated possible values:
-  Description: Number of microseconds the PPS will remain high (1-999999).
+  Description: Number of microseconds the PPS will remain high (allowed range from 1 to 999999 us).
   Notes:
-
-- group: acquisition
-  name: sbas enabled
-  type: boolean
-  expert: true
-  units:
-  default value: 'false'
-  enumerated possible values: true,false
-  Description: Enable the SBAS constellation
-  Notes: 
 
 - group: acquisition
   name: sbas_enabled
   type: boolean
   expert: true
-  units:
-  default value: 'false'
+  units: N/A
+  default value: 'False'
   enumerated possible values: true,false
   Description: Enable the SBAS constellation
-  Notes: 
-
+  Notes:
 
 - group: acquisition
   name: almanacs_enabled
   type: boolean
   expert: true
-  units:
-  default value: 'false'
+  units: N/A
+  default value: 'False'
   enumerated possible values: true,false
   Description: Enable the almanac-based acquisition
-  Notes: 
-
-- group: acquisition
-  name: almanacs enabled
-  type: boolean
-  expert: true
-  units:
-  default value: 'false'
-  enumerated possible values: true,false
-  Description: Enable the almanac-based acquisition
-  Notes: 
+  Notes:
 
 - group: ethernet
   name: ip_config_mode
   type: enum
   enumerated possible values: Static,DHCP
-  units:
+  units: N/A
   default value: 'Static'
-  Description: Ethernet configuration mode. 
-  Notes: If DHCP is chosen the IP address will be automatically assigned
+  Description: Ethernet configuration mode.
+  Notes: If DHCP is chosen the IP address will be assigned automatically.
 
 - group: ethernet
   name: ip_address
   type: string
-  units:
+  units: N/A
   default value: '192.168.0.222'
-  Description: The static IP address. 
+  Description: The static IP address.
   Notes: The configured ip address in XXX.XXX.XXX.XXX format.
 
 - group: ethernet
   name: netmask
   type: string
-  units:
+  units: N/A
   default value: '255.255.255.0'
-  Description: The netmask for the ip config. 
+  Description: The netmask for the IP config.
   Notes: The configured netmask in XXX.XXX.XXX.XXX format.
 
 - group: ethernet
   name: gateway
   type: string
-  units:
+  units: N/A
   default value: '192.168.0.1'
-  Description: The default gateway for the ip config. 
+  Description: The default gateway for the IP config.
   Notes: The configured gateway in XXX.XXX.XXX.XXX format.
 
 - group: ethernet
-  name: enabeled_sbp_messages
+  name: enabled_sbp_messages
   type: string
-  units:
-  default value: ''
-  Description: The default gateway for the ip config. 
-  Notes: The enabled sbp messages settings is a whitelist of message types
-    and divisors that will be sent out of the interface. If left blank, all 
-    messages will be sent.  If not blank, a comma separated list of 
-    SBP message ids in base 10 integer format should be provided.  Optionally,
-    a divisor can be specified after the / character for each id.  For example, an entry of 
-    3456/10 would provide message with id 3456 at 1/10th the normal rate.  For ethernet,
+  units: N/A
+  default value: 'blank - all messages are enabled'
+  Description: Configure which messages should be sent on the port
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided.  Optionally,
+    a divisor can be specified after the / character for each id.  For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For Ethernet,
     the default value is optimal for logging and communication with the console.
 
 - group: imu
   name: imu_raw_output
   type: boolean
+  default value: 'False'
   Description: Enable/Disable IMU raw data output
-  Notes:  The IMU raw data can be seen in the advanced tabs of the console
+  Notes:  The IMU raw data can be seen in the advanced tabs of the Swift Console
 
 - group: imu
   name: imu_rate
   type: enum
+  default value: '50'
   enumerated possible values: 25,50,100,200
-  units: hz
-  description: The date rate (in hz) for imu raw output
-  Notes: It is recommended to use ethernet or USB for IMU data output 
-    for data rates over 25hz
+  units: Hz
+  description: The data rate (in Hz) for IMU raw output
+  Notes: It is recommended to use Ethernet or USB for IMU data output
+    for data rates over 25 Hz
 
 - group: imu
   name: acc_range
   type: enum
-  enumerated possible values: 2g,4g,8g,16g
+  default value: '2'
+  enumerated possible values: 2,4,8,16
   units: g
   description: the approximate range of accelerations that can be measured
-  Notes: When 2g is chosen, it means the accelerometer is scaled to measured
-    about +-2g of acceleration. Refer to the IMU datasheet for detailed information.
+  Notes: When 2 g is chosen, it means the accelerometer is scaled to measure
+    about +/- 2 g of acceleration. Refer to the IMU datasheet for detailed information.
 
 - group: imu
   name: gyro_range
   type: enum
-  enumerated possible values: 125,250,500,1000,2000 
+  default value: '1000'
+  enumerated possible values: 125,250,500,1000,2000
   units: deg/s
   description: the approximate range of angular rate that can be measured
-  Notes: When 125 is chosen, it means the accelerometer is scaled to measured
-    about +-125 deg/s of angular rate. Refer to the IMU datasheet for detailed information.
+  Notes: When 125 is chosen, it means the gyro is scaled to measure
+    about +/- 125 deg/s of angular rate. Refer to the IMU datasheet for detailed information.
 
 - group: ndb
   name: erase_ephemeris
   type: boolean
+  default value: 'True'
   expert: true
   description: erase any stored ephmerides during boot
 
 - group: ndb
   name: erase_almanac
   type: boolean
+  default value: 'True'
   expert: true
   description: erase any stored almanac during boot
 
 - group: ndb
   name: erase_almanac_wn
   type: boolean
+  default value: 'True'
   expert: true
   description: erase stored week number during boot
 
 - group: ndb
   name: erase_iono
   type: boolean
+  default value: 'True'
   expert: true
-  description: erase any stored ionospheric parameters during 
+  description: erase any stored ionospheric parameters during
 
 - group: ndb
   name: erase_lgf
   type: boolean
+  default value: 'True'
   expert: true
   description: erase stored last fix information
 
 - group: ndb
   name: lgf_update_s
   type: int
+  default value: '1800'
   units: seconds
   expert: true
   description: Update period for navigation database last good fix
@@ -932,9 +929,8 @@
 - group: ndb
   name: lgf_update_m
   type: int
+  default value: '10000'
   units: meters
   expert: true
   description: Change in position required to update last good fix
-
-
 
