@@ -183,20 +183,18 @@ def wrapper(log_datafile, filename, num_records):
   i = 0
   logging_interval = 10000
   start = time.time()
-  with JSONLogIterator(log_datafile) as log:
-    for msg, data in log.next():
-      i += 1
-      if i % logging_interval == 0:
-        print "Processed %d records! @ %.1f sec." \
-          % (i, time.time() - start)
-      processor.process_message(msg)
-      if num_records is not None and i >= int(num_records):
-        print "Processed %d records!" % i
-        break
-    processor.save(filename)
-
-  
-
+  with open(log_datafile, 'r') as infile:
+    with JSONLogIterator(infile) as log:
+      for msg, data in log.next():
+        i += 1
+        if i % logging_interval == 0:
+          print "Processed %d records! @ %.1f sec." \
+            % (i, time.time() - start)
+        processor.process_message(msg)
+        if num_records is not None and i >= int(num_records):
+          print "Processed %d records!" % i
+          break
+      processor.save(filename)
 
 def main():
   import argparse

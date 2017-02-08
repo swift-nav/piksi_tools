@@ -264,7 +264,7 @@ def rid_access_data (message_type, msg_tow, msg_horizontal , msg_vertical , msg_
   return numofmsg
 
 
-def collect_positions(infile, msgtype, debouncetime):
+def collect_positions(infilename, msgtype, debouncetime):
   """
   Collects data from the log file and calls functions to analyze that data 
 
@@ -277,66 +277,66 @@ def collect_positions(infile, msgtype, debouncetime):
   debouncetime : integer
     time in milliseconds to compensate for switch debounce 
   """
+  with open(infilename, 'r') as infile:
+    with JSONLogIterator(infile) as log:
+      log = log.next()
 
-  with JSONLogIterator(infile) as log:
-    log = log.next()
-    
-    #declaring all lists 
-    message_type = []
-    msg_tow = []
-    msg_horizontal = []
-    msg_vertical = []
-    msg_depth = []
-    msg_sats = []
-    msg_flag = []
-    numofmsg = 0;
+      #declaring all lists 
+      message_type = []
+      msg_tow = []
+      msg_horizontal = []
+      msg_vertical = []
+      msg_depth = []
+      msg_sats = []
+      msg_flag = []
+      numofmsg = 0;
 
-    while True:
-      try:
-        msg, metadata = log.next()
-        hostdelta = metadata['delta']
-        hosttimestamp = metadata['timestamp']
-        valid_msg = ["MsgBaselineECEF", "MsgPosECEF", "MsgBaselineNED", "MsgPosLLH", "MsgExtEvent"]
-        #collect all data in lists
-        if msg.__class__.__name__ in valid_msg :
-          message_type.append(msg.__class__.__name__)
-          msg_tow.append(msg.tow)
-          msg_flag.append(msg.flags)
-          if msg.__class__.__name__ == "MsgBaselineECEF" or msg.__class__.__name__ == "MsgPosECEF" :
-            msg_horizontal.append(msg.x)
-            msg_vertical.append(msg.y)
-            msg_depth.append(msg.z)
-            msg_sats.append(msg.n_sats)
-          elif msg.__class__.__name__ == "MsgBaselineNED":
-            msg_horizontal.append(msg.n)
-            msg_vertical.append(msg.e)
-            msg_depth.append(msg.d)
-            msg_sats.append(msg.n_sats)
-          elif msg.__class__.__name__ == "MsgPosLLH":
-            msg_horizontal.append(msg.lat)
-            msg_vertical.append(msg.lon)
-            msg_depth.append(msg.height)
-            msg_sats.append(msg.n_sats)
-          elif msg.__class__.__name__ == "MsgExtEvent":
-            print msg.tow
-            msg_horizontal.append("0")
-            msg_vertical.append("0")
-            msg_depth.append("0")
-            msg_sats.append("0")
-          numofmsg += 1
+      while True:
+        try:
+          msg, metadata = log.next()
+          hostdelta = metadata['delta']
+          hosttimestamp = metadata['timestamp']
+          valid_msg = ["MsgBaselineECEF", "MsgPosECEF", "MsgBaselineNED", "MsgPosLLH", "MsgExtEvent"]
+          #collect all data in lists
+          if msg.__class__.__name__ in valid_msg :
+            message_type.append(msg.__class__.__name__)
+            msg_tow.append(msg.tow)
+            msg_flag.append(msg.flags)
+            if msg.__class__.__name__ == "MsgBaselineECEF" or msg.__class__.__name__ == "MsgPosECEF" :
+              msg_horizontal.append(msg.x)
+              msg_vertical.append(msg.y)
+              msg_depth.append(msg.z)
+              msg_sats.append(msg.n_sats)
+            elif msg.__class__.__name__ == "MsgBaselineNED":
+              msg_horizontal.append(msg.n)
+              msg_vertical.append(msg.e)
+              msg_depth.append(msg.d)
+              msg_sats.append(msg.n_sats)
+            elif msg.__class__.__name__ == "MsgPosLLH":
+              msg_horizontal.append(msg.lat)
+              msg_vertical.append(msg.lon)
+              msg_depth.append(msg.height)
+              msg_sats.append(msg.n_sats)
+            elif msg.__class__.__name__ == "MsgExtEvent":
+              print msg.tow
+              msg_horizontal.append("0")
+              msg_vertical.append("0")
+              msg_depth.append("0")
+              msg_sats.append("0")
+            numofmsg += 1
 
-      except StopIteration:
-        print "reached end of file after {0} milli-seconds".format(hostdelta)
-        fix_trigger_rollover(message_type, msg_tow, numofmsg)
-        print 'done roll'
-        fix_trigger_debounce(message_type, msg_tow, numofmsg, debouncetime)
-        print ' done bebounce'
-        get_trigger_positions(message_type, msg_tow, msgtype, numofmsg, msg_horizontal, msg_vertical, msg_depth, msg_sats)
-        print 'done interpolation'
-        print 
-        numofmsg =  rid_access_data (message_type, msg_tow, msg_horizontal , msg_vertical , msg_depth , msg_flag , msg_sats , numofmsg)
+        except StopIteration:
+          print "reached end of file after {0} milli-seconds".format(hostdelta)
+          fix_trigger_rollover(message_type, msg_tow, numofmsg)
+          print 'done roll'
+          fix_trigger_debounce(message_type, msg_tow, numofmsg, debouncetime)
+          print ' done bebounce'
+          get_trigger_positions(message_type, msg_tow, msgtype, numofmsg, msg_horizontal, msg_vertical, msg_depth, msg_sats)
+          print 'done interpolation'
+          print 
+          numofmsg =  rid_access_data (message_type, msg_tow, msg_horizontal , msg_vertical , msg_depth , msg_flag , msg_sats , numofmsg)
 
-        return message_type, msg_tow, msg_horizontal , msg_vertical , msg_depth , msg_flag , msg_sats , numofmsg
+          return message_type, msg_tow, msg_horizontal , msg_vertical , msg_depth , msg_flag , msg_sats , numofmsg
 
 def get_args():
   """
