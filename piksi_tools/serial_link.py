@@ -26,7 +26,7 @@ from sbp.piksi                          import MsgReset
 from sbp.client.drivers.network_drivers import HTTPDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.pyftdi_driver   import PyFTDIDriver
-from sbp.client.drivers.cdc_driver     import CdcDriver
+from sbp.client.drivers.cdc_driver      import CdcDriver
 from sbp.client.loggers.json_logger     import JSONLogger
 from sbp.client.loggers.null_logger     import NullLogger
 from sbp.client                         import Handler, Framer, Forwarder
@@ -158,7 +158,8 @@ def get_logger(use_log=False, filename=logfilename()):
   if dirname:
    mkdir_p(dirname) 
   print "Starting JSON logging at %s" % filename
-  return JSONLogger(filename)
+  infile = open(filename, 'w')
+  return JSONLogger(infile)
 
 def get_append_logger(filename, tags):
   """
@@ -174,8 +175,8 @@ def get_append_logger(filename, tags):
   if not filename:
     return NullLogger()
   print "Append logging at %s" % filename
-  infile = open(filename, 'r')
-  return JSONLogger(infile, "a", tags)
+  infile = open(filename, 'a')
+  return JSONLogger(infile, tags)
 
 def printer(sbp_msg, **metadata):
   """
