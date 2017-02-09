@@ -51,8 +51,14 @@ DIRNAME=$(dirname "$0")
 # Path to dmg resources (volume icon, background, ...)
 RES=$DIRNAME/dmg-resources
 
+if [ $# -le 1]
+then
+     echo "This script is intended to be called with one positional cmd line parmaeter, the name of the output DMG file"
+     exit 1
+fi
+
 APP="dist/Swift Console.app"
-DMG="dist/swift_console_`git describe --dirty --tags --always`.dmg"
+DMG="dist/$1"
 
 KEEP_TEMP=0
 
@@ -96,7 +102,7 @@ fi
 
 TMP_DIR=$(mktemp -d -t console-dmg)
 TMP_TEMPLATE=$TMP_DIR/template
-TMP_DMG=$TMP_DIR/swift_console_`git describe --dirty --tags --always`.dmg
+TMP_DMG=$TMP_DIR/$1
 
 echo "Preparing an image template in $TMP_TEMPLATE"
 echo "============================================="
