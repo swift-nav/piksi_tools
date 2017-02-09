@@ -59,8 +59,8 @@ HW_REV_LOOKUP = {
 def parse_version(version):
   comp_string = version
   if version[0] == 'v':
-    version = version[1:-1]
-  pkparse_version(version.replace("dirty", "",))
+    version = version[1:]
+  return pkparse_version(version.replace("dirty", "",))
 
 class FirmwareFileDialog(HasTraits):
 
