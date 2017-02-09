@@ -28,14 +28,14 @@ console: $(spec_file)
 	make $(UNAME)
 
 Windows:
-	makensis "-XOutfile swift_console_v$(VERSION)_setup.exe" win_installer.nsi
+	makensis "-XOutfile swift_console_v$(VERSION)_windows.exe" win_installer.nsi
 Cygwin:
-	makensis '-XOutfile swift_console_v$(VERSION)_setup.exe' win_installer.nsi
+	makensis '-XOutfile swift_console_v$(VERSION)_windows.exe' win_installer.nsi
 Darwin:
-	sudo ./create-dmg-installer.sh
+	sudo ./create-dmg-installer.sh swift_console_v$(VERSION)_osx.dmg
 tar:
-	mv ./dist/console ./dist/swift_console_$(UNAME_LOWER)_v$(VERSION)
-	cd dist && tar cfvz swift_console_$(UNAME_LOWER)_v$(VERSION).tar.gz swift_console_$(UNAME_LOWER)_v$(VERSION)
+	mv ./dist/console ./dist/swift_console_v$(VERSION)_$(UNAME_LOWER)
+	cd dist && tar cfvz swift_console_v$(VERSION)_$(UNAME_LOWER).tar.gz swift_console_v$(VERSION)_$(UNAME_LOWER)
 Linux:
 	make tar
 clean:
