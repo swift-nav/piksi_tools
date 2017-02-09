@@ -69,7 +69,7 @@
   units: N/A
   default value: 'Primary'
   enumerated possible values: Primary,Secondary
-  Description: Determines which antenna to use.
+  Description: Determines which antenna to use
   Notes: This setting selects the antenna input that should be used by the Piksi.
     Most Piksi Multi boards ship with only a "Primary" antenna connector, so this should
     always be set to "Primary."
@@ -79,7 +79,7 @@
   type: bool
   units: N/A
   default value: 'True'
-  Description: Enable/Disable 5 V antenna bias.
+  Description: Enable/Disable 5 V antenna bias
   Notes: Most active antennas require an antenna bias in order to power
     the amplifier in the antenna.
 
@@ -89,7 +89,7 @@
   units: bytes
   default value: '102'
   enumerated possible values:
-  Description: Determines the maximum message length for raw observation sbp messages.
+  Description: Determines the maximum message length for raw observation sbp messages
   Notes: This parameter is useful for tuning observation messages for compatibility
     with radio modems.  Some serial modems will internally split serial packets for
     their protocol and this parameter allows the size of the message to be reduced
@@ -108,7 +108,7 @@
   Description: Toggles the Piksi internal simulator on and off
   Notes: The Piksi simulator will provide simulated outputs of a
     stationary base station and the Local Piksi moving in a circle around the
-    base station The simulator is intended to aid in system integration by
+    base station. The simulator is intended to aid in system integration by
     providing realistic looking outputs but does not faithfully simulate every
     aspect of device operation.
 
@@ -161,7 +161,7 @@
   name: pos_sigma
   type: double
   units: meters^2
-  default value: '2'
+  default value: '1.5'
   enumerated possible values:
   Description: Standard deviation of simulated single point position
   Notes:
@@ -170,16 +170,16 @@
   name: speed_sigma
   type: double
   units: meters^2/s^2
-  default value: '0.02'
+  default value: '0.15'
   enumerated possible values:
-  Description: Standard deviation of noise addition to simulated tangential speed.
+  Description: Standard deviation of noise addition to simulated tangential speed
   Notes:
 
 - group: simulator
   name: cn0_sigma
   type: double
   units: dBm-Hz
-  default value: '0.1'
+  default value: '0.3'
   enumerated possible values:
   Description: Standard deviation of noise added to the simulated signal to noise
     ratio
@@ -189,7 +189,7 @@
   name: pseudorange_sigma
   type: double
   units: meters
-  default value: '16'
+  default value: '4'
   enumerated possible values:
   Description: Standard deviation of noise added to the simulated pseudo range
   Notes:
@@ -198,7 +198,7 @@
   name: phase_sigma
   type: double
   units: cycles
-  default value: '0.0009'
+  default value: '0.03'
   enumerated possible values:
   Description: Standard deviation of noise added to the simulated carrier phase
   Notes:
@@ -206,19 +206,19 @@
 - group: simulator
   name: num_sats
   type: integer
-  units:
+  units: N/A
   default value: '9'
   enumerated possible values:
-  Description: The number of satellites for the simulator.
+  Description: The number of satellites for the simulator
   Notes:
 
 - group: simulator
   name: mode_mask
   type: packed bitfield
-  units:
+  units: N/A
   default value: 15 (decimal), 0xF (hexadecimal)
   enumerated possible values:
-  Description: Determines the types of position outputs for the simulator.
+  Description: Determines the types of position outputs for the simulator
   Notes: |
     bit 0 (decimal value 1) turns on single point position PVT simulated outputs
     bit 1 (decimal value 2) turns on the satellite tracking simulated outputs
@@ -231,7 +231,7 @@
   units: Hz
   default value: '10'
   enumerated possible values:
-  Description: The frequency at which a position solution is computed.
+  Description: The frequency at which a position solution is computed
   Notes:
 
 - group: solution
@@ -240,20 +240,20 @@
   units: seconds
   default value: '30'
   enumerated possible values:
-  Description: The maximum age of corrections for which an RTK solution will be generated.
+  Description: The maximum age of corrections for which an RTK solution will be generated
   Notes:
 
 - group: solution
   name: output_every_n_obs
   type: integer
   units: N/A
-  default value: '2'
+  default value: '10'
   enumerated possible values:
   Description: Integer divisor of solution frequency for which the observations will
-    be output.
-  Notes: For instance, if the solution frequency is 10 Hz, and the "output every n
-    obs" parameter is 2, it means that the observation output will occur at a rate
-    of 5 Hz.  Since the observations are the information used by the Piksi receiving
+    be output
+  Notes: For instance, if the solution frequency (soln_freq) is 10 Hz, and the output_every_n_obs
+    setting is 10, it means that the observation output will occur at a rate
+    of 1 Hz.  Since the observations are the information used by the Piksi receiving
     corrections from the connected Piksi, this determines the rate of information
     sharing for RTK solution output. This parameter is designed to tune the rate at
     which correction information is passed from one Piksi to the other as to efficiently
@@ -265,11 +265,11 @@
   units: N/A
   default value: 'Low Latency'
   enumerated possible values: Low Latency, Time Matched, No DGNSS
-  Description: Selects the type of RTK solution to output.
+  Description: Selects the type of RTK solution to output
   Notes: A "Low Latency" solution uses an internal model of anticipated satellite observations
     to provide RTK output with minimal latency but slightly reduced accuracy. "Low Latency" mode
-    assumes that the base station is stationary. For applications where accuracy is desired over timelieness
-    or when both Piksi's are moving, "Time matched" mode can be chosen. This
+    assumes that the base station is stationary. For applications where accuracy is desired over timeliness
+    or when both Piksi's are moving, "Time Matched" mode can be chosen. This
     means that the RTK output will require a corresponding set of correction observations
     for each timestamp. When "No DGNSS" is chosen, no differential output will be
     attempted by Piksi.
@@ -281,7 +281,7 @@
   units: N/A
   default value: 'Fixed'
   enumerated possible values: Fixed,Float
-  Description: Determines the type of carrier phase ambiguity resolution that the Piksi will attempt to achieve.
+  Description: Determines the type of carrier phase ambiguity resolution that the Piksi will attempt to achieve
   Notes: If "fixed", the Piksi will output a integer fixed ambiguity estimate.  If
     no fixed solution is available, it will revert to the float solution.  If "float",
     the device will only output the float ambiguity estimate.
@@ -293,7 +293,7 @@
   units: meters
   default value: '0'
   enumerated possible values:
-  Description: Determines the baseline vector for the "init known baseline" feature.
+  Description: Determines the baseline vector for the "init known baseline" feature
   Notes: This sets the number of meters that the rover is North from the
     base station when the "init known baseline" feature is used.
 
@@ -303,7 +303,7 @@
   units: meters
   default value: '0'
   enumerated possible values:
-  Description: Determines the baseline vector for the "init known baseline" feature.
+  Description: Determines the baseline vector for the "init known baseline" feature
   Notes: This sets the number of meters that the rover is East from the
     base station when the "init known baseline" feature is used.
 
@@ -313,14 +313,13 @@
   units: meters
   default value: '0'
   enumerated possible values:
-  Description: Determines the baseline vector for the "init known baseline" feature.
+  Description: Determines the baseline vector for the "init known baseline" feature
   Notes: This sets the number of meters that the rover is Down from the
     base station when the "init known baseline" feature is used.
 
 - group: solution
   name: elevation_mask
   type: float
-  expert: true
   units: degrees
   default value: '10'
   enumerated possible values:
@@ -346,7 +345,7 @@
   default value: False
   enumerated possible values: True,False
   Description: Enables SBP heading output.  Heading is caculated from base station to
-    rover and represents the inverse tangent of the north and east components of the baseline.
+    rover and represents the inverse tangent of the north and east components of the baseline
   Notes: No smoothing or additional processing is provided to improve heading output.
 
 - group: system_info
@@ -384,7 +383,7 @@
   default value: N/A
   enumerated possible values:
   Description: Indicates the firmware version for the Local Piksi
-  Notes: The githash is removed from this version identifier. This is a read only setting.
+  Notes: The git hash is removed from this version identifier. This is a read only setting.
 
 - group: system_info
   name: hw_revision
@@ -509,7 +508,7 @@
   default value: 'True'
   enumerated possible values: true,false
   Description: Enable hardware watchdog timer to reset the Piksi if it locks up for
-    any reason.
+    any reason
   Notes: You must reset the Piksi for changes to this setting to take effect.
 
 - group: usb
@@ -532,7 +531,7 @@
   units: bps
   default value: '115200'
   enumerated possible values:
-  Description: The baudrate for the UART 1
+  Description: The Baud rate for the UART 1
   Notes:
 
 - group: uart1
@@ -563,7 +562,7 @@
   units: bps
   default value: '115200'
   enumerated possible values:
-  Description: The baudrate for the UART 0
+  Description: The Baud rate for the UART 0
   Notes:
 
 - group: uart0
@@ -594,7 +593,7 @@
   units: N/A
   default value: None
   enumerated possible values: None,Rising,Falling,Both
-  Description: Select DEBUG0 edges to trigger timestamped event capture.
+  Description: Select edges to trigger timestamped event capture
   Notes: You can use this to record the exact time that some external
     event in your system occurred, e.g. camera shutter time.  Upon
     detecting the event, Piksi will generate a MSG_EXT_EVENT message
@@ -725,7 +724,7 @@
   type: integer
   units: Solution Period
   default value: '10'
-  Description: Number of Solution Periods between GPGSV NMEA messages being sent.
+  Description: Number of Solution Periods between GPGSV NMEA messages being sent
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
@@ -733,7 +732,7 @@
   type: integer
   units: Solution Period
   default value: '10'
-  Description: Number of Solution Periods between GPRMC NMEA messages being sent.
+  Description: Number of Solution Periods between GPRMC NMEA messages being sent
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
@@ -741,7 +740,7 @@
   type: integer
   units: Solution Period
   default value: '1'
-  Description: Number of Solution Periods between GPVTG NMEA messages being sent.
+  Description: Number of Solution Periods between GPVTG NMEA messages being sent
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
@@ -749,7 +748,7 @@
   type: integer
   units: Solution Period
   default value: '10'
-  Description: Number of Solution Periods between GPGLL NMEA messages being sent.
+  Description: Number of Solution Periods between GPGLL NMEA messages being sent
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
@@ -758,7 +757,7 @@
   units: Solution Period
   default value: '10'
   enumerated possible values:
-  Description: Number of Solution Periods between GPZDA NMEA messages being sent.
+  Description: Number of Solution Periods between GPZDA NMEA messages being sent
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
@@ -767,7 +766,7 @@
   units: Solution Periods
   default value: '10'
   enumerated possible values:
-  Description: Number of ticks between GPGSA NMEA messages being sent.
+  Description: Number of ticks between GPGSA NMEA messages being sent
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: pps
@@ -776,7 +775,7 @@
   units: us (microseconds)
   default value: '200000'
   enumerated possible values:
-  Description: Number of microseconds the PPS will remain high (allowed range from 1 to 999999 us).
+  Description: Number of microseconds the PPS will remain high (allowed range from 1 to 999999 us)
   Notes:
 
 - group: acquisition
@@ -805,7 +804,7 @@
   enumerated possible values: Static,DHCP
   units: N/A
   default value: 'Static'
-  Description: Ethernet configuration mode.
+  Description: Ethernet configuration mode
   Notes: If DHCP is chosen the IP address will be assigned automatically.
 
 - group: ethernet
@@ -813,15 +812,15 @@
   type: string
   units: N/A
   default value: '192.168.0.222'
-  Description: The static IP address.
-  Notes: The configured ip address in XXX.XXX.XXX.XXX format.
+  Description: The static IP address
+  Notes: The configured IP address in XXX.XXX.XXX.XXX format.
 
 - group: ethernet
   name: netmask
   type: string
   units: N/A
   default value: '255.255.255.0'
-  Description: The netmask for the IP config.
+  Description: The netmask for the IP config
   Notes: The configured netmask in XXX.XXX.XXX.XXX format.
 
 - group: ethernet
@@ -829,7 +828,7 @@
   type: string
   units: N/A
   default value: '192.168.0.1'
-  Description: The default gateway for the IP config.
+  Description: The default gateway for the IP config
   Notes: The configured gateway in XXX.XXX.XXX.XXX format.
 
 - group: ethernet
@@ -850,7 +849,7 @@
   name: imu_raw_output
   type: boolean
   default value: 'False'
-  Description: Enable/Disable IMU raw data output
+  Description: Enable/Disable IMU raw data output from onboard Bosch BMI160 IMU 
   Notes:  The IMU raw data can be seen in the advanced tabs of the Swift Console
 
 - group: imu
@@ -869,7 +868,7 @@
   default value: '2'
   enumerated possible values: 2,4,8,16
   units: g
-  description: the approximate range of accelerations that can be measured
+  description: The approximate range of accelerations that can be measured
   Notes: When 2 g is chosen, it means the accelerometer is scaled to measure
     about +/- 2 g of acceleration. Refer to the IMU datasheet for detailed information.
 
@@ -879,7 +878,7 @@
   default value: '1000'
   enumerated possible values: 125,250,500,1000,2000
   units: deg/s
-  description: the approximate range of angular rate that can be measured
+  description: The approximate range of angular rate that can be measured
   Notes: When 125 is chosen, it means the gyro is scaled to measure
     about +/- 125 deg/s of angular rate. Refer to the IMU datasheet for detailed information.
 
