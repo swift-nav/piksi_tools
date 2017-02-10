@@ -170,17 +170,18 @@ class SolutionView(HasTraits):
     self._table_list = self.table_spp.items()
 
   def auto_survey(self):
-    if self.counter < 1000:
-      self.counter = self.counter + 1
-    self.latitude_list.append(self.last_soln.lat)
-    self.longitude_list.append(self.last_soln.lon)
-    self.altitude_list.append(self.last_soln.height)
-    self.latitude_list = self.latitude_list[-1000:]
-    self.longitude_list = self.longitude_list[-1000:]
-    self.altitude_list = self.altitude_list[-1000:]
-    self.latitude = (sum(self.latitude_list))/self.counter
-    self.altitude = (sum(self.altitude_list))/self.counter
-    self.longitude = (sum(self.longitude_list))/self.counter
+    if self.last_soln.flags != 0: 
+      self.latitude_list.append(self.last_soln.lat)
+      self.longitude_list.append(self.last_soln.lon)
+      self.altitude_list.append(self.last_soln.height)
+    if len(self.latitude_list) > 1000:
+      self.latitude_list = self.latitude_list[-1000:]
+      self.longitude_list = self.longitude_list[-1000:]
+      self.altitude_list = self.altitude_list[-1000:]
+    if len(self.latitude_list) != 0:
+      self.latitude  = sum(self.latitude_list)/len(self.latitude_list)
+      self.altitude  = sum(self.altitude_list)/len(self.latitude_list)
+      self.longitude = sum(self.longitude_list)/len(self.latitude_list)
 
   def pos_llh_callback(self, sbp_msg, **metadata):
     if sbp_msg.msg_type == SBP_MSG_POS_LLH_DEP_A:
