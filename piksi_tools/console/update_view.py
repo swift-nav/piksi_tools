@@ -467,7 +467,7 @@ class UpdateView(HasTraits):
           "download the latest compatible version.\n\n" + \
           "Detected Hardware revision :\n\t" + \
               hw_version + \
-          "\nCompatible hardware revision :\n\t" + \
+          "\nCompatible Hardware revision :\n\t" + \
               "Piksi 2.3.1" "\n"
       console_outdated_prompt.run()
       return
