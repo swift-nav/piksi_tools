@@ -35,6 +35,7 @@ help:
 	@echo "  deps           to install all dependencies (includes UI deps)"
 	@echo "  serial_deps    to install serial dependencies (no UI deps)"
 	@echo "  build_console  to build the console binary and installer"
+	@echo "  gen_readme     generate console command line options readme"
 	@echo
 
 all: deps
@@ -43,9 +44,14 @@ deps:
 	cd $(SWIFTNAV_ROOT)/tasks && bash setup.sh && cd $(SWIFTNAV_ROOT)
 
 serial_deps:
-	sudo pip install -r requirements.txt
+	pip install -r requirements.txt
+
+gen_readme:
+	PYTHONPATH=. piksi_tools/console/console.py -h > piksi_tools/console/README.txt
+	tail -n +2  piksi_tools/console/README.txt > tmp.txt && mv tmp.txt piksi_tools/console/README.txt
 
 build_console:
+	make gen_readme
 	make build_console_$(UNAME)
 
 build_console_posix:
