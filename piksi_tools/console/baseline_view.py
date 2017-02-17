@@ -76,8 +76,6 @@ class BaselineView(HasTraits):
   )
 
   reset_button = Button(label='Reset Filters')
-  reset_iar_button = Button(label='Reset IAR')
-  init_base_button = Button(label='Init. with known baseline')
 
   traits_view = View(
     HSplit(
@@ -89,8 +87,6 @@ class BaselineView(HasTraits):
           Item('zoomall_button', show_label=False),
           Item('center_button', show_label=False),
           Item('reset_button', show_label=False),
-          Item('reset_iar_button', show_label=False),
-          Item('init_base_button', show_label=False),
         ),
         Item(
           'plot',
@@ -113,11 +109,6 @@ class BaselineView(HasTraits):
   def _reset_button_fired(self):
     self.link(MsgResetFilters(filter=0))
 
-  def _reset_iar_button_fired(self):
-    self.link(MsgResetFilters(filter=1))
-
-  def _init_base_button_fired(self):
-    self.link(MsgInitBase())
 
   def _reset_remove_current(self):
     self.plot_data.set_data('cur_fixed_n', [])
