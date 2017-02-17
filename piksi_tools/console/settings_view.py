@@ -204,8 +204,9 @@ class SettingsView(HasTraits):
   
   def _selected_setting_changed(self):
     if self.selected_setting:
-      if self.selected_setting.name in ['surveyed_position','broadcast','surveyed_lat', 
-                                        'surveyed_lon', 'surveyed_alt']:
+      if ( self.selected_setting.name in 
+           ['surveyed_position','broadcast','surveyed_lat', 'surveyed_lon', 'surveyed_alt'] 
+           and self.lat != 0 and self.lon != 0 ):
         self.show_auto_survey = True
       else:
         self.show_auto_survey = False
@@ -246,7 +247,7 @@ class SettingsView(HasTraits):
                          )
     confirm_prompt.text = "\n" \
                         + "This will set the Surveyed Position section to the \n" \
-                        + "mean of the SPP positions of the last 1000 SPP samples.\n \n" \
+                        + "mean position of the last 1000 position solutions.\n \n" \
                         + "The fields that will be auto-populated are: \n" \
                         + "Surveyed Lat \n" \
                         + "Surveyed Lon \n" \
