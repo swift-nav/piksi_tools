@@ -117,6 +117,7 @@ from piksi_tools.console.system_monitor_view import SystemMonitorView
 from piksi_tools.console.settings_view import SettingsView
 from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.imu_view import IMUView
+from piksi_tools.console.spectrum_analyzer_view import SpectrumAnalyzerView
 from piksi_tools.console.callback_prompt import CallbackPrompt, ok_button
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 
@@ -190,6 +191,7 @@ class SwiftConsole(HasTraits):
   settings_view = Instance(SettingsView)
   update_view = Instance(UpdateView)
   imu_view = Instance(IMUView)
+  spectrum_analyzer_view = Instance(SpectrumAnalyzerView)
   log_level_filter = Enum(list(SYSLOG_LEVELS.itervalues()))
 
 
@@ -259,6 +261,7 @@ class SwiftConsole(HasTraits):
           Item('system_monitor_view', style='custom', label='System Monitor'),
           Item('imu_view', style='custom', label='IMU'),
           Item('networking_view', label='Networking', style='custom', show_label=False),
+          Item('spectrum_analyzer_view', label='Spectrum Analyzer', style='custom'),
           Item('python_console_env', style='custom',
             label='Python Console', editor=ShellEditor()),
           label='Advanced',
@@ -534,6 +537,7 @@ class SwiftConsole(HasTraits):
       self.system_monitor_view = SystemMonitorView(self.link)
       self.update_view = UpdateView(self.link, prompt=update, serial_upgrade=serial_upgrade)
       self.imu_view = IMUView(self.link)
+      self.spectrum_analyzer_view = SpectrumAnalyzerView(self.link)
       settings_read_finished_functions.append(self.update_view.compare_versions)
       if skylark:
         import yaml
@@ -589,6 +593,7 @@ class SwiftConsole(HasTraits):
       self.python_console_env.update(self.update_view.python_console_cmds)
       self.python_console_env.update(self.imu_view.python_console_cmds)
       self.python_console_env.update(self.settings_view.python_console_cmds)
+      self.python_console_env.update(self.spectrum_analyzer_view.python_console_cmds)
 
     except:
       import traceback
