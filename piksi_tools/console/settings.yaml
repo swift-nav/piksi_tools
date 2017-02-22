@@ -894,14 +894,14 @@
   type: boolean
   default value: 'True'
   expert: true
-  description: Erase stored almanac during boot
+  description: Erase stored almanacs during boot
 
 - group: ndb
   name: erase_almanac_wn
   type: boolean
   default value: 'True'
   expert: true
-  description: Erase stored almanac week number during boot
+  description: Erase stored almanac week numbers during boot
 
 - group: ndb
   name: erase_iono
