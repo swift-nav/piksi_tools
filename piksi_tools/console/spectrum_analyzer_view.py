@@ -68,7 +68,7 @@ class SpectrumAnalyzerView(HasTraits):
       'amplitude_step'
     ]
     payload_json = dict(zip(fft_msg_header, parsed_payload[:len(fft_msg_header)]))
-    fft_msg_payload = parsed_payload[len(fft_msg_header) + 1:]
+    fft_msg_payload = parsed_payload[len(fft_msg_header):]
     payload_json['diff_amplitudes'] = fft_msg_payload
     return payload_json
 
