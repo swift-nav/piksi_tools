@@ -57,7 +57,6 @@ class SpectrumAnalyzerView(HasTraits):
     payload_header_bytes = 45
     diff_amplitude_n = (len(raw_payload) - payload_header_bytes) / 2
     diff_amplitude_fmt_str = 'H' * diff_amplitude_n
-    # this is a tuple of length 7 + diff amplitude's N
     parsed_payload = struct.unpack('<Hdhffff' + diff_amplitude_fmt_str)
     fft_msg_header = [
       'user_msg_tag',
