@@ -215,9 +215,18 @@ class SkylarkWatchdogThread(threading.Thread):
     """ Continuously try and reconnect until thread stopped by other means """
     while not self.stopped():
       print "Attempting to connect to skylark..."
-      ret = self.connect(self.link, self.skylark_config)
-      if self.verbose:
-        "Returned from SkylarkWatchdogThread.connect with code {0}".format(ret)
+      try:
+        ret = self.connect(self.link, self.skylark_config)
+        if self.verbose:
+          "Returned from SkylarkWatchdogThread.connect with code {0}".format(ret)
+      except UserWarning as w:
+        print "UserWarning exception received from SkylarkWatchdogThread.connect"
+        import traceback
+        print traceback.format_exc()
+      except:
+        print "Unspecified exception received from SkylarkWatchdogThread.connect"
+        import traceback
+        print traceback.format_exc()
       time.sleep(0.25)
       print "Network Observation Stream Disconnected."
 
