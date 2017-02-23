@@ -37,14 +37,20 @@ from sbp.client import Forwarder
 
 # Shut chaco up for now
 import warnings
+import argparse
 warnings.simplefilter(action = "ignore", category = FutureWarning)
+
+class ArgumentParserError(Exception): pass
+
+class ConsoleArgumentParser(argparse.ArgumentParser):
+    def error(self, message):
+        raise ArgumentParserError(message)
 
 def get_args():
   """
   Get and parse arguments.
   """
-  import argparse
-  parser = s.base_cl_options()
+  parser = s.base_cl_options(override_arg_parse=ConsoleArgumentParser)
   parser.description = 'Swift Console'
   parser.add_argument("-i", "--initloglevel",
                       default=[None], nargs=1,
@@ -62,15 +68,27 @@ def get_args():
                       help="key value pairs to pass to sbp_relay_view initializer for skylark")
   parser.add_argument('--serial-upgrade', action='store_true',
                       help="Allow software upgrade over serial.")
-  return parser.parse_args()
-
-args = get_args()
-port = args.port
-baud = args.baud
+  parser.add_argument('--show-usage', action='store_true',
+                      help="Show usage help in a GUI popup.")
+  return parser
+args = None
+parser = get_args()
+try:
+  args = parser.parse_args()
+  port = args.port
+  baud = args.baud
+  show_usage = args.show_usage
+  usage_str = ""
+except (ArgumentParserError, argparse.ArgumentError, argparse.ArgumentTypeError) as e:
+ print e
+ parser.print_usage()
+ show_usage = True
+ usage_str = str(e)
+ pass
 
 # Toolkit
 from traits.etsconfig.api import ETSConfig
-if args.toolkit[0] is not None:
+if args and args.toolkit[0] is not None:
   ETSConfig.toolkit = args.toolkit[0]
 else:
   ETSConfig.toolkit = 'qt4'
@@ -120,10 +138,10 @@ from piksi_tools.console.imu_view import IMUView
 from piksi_tools.console.callback_prompt import CallbackPrompt, ok_button
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 
-from traits.api import Str, Instance, Dict, HasTraits, Any, Int, Button, List, Enum, Bool, Directory
+from traits.api import Str, Instance, Dict, HasTraits, Any, Int, Button, List, Enum, Bool, Directory, Font
 from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
                          InstanceEditor, EnumEditor, ShellEditor, Handler, Spring, \
-                         TableEditor, UItem, Group, ImageEditor
+                         TableEditor, UItem, Group, ImageEditor, TextEditor, HTMLEditor
 from traitsui.table_filter \
     import EvalFilterTemplate, MenuFilterTemplate, RuleFilterTemplate, \
            EvalTableFilter
@@ -600,6 +618,15 @@ class SwiftConsole(HasTraits):
 # application event loop (otherwise Qt swallows KeyboardInterrupt exceptions)
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
+class ShowUsage(HasTraits):
+  usage_str = Str()
+  traits_view = View(
+                     Item("usage_str", style='readonly', show_label=False, 
+                          editor=HTMLEditor(), resizable=True),
+                     width=680, resizable=True)
+  def __init__(self, usage):
+    self.usage_str = "<pre>" + usage_str + '<br>' + usage + "</pre>"
+
 # If using a device connected to an actual port, then invoke the
 # regular console dialog for port selection
 class PortChooser(HasTraits):
@@ -636,6 +663,10 @@ class PortChooser(HasTraits):
       self.baudrate = baudrate
     except TypeError:
       pass
+if show_usage:
+  usage = ShowUsage(parser.format_help())
+  usage.configure_traits()
+  sys.exit(1)
 
 if args.tcp:
   try:

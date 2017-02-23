@@ -13,6 +13,7 @@ import sys
 import traceback
 import os
 
+
 from traitsui.api import TextEditor
 from piksi_tools.utils import sopen
 from sbp.navigation import *
