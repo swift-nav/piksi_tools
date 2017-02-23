@@ -22,12 +22,16 @@ import os
 import numpy as np
 import datetime
 
-from sbp.piksi  import SBP_MSG_THREAD_STATE, SBP_MSG_UART_STATE, SBP_MSG_UART_STATE_DEPA, MsgReset
+from sbp.piksi  import SBP_MSG_THREAD_STATE, SBP_MSG_UART_STATE, SBP_MSG_UART_STATE_DEPA, MsgReset, MsgCommandReq
 from sbp.system import SBP_MSG_HEARTBEAT
+from sbp.logging import SBP_MSG_LOG, MsgLog
 from piksi_tools.console.utils import determine_path
 
 class SimpleAdapter(TabularAdapter):
     columns = [('Thread Name', 0), ('CPU %',  1), ('Stack Free',  2)]
+    
+class SimpleNetworkAdapter(TabularAdapter):
+    columns = [('Network', 0)]
 
 class SystemMonitorView(HasTraits):
   python_console_cmds = Dict()
@@ -65,10 +69,18 @@ class SystemMonitorView(HasTraits):
   msg_obs_min_period_ms    = Int(0)
   msg_obs_max_period_ms    = Int(0)
   msg_obs_window_period_ms = Int(0)
+
+  _network_info = List()
   
   piksi_reset_button = SVGButton(
     label='Reset Piksi', tooltip='Reset Piksi',
     filename=os.path.join(determine_path(), 'images', 'fontawesome', 'power27.svg'),
+    width=16, height=16, aligment='center'
+   )
+  
+  network_refresh_button = SVGButton(
+    label='Refresh Network Status', tooltip='Refresh Network Status',
+    filename=os.path.join(determine_path(), 'images', 'fontawesome', 'refresh.svg'),
     width=16, height=16, aligment='center'
    )
 
@@ -150,6 +162,20 @@ class SystemMonitorView(HasTraits):
                style='readonly', format_str='%.2f'),
           label='USB UART', show_border=True,
         ),
+        VGroup(
+          VGroup(
+            Item(
+              '_network_info', style = 'readonly',
+              editor = TabularEditor(adapter=SimpleNetworkAdapter()),
+              show_label=False, width=0.85,
+            ),
+            show_border=True, label="Network"
+           ),
+           HGroup(
+            Spring(width=50, springy=False),
+            Item('network_refresh_button', show_label=False, width=0.50),
+            ),
+          ),
       ),
     ),
   )
@@ -173,6 +199,15 @@ class SystemMonitorView(HasTraits):
   def _piksi_reset_button_fired(self):
     self.link(MsgReset(flags=0))
 
+  def _network_refresh_button_fired(self):
+    self.link(MsgCommandReq(sequence=1, command='ifconfig'))
+
+  def log_callback(self, m, **metadata):
+    if 'eth0' in m.text:
+      self._network_info = [(m.text,)]
+    elif 'inet' in m.text or 'RX' in m.text or 'TX' in m.text or 'MTU' in m.text or 'collision' in m.text or 'Interrupt' in m.text:
+      self._network_info.append((m.text,))
+  
   def uart_state_callback(self, m, **metadata):
     self.uart_a_tx_KBps = m.uart_a.tx_throughput
     self.uart_a_rx_KBps = m.uart_a.rx_throughput
@@ -211,7 +246,7 @@ class SystemMonitorView(HasTraits):
     self.link.add_callback(self.heartbeat_callback, SBP_MSG_HEARTBEAT)
     self.link.add_callback(self.thread_state_callback, SBP_MSG_THREAD_STATE)
     self.link.add_callback(self.uart_state_callback, [SBP_MSG_UART_STATE, SBP_MSG_UART_STATE_DEPA])
-
+    self.link.add_callback(self.log_callback, SBP_MSG_LOG)
 
     self.python_console_cmds = {
       'mon': self
