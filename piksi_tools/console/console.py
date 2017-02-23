@@ -21,6 +21,8 @@ import math
 import numpy as np
 import datetime
 import time
+from threading import Thread
+import socket
 
 from os.path import expanduser
 from piksi_tools.serial_link import swriter, get_uuid, DEFAULT_BASE
@@ -629,9 +631,41 @@ class ShowUsage(HasTraits):
   def __init__(self, usage):
     self.usage_str = "<pre>" + usage_str + '<br>' + usage + "</pre>"
 
+
+class TextDisplay(HasTraits):
+  string = Str()
+  view= View( Item('string', show_label = False, springy=True, style='custom', height=50  ))
+
+class DicoverThread(Thread):
+  def run(self):
+    #include <czmq.h>
+    PING_PORT_NUMBER = 1500
+    PING_MSG_SIZE    = 3
+    PING_INTERVAL    = 5  # Once per second
+    # Create UDP socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    # Ask operating system to let us do broadcasts from socket
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    # Bind UDP socket to local port so we can receive pings
+    sock.bind(('', PING_PORT_NUMBER))
+    sock.setblocking(0)
+    while not self.wants_abort:
+      ips = []
+      try:
+        while True:
+          msg, addrinfo = sock.recvfrom(PING_MSG_SIZE)
+          ips.append(addrinfo[0])
+          self.display.string = addrinfo[0]
+      except:
+        pass
+      self.display.string = '\n'.join(map(str, ips))
+      time.sleep(PING_INTERVAL)
+         
 # If using a device connected to an actual port, then invoke the
 # regular console dialog for port selection
 class PortChooser(HasTraits):
+  capture_thread = Instance(DicoverThread)
+  display = Instance(TextDisplay, ())
   ports = List()
   port = Str(None)
   ip_port = Int(55555)
@@ -661,11 +695,17 @@ class PortChooser(HasTraits):
           visible_when="is_tcpip"
         ),
       ),
+      VGroup(
+        Item('display',  style = "custom", show_label=False),
+        label="Piksis Found",
+        visible_when="is_tcpip",
+      ),
     ),
     buttons = ['OK', 'Cancel'],
     close_result=False,
     icon = icon,
-    width = 400,
+    width = 500,
+    height = 200,
     title = 'Select serial Configuration',
   )
   def _port_changed(self, name, old, new):
@@ -676,6 +716,12 @@ class PortChooser(HasTraits):
 
   def __init__(self, baudrate=None):
     self.is_tcpip = False
+    
+    self.capture_thread = DicoverThread()
+    self.capture_thread.wants_abort = False
+    self.capture_thread.display = self.display
+    self.capture_thread.start()
+
     try:
       self.ports = [p for p, _, _ in s.get_ports()]
       self.ports.append("TCP/IP")
