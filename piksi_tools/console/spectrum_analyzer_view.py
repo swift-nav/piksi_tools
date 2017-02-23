@@ -18,6 +18,8 @@ from pyface.api import GUI
 from chaco.api import ArrayPlotData, Plot
 from enable.api import ComponentEditor
 
+from sbp.user import SBP_MSG_USER_DATA
+
 # How many points are in each FFT?
 NUM_POINTS = 512
 
@@ -108,6 +110,8 @@ class SpectrumAnalyzerView(HasTraits):
     '''
     # Need to figure out which user_msg_tag means it's an FFT message
     # for now assume that all SBP_MSG_USER_DATA is relevant
+    print "Got an FFT message!"
+    print sbp_msg
     fft_data = self.parse_payload(sbp_msg.contents)
     frequencies = self.get_frequencies(
                     fft_data['starting_frequency'],
@@ -120,6 +124,8 @@ class SpectrumAnalyzerView(HasTraits):
                    fft_data['amplitude_step']
                  )
     timestamp = (fft_data['week'], fft_data['TOW'])
+
+    print 'updating view data with FFT for ', timestamp
 
     if len(self.data[timestamp]['frequencies']) == 0:
       self.data[timestamp]['frequencies'] = frequencies
@@ -142,14 +148,26 @@ class SpectrumAnalyzerView(HasTraits):
     GUI.invoke_later(self.update_plot)
 
   def update_plot(self):
-    raise NotImplementedError
+    pass
 
   def __init__(self, link):
     super(SpectrumAnalyzerView, self).__init__()
-    # dictionary of (week, TOW) to list of {'frequencies', 'amplitudes'}
-    self.data = defaultdict(lambda: {'frequencies': [], 'amplitudes': []})
     self.link = link
     self.link.add_callback(self.spectrum_analyzer_state_callback, SBP_MSG_USER_DATA)
     self.python_console_cmds = {
       'spectrum': self
     }
+
+    # keys are tuples (week, TOW)
+    self.data = defaultdict(lambda: {'frequencies': [], 'amplitudes': []})
+
+    self.plot_data = ArrayPlotData()
+    self.plot = Plot(self.plot_data)
+
+    self.plot.title = 'Spectrum Analyzer'
+    self.plot.title_color = [0, 0, 0.43]
+
+    self.plot.value_axis.orientation = 'right'
+    self.plot.value_axis.title = 'Amplitude (dB)'
+
+    self.plot.index_axis.title = 'Frequency (Hz)'
