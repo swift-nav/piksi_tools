@@ -8,47 +8,148 @@
 # THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
+import struct
+from collections import defaultdict
+import numpy as np
 
-from traits.api import HasTraits, Str, Dict
-from traitsui.api import Item, Spring, View
+from traits.api import Instance, HasTraits, Str, Dict
+from traitsui.api import Item, Spring, View, Spring
 from pyface.api import GUI
+from chaco.api import ArrayPlotData, Plot
+from enable.api import ComponentEditor
+
+# How many points are in each FFT?
+NUM_POINTS = 512
 
 class SpectrumAnalyzerView(HasTraits):
   python_console_cmds = Dict()
-  dummy_text = Str('This is where the Spectrum Analyzer output will go.')
-
+  plot = Instance(Plot)
+  plot_data = Instance(ArrayPlotData)
   traits_view = View(
-    Item('dummy_text', label='description')
+    Item(
+      'plot',
+      editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8)),
+      show_label=False
+    )
   )
 
+  def parse_payload(self, raw_payload):
+    """
+    Params
+    ======
+    payload: is a hex string from the SBP_MSG_USER_DATA message payload
+
+    Returns
+    =======
+    JSON dict of a payload based on this format, except all N of the diff_amplitude
+    are together in a list under 'diff_amplitudes' and rx_time is split into TOW and week
+
+    Frequency is in Hz, Amplitude is in dB
+
+    FIELD               TYPE    OFFSET  SHORT EXPLANATION
+
+    user_msg_tag        u16     0       bespoke preamble for spectrum message
+
+    rx_time             struct  2       struct gps_time_t defined as double TOW + s16 WEEK
+
+    starting_frequency  float  12       starting frequency for this packet
+
+    frequency_step      float  16       frequency step for points in this packet
+
+    min_amplitude       float  20       minimum level of amplitude
+
+    amplitude_step      float  24       amplitude unit
+
+    diff_amplitude      u8     28       N values in the above units
+    """
+    payload_header_fmt_str = '<Hdhffff'
+    payload_header_bytes = struct.calcsize(payload_header_fmt_str)
+    diff_amplitude_n = (len(raw_payload) - payload_header_bytes)
+    diff_amplitude_fmt_str = 'B' * diff_amplitude_n
+    fmt_str = payload_header_fmt_str + diff_amplitude_fmt_str
+    parsed_payload = struct.unpack(fmt_str, raw_payload)
+    fft_msg_header = [
+      'user_msg_tag',
+      'TOW',
+      'week',
+      'starting_frequency',
+      'frequency_step',
+      'min_amplitude',
+      'amplitude_step'
+    ]
+    payload_json = dict(zip(fft_msg_header, parsed_payload[:len(fft_msg_header)]))
+    fft_msg_payload = parsed_payload[len(fft_msg_header):]
+    payload_json['diff_amplitudes'] = fft_msg_payload
+    return payload_json
+
+  def get_frequencies(self, start_freq, freq_step, n):
+    '''
+    start_freq: float (Hz)
+    freq_step: float (Hz)
+    n: int
+    '''
+    return np.array([start_freq + freq_step*i for i in range(n)])
+
+  def get_amplitudes(self, min_amplitude, diffs, unit):
+    '''
+    min_amplitude: float (dB)
+    diffs: tuple of floats (dB)
+    unit: float (dB)
+    '''
+    return np.array([min_amplitude + diff*unit for diff in diffs])
+
   def spectrum_analyzer_state_callback(self, sbp_msg, **metadata):
-    raise NotImplementedError
+    '''
+    Params
+    ======
+    sbp_msg: sbp.msg.SBP object
+
+    Updates the view's data for use in self.update_plot
+    '''
+    # Need to figure out which user_msg_tag means it's an FFT message
+    # for now assume that all SBP_MSG_USER_DATA is relevant
+    fft_data = self.parse_payload(sbp_msg.contents)
+    frequencies = self.get_frequencies(
+                    fft_data['starting_frequency'],
+                    fft_data['frequency_step'],
+                    len(fft_data['diff_amplitudes'])
+                  )
+    amplitudes = self.get_amplitudes(
+                   fft_data['min_amplitude'],
+                   fft_data['diff_amplitudes'],
+                   fft_data['amplitude_step']
+                 )
+    timestamp = (fft_data['week'], fft_data['TOW'])
+
+    if len(self.data[timestamp]['frequencies']) == 0:
+      self.data[timestamp]['frequencies'] = frequencies
+      self.data[timestamp]['amplitudes'] = amplitudes
+    elif frequencies[-1] < self.data[timestamp]['frequencies'][0]:
+      self.data[timestamp]['frequencies'] = frequencies + self.data[timestamp]['frequencies']
+      self.data[timestamp['amplitudes']] = amplitudes + self.data[timestamp]['amplitudes']
+    elif self.data[timestamp]['frequencies'][-1] < frequencies[0]:
+      self.data[timestamp]['frequencies'].extend(frequencies)
+      self.data[timestamp]['amplitudes'].extend(amplitudes)
+    else:
+      insert_index = 0
+      for i,freq in enumerate(self.data[timestamp]['frequencies']):
+        if frequencies[0] > freq:
+          insert_index = i
+          break
+      self.data[timestamp]['frequencies'][insert_index:insert_index] = frequencies
+      self.data[timestamp]['amplitudes'][insert_index:insert_index] = amplitudes
+
+    GUI.invoke_later(self.update_plot)
 
   def update_plot(self):
     raise NotImplementedError
 
   def __init__(self, link):
     super(SpectrumAnalyzerView, self).__init__()
+    # dictionary of (week, TOW) to list of {'frequencies', 'amplitudes'}
+    self.data = defaultdict(lambda: {'frequencies': [], 'amplitudes': []})
     self.link = link
     self.link.add_callback(self.spectrum_analyzer_state_callback, SBP_MSG_USER_DATA)
     self.python_console_cmds = {
       'spectrum': self
     }
-
-if __name__ == '__main__':
-  from sbp.msg import SBP
-  import base64
-  # the TOW and week fields in these are dummy values
-  json1 = {"data": {"sender": 37402, "msg_type": 2048, "crc": 53040, "length": 252, "preamble": 85, "payload": "AQC9vk8CZahEQAAAm563TvOKvUdkJShC+1a2PQAKBgYKDAoMCQcGCwgHCAgJCwcGCAsKCQYHCAcECAsICQ0IBwUMCAkLCwUIDAUFCQgJBgoICg0LCwcKCAkJCwUKDAwICgkIBwkMCgsIAgoMCwoKCAYHCQYKDAsLDAoNDg8IDg4NDg4OCwgIDQwQEAwRDxAOEhUQEg8SFBUWFREoKy4kFRUVGhQYHRsbHBoeHB0kICMlJiQqIycrIS1ESjgxQzMyMy4wMDg2PExRc7K1sYZYWEFQSFRMQDo+OT09P0NARkFCSElHSUpIS1BNTlFRT01QUlZLVFFXVVFTUVVT", "contents": [1, 0, 189, 190, 79, 2, 101, 168, 68, 64, 0, 0, 155, 158, 183, 78, 243, 138, 189, 71, 100, 37, 40, 66, 251, 86, 182, 61, 0, 10, 6, 6, 10, 12, 10, 12, 9, 7, 6, 11, 8, 7, 8, 8, 9, 11, 7, 6, 8, 11, 10, 9, 6, 7, 8, 7, 4, 8, 11, 8, 9, 13, 8, 7, 5, 12, 8, 9, 11, 11, 5, 8, 12, 5, 5, 9, 8, 9, 6, 10, 8, 10, 13, 11, 11, 7, 10, 8, 9, 9, 11, 5, 10, 12, 12, 8, 10, 9, 8, 7, 9, 12, 10, 11, 8, 2, 10, 12, 11, 10, 10, 8, 6, 7, 9, 6, 10, 12, 11, 11, 12, 10, 13, 14, 15, 8, 14, 14, 13, 14, 14, 14, 11, 8, 8, 13, 12, 16, 16, 12, 17, 15, 16, 14, 18, 21, 16, 18, 15, 18, 20, 21, 22, 21, 17, 40, 43, 46, 36, 21, 21, 21, 26, 20, 24, 29, 27, 27, 28, 26, 30, 28, 29, 36, 32, 35, 37, 38, 36, 42, 35, 39, 43, 33, 45, 68, 74, 56, 49, 67, 51, 50, 51, 46, 48, 48, 56, 54, 60, 76, 81, 115, 178, 181, 177, 134, 88, 88, 65, 80, 72, 84, 76, 64, 58, 62, 57, 61, 61, 63, 67, 64, 70, 65, 66, 72, 73, 71, 73, 74, 72, 75, 80, 77, 78, 81, 81, 79, 77, 80, 82, 86, 75, 84, 81, 87, 85, 81, 83, 81, 85, 83]}, "session-uid": "d2ee7267-6815-499f-84a4-ca03a268353c", "time": "2017-02-22T22:19:53.952000"}
-  json2 = {"data": {"sender": 37402, "msg_type": 2048, "crc": 31053, "length": 252, "preamble": 85, "payload": "AQC9vk8CZahEQAAAkaG3TvOKvUdkJShC+1a2PVJWU1dTUFNUW1tZV1hZWlZWWlxXWlpYWltaXFtdV2BiYl9hXWJhZGRfY2dlaWhpaW1ua3Bxb3BxbnBubHNyb3Rzd3F7dnt4fHx8ent5fnuAfXuBf3t/foB9fX5/fH59fH1/f3+AgoCAg4SEgYGGg4SGgoKHg6iGhIeJiouLi4+MkZWal5+fnqGqpqeho56cmZOSjomIhIeCgYJ8f4KAfX95fH2BgoOBhoKAgoWDfIOAf4Z+goSGgoGJhYGDiIaFg4OJhoSCg4eGhYiBhoSBgoCAhIF9gn+BgIJ/gHl9fIB+", "contents": [1, 0, 189, 190, 79, 2, 101, 168, 68, 64, 0, 0, 145, 161, 183, 78, 243, 138, 189, 71, 100, 37, 40, 66, 251, 86, 182, 61, 82, 86, 83, 87, 83, 80, 83, 84, 91, 91, 89, 87, 88, 89, 90, 86, 86, 90, 92, 87, 90, 90, 88, 90, 91, 90, 92, 91, 93, 87, 96, 98, 98, 95, 97, 93, 98, 97, 100, 100, 95, 99, 103, 101, 105, 104, 105, 105, 109, 110, 107, 112, 113, 111, 112, 113, 110, 112, 110, 108, 115, 114, 111, 116, 115, 119, 113, 123, 118, 123, 120, 124, 124, 124, 122, 123, 121, 126, 123, 128, 125, 123, 129, 127, 123, 127, 126, 128, 125, 125, 126, 127, 124, 126, 125, 124, 125, 127, 127, 127, 128, 130, 128, 128, 131, 132, 132, 129, 129, 134, 131, 132, 134, 130, 130, 135, 131, 168, 134, 132, 135, 137, 138, 139, 139, 139, 143, 140, 145, 149, 154, 151, 159, 159, 158, 161, 170, 166, 167, 161, 163, 158, 156, 153, 147, 146, 142, 137, 136, 132, 135, 130, 129, 130, 124, 127, 130, 128, 125, 127, 121, 124, 125, 129, 130, 131, 129, 134, 130, 128, 130, 133, 131, 124, 131, 128, 127, 134, 126, 130, 132, 134, 130, 129, 137, 133, 129, 131, 136, 134, 133, 131, 131, 137, 134, 132, 130, 131, 135, 134, 133, 136, 129, 134, 132, 129, 130, 128, 128, 132, 129, 125, 130, 127, 129, 128, 130, 127, 128, 121, 125, 124, 128, 126]}, "session-uid": "d2ee7267-6815-499f-84a4-ca03a268353c", "time": "2017-02-22T22:19:53.955000"}
-  json3 = {"data": {"sender": 37402, "msg_type": 2048, "crc": 61602, "length": 92, "preamble": 85, "payload": "AQC9vk8CZahEQAAAh6S3TvOKvUdkJShC+1a2PYCBfYGCg3+CgoCDhYeBhYWCgoKHhIKQiImKiYmJiYqLiYqHjImOkZONkJGTl5SXl56epampsrm7w8zW5ubx//U=", "contents": [1, 0, 189, 190, 79, 2, 101, 168, 68, 64, 0, 0, 135, 164, 183, 78, 243, 138, 189, 71, 100, 37, 40, 66, 251, 86, 182, 61, 128, 129, 125, 129, 130, 131, 127, 130, 130, 128, 131, 133, 135, 129, 133, 133, 130, 130, 130, 135, 132, 130, 144, 136, 137, 138, 137, 137, 137, 137, 138, 139, 137, 138, 135, 140, 137, 142, 145, 147, 141, 144, 145, 147, 151, 148, 151, 151, 158, 158, 165, 169, 169, 178, 185, 187, 195, 204, 214, 230, 230, 241, 255, 245]}, "session-uid": "d2ee7267-6815-499f-84a4-ca03a268353c", "time": "2017-02-22T22:19:53.955000"}
-  msg1 = base64.standard_b64decode(json1['data']['payload'])
-  msg2 = base64.standard_b64decode(json2['data']['payload'])
-  msg3 = base64.standard_b64decode(json3['data']['payload'])
-  from pprint import pprint as pp
-  print ''
-  pp(parse_payload(msg1))
-  print ''
-  pp(parse_payload(msg2))
-  print ''
-  pp(parse_payload(msg3))
