@@ -135,6 +135,7 @@ from piksi_tools.console.system_monitor_view import SystemMonitorView
 from piksi_tools.console.settings_view import SettingsView
 from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.imu_view import IMUView
+from piksi_tools.console.spectrum_analyzer_view import SpectrumAnalyzerView
 from piksi_tools.console.callback_prompt import CallbackPrompt, ok_button
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 
@@ -170,7 +171,6 @@ class ConsoleHandler(Handler):
     if info.initialized:
       info.ui.title =  info.object.dev_id + "(" + info.object.device_serial +") " + CONSOLE_TITLE
 
-
 class SwiftConsole(HasTraits):
   """Traits-defined Swift Console.
 
@@ -201,6 +201,7 @@ class SwiftConsole(HasTraits):
   settings_view = Instance(SettingsView)
   update_view = Instance(UpdateView)
   imu_view = Instance(IMUView)
+  spectrum_analyzer_view = Instance(SpectrumAnalyzerView)
   log_level_filter = Enum(list(SYSLOG_LEVELS.itervalues()))
 
 
@@ -235,7 +236,7 @@ class SwiftConsole(HasTraits):
    width=2, height=2,
   )
   json_logging_button = SVGButton(
-   toggle=True, label='JSON log', tooltip='start JSON logging', toggle_tooltip='stop JSON logging', 
+   toggle=True, label='JSON log', tooltip='start JSON logging', toggle_tooltip='stop JSON logging',
    filename=os.path.join(determine_path(), 'images', 'iconic', 'pause.svg'),
    toggle_filename=os.path.join(determine_path(), 'images', 'iconic', 'play.svg'),
    orientation = 'vertical',
@@ -270,6 +271,7 @@ class SwiftConsole(HasTraits):
           Item('system_monitor_view', style='custom', label='System Monitor'),
           Item('imu_view', style='custom', label='IMU'),
           Item('networking_view', label='Networking', style='custom', show_label=False),
+          Item('spectrum_analyzer_view', label='Spectrum Analyzer', style='custom'),
           Item('python_console_env', style='custom',
             label='Python Console', editor=ShellEditor()),
           label='Advanced',
@@ -466,7 +468,7 @@ class SwiftConsole(HasTraits):
       self._start_json_logging()
       self.json_logging = True
     self.first_json_press = False
-    
+
   def _json_logging_button_fired(self):
     if not os.path.exists(self.directory_name) and not self.json_logging:
       confirm_prompt = CallbackPrompt(
@@ -476,9 +478,9 @@ class SwiftConsole(HasTraits):
                            )
       confirm_prompt.text = "\nThe selected logging directory does not exist and will be created."
       confirm_prompt.run(block=False)
-    else: 
+    else:
       self._json_logging_button_action()
-  
+
   def _csv_logging_button_fired(self):
     if not os.path.exists(self.directory_name) and not self.csv_logging:
        confirm_prompt = CallbackPrompt(
@@ -488,9 +490,9 @@ class SwiftConsole(HasTraits):
                             )
        confirm_prompt.text = "\nThe selected logging directory does not exist and will be created."
        confirm_prompt.run(block=False)
-    else: 
+    else:
       self._csv_logging_button_action()
-  
+
   def __enter__(self):
     return self
 
@@ -508,7 +510,7 @@ class SwiftConsole(HasTraits):
     self.forwarder = None
     self.latency = '--'
     # if we have passed a logfile, we set our directory to it
-    override_filename = override_filename 
+    override_filename = override_filename
     home = expanduser("~")
     swift_path = os.path.normpath(os.path.join(home, 'SwiftNav'))
 
@@ -545,6 +547,7 @@ class SwiftConsole(HasTraits):
       self.system_monitor_view = SystemMonitorView(self.link)
       self.update_view = UpdateView(self.link, download_dir=swift_path, prompt=update, serial_upgrade=serial_upgrade)
       self.imu_view = IMUView(self.link)
+      self.spectrum_analyzer_view = SpectrumAnalyzerView(self.link)
       settings_read_finished_functions.append(self.update_view.compare_versions)
       if networking:
         import yaml
@@ -601,6 +604,7 @@ class SwiftConsole(HasTraits):
       self.python_console_env.update(self.update_view.python_console_cmds)
       self.python_console_env.update(self.imu_view.python_console_cmds)
       self.python_console_env.update(self.settings_view.python_console_cmds)
+      self.python_console_env.update(self.spectrum_analyzer_view.python_console_cmds)
 
     except:
       import traceback
@@ -765,3 +769,4 @@ try:
   os._exit(0)
 except:
   pass
+
