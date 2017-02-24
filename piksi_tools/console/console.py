@@ -638,11 +638,14 @@ class TextDisplay(HasTraits):
   view= View( Item('string', show_label = False, springy=True, style='custom', height=50  ))
 
 class DicoverThread(Thread):
+  interfaces = []
+  last_seen = []
   def run(self):
     #include <czmq.h>
     PING_PORT_NUMBER = 1500
     PING_MSG_SIZE    = 5
-    PING_INTERVAL    = 5  # Once per second
+    PING_INTERVAL    = 1  # Once per second
+    TIMEOUT          = 20  # Once per second
     # Create UDP socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
     # Ask operating system to let us do broadcasts from socket
@@ -651,16 +654,28 @@ class DicoverThread(Thread):
     sock.bind(('', PING_PORT_NUMBER))
     sock.setblocking(0)
     while not self.wants_abort:
-      ips = []
       try:
         while True:
           msg, addrinfo = sock.recvfrom(PING_MSG_SIZE)
           if msg[:2] == 'SN':
             sender_id = struct.unpack("<H", msg[2:4])[0]
-            ips.append(addrinfo[0]+':'+str(sender_id))
+            interface = addrinfo[0]+':'+str(sender_id)
+            try:
+              i = self.interfaces.index(interface)
+              self.last_seen[i] = time.time()
+            except ValueError:
+              self.interfaces.append(interface)
+              self.last_seen.append(time.time())
       except:
         pass
-      self.display.string = '\n'.join(map(str, ips))
+      
+      for i in range(len(self.interfaces)):
+        age = time.time() - self.last_seen[i]
+        if age > TIMEOUT:
+          del self.last_seen[i]
+          del self.interfaces[i]
+
+      self.display.string = '\n'.join(map(str, self.interfaces))
       time.sleep(PING_INTERVAL)
          
 # If using a device connected to an actual port, then invoke the
