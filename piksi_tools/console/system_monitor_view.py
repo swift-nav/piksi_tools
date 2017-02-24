@@ -200,13 +200,12 @@ class SystemMonitorView(HasTraits):
     self.link(MsgReset(flags=0))
 
   def _network_refresh_button_fired(self):
+    self._network_info = []
     self.link(MsgCommandReq(sequence=1, command='ifconfig'))
 
   def log_callback(self, m, **metadata):
-    if 'eth0' in m.text:
-      self._network_info = [(m.text,)]
-    elif 'inet' in m.text or 'RX' in m.text or 'TX' in m.text or 'MTU' in m.text or 'collision' in m.text or 'Interrupt' in m.text:
-      self._network_info.append((m.text,))
+    if 'IF: ' in m.text:
+      self._network_info.append((m.text[4:],))
   
   def uart_state_callback(self, m, **metadata):
     self.uart_a_tx_KBps = m.uart_a.tx_throughput
