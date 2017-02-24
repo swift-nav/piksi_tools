@@ -633,9 +633,13 @@ class ShowUsage(HasTraits):
     self.usage_str = "<pre>" + usage_str + '<br>' + usage + "</pre>"
 
 
+class HouseHandler(Handler):
+  def object_pool_changed(self,info):
+    info.ui.control.setStyleSheet('font-family: Courier;')
+
 class TextDisplay(HasTraits):
   string = Str()
-  view= View( Item('string', show_label = False, springy=True, style='custom', height=50  ))
+  view= View( Item('string', show_label = False, springy=True, style='custom', height=50),  handler = HouseHandler())
 
 class DicoverThread(Thread):
   interfaces = []
@@ -659,7 +663,7 @@ class DicoverThread(Thread):
           msg, addrinfo = sock.recvfrom(PING_MSG_SIZE)
           if msg[:2] == 'SN':
             sender_id = struct.unpack("<H", msg[2:4])[0]
-            interface = addrinfo[0]+':'+str(sender_id)
+            interface = '%-15s ID:%-5d' % (addrinfo[0], sender_id)
             try:
               i = self.interfaces.index(interface)
               self.last_seen[i] = time.time()
@@ -721,7 +725,7 @@ class PortChooser(HasTraits):
     buttons = ['OK', 'Cancel'],
     close_result=False,
     icon = icon,
-    width = 500,
+    width = 600,
     height = 200,
     title = 'Select serial Configuration',
   )
