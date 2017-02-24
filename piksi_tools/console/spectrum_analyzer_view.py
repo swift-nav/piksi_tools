@@ -28,7 +28,10 @@ class GpsTime():
   def __init__(self, week, TOW):
     self.TOW = TOW
     self.week = week
+  # these are probably not the most robust implementations
   def __cmp__(self, other):
+    if other == None:
+      return 1
     if self.week < other.week:
       return -1
     elif self.week > other.week:
@@ -41,6 +44,8 @@ class GpsTime():
       else:
         return 0
   def __eq__(self, other):
+    if type(other) != type(GpsTime(1,1)):
+      return False
     return (self.week == other.week) and (self.TOW == other.TOW)
   def __repr__(self):
     return '(week: {0}, TOW: {1})'.format(self.week, self.TOW)
@@ -150,18 +155,25 @@ class SpectrumAnalyzerView(HasTraits):
                    fft_data['amplitude_step']
                  )
     timestamp = GpsTime(fft_data['week'], fft_data['TOW'])
-    if timestamp > self.most_recent:
-      self.most_recent = timestamp
-    print 'appending to {0}'.format(timestamp)
-    self.data[timestamp]['frequencies'] = np.append(self.data[timestamp]['frequencies'], frequencies, axis=0)
-    self.data[timestamp]['amplitudes'] = np.append(self.data[timestamp]['amplitudes'], amplitudes, axis=0)
+    print '{0} {1}'.format(timestamp, fft_data['starting_frequency'])
+    if len(self.incomplete_data[timestamp]['frequencies']) + len(frequencies) == NUM_POINTS:
+      self.most_recent_complete_data['frequencies'] = np.append(self.incomplete_data[timestamp]['frequencies'], frequencies, axis=0)
+      self.most_recent_complete_data['amplitudes'] = np.append(self.incomplete_data[timestamp]['amplitudes'], amplitudes, axis=0)
+      self.incomplete_data.pop(timestamp)
+      if timestamp == None or timestamp > self.most_recent:
+        self.most_recent = timestamp
+    else:
+      self.incomplete_data[timestamp]['frequencies'] = np.append(self.incomplete_data[timestamp]['frequencies'], frequencies, axis=0)
+      self.incomplete_data[timestamp]['amplitudes'] = np.append(self.incomplete_data[timestamp]['amplitudes'], amplitudes, axis=0)
 
-    points_per_time = {k:len(self.data[k]['frequencies']) for k in self.data}
-    print len(self.data), points_per_time
     GUI.invoke_later(self.update_plot)
 
   def update_plot(self):
-    pass
+    most_recent_fft = self.most_recent_complete_data
+    if len(most_recent_fft['frequencies']) != 0:
+      self.plot_data.set_data('frequency', most_recent_fft['frequencies'])
+      self.plot_data.set_data('amplitude', most_recent_fft['amplitudes'])
+      self.plot.plot(('frequency', 'amplitude'), type='line', name='spectrum')
 
   def __init__(self, link):
     super(SpectrumAnalyzerView, self).__init__()
@@ -172,11 +184,13 @@ class SpectrumAnalyzerView(HasTraits):
     }
 
     # keys are GpsTime
-    self.data = defaultdict(lambda: {'frequencies': np.array([]), 'amplitudes': np.array([])})
+    self.incomplete_data = defaultdict(lambda: {'frequencies': np.array([]), 'amplitudes': np.array([])})
+    # self.complete_data = defaultdict(lambda: {'frequencies': np.array([]), 'amplitudes': np.array([])})
+    self.most_recent_complete_data = {'frequencies': np.array([]), 'amplitudes': np.array([])}
     self.most_recent = None
 
     self.plot_data = ArrayPlotData()
-    self.plot = Plot(self.plot_data)
+    self.plot = Plot(self.plot_data, emphasized=True)
 
     self.plot.title = 'Spectrum Analyzer'
     self.plot.title_color = [0, 0, 0.43]
