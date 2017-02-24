@@ -14,6 +14,7 @@ import piksi_tools.serial_link as s
 import sbp.client as sbpc
 import signal
 import sys
+import struct
 
 os.environ['REQUESTS_CA_BUNDLE'] = 'cacert.pem'
 
@@ -640,7 +641,7 @@ class DicoverThread(Thread):
   def run(self):
     #include <czmq.h>
     PING_PORT_NUMBER = 1500
-    PING_MSG_SIZE    = 3
+    PING_MSG_SIZE    = 5
     PING_INTERVAL    = 5  # Once per second
     # Create UDP socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -654,8 +655,9 @@ class DicoverThread(Thread):
       try:
         while True:
           msg, addrinfo = sock.recvfrom(PING_MSG_SIZE)
-          ips.append(addrinfo[0])
-          self.display.string = addrinfo[0]
+          if msg[:2] == 'SN':
+            sender_id = struct.unpack("<H", msg[2:4])[0]
+            ips.append(addrinfo[0]+':'+str(sender_id))
       except:
         pass
       self.display.string = '\n'.join(map(str, ips))
