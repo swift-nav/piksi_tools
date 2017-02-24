@@ -887,35 +887,42 @@
   type: boolean
   default value: 'True'
   expert: true
-  description: erase any stored ephmerides during boot
+  description: Erase stored ephmerides during boot
 
 - group: ndb
   name: erase_almanac
   type: boolean
   default value: 'True'
   expert: true
-  description: erase any stored almanac during boot
+  description: Erase stored almanacs during boot
 
 - group: ndb
   name: erase_almanac_wn
   type: boolean
   default value: 'True'
   expert: true
-  description: erase stored week number during boot
+  description: Erase stored almanac week numbers during boot
 
 - group: ndb
   name: erase_iono
   type: boolean
   default value: 'True'
   expert: true
-  description: erase any stored ionospheric parameters during
+  description: Erase stored ionospheric parameters during boot
 
 - group: ndb
   name: erase_lgf
   type: boolean
   default value: 'True'
   expert: true
-  description: erase stored last fix information
+  description: Erase stored last fix information during boot
+
+- group: ndb
+  name: erase_l2c_capb
+  type: boolean
+  default value: 'True'
+  expert: true
+  description: Erase stored L2C capability mask during boot
 
 - group: ndb
   name: lgf_update_s
