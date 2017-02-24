@@ -9,6 +9,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 import struct
+
 from collections import defaultdict
 import numpy as np
 
@@ -22,6 +23,29 @@ from sbp.user import SBP_MSG_USER_DATA
 
 # How many points are in each FFT?
 NUM_POINTS = 512
+
+class GpsTime():
+  def __init__(self, week, TOW):
+    self.TOW = TOW
+    self.week = week
+  def __cmp__(self, other):
+    if self.week < other.week:
+      return -1
+    elif self.week > other.week:
+      return 1
+    else:
+      if self.TOW < other.TOW:
+        return -1
+      elif self.TOW > other.TOW:
+        return 1
+      else:
+        return 0
+  def __eq__(self, other):
+    return (self.week == other.week) and (self.TOW == other.TOW)
+  def __repr__(self):
+    return '(week: {0}, TOW: {1})'.format(self.week, self.TOW)
+  def __hash__(self):
+    return (self.week, self.TOW).__hash__()
 
 class SpectrumAnalyzerView(HasTraits):
   python_console_cmds = Dict()
@@ -39,7 +63,7 @@ class SpectrumAnalyzerView(HasTraits):
     """
     Params
     ======
-    payload: is a hex string from the SBP_MSG_USER_DATA message payload
+    payload: is an array of ints representing bytes from the SBP_MSG_USER_DATA message 'contents'
 
     Returns
     =======
@@ -64,12 +88,16 @@ class SpectrumAnalyzerView(HasTraits):
 
     diff_amplitude      u8     28       N values in the above units
     """
+    # Turn the array of ints representing uint8 bytes back to binary, so you can use struct
+    # formatting to unpack it. Otherwise you would have to manually parse each byte.
+    pack_fmt_str = 'B' * len(raw_payload)
+    payload = struct.pack(pack_fmt_str, *raw_payload)
     payload_header_fmt_str = '<Hdhffff'
     payload_header_bytes = struct.calcsize(payload_header_fmt_str)
     diff_amplitude_n = (len(raw_payload) - payload_header_bytes)
     diff_amplitude_fmt_str = 'B' * diff_amplitude_n
     fmt_str = payload_header_fmt_str + diff_amplitude_fmt_str
-    parsed_payload = struct.unpack(fmt_str, raw_payload)
+    parsed_payload = struct.unpack(fmt_str, payload)
     fft_msg_header = [
       'user_msg_tag',
       'TOW',
@@ -110,8 +138,6 @@ class SpectrumAnalyzerView(HasTraits):
     '''
     # Need to figure out which user_msg_tag means it's an FFT message
     # for now assume that all SBP_MSG_USER_DATA is relevant
-    print "Got an FFT message!"
-    print sbp_msg
     fft_data = self.parse_payload(sbp_msg.contents)
     frequencies = self.get_frequencies(
                     fft_data['starting_frequency'],
@@ -123,28 +149,15 @@ class SpectrumAnalyzerView(HasTraits):
                    fft_data['diff_amplitudes'],
                    fft_data['amplitude_step']
                  )
-    timestamp = (fft_data['week'], fft_data['TOW'])
+    timestamp = GpsTime(fft_data['week'], fft_data['TOW'])
+    if timestamp > self.most_recent:
+      self.most_recent = timestamp
+    print 'appending to {0}'.format(timestamp)
+    self.data[timestamp]['frequencies'] = np.append(self.data[timestamp]['frequencies'], frequencies, axis=0)
+    self.data[timestamp]['amplitudes'] = np.append(self.data[timestamp]['amplitudes'], amplitudes, axis=0)
 
-    print 'updating view data with FFT for ', timestamp
-
-    if len(self.data[timestamp]['frequencies']) == 0:
-      self.data[timestamp]['frequencies'] = frequencies
-      self.data[timestamp]['amplitudes'] = amplitudes
-    elif frequencies[-1] < self.data[timestamp]['frequencies'][0]:
-      self.data[timestamp]['frequencies'] = frequencies + self.data[timestamp]['frequencies']
-      self.data[timestamp['amplitudes']] = amplitudes + self.data[timestamp]['amplitudes']
-    elif self.data[timestamp]['frequencies'][-1] < frequencies[0]:
-      self.data[timestamp]['frequencies'].extend(frequencies)
-      self.data[timestamp]['amplitudes'].extend(amplitudes)
-    else:
-      insert_index = 0
-      for i,freq in enumerate(self.data[timestamp]['frequencies']):
-        if frequencies[0] > freq:
-          insert_index = i
-          break
-      self.data[timestamp]['frequencies'][insert_index:insert_index] = frequencies
-      self.data[timestamp]['amplitudes'][insert_index:insert_index] = amplitudes
-
+    points_per_time = {k:len(self.data[k]['frequencies']) for k in self.data}
+    print len(self.data), points_per_time
     GUI.invoke_later(self.update_plot)
 
   def update_plot(self):
@@ -158,8 +171,9 @@ class SpectrumAnalyzerView(HasTraits):
       'spectrum': self
     }
 
-    # keys are tuples (week, TOW)
-    self.data = defaultdict(lambda: {'frequencies': [], 'amplitudes': []})
+    # keys are GpsTime
+    self.data = defaultdict(lambda: {'frequencies': np.array([]), 'amplitudes': np.array([])})
+    self.most_recent = None
 
     self.plot_data = ArrayPlotData()
     self.plot = Plot(self.plot_data)
