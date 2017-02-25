@@ -14,7 +14,7 @@ from collections import defaultdict
 import numpy as np
 
 from traits.api import Instance, HasTraits, Str, Dict
-from traitsui.api import Item, Spring, View, Spring
+from traitsui.api import Item, Spring, View, Spring, CheckListEditor
 from pyface.api import GUI
 from chaco.api import ArrayPlotData, Plot
 from enable.api import ComponentEditor
@@ -56,12 +56,14 @@ class SpectrumAnalyzerView(HasTraits):
   python_console_cmds = Dict()
   plot = Instance(Plot)
   plot_data = Instance(ArrayPlotData)
+  which_plot = Str("Channel 1")
   traits_view = View(
     Item(
       'plot',
       editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8)),
       show_label=False
-    )
+    ),
+    Item(name='which_plot', editor=CheckListEditor(values=["Channel 1","Channel 2","Channel 3","Channel 4"]))
   )
 
   def parse_payload(self, raw_payload):
@@ -144,6 +146,12 @@ class SpectrumAnalyzerView(HasTraits):
     # Need to figure out which user_msg_tag means it's an FFT message
     # for now assume that all SBP_MSG_USER_DATA is relevant
     fft_data = self.parse_payload(sbp_msg.contents)
+    tag = fft_data['user_msg_tag']
+    if (tag == 1 and self.which_plot != "Channel 1"): return
+    if (tag == 2 and self.which_plot != "Channel 2"): return
+    if (tag == 3 and self.which_plot != "Channel 3"): return
+    if (tag == 4 and self.which_plot != "Channel 4"): return
+    #~ print '{0} {1}'.format(tag, self.which_plot)
     frequencies = self.get_frequencies(
                     fft_data['starting_frequency'],
                     fft_data['frequency_step'],
@@ -155,7 +163,7 @@ class SpectrumAnalyzerView(HasTraits):
                    fft_data['amplitude_step']
                  )
     timestamp = GpsTime(fft_data['week'], fft_data['TOW'])
-    print '{0} {1}'.format(timestamp, fft_data['starting_frequency'])
+    #~ print '{0} {1}'.format(timestamp, fft_data['starting_frequency'])
     if len(self.incomplete_data[timestamp]['frequencies']) + len(frequencies) == NUM_POINTS:
       self.most_recent_complete_data['frequencies'] = np.append(self.incomplete_data[timestamp]['frequencies'], frequencies, axis=0)
       self.most_recent_complete_data['amplitudes'] = np.append(self.incomplete_data[timestamp]['amplitudes'], amplitudes, axis=0)
@@ -198,4 +206,4 @@ class SpectrumAnalyzerView(HasTraits):
     self.plot.value_axis.orientation = 'right'
     self.plot.value_axis.title = 'Amplitude (dB)'
 
-    self.plot.index_axis.title = 'Frequency (Hz)'
+    self.plot.index_axis.title = 'Frequency (MHz)'
