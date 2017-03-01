@@ -11,6 +11,8 @@ InstallDir "$PROGRAMFILES\Swift Navigation\Swift Console"
 ; The text to prompt the user to enter a directory
 DirText "This will install Swift Console on your computer. Choose a directory"
 
+; Show the message window in the uninstaller
+ShowUninstDetails show
 ;--------------------------------
 
 ; The stuff to install
@@ -37,13 +39,25 @@ SectionEnd ; end the section
 
 ; The uninstall section
 Section "Uninstall"
+SetOutPath $TEMP
+MessageBox MB_OKCANCEL "The Uninstaller will remove the entire contents of folder $INSTDIR" IDYES true IDCancel false
+true:
+  Goto uninstall 
+false: Goto uninstall_abort 
 
-RMDir /r /REBOOTOK "$INSTDIR/.."
+uninstall_abort:
+     DetailPrint "Uninstall aborted"
+     Abort
+
+uninstall:
+RMDir /r /REBOOTOK "$INSTDIR"
 
 ; Now remove shortcuts too
+Delete "$DESKTOP\Swift Console.lnk"
 Delete "$SMPROGRAMS\Swift Navigation\Swift Console.lnk"
 Delete "$SMPROGRAMS\Swift Navigation\Uninstall.lnk"
 RMDir "$SMPROGRAMS\Swift Navigation"
+
 
 SectionEnd
 
