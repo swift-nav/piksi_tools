@@ -623,7 +623,7 @@ class ShowUsage(HasTraits):
   traits_view = View(
                      Item("usage_str", style='readonly', show_label=False, 
                           editor=HTMLEditor(), resizable=True),
-                     width=680, resizable=True)
+                     width=680, resizable=True, icon=icon)
   def __init__(self, usage):
     self.usage_str = "<pre>" + usage_str + '<br>' + usage + "</pre>"
 
