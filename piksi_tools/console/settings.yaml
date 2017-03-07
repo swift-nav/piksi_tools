@@ -775,7 +775,34 @@
   units: us (microseconds)
   default value: '200000'
   enumerated possible values:
-  Description: Number of microseconds the PPS will remain high (allowed range from 1 to 999999 us)
+  Description: Number of microseconds the PPS will remain active (allowed range from 1 to 999999 us)
+  Notes:
+
+- group: pps
+  name: polarity
+  type: integer
+  units: Logic Level
+  default value: '1'
+  enumerated possible values: 0, 1
+  Description: Logic level on output pin when the PPS is active
+  Notes:
+
+- group: pps
+  name: offset
+  type: integer
+  units: us (microseconds)
+  default value: '0'
+  enumerated possible values:
+  Description: Offset in microseconds between GPS time and the PPS
+  Notes:
+
+- group: pps
+  name: frequency
+  type: double
+  units: Hz
+  default value: '1.0'
+  enumerated possible values:
+  Description: Generate a pulse with the given frequency (maximum = 20 Hz)
   Notes:
 
 - group: acquisition
@@ -849,7 +876,7 @@
   name: imu_raw_output
   type: boolean
   default value: 'False'
-  Description: Enable/Disable IMU raw data output from onboard Bosch BMI160 IMU 
+  Description: Enable/Disable IMU raw data output from onboard Bosch BMI160 IMU
   Notes:  The IMU raw data can be seen in the advanced tabs of the Swift Console
 
 - group: imu
