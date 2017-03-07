@@ -19,6 +19,7 @@ from traits.api import HasTraits, Str, Bool, Trait, Int, List, Font, Float, \
 from traitsui.api import View, UItem, TabularEditor
 from pyface.api import GUI
 from traitsui.tabular_adapter import TabularAdapter
+from piksi_tools.utils import sopen
 import time
 import os
 
@@ -193,7 +194,8 @@ class OutputList(HasTraits):
 
   def __init__(self, tfile=False, outdir=''):
     if tfile:
-      self.logfile = open(os.path.join(outdir, LOGFILE), 'w')
+     
+      self.logfile = sopen(os.path.join(outdir, LOGFILE), 'w')
       self.tfile = True
     else:
       self.tfile=False 
