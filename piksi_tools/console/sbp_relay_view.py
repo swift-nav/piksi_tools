@@ -185,7 +185,7 @@ class SkylarkWatchdogThread(threading.Thread):
                " - your Piksi has a single-point position\n"
                " - a Skylark-connected Piksi receiver \n   is nearby (within 5km)")
         self._prompt_networking_error(msg)
-        http.read_close()
+        http.close()
         self.stop()
         return -2 # Unable to connect as rover
 
@@ -204,7 +204,9 @@ class SkylarkWatchdogThread(threading.Thread):
     if self.verbose:
       print "Stopping forwarder"
     fwd.stop()
-
+    if self.verbose:
+      print "Stopping HTTPDriver"
+    http.close() 
     # now manage the return code
     if self.stopped():
       return 0 # If we stop from the event, it it intended and we return 0
