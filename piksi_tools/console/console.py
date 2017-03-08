@@ -15,6 +15,8 @@ import sbp.client as sbpc
 import signal
 import sys
 
+os.environ['REQUESTS_CA_BUNDLE'] = 'cacert.pem'
+
 import math
 import numpy as np
 import datetime
