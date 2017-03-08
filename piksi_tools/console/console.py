@@ -550,7 +550,7 @@ class SwiftConsole(HasTraits):
       self.observation_view = ObservationView(self.link, name='Local', relay=False, dirname=self.directory_name)
       self.observation_view_base = ObservationView(self.link, name='Remote', relay=True, dirname=self.directory_name)
       self.system_monitor_view = SystemMonitorView(self.link)
-      self.update_view = UpdateView(self.link, prompt=update, serial_upgrade=serial_upgrade)
+      self.update_view = UpdateView(self.link, download_dir=swift_path, prompt=update, serial_upgrade=serial_upgrade)
       self.imu_view = IMUView(self.link)
       settings_read_finished_functions.append(self.update_view.compare_versions)
       if skylark:
