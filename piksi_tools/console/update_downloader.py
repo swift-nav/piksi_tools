@@ -14,6 +14,8 @@ from json import load as jsonload
 from urlparse import urlparse
 import os
 
+from piksi_tools.utils import sopen
+
 INDEX_URL = 'http://downloads.swiftnav.com/index.json'
 
 class UpdateDownloader:
@@ -64,7 +66,7 @@ class UpdateDownloader:
     filename = os.path.join(self.root_dir, filename)
     url_file = urlopen(url)
     blob = url_file.read()
-    with open(filename, 'wb') as f:
+    with sopen(filename, 'wb') as f:
       f.write(blob)
     url_file.close()
 

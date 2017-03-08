@@ -304,7 +304,7 @@ class UpdateView(HasTraits):
     )
   )
 
-  def __init__(self, link, prompt=True, serial_upgrade=False):
+  def __init__(self, link, download_dir=None, prompt=True, serial_upgrade=False):
     """
     Traits tab with UI for updating Piksi firmware.
 
@@ -324,6 +324,8 @@ class UpdateView(HasTraits):
     }
     try:
       self.update_dl = UpdateDownloader()
+      if download_dir:
+        self.update_dl.set_root_path(download_dir)
     except URLError:
       self.update_dl = None
       pass
