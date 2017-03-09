@@ -694,33 +694,43 @@ if show_usage:
   usage.configure_traits()
   sys.exit(1)
 
-if args.tcp:
+selected_driver = None
+if port and args.tcp:
+  # Use the TPC driver and interpret port arg as host:port
   try:
     host, port = port.split(':')
     selected_driver = TCPDriver(host, int(port))
   except:
     raise Exception('Invalid host and/or port')
     sys.exit(1)
-
-else:
-  if not port:
-    port_chooser = PortChooser(baudrate=int(args.baud))
-    is_ok = port_chooser.configure_traits()
-    ip_address = port_chooser.ip_address
-    ip_port = port_chooser.ip_port
-    port = port_chooser.port
-    baud = port_chooser.baudrate
-    if not port or not is_ok:
-      print "No serial device selected!"
-      sys.exit(1)
+elif port and args.file:
+  # Use file and interpret port arg as the file
+    print "Using file '%s'" % port
+    selected_driver = s.get_driver(args.ftdi, port, baud, args.file)
+elif not port:
+  # Use the gui to get our driver
+  port_chooser = PortChooser(baudrate=int(args.baud))
+  is_ok = port_chooser.configure_traits()
+  ip_address = port_chooser.ip_address
+  ip_port = port_chooser.ip_port
+  port = port_chooser.port
+  baud = port_chooser.baudrate
+  if not port or not is_ok:
+    print "No serial device selected!"
+    sys.exit(1)
+  else:
+    # Use either TCP/IP or serial selected from gui
+    if port == "TCP/IP":
+      print "Using TCP/IP at address %s and port %d" % (ip_address, ip_port)
+      selected_driver = TCPDriver(ip_address, int(ip_port))
     else:
-      if port == "TCP/IP":
-        print "Using TCP/IP at address %s and port %d" % (ip_address, ip_port)
-        selected_driver = TCPDriver(ip_address, int(ip_port))
-      else:
-        print "Using serial device '%s'" % port
-        selected_driver = s.get_driver(args.ftdi, port, baud, args.file)
-
+      print "Using serial device '%s'" % port
+      selected_driver = s.get_driver(args.ftdi, port, baud, args.file)
+else:
+  # Use the port passed and assume serial connection
+  print "Using serial device '%s'" % port
+  selected_driver = s.get_driver(args.ftdi, port, baud, args.file)
+  
 with selected_driver as driver:
   with sbpc.Handler(sbpc.Framer(driver.read, driver.write, args.verbose)) as link:
     if args.reset:
