@@ -52,7 +52,7 @@ def get_args():
   """
   Get and parse arguments.
   """
-  parser = s.base_cl_options(override_arg_parse=ConsoleArgumentParser)
+  parser = s.base_cl_options(override_arg_parse=ConsoleArgumentParser, add_help=False)
   parser.description = 'Swift Console'
   parser.add_argument("-i", "--initloglevel",
                       default=[None], nargs=1,
@@ -70,7 +70,7 @@ def get_args():
                       help="key value pairs to pass to sbp_relay_view initializer for skylark")
   parser.add_argument('--serial-upgrade', action='store_true',
                       help="Allow software upgrade over serial.")
-  parser.add_argument('--show-usage', action='store_true',
+  parser.add_argument('-h', '--help', action='store_true',
                       help="Show usage help in a GUI popup.")
   return parser
 args = None
@@ -79,13 +79,12 @@ try:
   args = parser.parse_args()
   port = args.port
   baud = args.baud
-  show_usage = args.show_usage
-  usage_str = ""
+  show_usage = args.help
+  error_str = ""
 except (ArgumentParserError, argparse.ArgumentError, argparse.ArgumentTypeError) as e:
  print e
- parser.print_usage()
  show_usage = True
- usage_str = str(e)
+ error_str = "ERROR: " + str(e) 
  pass
 
 # Toolkit
@@ -625,9 +624,13 @@ class ShowUsage(HasTraits):
   traits_view = View(
                      Item("usage_str", style='readonly', show_label=False, 
                           editor=HTMLEditor(), resizable=True),
-                     width=680, resizable=True, icon=icon)
-  def __init__(self, usage):
-    self.usage_str = "<pre>" + usage_str + '<br>' + usage + "</pre>"
+                     width=680, resizable=True, icon=icon,
+                     title='Swift Console Usage')
+  def __init__(self, usage, error_str):
+    if error_str != "":
+      self.usage_str = "<pre>" + error_str + '<br><br><br>' + usage + "</pre>"
+    else:
+      self.usage_str = "<pre>" + usage + "</pre>"
 
 # If using a device connected to an actual port, then invoke the
 # regular console dialog for port selection
@@ -666,7 +669,9 @@ class PortChooser(HasTraits):
     except TypeError:
       pass
 if show_usage:
-  usage = ShowUsage(parser.format_help())
+  usage_str = parser.format_help()
+  print usage_str
+  usage = ShowUsage(usage_str, error_str)
   usage.configure_traits()
   sys.exit(1)
 

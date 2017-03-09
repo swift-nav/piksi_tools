@@ -48,13 +48,13 @@ def get_ports():
   """
   return [p for p in serial.tools.list_ports.comports() if p[1][0:4] != "ttyS"]
 
-def base_cl_options(override_arg_parse=None):
+def base_cl_options(override_arg_parse=None, add_help=True):
   import argparse
   if override_arg_parse:
     parserclass = override_arg_parse
   else:
     parserclass = argparse.ArgumentParser
-  parser = parserclass(description="Swift Navigation SBP Client.")
+  parser = parserclass(description="Swift Navigation SBP Client.", add_help=add_help)
   parser.add_argument("-p", "--port",
                       default=None,
                       help="specify the serial port to use.")
