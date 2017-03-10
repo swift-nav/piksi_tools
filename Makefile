@@ -47,11 +47,10 @@ serial_deps:
 	pip install -r requirements.txt
 
 gen_readme:
-	PYTHONPATH=. piksi_tools/console/console.py -h > piksi_tools/console/README.txt
+	PYTHONPATH=. piksi_tools/console/console.py -h > piksi_tools/console/README.txt 
 	tail -n +2  piksi_tools/console/README.txt > tmp.txt && mv tmp.txt piksi_tools/console/README.txt
 
 build_console:
-	make gen_readme
 	make build_console_$(UNAME)
 
 build_console_posix:
