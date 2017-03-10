@@ -1,13 +1,12 @@
-usage: console.py [-h] [-p PORT] [-b BAUD] [-v] [-f] [-l] [-r]
-                  [-o LOG_DIRNAME] [--logfilename LOGFILENAME]
-                  [-a APPEND_LOG_FILENAME] [--file] [-d TAGS] [-t]
-                  [-i INITLOGLEVEL] [-u] [--toolkit TOOLKIT] [--error]
-                  [--log-console] [--skylark SKYLARK] [--serial-upgrade]
+usage: console.py [-p PORT] [-b BAUD] [-v] [-f] [-l] [-r] [-o LOG_DIRNAME]
+                  [--logfilename LOGFILENAME] [-a APPEND_LOG_FILENAME]
+                  [--file] [-d TAGS] [-t] [-i INITLOGLEVEL] [-u]
+                  [--toolkit TOOLKIT] [--error] [--log-console]
+                  [--skylark SKYLARK] [--serial-upgrade] [-h]
 
 Swift Console
 
 optional arguments:
-  -h, --help            show this help message and exit
   -p PORT, --port PORT  specify the serial port to use.
   -b BAUD, --baud BAUD  specify the baud rate to use.
   -v, --verbose         print extra debugging information.
@@ -36,3 +35,5 @@ optional arguments:
   --skylark SKYLARK     key value pairs to pass to sbp_relay_view initializer
                         for skylark
   --serial-upgrade      Allow software upgrade over serial.
+  -h, --help            Show usage help in a GUI popup.
+
