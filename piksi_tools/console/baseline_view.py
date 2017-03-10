@@ -17,8 +17,8 @@ from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.api import GUI
 from piksi_tools.console.utils import plot_square_axes, determine_path, mode_dict, get_mode, color_dict
-from piksi_tools.console.utils import FLOAT_MODE, SPP_MODE, DGNSS_MODE, NO_FIX_MODE, FIXED_MODE, EMPTY_STR
-from piksi_tools.console.utils import sopen        
+from piksi_tools.console.utils import FLOAT_MODE, SPP_MODE, DGNSS_MODE, NO_FIX_MODE, FIXED_MODE, EMPTY_STR, \
+                                      sopen, log_time_strings       
 
 import math
 import os
@@ -180,37 +180,35 @@ class BaselineView(HasTraits):
     if self.nsec is not None:
       tow += self.nsec * 1e-9
 
-    if self.week is not None:
-      t = datetime.datetime(1980, 1, 6) + \
-          datetime.timedelta(weeks=self.week) + \
-          datetime.timedelta(seconds=tow)
-      tstr = t.strftime('%Y-%m-%d %H:%M')
-      secs = t.strftime('%S.%f')
-     
-      if self.directory_name_b == '':
-          filepath = time.strftime("baseline_log_%Y%m%d-%H%M%S.csv")
-      else:
-          filepath = os.path.join(self.directory_name_b, time.strftime("baseline_log_%Y%m%d-%H%M%S.csv"))
+    ((tloc, secloc), (tgps, secgps)) = log_time_strings(self.week, tow)  
+   
+    if self.directory_name_b == '':
+        filepath = time.strftime("baseline_log_%Y%m%d-%H%M%S.csv")
+    else:
+        filepath = os.path.join(self.directory_name_b, time.strftime("baseline_log_%Y%m%d-%H%M%S.csv"))
 
+    if self.logging_b ==  False:
+      self.log_file = None
 
-      if self.logging_b ==  False:
-        self.log_file = None
-
-      if self.logging_b:
-        if self.log_file is None:
-          self.log_file = sopen(filepath, 'w')          
-          self.log_file.write('time,north(meters),east(meters),down(meters),h_accuracy(meters),v_accuracy(meters),'
-                              'distance(meters),num_sats,flags,num_hypothesis\n')
-        self.log_file.write('%s,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%d,%d,%d\n' % (
-         "{0}:{1:06.6f}".format(tstr, float(secs)),
-          soln.n, soln.e, soln.d, 
-          soln.h_accuracy, soln.v_accuracy,
-          dist,
-          soln.n_sats,
-          soln.flags,
-          self.num_hyps)
-        )
-        self.log_file.flush()
+    if self.logging_b:
+      if self.log_file is None:
+        self.log_file = sopen(filepath, 'w')
+        self.log_file.write('pc_time,gps_time,tow(msec),north(meters),east(meters),down(meters),h_accuracy(meters),v_accuracy(meters),'
+                            'distance(meters),num_sats,flags,num_hypothesis\n')
+      log_str_gps = ''
+      if tgps != '' and secgps != 0:
+        log_str_gps = "{0}:{1:06.6f}".format(tgps, float(secgps)) 
+      self.log_file.write('%s,%s,%.3f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%d,%d,%d\n' % (
+        "{0}:{1:06.6f}".format(tloc, float(secloc)), 
+        log_str_gps,
+        tow, soln.n, soln.e, soln.d, 
+        soln.h_accuracy, soln.v_accuracy,
+        dist,
+        soln.n_sats,
+        soln.flags,
+        self.num_hyps)
+      )
+      self.log_file.flush()
 
     self.last_mode = get_mode(soln)
 
@@ -230,7 +228,7 @@ class BaselineView(HasTraits):
     else:
       self.last_btime_update = time.time()
       if self.week is not None:
-        table.append(('GPS Time', "{0}:{1:06.3f}".format(tstr, float(secs))))
+        table.append(('GPS Time', "{0}:{1:06.3f}".format(tgps, float(secgps))))
         table.append(('GPS Week', str(self.week)))
       table.append(('GPS TOW', "{:.3f}".format(tow)))
       table.append(('N', soln.n))
