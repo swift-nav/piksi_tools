@@ -638,8 +638,8 @@ class ShowUsage(HasTraits):
 class PortChooser(HasTraits):
   ports = List()
   port = Str(None)
-  mode = Enum(['Serial', 'TCP/IP'])
-  flow_control = Bool(False)
+  mode = Enum(['Serial/USB', 'TCP/IP'])
+  flow_control = Enum(['None', 'Hardware RTS/CTS'])
   ip_port = Int(55555)
   ip_address = Str('192.168.0.222')
   choose_baud = Bool(True)
@@ -647,7 +647,11 @@ class PortChooser(HasTraits):
   traits_view = View(
     VGroup(
      Spring(height=8),
-     Item('mode', style='custom', editor=EnumEditor(values=['Serial', 'TCP/IP'], cols=2, format_str='%s'), show_label=False),
+     HGroup(
+      Spring(width=-2, springy=False),
+      Item('mode', style='custom', editor=EnumEditor(values=['Serial/USB', 'TCP/IP'], 
+                                                     cols=2, format_str='%s'), show_label=False)
+     ),
     HGroup(
       VGroup(
         Label('Serial Device:'),
@@ -659,14 +663,15 @@ class PortChooser(HasTraits):
         Item('baudrate', show_label=False, visible_when='not choose_baud', style='readonly'), 
         ),
       VGroup(
-        Label('RTS/CTS'),
-        Item('flow_control', show_label=False),
+        Label('Flow Control:'),
+        Item('flow_control', editor=EnumEditor(values=['None','Hardware RTS/CTS'], format_str='%s'), show_label=False),
       ),
-      visible_when="mode==\'Serial\'"),
+      visible_when="mode==\'Serial/USB\'"),
         HGroup(
           VGroup( 
             Label('IP Address:'),
-            Item('ip_address', label="IP Address", style='simple', show_label=False, height=-24),
+            Item('ip_address', label="IP Address", style='simple', show_label=False, 
+                 height=-24),
           ),
           VGroup(
             Label('IP Port:'),
@@ -680,7 +685,7 @@ class PortChooser(HasTraits):
     close_result=False,
     icon = icon,
     width = 400,
-    title = 'Select Interface',
+    title = 'Swift Console - Select Piksi Interface',
   )
 
   def __init__(self, baudrate=None):
@@ -713,7 +718,7 @@ elif port and args.file:
   # Use file and interpret port arg as the file
     print "Using file '%s'" % port
     selected_driver = s.get_driver(args.ftdi, port, baud, args.file)
-    connection_description = os.path.split(port)[-1]
+    connection_description = os.path.split(port)[-1] 
 elif not port:
   # Use the gui to get our driver
   port_chooser = PortChooser(baudrate=int(args.baud))
@@ -732,16 +737,16 @@ elif not port:
     if mode == "TCP/IP":
       print "Using TCP/IP at address %s and port %d" % (ip_address, ip_port)
       selected_driver = TCPDriver(ip_address, int(ip_port))
-      connection_description = ip_address + ":" + ip_port
+      connection_description = ip_address + ":" + str(ip_port)
     else:
       print "Using serial device '%s'" % port
       selected_driver = s.get_driver(args.ftdi, port, baud, args.file)
-      connection_description = os.path.split(port)[-1] 
+      connection_description = os.path.split(port)[-1]  + " @" + str(baud)
 else:
   # Use the port passed and assume serial connection
   print "Using serial device '%s'" % port
   selected_driver = s.get_driver(args.ftdi, port, baud, args.file)
-  connection_description = os.path.split(port)[-1] 
+  connection_description = os.path.split(port)[-1]  + " @" + str(baud)
   
 with selected_driver as driver:
   with sbpc.Handler(sbpc.Framer(driver.read, driver.write, args.verbose)) as link:
