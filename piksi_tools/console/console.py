@@ -224,7 +224,7 @@ class SwiftConsole(HasTraits):
 
   mode = Str('')
   num_sats = Int(0)
-  port = Str('')
+  cnx_desc = Str('')
   latency = Str('')
   directory_name = Directory
   json_logging = Bool(True)
@@ -310,8 +310,8 @@ class SwiftConsole(HasTraits):
         ),
         HGroup(
           Spring(width=4, springy=False),
-          Item('', label='PORT:', emphasized=True, tooltip='Serial Port that Swift device is connected to'),
-          Item('port', show_label=False, style = 'readonly'),
+          Item('', label='Interface:', emphasized=True, tooltip='Interface for communicating with Swift device'),
+          Item('cnx_desc', show_label=False, style = 'readonly'),
           Item('', label='FIX TYPE:', emphasized = True, tooltip='Device Mode: SPS, Float RTK, Fixed RTK'),
           Item('mode', show_label = False, style = 'readonly'),
           Item('', label='#Sats:', emphasized=True, tooltip='Number of satellites used in solution'),
@@ -506,11 +506,11 @@ class SwiftConsole(HasTraits):
     self.console_output.close()
   
   def __init__(self, link, update, log_level_filter, skip_settings=False, error=False, 
-               port=None, json_logging=False, log_dirname=None, override_filename=None, 
+               cnx_desc=None, json_logging=False, log_dirname=None, override_filename=None, 
                log_console=False, skylark="", serial_upgrade=False):
     self.error = error
-    self.port = port
-    self.dev_id = str(os.path.split(port)[1])
+    self.cnx_desc = cnx_desc
+    self.dev_id = cnx_desc
     self.num_sats = 0
     self.mode = ''
     self.forwarder = None
@@ -634,54 +634,58 @@ class ShowUsage(HasTraits):
 
 # If using a device connected to an actual port, then invoke the
 # regular console dialog for port selection
+
 class PortChooser(HasTraits):
   ports = List()
   port = Str(None)
+  mode = Enum(['Serial', 'TCP/IP'])
+  flow_control = Bool(False)
   ip_port = Int(55555)
   ip_address = Str('192.168.0.222')
   choose_baud = Bool(True)
-  is_tcpip = Bool(False)
-  baudrate = Int() #um(57600, 115200, 921600, 1000000)
+  baudrate = Int()
   traits_view = View(
+    VGroup(
+     Spring(height=8),
+     Item('mode', style='custom', editor=EnumEditor(values=['Serial', 'TCP/IP'], cols=2, format_str='%s'), show_label=False),
     HGroup(
       VGroup(
-        VGroup(
-          Label('Select Swift device:'),
-          Item('port', editor=EnumEditor(name='ports'), show_label=False),
-          visible_when='True'
-        ),
+        Label('Serial Device:'),
+        Item('port', editor=EnumEditor(name='ports'), show_label=False),
       ),
       VGroup(
-        VGroup(
-          Label('Baudrate:'),
-          Item('baudrate', editor=EnumEditor(values=BAUD_LIST), show_label=False, visible_when='choose_baud'),
-          Item('baudrate', show_label=False, visible_when='not choose_baud', style='readonly'), 
-          visible_when="not is_tcpip"),
-        VGroup( 
-          Item(" ", height=-8),
-          Item('ip_address', label="IP Address", style='simple', show_label=True, width=100),
-          Item('ip_port', label="IP Port", style='simple', show_label=True, width=100 ),
-          visible_when="is_tcpip"
+        Label('Baudrate:'),
+        Item('baudrate', editor=EnumEditor(values=BAUD_LIST), show_label=False, visible_when='choose_baud'),
+        Item('baudrate', show_label=False, visible_when='not choose_baud', style='readonly'), 
         ),
+      VGroup(
+        Label('RTS/CTS'),
+        Item('flow_control', show_label=False),
       ),
-    ),
+      visible_when="mode==\'Serial\'"),
+        HGroup(
+          VGroup( 
+            Label('IP Address:'),
+            Item('ip_address', label="IP Address", style='simple', show_label=False, height=-24),
+          ),
+          VGroup(
+            Label('IP Port:'),
+            Item('ip_port', label="IP Port", style='simple', show_label=False, height=-24),
+          ),
+          Spring(),
+         visible_when="mode==\'TCP/IP\'"
+         ),
+       ),
     buttons = ['OK', 'Cancel'],
     close_result=False,
     icon = icon,
     width = 400,
-    title = 'Select serial Configuration',
+    title = 'Select Interface',
   )
-  def _port_changed(self, name, old, new):
-    if new  == "TCP/IP":
-      self.is_tcpip = True
-    else:
-      self.is_tcpip = False
 
   def __init__(self, baudrate=None):
-    self.is_tcpip = False
     try:
       self.ports = [p for p, _, _ in s.get_ports()]
-      self.ports.append("TCP/IP")
       if baudrate not in BAUD_LIST:
         self.choose_baud = False
       self.baudrate = baudrate
@@ -695,11 +699,13 @@ if show_usage:
   sys.exit(1)
 
 selected_driver = None
+connection_description=""
 if port and args.tcp:
   # Use the TPC driver and interpret port arg as host:port
   try:
-    host, port = port.split(':')
-    selected_driver = TCPDriver(host, int(port))
+    host, ip_port = port.split(':')
+    selected_driver = TCPDriver(host, int(ip_port))
+    connection_description = port
   except:
     raise Exception('Invalid host and/or port')
     sys.exit(1)
@@ -707,6 +713,7 @@ elif port and args.file:
   # Use file and interpret port arg as the file
     print "Using file '%s'" % port
     selected_driver = s.get_driver(args.ftdi, port, baud, args.file)
+    connection_description = os.path.split(port)[-1]
 elif not port:
   # Use the gui to get our driver
   port_chooser = PortChooser(baudrate=int(args.baud))
@@ -715,21 +722,26 @@ elif not port:
   ip_port = port_chooser.ip_port
   port = port_chooser.port
   baud = port_chooser.baudrate
-  if not port or not is_ok:
-    print "No serial device selected!"
+  mode = port_chooser.mode
+  # if the user pressed cancel or didn't select anything
+  if not (port or (ip_address and ip_port)) or not is_ok:
+    print "No Interface selected!"
     sys.exit(1)
   else:
     # Use either TCP/IP or serial selected from gui
-    if port == "TCP/IP":
+    if mode == "TCP/IP":
       print "Using TCP/IP at address %s and port %d" % (ip_address, ip_port)
       selected_driver = TCPDriver(ip_address, int(ip_port))
+      connection_description = ip_address + ":" + ip_port
     else:
       print "Using serial device '%s'" % port
       selected_driver = s.get_driver(args.ftdi, port, baud, args.file)
+      connection_description = os.path.split(port)[-1] 
 else:
   # Use the port passed and assume serial connection
   print "Using serial device '%s'" % port
   selected_driver = s.get_driver(args.ftdi, port, baud, args.file)
+  connection_description = os.path.split(port)[-1] 
   
 with selected_driver as driver:
   with sbpc.Handler(sbpc.Framer(driver.read, driver.write, args.verbose)) as link:
@@ -738,7 +750,7 @@ with selected_driver as driver:
     log_filter = DEFAULT_LOG_LEVEL_FILTER
     if args.initloglevel[0]:
       log_filter = args.initloglevel[0]
-    with SwiftConsole(link, args.update, log_filter, port=port, error=args.error, 
+    with SwiftConsole(link, args.update, log_filter, cnx_desc=connection_description, error=args.error, 
                  json_logging=args.log, log_dirname=args.log_dirname, override_filename=args.logfilename,
                  log_console=args.log_console, skylark=args.skylark, 
                  serial_upgrade=args.serial_upgrade) as console: 
