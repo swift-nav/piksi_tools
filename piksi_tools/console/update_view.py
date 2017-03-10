@@ -577,7 +577,12 @@ class UpdateView(HasTraits):
     if self.update_dl == None:
       self._write("Error: No website index to use to compare versions with local firmware")
       return
-
+    # Get local stm version
+    local_stm_version = None
+    try:
+      local_stm_version = self.settings['system_info']['firmware_version'].value
+    except:
+      pass
     # Check if console is out of date and notify user if so.
     if self.prompt:
       local_console_version = parse_version(CONSOLE_VERSION)
@@ -625,7 +630,6 @@ class UpdateView(HasTraits):
       sleep(0.5)
 
       # Check if firmware is out of date and notify user if so.
-      local_stm_version = self.settings['system_info']['firmware_version'].value
       remote_stm_version = self.newest_stm_vers
 
       self.fw_outdated = remote_stm_version > local_stm_version
