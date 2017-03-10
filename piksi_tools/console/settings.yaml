@@ -600,6 +600,15 @@
     reporting the event, including a timestamp accurate to better than
     a microsecond.
 
+- group: ext_events
+  name: sensitivity
+  type: integer
+  units: us (microseconds)
+  default value: 0
+  enumerated possible values:
+  Description: Minimum time between events (0 = disabled)
+  Notes:
+
 - group: track
   name: elevation_mask
   expert: true
@@ -849,7 +858,7 @@
   name: imu_raw_output
   type: boolean
   default value: 'False'
-  Description: Enable/Disable IMU raw data output from onboard Bosch BMI160 IMU 
+  Description: Enable/Disable IMU raw data output from onboard Bosch BMI160 IMU
   Notes:  The IMU raw data can be seen in the advanced tabs of the Swift Console
 
 - group: imu
