@@ -15,8 +15,6 @@ import sbp.client as sbpc
 import signal
 import sys
 
-os.environ['REQUESTS_CA_BUNDLE'] = 'cacert.pem'
-
 import math
 import numpy as np
 import datetime
@@ -126,6 +124,8 @@ from threading import Thread, Event
 
 basedir = determine_path()
 icon = ImageResource('icon', search_path=['images', os.path.join(basedir, 'images')])
+
+os.environ['REQUESTS_CA_BUNDLE'] = os.path.join(basedir, 'cacert.pem')
 
 from piksi_tools.console.tracking_view import TrackingView
 from piksi_tools.console.solution_view import SolutionView
