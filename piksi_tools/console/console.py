@@ -20,6 +20,11 @@ import numpy as np
 import datetime
 import time
 
+from piksi_tools.console.utils import determine_path
+
+basedir = determine_path()
+os.environ['REQUESTS_CA_BUNDLE'] = os.path.join(basedir, 'cacert.pem')
+
 from os.path import expanduser
 from piksi_tools.serial_link import swriter, get_uuid, DEFAULT_BASE
 from piksi_tools.version import VERSION as CONSOLE_VERSION
@@ -97,7 +102,7 @@ import logging
 logging.basicConfig()
 from piksi_tools.console.output_list import OutputList, LogItem, str_to_log_level, \
   SYSLOG_LEVELS, DEFAULT_LOG_LEVEL_FILTER
-from piksi_tools.console.utils import determine_path, get_mode, mode_dict, EMPTY_STR
+from piksi_tools.console.utils import get_mode, mode_dict, EMPTY_STR
 from piksi_tools.console.deprecated import DeprecatedMessageHandler
 
 # When bundled with pyInstaller, PythonLexer can't be found. The problem is
@@ -122,10 +127,8 @@ if ETSConfig.toolkit == 'qt4':
 from pyface.image_resource import ImageResource
 from threading import Thread, Event
 
-basedir = determine_path()
 icon = ImageResource('icon', search_path=['images', os.path.join(basedir, 'images')])
 
-os.environ['REQUESTS_CA_BUNDLE'] = os.path.join(basedir, 'cacert.pem')
 
 from piksi_tools.console.tracking_view import TrackingView
 from piksi_tools.console.solution_view import SolutionView
