@@ -22,8 +22,13 @@ import time
 
 from piksi_tools.console.utils import determine_path
 
-basedir = determine_path()
-os.environ['REQUESTS_CA_BUNDLE'] = os.path.join(basedir, 'cacert.pem')
+cert_path = "cacert.pem"
+if os.path.isfile(cert_path):
+  pass
+else:
+  basedir = determine_path()
+  cert_path = os.path.join(basedir, cert_path)
+os.environ['REQUESTS_CA_BUNDLE'] = cert_path
 
 from os.path import expanduser
 from piksi_tools.serial_link import swriter, get_uuid, DEFAULT_BASE
