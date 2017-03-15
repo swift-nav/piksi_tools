@@ -635,11 +635,13 @@ class ShowUsage(HasTraits):
 # If using a device connected to an actual port, then invoke the
 # regular console dialog for port selection
 
+flow_control_options_list = ['None', 'Hardware RTS/CTS']
+cnx_type_list=['Serial/USB', 'TCP/IP']
 class PortChooser(HasTraits):
   ports = List()
   port = Str(None)
-  mode = Enum(['Serial/USB', 'TCP/IP'])
-  flow_control = Enum(['None', 'Hardware RTS/CTS'])
+  mode = Enum(cnx_type_list)
+  flow_control = Enum(flow_control_options_list)
   ip_port = Int(55555)
   ip_address = Str('192.168.0.222')
   choose_baud = Bool(True)
@@ -649,7 +651,7 @@ class PortChooser(HasTraits):
      Spring(height=8),
      HGroup(
       Spring(width=-2, springy=False),
-      Item('mode', style='custom', editor=EnumEditor(values=['Serial/USB', 'TCP/IP'], 
+      Item('mode', style='custom', editor=EnumEditor(values=cnx_type_list, 
                                                      cols=2, format_str='%s'), show_label=False)
      ),
     HGroup(
@@ -664,7 +666,7 @@ class PortChooser(HasTraits):
         ),
       VGroup(
         Label('Flow Control:'),
-        Item('flow_control', editor=EnumEditor(values=['None','Hardware RTS/CTS'], format_str='%s'), show_label=False),
+        Item('flow_control', editor=EnumEditor(values=flow_control_options_list, format_str='%s'), show_label=False),
       ),
       visible_when="mode==\'Serial/USB\'"),
         HGroup(
@@ -728,24 +730,28 @@ elif not port:
   port = port_chooser.port
   baud = port_chooser.baudrate
   mode = port_chooser.mode
+  # todo, update for sfw flow control if ever enabled
+  rtscts = port_chooser.flow_control == flow_control_options_list[1] 
+  if rtscts:
+    print "using flow control"
   # if the user pressed cancel or didn't select anything
   if not (port or (ip_address and ip_port)) or not is_ok:
     print "No Interface selected!"
     sys.exit(1)
   else:
     # Use either TCP/IP or serial selected from gui
-    if mode == "TCP/IP":
+    if mode == cnx_type_list[1]:
       print "Using TCP/IP at address %s and port %d" % (ip_address, ip_port)
       selected_driver = TCPDriver(ip_address, int(ip_port))
       connection_description = ip_address + ":" + str(ip_port)
     else:
       print "Using serial device '%s'" % port
-      selected_driver = s.get_driver(args.ftdi, port, baud, args.file)
+      selected_driver = s.get_driver(args.ftdi, port, baud, args.file, rtscts=rtscts)
       connection_description = os.path.split(port)[-1]  + " @" + str(baud)
 else:
   # Use the port passed and assume serial connection
   print "Using serial device '%s'" % port
-  selected_driver = s.get_driver(args.ftdi, port, baud, args.file)
+  selected_driver = s.get_driver(args.ftdi, port, baud, args.file, hdw_flow_ctrl=args.hdwflowctrl)
   connection_description = os.path.split(port)[-1]  + " @" + str(baud)
   
 with selected_driver as driver:
