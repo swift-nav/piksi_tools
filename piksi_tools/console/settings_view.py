@@ -31,7 +31,8 @@ import datetime
 
 from piksi_tools.fileio import FileIO
 import piksi_tools.console.callback_prompt as prompt
-from piksi_tools.console.utils import determine_path, MultilineTextEditor
+from piksi_tools.console.gui_utils import MultilineTextEditor
+from piksi_tools.console.utils import determine_path
 
 from sbp.piksi      import *
 from sbp.settings   import *

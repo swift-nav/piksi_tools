@@ -17,8 +17,8 @@ from chaco.tools.api import ZoomTool, PanTool
 from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.api import GUI
-from piksi_tools.console.utils import plot_square_axes, determine_path, MultilineTextEditor,\
-                                      get_mode, mode_dict, color_dict, sopen,\
+from piksi_tools.console.gui_utils import plot_square_axes, MultilineTextEditor
+from piksi_tools.console.utils import determine_path, get_mode, mode_dict, color_dict, sopen,\
                                       EMPTY_STR, SPP_MODE, FLOAT_MODE, DGNSS_MODE, FIXED_MODE, \
                                       log_time_strings
 

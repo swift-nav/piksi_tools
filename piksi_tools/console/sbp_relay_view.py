@@ -12,7 +12,7 @@
 from piksi_tools.console.callback_prompt import CallbackPrompt, close_button
 from piksi_tools.serial_link import swriter, get_uuid, \
   DEFAULT_BASE, CHANNEL_UUID
-from piksi_tools.console.utils import MultilineTextEditor
+from piksi_tools.console.gui_utils import MultilineTextEditor
 from sbp.client.drivers.network_drivers import HTTPDriver
 from sbp.client.forwarder import Forwarder
 from sbp.client.framer import Framer
