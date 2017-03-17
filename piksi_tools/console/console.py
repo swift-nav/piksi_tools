@@ -758,7 +758,7 @@ elif not port:
 else:
   # Use the port passed and assume serial connection
   print "Using serial device '%s'" % port
-  selected_driver = s.get_driver(args.ftdi, port, baud, args.file, hdw_flow_ctrl=args.hdwflowctrl)
+  selected_driver = s.get_driver(args.ftdi, port, baud, args.file, rtscts=args.rtscts)
   connection_description = os.path.split(port)[-1]  + " @" + str(baud)
   
 with selected_driver as driver:
