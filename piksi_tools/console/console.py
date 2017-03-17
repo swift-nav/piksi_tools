@@ -20,14 +20,6 @@ import numpy as np
 import datetime
 import time
 
-from piksi_tools.console.utils import determine_path
-basedir = determine_path()
-cert_path = "cacert.pem"
-if os.path.isfile(cert_path):
-  pass
-else:
-  cert_path = os.path.join(basedir, cert_path)
-os.environ['REQUESTS_CA_BUNDLE'] = cert_path
 
 from os.path import expanduser
 from piksi_tools.serial_link import swriter, get_uuid, DEFAULT_BASE
@@ -106,7 +98,8 @@ import logging
 logging.basicConfig()
 from piksi_tools.console.output_list import OutputList, LogItem, str_to_log_level, \
   SYSLOG_LEVELS, DEFAULT_LOG_LEVEL_FILTER
-from piksi_tools.console.utils import get_mode, mode_dict, EMPTY_STR
+from piksi_tools.console.utils import determine_path, get_mode, mode_dict, EMPTY_STR, \
+                                      call_repeatedly
 from piksi_tools.console.deprecated import DeprecatedMessageHandler
 
 # When bundled with pyInstaller, PythonLexer can't be found. The problem is
@@ -129,8 +122,7 @@ if ETSConfig.toolkit == 'qt4':
   import pyface.ui.qt4.resource_manager
   import pyface.ui.qt4.python_shell
 from pyface.image_resource import ImageResource
-from threading import Thread, Event
-
+basedir = determine_path()
 icon = ImageResource('icon', search_path=['images', os.path.join(basedir, 'images')])
 
 
@@ -178,13 +170,6 @@ class ConsoleHandler(Handler):
     if info.initialized:
       info.ui.title =  info.object.dev_id + "(" + info.object.device_serial +") " + CONSOLE_TITLE
 
-def call_repeatedly(interval, func, *args):
-    stopped = Event()
-    def loop():
-        while not stopped.wait(interval): # the first call is in `interval` secs
-            func(*args)
-    Thread(target=loop).start()    
-    return stopped.set
 
 class SwiftConsole(HasTraits):
   """Traits-defined Swift Console.
