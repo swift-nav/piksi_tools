@@ -12,6 +12,7 @@
 from piksi_tools.console.callback_prompt import CallbackPrompt, close_button
 from piksi_tools.serial_link import swriter, get_uuid, \
   DEFAULT_BASE, CHANNEL_UUID
+from piksi_tools.console.utils import determine_path
 from piksi_tools.console.gui_utils import MultilineTextEditor
 from sbp.client.drivers.network_drivers import HTTPDriver
 from sbp.client.forwarder import Forwarder
@@ -24,9 +25,18 @@ from traits.api import HasTraits, String, Button, Int, Bool, Enum
 from traitsui.api import View, Item, VGroup, UItem, HGroup, TextEditor, \
   spring, Spring
 
+import os
 import sys
 import time
 import threading
+
+basedir = determine_path()
+cert_path = "cacert.pem"
+if os.path.isfile(cert_path):
+  pass
+else:
+  cert_path = os.path.join(basedir, cert_path)
+os.environ['REQUESTS_CA_BUNDLE'] = cert_path
 
 DEFAULT_UDP_ADDRESS = "127.0.0.1"
 DEFAULT_UDP_PORT = 13320
