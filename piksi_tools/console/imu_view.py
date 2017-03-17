@@ -19,7 +19,7 @@ from traits.api import Instance, Dict, HasTraits, Float, List, Int, Bool
 from traitsui.api import Item, View, HSplit, VGroup, HGroup
 import numpy as np
 from piksi_tools.acq_results import SNR_THRESHOLD
-from piksi_tools.console.utils import code_to_str, code_is_gps
+from piksi_tools.console.utils import call_repeatedly
 
 NUM_POINTS = 200
 
@@ -61,6 +61,14 @@ class IMUView(HasTraits):
     )
   )
 
+  def imu_set_data(self):
+    self.plot_data.set_data('acc_x', self.acc[:,0])
+    self.plot_data.set_data('acc_y', self.acc[:,1])
+    self.plot_data.set_data('acc_z', self.acc[:,2])
+    self.plot_data.set_data('gyr_x', self.gyro[:,0])
+    self.plot_data.set_data('gyr_y', self.gyro[:,1])
+    self.plot_data.set_data('gyr_z', self.gyro[:,2])
+
   def imu_aux_callback(self, sbp_msg, **metadata):
       if sbp_msg.imu_type == 0:
           self.imu_temp = 23 + sbp_msg.temp / 2.**9
@@ -73,12 +81,6 @@ class IMUView(HasTraits):
       self.gyro[:-1,:] = self.gyro[1:,:]
       self.acc[-1] = (sbp_msg.acc_x, sbp_msg.acc_y, sbp_msg.acc_z)
       self.gyro[-1] = (sbp_msg.gyr_x, sbp_msg.gyr_y, sbp_msg.gyr_z)
-      self.plot_data.set_data('acc_x', self.acc[:,0])
-      self.plot_data.set_data('acc_y', self.acc[:,1])
-      self.plot_data.set_data('acc_z', self.acc[:,2])
-      self.plot_data.set_data('gyr_x', self.gyro[:,0])
-      self.plot_data.set_data('gyr_y', self.gyro[:,1])
-      self.plot_data.set_data('gyr_z', self.gyro[:,2])
 
       if self.imu_conf is not None:
           acc_range = self.imu_conf & 0xF
@@ -107,6 +109,7 @@ class IMUView(HasTraits):
     self.plot.value_axis.orientation = 'right'
     self.plot.value_axis.axis_line_visible = False
     self.plot.value_axis.title = 'LSB count'
+    call_repeatedly(0.2, self.imu_set_data)
 
     self.legend_visible = True
     self.plot.legend.visible = True
