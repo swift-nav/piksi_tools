@@ -46,6 +46,7 @@ resources = [
   ('RELEASE-VERSION', '../../RELEASE-VERSION', 'DATA'),
   ('README.txt', '../README.txt', 'DATA'),
   ('cacert.pem', '../cacert.pem', 'DATA'),
+  ('piksi_tools/console/cacert.pem', '../cacert.pem', 'DATA'),
   ('configure_udev_rules.sh', '../../../tasks/configure_udev_rules.sh', 'DATA'),
 ]
 resources += Tree('../images', prefix='piksi_tools/console/images')
