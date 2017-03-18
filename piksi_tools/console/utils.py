@@ -16,6 +16,7 @@ import datetime
 
 from piksi_tools.utils import sopen
 from sbp.navigation import *
+from threading import Event, Thread
 
 L1CA = 'L1CA'
 L2CM = 'L2CM'
@@ -124,3 +125,10 @@ def log_time_strings(week, tow):
   return ((t_local_date, t_local_secs), 
           (t_gps_date, t_gps_secs))
 
+def call_repeatedly(interval, func, *args):
+    stopped = Event()
+    def loop():
+        while not stopped.wait(interval): # the first call is in `interval` secs
+            func(*args)
+    Thread(target=loop).start()    
+    return stopped.set
