@@ -20,7 +20,7 @@ from pyface.api import GUI
 from piksi_tools.console.gui_utils import plot_square_axes, MultilineTextEditor
 from piksi_tools.console.utils import determine_path, get_mode, mode_dict, color_dict, sopen,\
                                       EMPTY_STR, SPP_MODE, FLOAT_MODE, DGNSS_MODE, FIXED_MODE, \
-                                      log_time_strings
+                                      log_time_strings, datetime_2_str
 
 import math
 import os
@@ -166,6 +166,13 @@ class SolutionView(HasTraits):
     # actually perform the update in the UI thread.
     if self.running:
       GUI.invoke_later(self.pos_llh_callback, sbp_msg)
+  
+  def age_corrections_callback(self, sbp_msg, **metadata):
+    age_msg = MsgAgeCorrections(sbp_msg)
+    if age_msg.age != 0xFFFF:
+      self.age_corrections = age_msg.age/10.0
+    else:
+      self.age_corrections = None
 
   def update_table(self):
     self._table_list = self.table_spp.items()
@@ -202,7 +209,9 @@ class SolutionView(HasTraits):
     
     # Return the best estimate of my local and receiver time in convenient
     # format that allows changing precision of the seconds
-    ((tloc, secloc), (tgps, secgps)) = log_time_strings(self.week, tow)  
+    ((tloc, secloc), (tgps, secgps)) = log_time_strings(self.week, tow) 
+    if self.utc_time:
+      ((tutc, secutc)) = datetime_2_str(self.utc_time)
      
     if(self.directory_name_p == ''):
       filepath_p = time.strftime("position_log_%Y%m%d-%H%M%S.csv")
@@ -231,30 +240,42 @@ class SolutionView(HasTraits):
 
     
     if self.last_pos_mode == 0:
-      pos_table.append(('GPS Time', EMPTY_STR))
       pos_table.append(('GPS Week', EMPTY_STR))
       pos_table.append(('GPS TOW', EMPTY_STR))
+      pos_table.append(('GPS Time', EMPTY_STR))
       pos_table.append(('Num. Signals', EMPTY_STR))
       pos_table.append(('Lat', EMPTY_STR))
       pos_table.append(('Lng', EMPTY_STR))
       pos_table.append(('Height', EMPTY_STR))
-      pos_table.append(('h_accuracy', EMPTY_STR))
-      pos_table.append(('v_accuracy', EMPTY_STR))
+      pos_table.append(('Horiz Acc', EMPTY_STR))
+      pos_table.append(('Vert Acc', EMPTY_STR))
     else:
       self.last_stime_update = time.time()
+      
       if self.week is not None:
-        pos_table.append(('GPS Time', "{0}:{1:06.3f}".format(tgps, float(secgps))))
         pos_table.append(('GPS Week', str(self.week)))
       pos_table.append(('GPS TOW', "{:.3f}".format(tow)))
-      pos_table.append(('Num. Sats', soln.n_sats))
+      
+      if self.week is not None:
+        pos_table.append(('GPS Time', "{0}:{1:06.3f}".format(tgps, float(secgps))))
+      if self.utc_time is not None:
+        pos_table.append(('UTC Time', "{0}:{1:06.3f}".format(tutc, float(secutc))))
+        pos_table.append(('UTC Src', self.utc_source))
+      if self.utc_time is None:
+        pos_table.append(('UTC Time', EMPTY_STR))
+        pos_table.append(('UTC Src', EMPTY_STR))
+      
+      pos_table.append(('Sats Used', soln.n_sats))
       pos_table.append(('Lat', soln.lat))
       pos_table.append(('Lng', soln.lon))
       pos_table.append(('Height', soln.height))
-      pos_table.append(('h_accuracy', soln.h_accuracy))
-      pos_table.append(('v_accuracy', soln.v_accuracy))
+      pos_table.append(('Horiz Acc', soln.h_accuracy))
+      pos_table.append(('Vert Acc', soln.v_accuracy))
 
     pos_table.append(('Pos Flags', '0x%03x' % soln.flags))
     pos_table.append(('Pos Fix Mode', mode_dict[self.last_pos_mode]))
+    if self.age_corrections != None:
+      pos_table.append(('Corr. Age [s]', self.age_corrections))
 
     self.auto_survey()
 
@@ -430,6 +451,26 @@ class SolutionView(HasTraits):
       if flags != 0:
         self.week = time_msg.wn
         self.nsec = time_msg.ns_residual
+  
+  def utc_time_callback(self, sbp_msg, **metadata):
+    tmsg = MsgUtcTime(sbp_msg)
+    seconds = math.floor(tmsg.seconds)
+    microseconds = int((tmsg.tow%1000) * 1000 + tmsg.ns/1000.00)
+    if tmsg.flags&0x7 != 0:
+      dt = datetime.datetime(tmsg.year, tmsg.month, tmsg.day, tmsg.hours,
+                                tmsg.minutes, tmsg.seconds, microseconds)
+      self.utc_time = dt
+      self.utc_time_flags = tmsg.flags
+      self.utc_source = "None"
+      if tmsg.flags&0x38 == 0:
+        self.utc_source = "Factory Default"
+      elif tmsg.flags&0x38 == 1:
+        self.utc_source = "Non Volatile Memory"
+      elif tmsg.flags&0x38 == 2:
+        self.utc_source = "Decoded this Session"
+    else:
+      self.utc_time = None
+      self.utc_source = None
 
   def __init__(self, link, dirname=''):
     super(SolutionView, self).__init__()
@@ -511,8 +552,12 @@ class SolutionView(HasTraits):
     self.link.add_callback(self.vel_ned_callback, [SBP_MSG_VEL_NED_DEP_A, SBP_MSG_VEL_NED])
     self.link.add_callback(self.dops_callback, [SBP_MSG_DOPS_DEP_A, SBP_MSG_DOPS])
     self.link.add_callback(self.gps_time_callback, [SBP_MSG_GPS_TIME_DEP_A, SBP_MSG_GPS_TIME])
+    self.link.add_callback(self.utc_time_callback, [SBP_MSG_UTC_TIME])
+    self.link.add_callback(self.age_corrections_callback, SBP_MSG_AGE_CORRECTIONS)
 
     self.week = None
+    self.utc_time = None
+    self.age_corrections = None
     self.nsec = 0
 
     self.python_console_cmds = {
