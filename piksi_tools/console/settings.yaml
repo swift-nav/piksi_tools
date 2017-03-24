@@ -348,6 +348,16 @@
     rover and represents the inverse tangent of the north and east components of the baseline
   Notes: No smoothing or additional processing is provided to improve heading output.
 
+  - group: solution
+  name: disable_klobuchar_correction
+  type: boolean
+  expert: true
+  units:
+  default value: False
+  enumerated possible values: True,False
+  Description: Disable Klobuchar ionospheric corrections
+  Notes: If True, Klobuchar ionospheric corrections will not be applied.
+
 - group: system_info
   name: serial_number
   type: integer
