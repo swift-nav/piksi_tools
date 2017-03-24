@@ -429,7 +429,7 @@ class SolutionView(HasTraits):
       flags = time_msg.flags
       if flags != 0:
         self.week = time_msg.wn
-        self.nsec = time_msg.ns
+        self.nsec = time_msg.ns_residual
 
   def __init__(self, link, dirname=''):
     super(SolutionView, self).__init__()
