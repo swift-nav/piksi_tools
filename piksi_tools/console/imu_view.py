@@ -92,8 +92,8 @@ class IMUView(HasTraits):
   def __init__(self, link):
     super(IMUView, self).__init__()
 
-    self.acc = np.empty((NUM_POINTS, 3))
-    self.gyro = np.empty((NUM_POINTS, 3))
+    self.acc = np.zeros((NUM_POINTS, 3))
+    self.gyro = np.zeros((NUM_POINTS, 3))
 
     self.plot_data = ArrayPlotData(t=np.arange(NUM_POINTS),
                                    acc_x=[0.0], acc_y=[0.0], acc_z=[0.0],
