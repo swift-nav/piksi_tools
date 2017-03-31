@@ -1,5 +1,6 @@
 from traitsui.api import TextEditor
 import numpy as np
+import sys
 
 class MultilineTextEditor(TextEditor):
   """

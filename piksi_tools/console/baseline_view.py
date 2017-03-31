@@ -122,12 +122,7 @@ class BaselineView(HasTraits):
     self.plot_data.set_data('cur_dgnss_e', [])
     self.plot_data.set_data('cur_dgnss_d', [])
 
-  def _clear_button_fired(self):
-    self.n[:] = np.NAN
-    self.e[:] = np.NAN
-    self.d[:] = np.NAN
-    self.mode[:] = np.NAN
-    self.plot_data.set_data('t', [])
+  def _clear_history(self):
     self.plot_data.set_data('n_fixed', [])
     self.plot_data.set_data('e_fixed', [])
     self.plot_data.set_data('d_fixed', [])
@@ -137,6 +132,14 @@ class BaselineView(HasTraits):
     self.plot_data.set_data('n_dgnss', [])
     self.plot_data.set_data('e_dgnss', [])
     self.plot_data.set_data('d_dgnss', [])
+    
+  def _clear_button_fired(self):
+    self.n[:] = np.NAN
+    self.e[:] = np.NAN
+    self.d[:] = np.NAN
+    self.mode[:] = np.NAN
+    self.plot_data.set_data('t', [])
+    self._clear_history()
     self._reset_remove_current()
     
 
@@ -306,7 +309,8 @@ class BaselineView(HasTraits):
     else:
       self.n[0], self.e[0], self.d[0] = [np.NAN, np.NAN, np.NAN]
     self.mode[0] = self.last_mode
-
+    
+    self._clear_history()
     if np.any(self.mode):
       float_indexer = (self.mode == FLOAT_MODE)
       fixed_indexer = (self.mode == FIXED_MODE)
