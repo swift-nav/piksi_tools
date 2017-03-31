@@ -454,8 +454,8 @@ class SolutionView(HasTraits):
   
   def utc_time_callback(self, sbp_msg, **metadata):
     tmsg = MsgUtcTime(sbp_msg)
-    seconds = math.floor(tmsg.seconds)
-    microseconds = int((tmsg.tow%1000) * 1000 + tmsg.ns/1000.00)
+    seconds = tmsg.seconds
+    microseconds = int(tmsg.ns/1000.00)
     if tmsg.flags&0x7 != 0:
       dt = datetime.datetime(tmsg.year, tmsg.month, tmsg.day, tmsg.hours,
                                 tmsg.minutes, tmsg.seconds, microseconds)
