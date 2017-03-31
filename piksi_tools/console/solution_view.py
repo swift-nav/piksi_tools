@@ -140,12 +140,7 @@ class SolutionView(HasTraits):
     self.plot_data.set_data('cur_lng_fixed', [])
     self.plot_data.set_data('cur_alt_fixed', [])
 
-  def _clear_button_fired(self):
-    self.tows = np.empty(self.plot_history_max)
-    self.lats = np.empty(self.plot_history_max)
-    self.lngs = np.empty(self.plot_history_max)
-    self.alts = np.empty(self.plot_history_max)
-    self.modes = np.empty(self.plot_history_max)
+  def _clear_history(self):
     self.plot_data.set_data('lat_spp', [])
     self.plot_data.set_data('lng_spp', [])
     self.plot_data.set_data('alt_spp', [])
@@ -158,6 +153,14 @@ class SolutionView(HasTraits):
     self.plot_data.set_data('lat_fixed', [])
     self.plot_data.set_data('lng_fixed', [])
     self.plot_data.set_data('alt_fixed', [])
+
+  def _clear_button_fired(self):
+    self.tows = np.empty(self.plot_history_max)
+    self.lats = np.empty(self.plot_history_max)
+    self.lngs = np.empty(self.plot_history_max)
+    self.alts = np.empty(self.plot_history_max)
+    self.modes = np.empty(self.plot_history_max)
+    self._clear_history()
     self._reset_remove_current()
 
 
@@ -300,6 +303,7 @@ class SolutionView(HasTraits):
 
     # SPP
     spp_indexer, dgnss_indexer, float_indexer, fixed_indexer = None, None, None, None
+    self._clear_history()
     if np.any(self.modes):
       spp_indexer = (self.modes == SPP_MODE)
       dgnss_indexer = (self.modes == DGNSS_MODE)
