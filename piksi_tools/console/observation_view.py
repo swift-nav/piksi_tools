@@ -142,7 +142,7 @@ class ObservationView(HasTraits):
       if sbp_msg.msg_type not in [SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C]:
         flags = o.flags
         msdopp = float(o.D.i) + float(o.D.f) / (1 << 8)
-        self.gps_tow += sbp_msg.header.t.ns * 1e-9
+        self.gps_tow += sbp_msg.header.t.ns_residual * 1e-9
 
       try:
         ocp = self.old_cp[prn]
@@ -154,7 +154,11 @@ class ObservationView(HasTraits):
       # Compute time difference of carrier phase for display, but only if carrier phase is valid
       if ocp != 0 and ((sbp_msg.msg_type in [SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C]) or (flags & 0x3) == 0x3):
         # Doppler per RINEX has opposite sign direction to carrier phase
-        cpdopp = (ocp - cp) / float(self.gps_tow - self.old_tow)
+        if self.gps_tow != self.old_tow:
+          cpdopp = (ocp - cp) / float(self.gps_tow - self.old_tow)
+        else:
+          print "Received two complete observation sets with identical TOW"
+          cpdopp = 0
 
         # Older messages had flipped sign carrier phase values
         if sbp_msg.msg_type in [SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B]:

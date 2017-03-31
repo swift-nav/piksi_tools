@@ -162,7 +162,7 @@ class BaselineView(HasTraits):
       flags = time_msg.flags
       if flags != 0:
         self.week = time_msg.wn
-        self.nsec = time_msg.ns
+        self.nsec = time_msg.ns_residual
 
   def baseline_callback(self, sbp_msg):
     soln = MsgBaselineNEDDepA(sbp_msg)
