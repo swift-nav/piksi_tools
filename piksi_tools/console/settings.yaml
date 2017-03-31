@@ -340,26 +340,34 @@
 - group: solution
   name: send_heading
   type: boolean
-  expert: true
+  expert: False
   units:  N/A
   default value: False
   enumerated possible values: True,False
-  Description: Enables SBP heading output.  Heading is caculated from base station to
-    rover and represents the inverse tangent of the north and east components of the baseline
-  Notes: No smoothing or additional processing is provided to improve heading output.
+  Description: |
+    Enables SBP heading output. 
+    Heading is calculated from base station to rover and represents 
+    the inverse tangent of the north and east components of the baseline
+  Notes: | 
+    No smoothing or additional processing is provided to improve heading output.
+    The heading feature requires the following additional settings
+        Time Matched Mode
+        Equal Observation rate between both base and rover
+    The observation rate will also determine the heading output rate and is defined as "soln freq" / "output every n obs"
 
-  - group: solution
+- group: solution
   name: heading_offset
   type: double
-  expert: true
+  expert: False
   units:  degrees
   default value: 0.0
-  enumerated possible values: 
-  Description: Adds an offset to the heading output to rotate the heading vector to align the 
+  enumerated possible values: N/A
+  Description: Rotate the heading output
+  Notes: | 
+    Adds an offset to the heading output to rotate the heading vector to align the
     baseline heading with a desired 0 heading. Valid values are -180.0 to 180.0 degrees
-  Notes: No smoothing or additional processing is provided to improve heading output.
 
-  - group: solution
+- group: solution
   name: disable_klobuchar_correction
   type: boolean
   expert: true
