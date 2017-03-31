@@ -19,7 +19,7 @@ from pyface.api import GUI
 from piksi_tools.console.gui_utils import plot_square_axes
 from piksi_tools.console.utils import determine_path, mode_dict, get_mode, color_dict, FLOAT_MODE, \
                                       SPP_MODE, DGNSS_MODE, NO_FIX_MODE, FIXED_MODE, EMPTY_STR, \
-                                      sopen, log_time_strings       
+                                      sopen, log_time_strings, datetime_2_str       
 
 import math
 import os
@@ -144,6 +144,13 @@ class BaselineView(HasTraits):
     self.num_hyps = sbp_msg.num_hyps
     self.last_hyp_update = time.time()
 
+  def age_corrections_callback(self, sbp_msg, **metadata):
+    age_msg = MsgAgeCorrections(sbp_msg)
+    if age_msg.age != 0xFFFF:
+      self.age_corrections = age_msg.age/10.0
+    else:
+      self.age_corrections = None
+
   def _baseline_callback_ned(self, sbp_msg, **metadata):
     # Updating an ArrayPlotData isn't thread safe (see chaco issue #9), so
     # actually perform the update in the UI thread.
@@ -163,6 +170,25 @@ class BaselineView(HasTraits):
       if flags != 0:
         self.week = time_msg.wn
         self.nsec = time_msg.ns_residual
+  
+  def utc_time_callback(self, sbp_msg, **metadata):
+    tmsg = MsgUtcTime(sbp_msg)
+    seconds = math.floor(tmsg.seconds)
+    microseconds = int(tmsg.ns/1000.00)
+    if tmsg.flags&0x7 != 0:
+      dt = datetime.datetime(tmsg.year, tmsg.month, tmsg.day, tmsg.hours,
+                                tmsg.minutes, tmsg.seconds, microseconds)
+      self.utc_time = dt
+      self.utc_time_flags = tmsg.flags
+      if tmsg.flags&0x38 == 0:
+        self.utc_source = "Factory Default"
+      elif tmsg.flags&0x38 == 1:
+        self.utc_source = "Non Volatile Memory"
+      elif tmsg.flags&0x38 == 2:
+        self.utc_source = "Decoded this Session"
+    else:
+      self.utc_time = None
+      self.utc_source = None
 
   def baseline_callback(self, sbp_msg):
     soln = MsgBaselineNEDDepA(sbp_msg)
@@ -182,6 +208,9 @@ class BaselineView(HasTraits):
       tow += self.nsec * 1e-9
 
     ((tloc, secloc), (tgps, secgps)) = log_time_strings(self.week, tow)  
+    
+    if self.utc_time is not None:
+      ((tutc, secutc)) = datetime_2_str(self.utc_time)
    
     if self.directory_name_b == '':
         filepath = time.strftime("baseline_log_%Y%m%d-%H%M%S.csv")
@@ -214,34 +243,44 @@ class BaselineView(HasTraits):
     self.last_mode = get_mode(soln)
 
     if self.last_mode < 1:
-      table.append(('GPS Time', EMPTY_STR))
       table.append(('GPS Week', EMPTY_STR))
       table.append(('GPS TOW', EMPTY_STR))
+      table.append(('GPS Time', EMPTY_STR))
+      table.append(('UTC Time', EMPTY_STR))
+      table.append(('UTC Src', EMPTY_STR))
       table.append(('N', EMPTY_STR))
       table.append(('E', EMPTY_STR))
       table.append(('D', EMPTY_STR))
-      table.append(('h_accuracy', EMPTY_STR))
-      table.append(('v_accuracy', EMPTY_STR))
+      table.append(('Horiz Acc', EMPTY_STR))
+      table.append(('Vert Acc', EMPTY_STR))
       table.append(('Dist.', EMPTY_STR))
-      table.append(('Num. Sats', EMPTY_STR))
+      table.append(('Sats Used', EMPTY_STR))
       table.append(('Flags', EMPTY_STR))
       table.append(('Mode', EMPTY_STR))
     else:
       self.last_btime_update = time.time()
       if self.week is not None:
-        table.append(('GPS Time', "{0}:{1:06.3f}".format(tgps, float(secgps))))
         table.append(('GPS Week', str(self.week)))
       table.append(('GPS TOW', "{:.3f}".format(tow)))
+      
+      if self.week is not None:
+        table.append(('GPS Time', "{0}:{1:06.3f}".format(tgps, float(secgps))))
+      if self.utc_time is not None:
+        table.append(('UTC Time', "{0}:{1:06.3f}".format(tutc, float(secutc))))
+        table.append(('UTC Src', self.utc_source))
+      
       table.append(('N', soln.n))
       table.append(('E', soln.e))
       table.append(('D', soln.d))
-      table.append(('h_accuracy', soln.h_accuracy))
-      table.append(('v_accuracy', soln.v_accuracy))
+      table.append(('Horiz Acc', soln.h_accuracy))
+      table.append(('Vert Acc', soln.v_accuracy))
       table.append(('Dist.', dist))
-      table.append(('Num. Sats', soln.n_sats))
+      table.append(('Sats Used', soln.n_sats))
     
     table.append(('Flags', '0x%02x' % soln.flags))
     table.append(('Mode', mode_dict[self.last_mode]))
+    if self.age_corrections != None:
+      table.append(('Corr. Age [s]', self.age_corrections))
     self.table = table
     # Rotate array, deleting oldest entries to maintain
     # no more than N in plot
@@ -395,6 +434,8 @@ class BaselineView(HasTraits):
     self.plot.overlays.append(zt)
 
     self.week = None
+    self.utc_time = None 
+    self.age_corrections = None
     self.nsec = 0
     
 
@@ -402,6 +443,8 @@ class BaselineView(HasTraits):
     self.link.add_callback(self._baseline_callback_ned, [SBP_MSG_BASELINE_NED, SBP_MSG_BASELINE_NED_DEP_A])
     self.link.add_callback(self.iar_state_callback, SBP_MSG_IAR_STATE)
     self.link.add_callback(self.gps_time_callback, [SBP_MSG_GPS_TIME, SBP_MSG_GPS_TIME_DEP_A])
+    self.link.add_callback(self.utc_time_callback, [SBP_MSG_UTC_TIME])
+    self.link.add_callback(self.age_corrections_callback, SBP_MSG_AGE_CORRECTIONS)
 
     self.python_console_cmds = {
       'baseline': self
