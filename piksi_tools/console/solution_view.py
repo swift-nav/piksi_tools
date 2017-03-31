@@ -454,20 +454,21 @@ class SolutionView(HasTraits):
   
   def utc_time_callback(self, sbp_msg, **metadata):
     tmsg = MsgUtcTime(sbp_msg)
-    seconds = tmsg.seconds
+    seconds = math.floor(tmsg.seconds)
     microseconds = int(tmsg.ns/1000.00)
-    if tmsg.flags&0x7 != 0:
+    if tmsg.flags&0x1 == 1:
       dt = datetime.datetime(tmsg.year, tmsg.month, tmsg.day, tmsg.hours,
                                 tmsg.minutes, tmsg.seconds, microseconds)
       self.utc_time = dt
       self.utc_time_flags = tmsg.flags
-      self.utc_source = "None"
-      if tmsg.flags&0x38 == 0:
+      if   (tmsg.flags >> 3) & 0x3 == 0:
         self.utc_source = "Factory Default"
-      elif tmsg.flags&0x38 == 1:
+      elif (tmsg.flags >> 3) & 0x3 == 1:
         self.utc_source = "Non Volatile Memory"
-      elif tmsg.flags&0x38 == 2:
+      elif (tmsg.flags >> 3) & 0x3 == 2:
         self.utc_source = "Decoded this Session"
+      else:
+        self.utc_source = "Unknown"
     else:
       self.utc_time = None
       self.utc_source = None
