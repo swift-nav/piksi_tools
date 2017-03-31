@@ -175,21 +175,30 @@ class BaselineView(HasTraits):
     tmsg = MsgUtcTime(sbp_msg)
     seconds = math.floor(tmsg.seconds)
     microseconds = int(tmsg.ns/1000.00)
-    if tmsg.flags&0x7 != 0:
+    if tmsg.flags&0x1 == 1:
       dt = datetime.datetime(tmsg.year, tmsg.month, tmsg.day, tmsg.hours,
                                 tmsg.minutes, tmsg.seconds, microseconds)
       self.utc_time = dt
       self.utc_time_flags = tmsg.flags
-      if tmsg.flags&0x38 == 0:
+      if   (tmsg.flags >> 3) & 0x3 == 0:
         self.utc_source = "Factory Default"
-      elif tmsg.flags&0x38 == 1:
+      elif (tmsg.flags >> 3) & 0x3 == 1:
         self.utc_source = "Non Volatile Memory"
-      elif tmsg.flags&0x38 == 2:
+      elif (tmsg.flags >> 3) & 0x3 == 2:
         self.utc_source = "Decoded this Session"
+      else:
+        self.utc_source = "Unknown"
     else:
       self.utc_time = None
       self.utc_source = None
-
+  
+  def baseline_heading_callback(self, sbp_msg, **metadata):
+    headingMsg = MsgBaselineHeading(sbp_msg)
+    if headingMsg.flags&0x7 != 0:
+      self.heading = headingMsg.heading * 1e-3
+    else:
+      self.heading = None
+  
   def baseline_callback(self, sbp_msg):
     soln = MsgBaselineNEDDepA(sbp_msg)
     self.last_soln = soln
@@ -279,6 +288,8 @@ class BaselineView(HasTraits):
     
     table.append(('Flags', '0x%02x' % soln.flags))
     table.append(('Mode', mode_dict[self.last_mode]))
+    if self.heading != None:
+      table.append(('Heading', self.heading)) 
     if self.age_corrections != None:
       table.append(('Corr. Age [s]', self.age_corrections))
     self.table = table
@@ -436,11 +447,13 @@ class BaselineView(HasTraits):
     self.week = None
     self.utc_time = None 
     self.age_corrections = None
+    self.heading = None
     self.nsec = 0
     
 
     self.link = link
     self.link.add_callback(self._baseline_callback_ned, [SBP_MSG_BASELINE_NED, SBP_MSG_BASELINE_NED_DEP_A])
+    self.link.add_callback(self.baseline_heading_callback, [SBP_MSG_BASELINE_HEADING])
     self.link.add_callback(self.iar_state_callback, SBP_MSG_IAR_STATE)
     self.link.add_callback(self.gps_time_callback, [SBP_MSG_GPS_TIME, SBP_MSG_GPS_TIME_DEP_A])
     self.link.add_callback(self.utc_time_callback, [SBP_MSG_UTC_TIME])
