@@ -128,7 +128,8 @@ function bootstrap_osx () {
 
 function install_swig_osx () {
     log_info "Installing swig...."
-    brew install homebrew/versions/swig2
+    brew install swig@2
+    brew link --overwrite swig@2
 }
 
 function install_python_deps_osx () {
@@ -138,7 +139,6 @@ function install_python_deps_osx () {
     if [[ ! -x /usr/local/bin/python ]]; then 
       brew install python --framework --with-brewed-openssl 2>&1 || :
     fi
-    brew install swig
     brew install https://gist.github.com/denniszollo/cb3295c9efc0ba53f3524adb988df5d6/raw/6834992b22bb2e1caf8f8bf44f403885aa6338f1/pyside.rb
     brew install libftdi openssl sip --force 2>&1 || :
     brew link openssl --forcea 2>&1 || :
