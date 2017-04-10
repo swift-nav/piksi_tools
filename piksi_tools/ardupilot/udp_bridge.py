@@ -27,7 +27,7 @@ import time
 OBS_MSGS = [SBP_MSG_OBS_DEP_C, SBP_MSG_BASE_POS_ECEF, SBP_MSG_BASE_POS_LLH]
 
 DEFAULT_SERIAL_PORT = "/dev/ttyUSB0"
-DEFAULT_SERIAL_BAUD = 1000000
+DEFAULT_SERIAL_BAUD = 115200
 
 DEFAULT_UDP_ADDRESS = "127.0.0.1"
 DEFAULT_UDP_PORT = 13320
@@ -43,7 +43,7 @@ def get_args():
                       help="specify the serial port to use.")
   parser.add_argument("-b", "--baud",
                       default=[DEFAULT_SERIAL_BAUD], nargs=1,
-                      help="specify the baud rate to use.")
+                      help="specify the baud rate to use (1000000 for Piksi v2, 115200 for Piksi Multi).")
   parser.add_argument("-a", "--address",
                       default=[DEFAULT_UDP_ADDRESS], nargs=1,
                       help="specify the UDP IP Address to use.")
