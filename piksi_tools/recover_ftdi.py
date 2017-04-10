@@ -9,7 +9,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-#This script resets the FDTI settings to its default values
+#This script resets the Piksi v2 FTDI UART settings to its default values
 
 import serial_link
 import time
