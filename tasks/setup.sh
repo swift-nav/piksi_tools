@@ -129,7 +129,7 @@ function bootstrap_osx () {
 function install_swig_osx () {
     log_info "Installing swig...."
     brew install swig@2
-    brew link --overwrite swig@2
+    brew link --overwrite --force swig@2
 }
 
 function install_python_deps_osx () {
