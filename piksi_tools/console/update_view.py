@@ -476,6 +476,11 @@ class UpdateView(HasTraits):
       except AttributeError:
         self.nap_fw.clear("Error downloading firmware")
         self._write("Error downloading firmware: index file not downloaded yet")
+      except IOError:
+        self.nap_fw.clear("IOError: unable to write to path %s. " \
+                          "Verify that the path exists and is writable." % self.download_directory)
+        self._write("IError: unable to write to path %s. "\
+                     "Verify that the path exists and is writable." % self.download_directory)
       except KeyError:
         self.nap_fw.clear("Error downloading firmware")
         self._write("Error downloading firmware: URL not present in index")
@@ -484,38 +489,6 @@ class UpdateView(HasTraits):
         self._write("Error: Failed to download latest NAP firmware from Swift Navigation's website")
       self.downloading = False
       return
-
-    try:
-      self._write('Downloading Latest NAP firmware')
-      filepath = self.update_dl.download_nap_firmware(self.piksi_hw_rev)
-      self._write('Saved file to %s' % filepath)
-      self.nap_fw.load_ihx(filepath)
-    except AttributeError:
-      self.nap_fw.clear("Error downloading firmware")
-      self._write("Error downloading firmware: index file not downloaded yet")
-    except KeyError:
-      self.nap_fw.clear("Error downloading firmware")
-      self._write("Error downloading firmware: URL not present in index")
-    except URLError:
-      self.nap_fw.clear("Error downloading firmware")
-      self._write("Error: Failed to download latest NAP firmware from Swift Navigation's website")
-
-    try:
-      self._write('Downloading Latest STM firmware')
-      filepath = self.update_dl.download_stm_firmware(self.piksi_hw_rev)
-      self._write('Saved file to %s' % filepath)
-      self.stm_fw.load_ihx(filepath)
-    except AttributeError:
-      self.stm_fw.clear("Error downloading firmware")
-      self._write("Error downloading firmware: index file not downloaded yet")
-    except KeyError:
-      self.stm_fw.clear("Error downloading firmware")
-      self._write("Error downloading firmware: URL not present in index")
-    except URLError:
-      self.stm_fw.clear("Error downloading firmware")
-      self._write("Error: Failed to download latest STM firmware from Swift Navigation's website")
-
-    self.downloading = False
 
   def _download_firmware_fired(self):
     """
