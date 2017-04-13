@@ -540,7 +540,7 @@
     any reason
   Notes: You must reset the Piksi for changes to this setting to take effect.
 
-- group: usb
+- group: usb0
   name: enabled_sbp_messages
   type: string
   units: N/A
@@ -554,6 +554,17 @@
     3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For uart1,
     the default value is optimal for logging and communication with the console.
 
+- group: usb0
+  name: mode
+  type: enum
+  units: N/A
+  default value: SBP
+  enumerated possible values: SBP,NMEA,RTCM3 IN
+  Description: Communication protocol for USB.
+  Notes:  When "RTCM3 IN" is choosen, the device neither transmits SBP nor
+          responds to SBP messages.  When "NMEA" is choosen the device will not respond
+          to sbp.
+
 - group: uart1
   name: baudrate
   type: integer
@@ -564,12 +575,24 @@
   Notes:
 
 - group: uart1
+  name: flow_control
+  type: boolean 
+  units: NA
+  default value: False
+  enumerated possible values:
+  Description: Enable hardware flow control (RTS/CTS) 
+  Notes:
+
+- group: uart1
   name: mode
   type: enum
   units: N/A
   default value: SBP
   enumerated possible values: SBP,NMEA
   Description: Communication protocol for UART 1
+  Notes:  When "RTCM3 IN" is choosen, the device neither transmits SBP nor
+          responds to SBP messages.  When "NMEA" is choosen the device will not respond
+          to sbp.
 
 - group: uart1
   name: enabled_sbp_messages
@@ -595,12 +618,24 @@
   Notes:
 
 - group: uart0
+  name: flow_control
+  type: boolean 
+  units: NA
+  default value: False
+  enumerated possible values:
+  Description: Enable hardware flow control (RTS/CTS) 
+  Notes:
+
+- group: uart0
   name: mode
   type: enum
   units: N/A
   default value: 'SBP'
-  enumerated possible values: SBP,NMEA
+  enumerated possible values: SBP,NMEA,RTCM3 IN
   Description: Communication protocol for UART 0
+  Notes:  When "RTCM3 IN" is choosen, the device neither transmits SBP nor
+          responds to SBP messages.  When "NMEA" is choosen the device will not respond
+          to sbp.
 
 - group: uart0
   name: enabled_sbp_messages
@@ -757,12 +792,52 @@
   type: bool
   Description: Show unconfirmed tracking channels in tracking state
 
+- group: l2cl_track
+  name: xcorr_cof
+  expert: true
+  type: float
+  Description: cross correlation coefficient
+
+- group: l2cl_track
+  name: xcorr_delta
+  expert: true
+  type: float
+  Description: cross correlation delta
+
+- group: l2cl_track
+  name: xcorr_time
+  expert: true
+  type: float
+  Description: cross correlation time
+
+- group: l2cl_track
+  name: show_unconfirmed
+  expert: true
+  type: bool
+  Description: Show unconfirmed tracking channels in tracking state
+
 - group: nmea
   name: gpgsv_msg_rate
   type: integer
   units: Solution Period
   default value: '10'
   Description: Number of Solution Periods between GPGSV NMEA messages being sent
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
+
+- group: nmea
+  name: gpgga_msg_rate
+  type: integer
+  units: Solution Period
+  default value: '10'
+  Description: Number of Solution Periods between GPGGA NMEA messages being sent
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
+
+- group: nmea
+  name: gphdt_msg_rate
+  type: integer
+  units: Solution Period
+  default value: '10'
+  Description: Number of Solution Periods between GPHDT NMEA messages being sent
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
@@ -896,7 +971,43 @@
   Description: The default gateway for the IP config
   Notes: The configured gateway in XXX.XXX.XXX.XXX format.
 
-- group: ethernet
+- group: tcp_server0
+  name: mode
+  type: enum
+  units: N/A
+  default value: 'SBP'
+  enumerated possible values: SBP,NMEA,RTCM3 IN
+  Description: Communication protocol for UART 0
+  Notes:  When "RTCM3 IN" is choosen, the device neither transmits SBP nor
+          responds to SBP messages.  When "NMEA" is choosen the device will not respond
+          to sbp.
+
+- group: tcp_server0
+  name: enabled_sbp_messages
+  type: string
+  units: N/A
+  default value: 'blank - all messages are enabled'
+  Description: Configure which messages should be sent on the port
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided.  Optionally,
+    a divisor can be specified after the / character for each id.  For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For Ethernet,
+    the default value is optimal for logging and communication with the console.
+
+- group: tcp_server1
+  name: mode
+  type: enum
+  units: N/A
+  default value: 'SBP'
+  enumerated possible values: SBP,NMEA,RTCM3 IN
+  Description: Communication protocol for UART 0
+  Notes:  When "RTCM3 IN" is choosen, the device neither transmits SBP nor
+          responds to SBP messages.  When "NMEA" is choosen the device will not respond
+          to sbp.
+
+- group: tcp_server1
   name: enabled_sbp_messages
   type: string
   units: N/A
@@ -990,6 +1101,13 @@
   description: Erase stored L2C capability mask during boot
 
 - group: ndb
+  name: erase_utc_params
+  type: boolean
+  default value: 'True'
+  expert: true
+  description: Erase stored UTC offset parameters during boot
+
+- group: ndb
   name: lgf_update_s
   type: int
   default value: '1800'
@@ -1005,3 +1123,46 @@
   expert: true
   description: Change in position required to update last good fix
 
+- group: ndb
+  name: valid_alm_days
+  type: int
+  default value: '6'
+  units: days
+  expert: true
+  description: Number of days for which Almanac is valid
+
+- group: ndb
+  name: valid_eph_acc
+  type: int
+  default value: '100'
+  units: meters
+  expert: true
+
+- group: ndb
+  name: valid_alm_acc
+  type: int
+  default value: '5000'
+  units: meters
+  expert: true
+
+- group: cell_modem
+  name: enable
+  type: boolean
+  default value: 'False'
+  units: N/A
+  expert: true
+
+- group: cell_modem
+  name: device
+  type: string
+  default value: 'ttyACM0'
+  units: N/A
+  expert: true
+
+- group: cell_modem
+  name: APN
+  type: string
+  default value: INTERNET
+  description: Access point name (provided by cell carrier)
+  units: N/A
+  expert: true
