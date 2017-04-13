@@ -325,18 +325,21 @@ class SettingsView(HasTraits):
     if len(settings_list) <= 3:
       print  "Received malformed settings read response {0}".format(sbp_msg)
       confirmed_set = False
-    if self.settings[settings_list[0]][settings_list[1]].value != settings_list[2]:
-      try:
-        float_val = float(self.settings[settings_list[0]][settings_list[1]].value)
-        float_val2 = float(settings_list[2])
-        if abs(float_val - float_val2) > 0.000001:
+    try:
+      if self.settings[settings_list[0]][settings_list[1]].value != settings_list[2]:
+        try:
+          float_val = float(self.settings[settings_list[0]][settings_list[1]].value)
+          float_val2 = float(settings_list[2])
+          if abs(float_val - float_val2) > 0.000001:
+            confirmed_set = False
+        except ValueError:
           confirmed_set = False
-      except ValueError:
-        confirmed_set = False
-        pass
-    if not confirmed_set:
-      print "Setting {0} in group {1} was unable to be set to new value {2}".format(settings_list[0], settings_list[1], settings_list[2])
-    self.settings[settings_list[0]][settings_list[1]].confirmed_set = confirmed_set 
+          pass
+      if not confirmed_set:
+        print "Setting {0} in group {1} was unable to be set to new value {2}".format(settings_list[0], settings_list[1], settings_list[2])
+      self.settings[settings_list[0]][settings_list[1]].confirmed_set = confirmed_set 
+    except KeyError:
+      return 
 
   def settings_read_by_index_callback(self, sbp_msg, **metadata):
     if not sbp_msg.payload:
