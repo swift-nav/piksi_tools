@@ -28,11 +28,14 @@ import math
 import os
 import numpy as np
 import datetime
+import threading
+import time
 
 from piksi_tools.fileio import FileIO
 import piksi_tools.console.callback_prompt as prompt
 from piksi_tools.console.gui_utils import MultilineTextEditor
 from piksi_tools.console.utils import determine_path
+import piksi_tools.console.callback_prompt as prompt
 
 from sbp.piksi      import *
 from sbp.settings   import *
@@ -64,9 +67,10 @@ class Setting(SettingBase):
     VGroup(
       Item('full_name', label='Name', style='readonly'),
       Item('value', editor=TextEditor(auto_set=False, enter_set=True)),
-      Item('description', style='readonly'),
       Item('units', style='readonly'),
       Item('default_value', style='readonly'),
+      UItem('description', style='readonly', editor=MultilineTextEditor(TextEditor(multi_line=True)),
+           show_label=True, resizable=True),
       UItem('notes', label="Notes", height=-1,
             editor=MultilineTextEditor(TextEditor(multi_line=True)), style='readonly',
             show_label=True, resizable=True),
@@ -89,14 +93,37 @@ class Setting(SettingBase):
     self.notes = settings.settings_yaml.get_field(section, name, 'Notes')
     self.default_value = settings.settings_yaml.get_field(section, name,
                                                              'default value')
-
+    self.revert_in_progress = False
+    self.confirmed_set = False
+  
+  def revert_after_delay(self, delay, name, old, new, popop=True):
+     '''Revert setting to old value after delay in seconds has elapsed'''
+     time.sleep(delay)
+     if self.confirmed_set != True:
+       self.revert_in_progress = True
+       self.value = old
+       invalid_setting_prompt = prompt.CallbackPrompt(
+                                title="Settings Write Error",
+                                actions=[prompt.close_button],
+                                )   
+       invalid_setting_prompt.text = \
+              ("\n   Unable to set {0} to {1}.\n"
+                 "   Ensure the range and formatting of the entry are correct.  ").format(self.name, new)
+       invalid_setting_prompt.run()
+          
+     self.confirmed_set = False
+    
   def _value_changed(self, name, old, new):
     if (old != new and
         old is not Undefined and
         new is not Undefined):
       if type(self.value) == unicode:
         self.value = self.value.encode('ascii', 'replace')
-      self.settings.set(self.section, self.name, self.value)
+      if not self.revert_in_progress:
+        self.timed_revert_thread = threading.Thread(target=self.revert_after_delay, args=(1, name, old, new))
+        self.settings.set(self.section, self.name, self.value)
+        self.timed_revert_thread.start()
+      self.revert_in_progress = False
 
 class EnumSetting(Setting):
   values = List()
@@ -104,9 +131,10 @@ class EnumSetting(Setting):
     VGroup(
       Item('full_name', label='Name', style='readonly'),
       Item('value', editor=EnumEditor(name='values')),
-      Item('description', style='readonly'),
       Item('default_value', style='readonly'),
-            UItem('notes', label="Notes", height=-1,
+      UItem('description', style='readonly', editor=MultilineTextEditor(TextEditor(multi_line=True)),
+           show_label=True, resizable=True),
+      UItem('notes', label="Notes", height=-1,
             editor=MultilineTextEditor(TextEditor(multi_line=True)), style='readonly',
             show_label=True, resizable=True),
       show_border=True,
@@ -290,6 +318,28 @@ class SettingsView(HasTraits):
 
   def settings_read_by_index_done_callback(self, sbp_msg, **metadata):
     self.settings_display_setup()
+  
+  def settings_read_resp_callback(self, sbp_msg, **metadata):
+    confirmed_set=True
+    settings_list = sbp_msg.setting.split("\0")
+    if len(settings_list) <= 3:
+      print  "Received malformed settings read response {0}".format(sbp_msg)
+      confirmed_set = False
+    try:
+      if self.settings[settings_list[0]][settings_list[1]].value != settings_list[2]:
+        try:
+          float_val = float(self.settings[settings_list[0]][settings_list[1]].value)
+          float_val2 = float(settings_list[2])
+          if abs(float_val - float_val2) > 0.000001:
+            confirmed_set = False
+        except ValueError:
+          confirmed_set = False
+          pass
+      if not confirmed_set:
+        print "Setting {0} in group {1} was unable to be set to new value {2}".format(settings_list[0], settings_list[1], settings_list[2])
+      self.settings[settings_list[0]][settings_list[1]].confirmed_set = confirmed_set 
+    except KeyError:
+      return 
 
   def settings_read_by_index_callback(self, sbp_msg, **metadata):
     if not sbp_msg.payload:
@@ -371,6 +421,8 @@ class SettingsView(HasTraits):
                            SBP_MSG_SETTINGS_READ_BY_INDEX_RESP)
     self.link.add_callback(self.settings_read_by_index_done_callback,
                            SBP_MSG_SETTINGS_READ_BY_INDEX_DONE)
+    self.link.add_callback(self.settings_read_resp_callback,
+                           SBP_MSG_SETTINGS_READ_RESP)
     # Read in yaml file for setting metadata
     self.settings_yaml = SettingsList(name_of_yaml_file)
     # List of functions to be executed after all settings are read.
