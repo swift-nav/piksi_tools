@@ -364,7 +364,7 @@
   enumerated possible values: N/A
   Description: Rotate the heading output
   Notes: | 
-    Subtracts an offset to the heading output to rotate the heading vector to align the
+    Adds an offset to the heading output to rotate the heading vector to align the
     baseline heading with a desired 0 heading. Valid values are -180.0 to 180.0 degrees
 
 - group: solution
