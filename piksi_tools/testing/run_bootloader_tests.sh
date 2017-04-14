@@ -64,9 +64,9 @@ declare -a nap=(
 )
 
 # URL prefixes for firmwares.
-BTLDR_PREFIX="http://downloads.swiftnav.com/piksi_v2.3.1/bootloader"
-FW_PREFIX="http://downloads.swiftnav.com/piksi_v2.3.1/stm_fw"
-NAP_PREFIX="http://downloads.swiftnav.com/piksi_v2.3.1/nap_fw"
+BTLDR_PREFIX="https://s3-us-west-1.amazonaws.com/downloads.swiftnav.com/piksi_v2.3.1/bootloader"
+FW_PREFIX="https://s3-us-west-1.amazonaws.com/downloads.swiftnav.com/piksi_v2.3.1/stm_fw"
+NAP_PREFIX="https://s3-us-west-1.amazonaws.com/downloads.swiftnav.com/piksi_v2.3.1/nap_fw"
 
 # Download firmware files.
 for i in "${btldr[@]}"
@@ -81,4 +81,3 @@ for i in "${nap[@]}"
 do
    $DOWNLOAD $NAP_PREFIX"/$i"
 done
-

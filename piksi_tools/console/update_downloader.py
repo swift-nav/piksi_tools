@@ -14,7 +14,7 @@ from json import load as jsonload
 from urlparse import urlparse
 import os
 
-INDEX_URL = 'http://downloads.swiftnav.com/index.json'
+INDEX_URL = 'https://s3-us-west-1.amazonaws.com/downloads.swiftnav.com/index.json'
 
 class UpdateDownloader:
 

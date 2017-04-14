@@ -42,7 +42,7 @@ else:
 icon = ImageResource('icon',
          search_path=['images', os.path.join(basedir, 'images')])
 
-INDEX_URL = 'http://downloads.swiftnav.com/index.json'
+INDEX_URL = 'https://s3-us-west-1.amazonaws.com/downloads.swiftnav.com/index.json'
 HT = 8
 COLUMN_WIDTH = 100
 
@@ -476,7 +476,7 @@ class UpdateView(HasTraits):
             "Your Piksi Console is out of date and may be incompatible\n" + \
             "with current firmware. We highly recommend upgrading to\n" + \
             "ensure proper behavior.\n\n" + \
-            "Please visit http://downloads.swiftnav.com to\n" + \
+            "Please visit https://s3-us-west-1.amazonaws.com/downloads.swiftnav.com/index.json to\n" + \
             "download the newest version.\n\n" + \
             "Local Console Version :\n\t" + \
                 CONSOLE_VERSION + \
