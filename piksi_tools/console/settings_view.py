@@ -347,7 +347,7 @@ class SettingsView(HasTraits):
       # Bundle up our list and display it.
       self.settings_display_setup()
 
-    section, setting, value, format_type = sbp_msg.payload[2:].split('\0')[:4]
+    section, setting, value, format_type = sbp_msg.payload.rstrip('\n')[2:].split('\0')[:4]
     self.ordering_counter += 1
     if format_type == '':
       format_type = None
