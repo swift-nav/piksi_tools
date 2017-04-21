@@ -19,7 +19,7 @@ from pyface.api import GUI
 from piksi_tools.console.gui_utils import plot_square_axes
 from piksi_tools.console.utils import determine_path, mode_dict, get_mode, color_dict, FLOAT_MODE, \
                                       SPP_MODE, DGNSS_MODE, NO_FIX_MODE, FIXED_MODE, EMPTY_STR, \
-                                      sopen, log_time_strings, datetime_2_str       
+                                      sopen, log_time_strings, datetime_2_str, call_repeatedly       
 
 import math
 import os
@@ -154,15 +154,6 @@ class BaselineView(HasTraits):
     else:
       self.age_corrections = None
 
-  def _baseline_callback_ned(self, sbp_msg, **metadata):
-    # Updating an ArrayPlotData isn't thread safe (see chaco issue #9), so
-    # actually perform the update in the UI thread.
-    if self.running:
-      GUI.invoke_later(self.baseline_callback, sbp_msg)
-
-  def update_table(self):
-    self._table_list = self.table.items()
-
   def gps_time_callback(self, sbp_msg, **metadata):
     if sbp_msg.msg_type == SBP_MSG_GPS_TIME_DEP_A:
       time_msg = MsgGPSTimeDepA(sbp_msg)
@@ -202,7 +193,7 @@ class BaselineView(HasTraits):
     else:
       self.heading = None
   
-  def baseline_callback(self, sbp_msg):
+  def baseline_callback(self, sbp_msg, **metadata):
     soln = MsgBaselineNEDDepA(sbp_msg)
     self.last_soln = soln
     table = []
@@ -309,8 +300,14 @@ class BaselineView(HasTraits):
     else:
       self.n[0], self.e[0], self.d[0] = [np.NAN, np.NAN, np.NAN]
     self.mode[0] = self.last_mode
-    
+   
+  def solution_draw(self):
+    if self.running:
+      GUI.invoke_later(self._solution_draw)
+  
+  def _solution_draw(self): 
     self._clear_history()
+    soln = self.last_soln
     if np.any(self.mode):
       float_indexer = (self.mode == FLOAT_MODE)
       fixed_indexer = (self.mode == FIXED_MODE)
@@ -456,12 +453,14 @@ class BaselineView(HasTraits):
     
 
     self.link = link
-    self.link.add_callback(self._baseline_callback_ned, [SBP_MSG_BASELINE_NED, SBP_MSG_BASELINE_NED_DEP_A])
+    self.link.add_callback(self.baseline_callback, [SBP_MSG_BASELINE_NED, SBP_MSG_BASELINE_NED_DEP_A])
     self.link.add_callback(self.baseline_heading_callback, [SBP_MSG_BASELINE_HEADING])
     self.link.add_callback(self.iar_state_callback, SBP_MSG_IAR_STATE)
     self.link.add_callback(self.gps_time_callback, [SBP_MSG_GPS_TIME, SBP_MSG_GPS_TIME_DEP_A])
     self.link.add_callback(self.utc_time_callback, [SBP_MSG_UTC_TIME])
     self.link.add_callback(self.age_corrections_callback, SBP_MSG_AGE_CORRECTIONS)
+    
+    call_repeatedly(0.2, self.solution_draw)
 
     self.python_console_cmds = {
       'baseline': self
