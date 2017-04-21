@@ -20,7 +20,7 @@ from pyface.api import GUI
 from piksi_tools.console.gui_utils import plot_square_axes, MultilineTextEditor
 from piksi_tools.console.utils import determine_path, get_mode, mode_dict, color_dict, sopen,\
                                       EMPTY_STR, SPP_MODE, FLOAT_MODE, DGNSS_MODE, FIXED_MODE, \
-                                      log_time_strings, datetime_2_str
+                                      log_time_strings, datetime_2_str, call_repeatedly
 
 import math
 import os
@@ -178,7 +178,7 @@ class SolutionView(HasTraits):
       self.age_corrections = None
 
   def update_table(self):
-    self._table_list = self.table_spp.items()
+    self.table = self.pos_table + self.vel_table + self.dops_table
 
   def auto_survey(self):
     if self.last_soln.flags != 0: 
@@ -281,7 +281,10 @@ class SolutionView(HasTraits):
       pos_table.append(('Corr. Age [s]', self.age_corrections))
 
     self.auto_survey()
-
+    
+    # set-up table variables
+    self.pos_table = pos_table
+    self.update_table()
     # setup_plot variables
     self.lats[1:] = self.lats[:-1]
     self.lngs[1:] = self.lngs[:-1]
@@ -301,9 +304,14 @@ class SolutionView(HasTraits):
     self.tows = self.tows[-self.plot_history_max:]
     self.modes = self.modes[-self.plot_history_max:]
 
-    # SPP
+  def solution_draw(self):
+    if self.running:
+      GUI.invoke_later(self._solution_draw)
+
+  def _solution_draw(self): 
     spp_indexer, dgnss_indexer, float_indexer, fixed_indexer = None, None, None, None
     self._clear_history()
+    soln = self.last_soln
     if np.any(self.modes):
       spp_indexer = (self.modes == SPP_MODE)
       dgnss_indexer = (self.modes == DGNSS_MODE)
@@ -348,9 +356,6 @@ class SolutionView(HasTraits):
       else:
         pass
 
-    # set-up table variables
-    self.pos_table = pos_table
-    self.table = self.pos_table + self.vel_table + self.dops_table
 
     # TODO: figure out how to center the graph now that we have two separate messages
     # when we selectively send only SPP, the centering function won't work anymore
@@ -390,7 +395,7 @@ class SolutionView(HasTraits):
       ]
     
     self.dops_table.append(('DOPS Flags', '0x%03x' % flags))
-    self.table = self.pos_table + self.vel_table + self.dops_table
+    self.update_table()
 
   def vel_ned_callback(self, sbp_msg, **metadata):
     flags = 0
@@ -443,7 +448,7 @@ class SolutionView(HasTraits):
         ('Vel. D', EMPTY_STR),
       ]
     self.vel_table.append(('Vel Flags', '0x%03x' % flags))
-    self.table = self.pos_table + self.vel_table + self.dops_table
+    self.update_table()
 
   def gps_time_callback(self, sbp_msg, **metadata):
     if sbp_msg.msg_type == SBP_MSG_GPS_TIME_DEP_A:
@@ -553,12 +558,13 @@ class SolutionView(HasTraits):
     self.plot.overlays.append(zt)
 
     self.link = link
-    self.link.add_callback(self._pos_llh_callback, [SBP_MSG_POS_LLH_DEP_A, SBP_MSG_POS_LLH])
+    self.link.add_callback(self.pos_llh_callback, [SBP_MSG_POS_LLH_DEP_A, SBP_MSG_POS_LLH])
     self.link.add_callback(self.vel_ned_callback, [SBP_MSG_VEL_NED_DEP_A, SBP_MSG_VEL_NED])
     self.link.add_callback(self.dops_callback, [SBP_MSG_DOPS_DEP_A, SBP_MSG_DOPS])
     self.link.add_callback(self.gps_time_callback, [SBP_MSG_GPS_TIME_DEP_A, SBP_MSG_GPS_TIME])
     self.link.add_callback(self.utc_time_callback, [SBP_MSG_UTC_TIME])
     self.link.add_callback(self.age_corrections_callback, SBP_MSG_AGE_CORRECTIONS)
+    call_repeatedly(0.2, self.solution_draw)
 
     self.week = None
     self.utc_time = None
