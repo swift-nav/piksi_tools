@@ -395,7 +395,6 @@ class SolutionView(HasTraits):
       ]
     
     self.dops_table.append(('DOPS Flags', '0x%03x' % flags))
-    self.update_table()
 
   def vel_ned_callback(self, sbp_msg, **metadata):
     flags = 0
