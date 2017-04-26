@@ -149,7 +149,7 @@ from traitsui.table_column \
     import ObjectColumn, ExpressionColumn
 
 CONSOLE_TITLE = 'Swift Console v:' + CONSOLE_VERSION
-BAUD_LIST = [57600, 115200, 921600, 1000000]
+BAUD_LIST = [57600, 115200, 230400, 921600, 1000000]
 
 
 class ConsoleHandler(Handler):
