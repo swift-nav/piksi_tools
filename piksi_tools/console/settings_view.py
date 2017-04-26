@@ -107,8 +107,9 @@ class Setting(SettingBase):
                                 actions=[prompt.close_button],
                                 )   
        invalid_setting_prompt.text = \
-              ("\n   Unable to set {0} to {1}.\n"
-                 "   Ensure the range and formatting of the entry are correct.  ").format(self.name, new)
+              ("\n   Unable to confirm that {0} was set to {1}.\n"
+                 "   Ensure the range and formatting of the entry are correct.\n"
+                 "    Ensure that the new setting value did not interrupt console communication.").format(self.name, new)
        invalid_setting_prompt.run()
           
      self.confirmed_set = False
@@ -214,6 +215,7 @@ class SettingsView(HasTraits):
           adapter=SimpleAdapter(),
           editable_labels=False,
           auto_update=True,
+          editable=False,
           selected='selected_setting'
         ),
         show_label=False,
