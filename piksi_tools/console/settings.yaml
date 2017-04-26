@@ -225,6 +225,26 @@
     bit 2 (decimal value 4) turns on Float IAR simulated RTK outputs
     bit 3 (decimal value 8) turns on Fixed IAR simulated RTK outputs
 
+- group: skylark
+  name: enable
+  type: boolean
+  expert: true
+  units: N/A
+  default value: False
+  enumerated possible values: True,False
+  Description: Enable Skylark client
+  Notes: If True, Skyark client will be used.
+
+- group: skylark
+  name: url
+  type: string
+  expert: true
+  units: N/A
+  default value: N/A
+  enumerated possible values:
+  Description: Skylark URL to use
+  Notes: URL to use with Skylark client. Skylark must be enabled to use this setting.
+
 - group: solution
   name: soln_freq
   type: integer
@@ -881,6 +901,28 @@
   enumerated possible values:
   Description: Number of ticks between GPGSA NMEA messages being sent
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
+
+- group: ntrip
+  name: enable
+  type: boolean
+  expert: true
+  units: N/A
+  default value: False
+  enumerated possible values: True,False
+  Description: Enable NTRIP client
+  Notes: If True, NTRIP client will be used.
+
+- group: ntrip
+  name: url
+  type: string
+  expert: true
+  units: N/A
+  default value: N/A
+  enumerated possible values:
+  Description: NTRIP URL to use
+  Notes: URL to use with NTRIP client. NTRIP must be enabled to use this setting.
+    URLs should be HTTP URLs with optional credentials, a port, and a mountpoint
+    path: foo:bar@example.com:2101/BAZ_RTCM3, example.com:2101/BAZ_RTCM3.
 
 - group: pps
   name: width
