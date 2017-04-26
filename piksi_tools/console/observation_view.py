@@ -17,7 +17,7 @@ from enable.savage.trait_defs.ui.svg_button import SVGButton
 from piksi_tools.console.utils import determine_path,sopen
 from piksi_tools.console.utils import code_to_str, code_is_gps
 from piksi_tools.console.utils import L1CA
-from piksi_tools.console.utils import EMPTY_STR
+from piksi_tools.console.utils import EMPTY_STR, call_repeatedly
 
 import os
 import datetime
@@ -60,7 +60,7 @@ class ObservationView(HasTraits):
           Item('', label='GPS Week:', emphasized = True, tooltip='GPS Week Number (since 1980'),
           Item('gps_week', style='readonly', show_label=False),
           Item('', label='GPS TOW:', emphasized = True, tooltip='GPS milliseconds in week'),
-          Item('gps_tow', style='readonly', show_label=False),
+          Item('gps_tow', style='readonly', show_label=False, format_str='%.3f'),
           Item('', label='Total obs:', emphasized = True, tooltip='GPS milliseconds in week'),
           Item('obs_count', style='readonly', show_label=False),
           Item('', label='L1 obs:', emphasized = True, tooltip='GPS milliseconds in week'),
@@ -211,7 +211,6 @@ class ObservationView(HasTraits):
                datetime.timedelta(weeks=self.gps_week) + \
                datetime.timedelta(seconds=self.gps_tow)
 
-      self.update_obs()
 
     return
 
@@ -232,3 +231,4 @@ class ObservationView(HasTraits):
                             SBP_MSG_OBS_DEP_B,
                             SBP_MSG_OBS_DEP_C])
     self.python_console_cmds = {'obs': self}
+    call_repeatedly(0.2, self.update_obs)
