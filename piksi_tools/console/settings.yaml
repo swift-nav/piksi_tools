@@ -1049,7 +1049,7 @@
   default value: '50'
   enumerated possible values: 25,50,100,200
   units: Hz
-  description: The data rate (in Hz) for IMU raw output
+  Description: The data rate (in Hz) for IMU raw output
   Notes: It is recommended to use Ethernet or USB for IMU data output
     for data rates over 25 Hz
 
@@ -1059,7 +1059,7 @@
   default value: '2'
   enumerated possible values: 2,4,8,16
   units: g
-  description: The approximate range of accelerations that can be measured
+  Description: The approximate range of accelerations that can be measured
   Notes: When 2 g is chosen, it means the accelerometer is scaled to measure
     about +/- 2 g of acceleration. Refer to the IMU datasheet for detailed information.
 
@@ -1069,7 +1069,7 @@
   default value: '1000'
   enumerated possible values: 125,250,500,1000,2000
   units: deg/s
-  description: The approximate range of angular rate that can be measured
+  Description: The approximate range of angular rate that can be measured
   Notes: When 125 is chosen, it means the gyro is scaled to measure
     about +/- 125 deg/s of angular rate. Refer to the IMU datasheet for detailed information.
 
@@ -1078,49 +1078,49 @@
   type: boolean
   default value: 'True'
   expert: true
-  description: Erase stored ephmerides during boot
+  Description: Erase stored ephmerides during boot
 
 - group: ndb
   name: erase_almanac
   type: boolean
   default value: 'True'
   expert: true
-  description: Erase stored almanacs during boot
+  Description: Erase stored almanacs during boot
 
 - group: ndb
   name: erase_almanac_wn
   type: boolean
   default value: 'True'
   expert: true
-  description: Erase stored almanac week numbers during boot
+  Description: Erase stored almanac week numbers during boot
 
 - group: ndb
   name: erase_iono
   type: boolean
   default value: 'True'
   expert: true
-  description: Erase stored ionospheric parameters during boot
+  Description: Erase stored ionospheric parameters during boot
 
 - group: ndb
   name: erase_lgf
   type: boolean
   default value: 'True'
   expert: true
-  description: Erase stored last fix information during boot
+  Description: Erase stored last fix information during boot
 
 - group: ndb
   name: erase_l2c_capb
   type: boolean
   default value: 'True'
   expert: true
-  description: Erase stored L2C capability mask during boot
+  Description: Erase stored L2C capability mask during boot
 
 - group: ndb
   name: erase_utc_params
   type: boolean
   default value: 'True'
   expert: true
-  description: Erase stored UTC offset parameters during boot
+  Description: Erase stored UTC offset parameters during boot
 
 - group: ndb
   name: lgf_update_s
@@ -1128,7 +1128,7 @@
   default value: '1800'
   units: seconds
   expert: true
-  description: Update period for navigation database last good fix
+  Description: Update period for navigation database last good fix
 
 - group: ndb
   name: lgf_update_m
@@ -1136,7 +1136,7 @@
   default value: '10000'
   units: meters
   expert: true
-  description: Change in position required to update last good fix
+  Description: Change in position required to update last good fix
 
 - group: ndb
   name: valid_alm_days
@@ -1144,7 +1144,7 @@
   default value: '6'
   units: days
   expert: true
-  description: Number of days for which Almanac is valid
+  Description: Number of days for which Almanac is valid
 
 - group: ndb
   name: valid_eph_acc
@@ -1178,6 +1178,43 @@
   name: APN
   type: string
   default value: INTERNET
-  description: Access point name (provided by cell carrier)
+  Description: Access point name (provided by cell carrier)
   units: N/A
   expert: true
+
+- group: standalone_logging
+  name: file_duration 
+  type: int
+  default value: '10'
+  Description: Duration of each logfile 
+  units: minutes
+  Notes: Sets the number of minutes to output to each standalone log file before opening the next one. 
+         If this setting is changed while logging is enabled, it will go into effect immediately which will close the current file if its length exceeds the new duration.
+
+- group: standalone_logging
+  name: max_fill
+  type: int
+  default value: '95'
+  Description: Maximum storage device usage
+  units: percent
+  Notes: Sets a limit on how full the storage device can be before logging is stopped. If the drive is more than this percent full, no new log files will be created and a warning will be logged every 30 seconds. 
+         If this setting is changed while logging is enabled, it will go into effect on the next file that’s created.
+
+- group: standalone_logging
+  name: output_directory
+  type: string 
+  default value: '/media/sda1/'
+  Description: Standalone logging path 
+  units: N/A
+  Notes: Sets the paths in which to write logs. A warning will be logged every 30 seconds if this path is invalid or unavailable. The system will not create a folder that does not exist. 
+         If this setting is changed while logging is enabled, it will go into effect on the next file that’s created.
+
+- group: standalone_logging
+  name: enable
+  type: boolean
+  default value: 'False'
+  Description: Standalone logging enabled
+  units: N/A
+  Notes: Setting this to true triggers the logger to start trying to write logs to the output_directory. 
+         Setting this to false will immediately close the current file and stop logging. 
+         Reenabling logging will increment the session counter which is reflected in the log file names (see USB Logging File Output section).
