@@ -929,9 +929,10 @@
   default value: N/A
   enumerated possible values:
   Description: NTRIP URL to use
-  Notes: URL to use with NTRIP client. NTRIP must be enabled to use this setting.
+  Notes: | 
+    URL to use with NTRIP client. NTRIP must be enabled to use this setting.
     URLs should be HTTP URLs with optional credentials, a port, and a mountpoint
-    path: foo:bar@example.com:2101/BAZ_RTCM3, example.com:2101/BAZ_RTCM3.
+    path such as foo:bar@example.com:2101/BAZ_RTCM3 or example.com:2101/BAZ_RTCM3.
 
 - group: pps
   name: width
