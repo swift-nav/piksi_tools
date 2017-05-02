@@ -271,7 +271,7 @@ class SolutionView(HasTraits):
       pos_table.append(('Sats Used', soln.n_sats))
       pos_table.append(('Lat', soln.lat))
       pos_table.append(('Lng', soln.lon))
-      pos_table.append(('Height', soln.height))
+      pos_table.append(('Height', "{0:.3f}".format(soln.height)))
       pos_table.append(('Horiz Acc', soln.h_accuracy))
       pos_table.append(('Vert Acc', soln.v_accuracy))
 
