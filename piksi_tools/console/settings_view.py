@@ -109,7 +109,7 @@ class Setting(SettingBase):
        invalid_setting_prompt.text = \
               ("\n   Unable to confirm that {0} was set to {1}.\n"
                  "   Ensure the range and formatting of the entry are correct.\n"
-                 "    Ensure that the new setting value did not interrupt console communication.").format(self.name, new)
+                 "   Ensure that the new setting value did not interrupt console communication.").format(self.name, new)
        invalid_setting_prompt.run()
           
      self.confirmed_set = False
@@ -338,7 +338,8 @@ class SettingsView(HasTraits):
           confirmed_set = False
           pass
       if not confirmed_set:
-        print "Setting {0} in group {1} was unable to be set to new value {2}".format(settings_list[0], settings_list[1], settings_list[2])
+        pass
+        # We pass if the new value doesn't match current console value.  It would be nice to update it, but that may cause side effects.
       self.settings[settings_list[0]][settings_list[1]].confirmed_set = confirmed_set 
     except KeyError:
       return 
@@ -381,6 +382,7 @@ class SettingsView(HasTraits):
     self.link(MsgSettingsReadByIndexReq(index=self.enumindex))
 
   def piksi_startup_callback(self, sbp_msg, **metadata):
+    self.settings = {}
     self._settings_read_button_fired()
 
   def set(self, section, name, value):
