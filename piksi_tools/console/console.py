@@ -557,7 +557,7 @@ class SwiftConsole(HasTraits):
           skylark_dict = {}
       else:
         skylark_dict = {}
-
+      skylark_dict.update({'whitelist':[SBP_MSG_POS_LLH, SBP_MSG_HEARTBEAT]})
       self.networking_view = SbpRelayView(self.link, **skylark_dict)
       self.json_logging = json_logging
       self.csv_logging = False
