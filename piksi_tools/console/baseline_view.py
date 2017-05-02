@@ -277,7 +277,8 @@ class BaselineView(HasTraits):
       table.append(('D', soln.d))
       table.append(('Horiz Acc', soln.h_accuracy))
       table.append(('Vert Acc', soln.v_accuracy))
-      table.append(('Dist.', dist))
+      table.append(('Dist.', "{0:.3f}".format(dist)))
+
       table.append(('Sats Used', soln.n_sats))
     
     table.append(('Flags', '0x%02x' % soln.flags))
