@@ -345,11 +345,6 @@ class SettingsView(HasTraits):
       return 
 
   def settings_read_by_index_callback(self, sbp_msg, **metadata):
-    if not sbp_msg.payload:
-      # Settings output from Piksi is terminated by an empty message.
-      # Bundle up our list and display it.
-      self.settings_display_setup()
-
     section, setting, value, format_type = sbp_msg.payload[2:].split('\0')[:4]
     self.ordering_counter += 1
     if format_type == '':
@@ -377,9 +372,9 @@ class SettingsView(HasTraits):
         self.settings[section][setting] = Setting(setting, section, value,
                                                   settings=self
                                                  )
-
-    self.enumindex += 1
-    self.link(MsgSettingsReadByIndexReq(index=self.enumindex))
+    if self.enumindex == sbp_msg.index:
+      self.enumindex += 1
+      self.link(MsgSettingsReadByIndexReq(index=self.enumindex))
 
   def piksi_startup_callback(self, sbp_msg, **metadata):
     self.settings = {}
