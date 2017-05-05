@@ -46,4 +46,5 @@ def plot_square_axes(plot, xnames, ynames):
       plot.value_range.low_setting = miny - padding
       plot.value_range.high_setting = maxy + padding
   except:
+    import traceback
     sys.__stderr__.write(traceback.format_exc() + '\n')
