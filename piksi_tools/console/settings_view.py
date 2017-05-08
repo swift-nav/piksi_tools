@@ -377,7 +377,7 @@ class SettingsView(HasTraits):
       self.link(MsgSettingsReadByIndexReq(index=self.enumindex))
 
   def piksi_startup_callback(self, sbp_msg, **metadata):
-    self.settings = {}
+    self.settings.clear()
     self._settings_read_button_fired()
 
   def set(self, section, name, value):
