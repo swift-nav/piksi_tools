@@ -586,7 +586,7 @@
     
     "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages. 
     
-    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1001, 1002, 1003, 1004, 1005, 1006 and 1007 RTCMv3.1 messages and will not transmit or receive any other messages. 
+    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1002, 1004, 1005, and 1006 RTCMv3.1 messages and will not transmit or receive any other messages. 
 
 - group: uart1
   name: baudrate
