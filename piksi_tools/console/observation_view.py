@@ -106,8 +106,8 @@ class ObservationView(HasTraits):
       self.prev_obs_total = total
       self.prev_obs_count = 0
       self.old_cp = self.new_cp
-      self.new_cp = {}
-      self.obs = {}
+      self.new_cp.clear()
+      self.incoming_obs.clear()
     elif self.gps_tow != tow or\
          self.gps_week != wn or\
          self.prev_obs_count + 1 != count or\
@@ -204,12 +204,14 @@ class ObservationView(HasTraits):
       if (cpdopp == 0):
         cpdopp_str = EMPTY_STR
 
-      self.obs[prn] = (pr_str, cp_str, cn0_str, msdopp_str, cpdopp_str, lock_str, flags_str)
+      self.incoming_obs[prn] = (pr_str, cp_str, cn0_str, msdopp_str, cpdopp_str, lock_str, flags_str)
 
     if (count == total - 1):
       self.t = datetime.datetime(1980, 1, 6) + \
                datetime.timedelta(weeks=self.gps_week) + \
                datetime.timedelta(seconds=self.gps_tow)
+      self.obs.clear()
+      self.obs.update(self.incoming_obs)
 
 
     return
@@ -217,6 +219,8 @@ class ObservationView(HasTraits):
   def __init__(self, link, name='Local', relay=False, dirname=None):
     super(ObservationView, self).__init__()
     self.dirname = dirname
+    self.obs = {}
+    self.incoming_obs = {} 
     self.obs_count = 0
     self.gps_tow = 0.0
     self.gps_week = 0
