@@ -286,33 +286,6 @@ class SbpRelayView(HasTraits):
                  spring,
                ),
              ),
-             spring,
-             HGroup(
-               VGroup(
-                 HGroup(
-                   spring,
-                   UItem('connect_rover', enabled_when='not connected_rover', show_label=False),
-                   UItem('disconnect_rover', enabled_when='connected_rover', show_label=False),
-                   spring),
-                   HGroup(Spring(springy=False, width=2),
-                          Item('skylark_url', enabled_when='not connected_rover', show_label=True),
-                          Spring(springy=False, width=2)
-                          ),
-                 HGroup(spring,
-                        Item('base_pragma',  label='Base option '),
-                        Item('base_device_uid',  label='Base device '),
-                        spring),
-                 HGroup(spring,
-                        Item('rover_pragma', label='Rover option'),
-                        Item('rover_device_uid',  label='Rover device'),
-                        spring),),
-               VGroup(
-                 Item('http_information', label="Notes", height=10,
-                      editor=MultilineTextEditor(TextEditor(multi_line=True)), style='readonly',
-                      show_label=False, resizable=True, padding=15),
-                 spring,
-               ),
-             ),
              spring
            )
   )
