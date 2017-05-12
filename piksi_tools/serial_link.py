@@ -37,7 +37,7 @@ from piksi_tools.utils import mkdir_p
 SERIAL_PORT  = "/dev/ttyUSB0"
 SERIAL_BAUD  = 115200
 CHANNEL_UUID = '118db405-b5de-4a05-87b5-605cc85af924'
-DEFAULT_BASE = "http://broker.staging.skylark.swiftnav.com"
+DEFAULT_BASE = "https://broker.skylark2.swiftnav.com"
 
 def logfilename():
   return time.strftime("serial-link-%Y%m%d-%H%M%S.log.json") 

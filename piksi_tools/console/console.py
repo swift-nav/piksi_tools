@@ -22,7 +22,7 @@ import time
 
 
 from os.path import expanduser
-from piksi_tools.serial_link import swriter, get_uuid, DEFAULT_BASE
+from piksi_tools.serial_link import swriter, get_uuid
 from piksi_tools.version import VERSION as CONSOLE_VERSION
 from piksi_tools.heartbeat import Heartbeat
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
@@ -65,8 +65,8 @@ def get_args():
                       help="Do not swallow exceptions.")
   parser.add_argument('--log-console', action='store_true',
                       help="Log console stdout/err to file.")
-  parser.add_argument('--skylark', default='',
-                      help="key value pairs to pass to sbp_relay_view initializer for skylark")
+  parser.add_argument('--networking', default=None, const='{}', nargs='?',
+                      help="key value pairs to pass to sbp_relay_view initializer for network")
   parser.add_argument('--serial-upgrade', action='store_true',
                       help="Allow software upgrade over serial.")
   parser.add_argument('-h', '--help', action='store_true',
@@ -499,7 +499,7 @@ class SwiftConsole(HasTraits):
   
   def __init__(self, link, update, log_level_filter, skip_settings=False, error=False, 
                cnx_desc=None, json_logging=False, log_dirname=None, override_filename=None, 
-               log_console=False, skylark="", serial_upgrade=False):
+               log_console=False, networking=None, serial_upgrade=False):
     self.error = error
     self.cnx_desc = cnx_desc
     self.dev_id = cnx_desc
@@ -546,19 +546,20 @@ class SwiftConsole(HasTraits):
       self.update_view = UpdateView(self.link, download_dir=swift_path, prompt=update, serial_upgrade=serial_upgrade)
       self.imu_view = IMUView(self.link)
       settings_read_finished_functions.append(self.update_view.compare_versions)
-      if skylark:
+      if networking:
         import yaml
         try:
-          skylark_dict = yaml.load(skylark)
+          networking_dict = yaml.load(networking)
+          networking_dict.update({'show_networking':True})
         except yaml.YAMLError:
-          print "Unable to interpret Skylark cmdline argument.  It will be ignored."
+          print "Unable to interpret networking cmdline argument.  It will be ignored."
           import traceback
           print traceback.format_exc()
-          skylark_dict = {}
+          networking_dict = {'show_networking':True}
       else:
-        skylark_dict = {}
-      skylark_dict.update({'whitelist':[SBP_MSG_POS_LLH, SBP_MSG_HEARTBEAT]})
-      self.networking_view = SbpRelayView(self.link, **skylark_dict)
+        networking_dict = {}
+      networking_dict.update({'whitelist':[SBP_MSG_POS_LLH, SBP_MSG_HEARTBEAT]})
+      self.networking_view = SbpRelayView(self.link, **networking_dict)
       self.json_logging = json_logging
       self.csv_logging = False
       self.first_json_press = True
@@ -755,7 +756,7 @@ with selected_driver as driver:
       log_filter = args.initloglevel[0]
     with SwiftConsole(link, args.update, log_filter, cnx_desc=connection_description, error=args.error, 
                  json_logging=args.log, log_dirname=args.log_dirname, override_filename=args.logfilename,
-                 log_console=args.log_console, skylark=args.skylark, 
+                 log_console=args.log_console, networking=args.networking, 
                  serial_upgrade=args.serial_upgrade) as console: 
       console.configure_traits()
 
