@@ -552,7 +552,7 @@ class SwiftConsole(HasTraits):
           networking_dict = yaml.load(networking)
           networking_dict.update({'show_networking':True})
         except yaml.YAMLError:
-          print "Unable to interpret Skylark cmdline argument.  It will be ignored."
+          print "Unable to interpret networking cmdline argument.  It will be ignored."
           import traceback
           print traceback.format_exc()
           networking_dict = {'show_networking':True}
