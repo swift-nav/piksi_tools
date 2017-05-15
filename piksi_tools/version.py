@@ -37,14 +37,19 @@ __all__ = ("get_git_version")
 
 from subprocess import Popen, PIPE, check_call, CalledProcessError
 import sys
+from sys import platform
 import os
 
 def check_for_git():
   try:
+    if sys.platform == "win32":
+      # No `which` command on Windows
+      check_call(['git', 'version'])
+    else:
       check_call(['which', 'git'])
-      return True
+    return True
   except:
-      return False
+    return False
 
 def call_git_describe():
     try:

@@ -2,6 +2,7 @@
 
 - group: surveyed_position
   name: broadcast
+  expert: false
   type: boolean
   units:
   default value: 'False'
@@ -17,6 +18,7 @@
 
 - group: surveyed_position
   name: surveyed_lat
+  expert: false
   type: Double
   units: degrees
   default value: '0'
@@ -34,6 +36,7 @@
 
 - group: surveyed_position
   name: surveyed_lon
+  expert: false
   type: Double
   units: degrees
   default value: '0'
@@ -51,6 +54,7 @@
 
 - group: surveyed_position
   name: surveyed_alt
+  expert: false
   type: Double
   units: meters
   default value: '0'
@@ -64,6 +68,7 @@
     RTK position measurement reported by the Rover.
 
 - group: frontend
+  expert: false
   name: antenna_selection
   type: enum
   units: N/A
@@ -76,15 +81,17 @@
 
 - group: frontend
   name: antenna_bias
+  expert: false
   type: bool
   units: N/A
   default value: 'True'
-  Description: Enable/Disable 5 V antenna bias
+  Description: Enable/Disable 4.85V antenna bias
   Notes: Most active antennas require an antenna bias in order to power
     the amplifier in the antenna.
 
 - group: sbp
   name: obs_msg_max_size
+  expert: false
   type: integer
   units: bytes
   default value: '102'
@@ -100,6 +107,7 @@
     of one observation as the maximum message size.
 
 - group: simulator
+  expert: false
   name: enabled
   type: boolean
   units: N/A
@@ -114,6 +122,7 @@
 
 - group: simulator
   name: base_ecef_x
+  expert: false
   type: double
   units: meters
   default value: '-2706098.845'
@@ -123,6 +132,7 @@
 
 - group: simulator
   name: base_ecef_y
+  expert: false
   type: double
   units: meters
   default value: '-4261216.475'
@@ -132,6 +142,7 @@
 
 - group: simulator
   name: base_ecef_z
+  expert: false
   type: double
   units: meters
   default value: '3885597.912'
@@ -141,6 +152,7 @@
 
 - group: simulator
   name: speed
+  expert: false
   type: double
   units: m/s
   default value: '4'
@@ -150,6 +162,7 @@
 
 - group: simulator
   name: radius
+  expert: false
   type: double
   units: meters
   default value: '100'
@@ -159,6 +172,7 @@
 
 - group: simulator
   name: pos_sigma
+  expert: false
   type: double
   units: meters^2
   default value: '1.5'
@@ -168,6 +182,7 @@
 
 - group: simulator
   name: speed_sigma
+  expert: false
   type: double
   units: meters^2/s^2
   default value: '0.15'
@@ -177,6 +192,7 @@
 
 - group: simulator
   name: cn0_sigma
+  expert: false
   type: double
   units: dBm-Hz
   default value: '0.3'
@@ -187,6 +203,7 @@
 
 - group: simulator
   name: pseudorange_sigma
+  expert: false
   type: double
   units: meters
   default value: '4'
@@ -196,6 +213,7 @@
 
 - group: simulator
   name: phase_sigma
+  expert: false
   type: double
   units: cycles
   default value: '0.03'
@@ -205,6 +223,7 @@
 
 - group: simulator
   name: num_sats
+  expert: false
   type: integer
   units: N/A
   default value: '9'
@@ -214,6 +233,7 @@
 
 - group: simulator
   name: mode_mask
+  expert: false
   type: packed bitfield
   units: N/A
   default value: 15 (decimal), 0xF (hexadecimal)
@@ -227,8 +247,8 @@
 
 - group: skylark
   name: enable
-  type: boolean
   expert: true
+  type: boolean
   units: N/A
   default value: False
   enumerated possible values: True,False
@@ -237,8 +257,8 @@
 
 - group: skylark
   name: url
-  type: string
   expert: true
+  type: string
   units: N/A
   default value: N/A
   enumerated possible values:
@@ -247,6 +267,7 @@
 
 - group: solution
   name: soln_freq
+  expert: false
   type: integer
   units: Hz
   default value: '10'
@@ -256,6 +277,7 @@
 
 - group: solution
   name: correction_age_max
+  expert: false
   type: float
   units: seconds
   default value: '30'
@@ -265,6 +287,7 @@
 
 - group: solution
   name: output_every_n_obs
+  expert: false
   type: integer
   units: N/A
   default value: '10'
@@ -281,6 +304,7 @@
 
 - group: solution
   name: dgnss_solution_mode
+  expert: false
   type: enum
   units: N/A
   default value: 'Low Latency'
@@ -309,6 +333,7 @@
 
 - group: solution
   name: known_baseline_n
+  expert: false
   type: double
   units: meters
   default value: '0'
@@ -319,6 +344,7 @@
 
 - group: solution
   name: known_baseline_e
+  expert: false
   type: double
   units: meters
   default value: '0'
@@ -329,6 +355,7 @@
 
 - group: solution
   name: known_baseline_d
+  expert: false
   type: double
   units: meters
   default value: '0'
@@ -339,6 +366,7 @@
 
 - group: solution
   name: elevation_mask
+  expert: false
   type: float
   units: degrees
   default value: '10'
@@ -349,8 +377,8 @@
 
 - group: solution
   name: disable_raim
-  type: boolean
   expert: true
+  type: boolean
   units:
   default value: False
   enumerated possible values: True,False
@@ -359,8 +387,8 @@
 
 - group: solution
   name: send_heading
-  type: boolean
   expert: False
+  type: boolean
   units:  N/A
   default value: False
   enumerated possible values: True,False
@@ -377,8 +405,8 @@
 
 - group: solution
   name: heading_offset
-  type: double
   expert: False
+  type: double
   units:  degrees
   default value: 0.0
   enumerated possible values: N/A
@@ -389,8 +417,8 @@
 
 - group: solution
   name: disable_klobuchar_correction
-  type: boolean
   expert: true
+  type: boolean
   units: N/A
   default value: False
   enumerated possible values: True,False
@@ -399,6 +427,7 @@
 
 - group: system_info
   name: serial_number
+  expert: False
   type: integer
   units: N/A
   default value: N/A
@@ -408,6 +437,7 @@
 
 - group: system_info
   name: mac_address
+  expert: False
   type: string
   units: N/A
   default value: N/A
@@ -417,6 +447,7 @@
 
 - group: system_info
   name: uuid
+  expert: False
   type: string
   units: N/A
   default value: N/A
@@ -427,6 +458,7 @@
 
 - group: system_info
   name: firmware_version
+  expert: False
   type: string
   units: N/A
   default value: N/A
@@ -436,6 +468,7 @@
 
 - group: system_info
   name: hw_revision
+  expert: False
   type: string
   units: N/A
   default value: N/A
@@ -445,6 +478,7 @@
 
 - group: system_info
   name: firmware_build_id
+  expert: False
   type: string
   units: N/A
   default value: N/A
@@ -455,6 +489,7 @@
 
 - group: system_info
   name: firmware_build_date
+  expert: False
   type: string
   units: N/A
   default value: N/A
@@ -504,8 +539,8 @@
 
 - group: system_info
   name: pfwp_build_id
-  type: string
   expert: true
+  type: string
   units: N/A
   default value: N/A
   enumerated possible values:
@@ -514,8 +549,8 @@
 
 - group: system_info
   name: pfwp_build_date
-  type: string
   expert: true
+  type: string
   units: N/A
   default value: N/A
   enumerated possible values:
@@ -524,6 +559,7 @@
 
 - group: system_info
   name: sbp_sender_id
+  expert: false
   type: string
   units: N/A
   default value: N/A
@@ -543,6 +579,7 @@
 
 - group: system_monitor
   name: heartbeat_period_milliseconds
+  expert: false
   type: integer
   units: ms
   default value: '1000'
@@ -552,6 +589,7 @@
 
 - group: system_monitor
   name: watchdog
+  expert: true
   type: boolean
   units: N/A
   default value: 'True'
@@ -562,6 +600,7 @@
 
 - group: usb0
   name: enabled_sbp_messages
+  expert: false
   type: string
   units: N/A
   default value: 'blank - all messages are enabled'
@@ -576,6 +615,7 @@
 
 - group: usb0
   name: mode
+  expert: false
   type: enum
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
@@ -590,6 +630,7 @@
 
 - group: uart1
   name: baudrate
+  expert: false
   type: integer
   units: bps
   default value: '115200'
@@ -599,6 +640,7 @@
 
 - group: uart1
   name: flow_control
+  expert: false
   type: boolean 
   units: NA
   default value: False
@@ -608,6 +650,7 @@
 
 - group: uart1
   name: mode
+  expert: false
   type: enum
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
@@ -622,6 +665,7 @@
 
 - group: uart1
   name: enabled_sbp_messages
+  expert: false
   type: string
   units: N/A
   default value: 'blank - all messages are enabled'
@@ -636,6 +680,7 @@
 
 - group: uart0
   name: baudrate
+  expert: false
   type: integer
   units: bps
   default value: '115200'
@@ -645,6 +690,7 @@
 
 - group: uart0
   name: flow_control
+  expert: false
   type: boolean 
   units: NA
   default value: False
@@ -654,6 +700,7 @@
 
 - group: uart0
   name: mode
+  expert: false
   type: enum
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
@@ -668,6 +715,7 @@
 
 - group: uart0
   name: enabled_sbp_messages
+  expert: false
   type: string
   units: N/A
   default value: '68,72,73,74,65535'
@@ -682,6 +730,7 @@
 
 - group: ext_events
   name: edge_trigger
+  expert: false
   type: enum
   units: N/A
   default value: None
@@ -695,12 +744,13 @@
 
 - group: ext_events
   name: sensitivity
+  expert: false
   type: integer
   units: us (microseconds)
   default value: 0
   enumerated possible values:
   Description: Minimum time between events (0 = disabled)
-  Notes:
+  Notes: Any event faster than this value will be ignored and a MSG_EXT_EVENT will not be generated.
 
 - group: track
   name: elevation_mask
@@ -847,6 +897,7 @@
 
 - group: nmea
   name: gpgsv_msg_rate
+  expert: false
   type: integer
   units: Solution Period
   default value: '10'
@@ -855,22 +906,25 @@
 
 - group: nmea
   name: gpgga_msg_rate
+  expert: false
   type: integer
   units: Solution Period
-  default value: '10'
+  default value: '1'
   Description: Number of Solution Periods between GPGGA NMEA messages being sent
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
   name: gphdt_msg_rate
+  expert: false
   type: integer
   units: Solution Period
-  default value: '10'
+  default value: '1'
   Description: Number of Solution Periods between GPHDT NMEA messages being sent
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
   name: gprmc_msg_rate
+  expert: false
   type: integer
   units: Solution Period
   default value: '10'
@@ -879,6 +933,7 @@
 
 - group: nmea
   name: gpvtg_msg_rate
+  expert: false
   type: integer
   units: Solution Period
   default value: '1'
@@ -887,6 +942,7 @@
 
 - group: nmea
   name: gpgll_msg_rate
+  expert: false
   type: integer
   units: Solution Period
   default value: '10'
@@ -895,6 +951,7 @@
 
 - group: nmea
   name: gpzda_msg_rate
+  expert: false
   type: integer
   units: Solution Period
   default value: '10'
@@ -904,6 +961,7 @@
 
 - group: nmea
   name: gpgsa_msg_rate
+  expert: false
   type: integer
   units: Solution Periods
   default value: '10'
@@ -913,8 +971,8 @@
 
 - group: ntrip
   name: enable
-  type: boolean
   expert: true
+  type: boolean
   units: N/A
   default value: False
   enumerated possible values: True,False
@@ -923,19 +981,19 @@
 
 - group: ntrip
   name: url
-  type: string
   expert: true
+  type: string
   units: N/A
   default value: N/A
   enumerated possible values:
   Description: NTRIP URL to use
-  Notes: | 
-    URL to use with NTRIP client. NTRIP must be enabled to use this setting.
+  Notes: URL to use with NTRIP client. NTRIP must be enabled to use this setting.
     URLs should be HTTP URLs with optional credentials, a port, and a mountpoint
-    path such as foo:bar@example.com:2101/BAZ_RTCM3 or example.com:2101/BAZ_RTCM3.
+    path such as username:password@example.com:2101/BAZ_RTCM3 or example.com:2101/BAZ_RTCM3.
 
 - group: pps
   name: width
+  expert: false
   type: integer
   units: us (microseconds)
   default value: '200000'
@@ -945,6 +1003,7 @@
 
 - group: pps
   name: polarity
+  expert: false
   type: integer
   units: Logic Level
   default value: '1'
@@ -954,6 +1013,7 @@
 
 - group: pps
   name: offset
+  expert: false
   type: integer
   units: us (microseconds)
   default value: '0'
@@ -963,6 +1023,7 @@
 
 - group: pps
   name: frequency
+  expert: false
   type: double
   units: Hz
   default value: '1.0'
@@ -972,8 +1033,8 @@
 
 - group: acquisition
   name: sbas_enabled
-  type: boolean
   expert: true
+  type: boolean
   units: N/A
   default value: 'False'
   enumerated possible values: true,false
@@ -982,8 +1043,8 @@
 
 - group: acquisition
   name: almanacs_enabled
-  type: boolean
   expert: true
+  type: boolean
   units: N/A
   default value: 'False'
   enumerated possible values: true,false
@@ -992,15 +1053,17 @@
 
 - group: ethernet
   name: ip_config_mode
+  expert: false
   type: enum
   enumerated possible values: Static,DHCP
   units: N/A
   default value: 'Static'
   Description: Ethernet configuration mode
-  Notes: If DHCP is chosen the IP address will be assigned automatically.
+  Notes: If DHCP is chosen the IP address will be assigned automatically. The DHCP assigned IP address cannot be viewed under the Settings tab, instead use the Advanced Tab and click on 'Refresh Network Status'.
 
 - group: ethernet
   name: ip_address
+  expert: false
   type: string
   units: N/A
   default value: '192.168.0.222'
@@ -1009,6 +1072,7 @@
 
 - group: ethernet
   name: netmask
+  expert: false
   type: string
   units: N/A
   default value: '255.255.255.0'
@@ -1017,6 +1081,7 @@
 
 - group: ethernet
   name: gateway
+  expert: false
   type: string
   units: N/A
   default value: '192.168.0.1'
@@ -1025,6 +1090,7 @@
 
 - group: tcp_server0
   name: mode
+  expert: false
   type: enum
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
@@ -1039,6 +1105,7 @@
 
 - group: tcp_server0
   name: enabled_sbp_messages
+  expert: false
   type: string
   units: N/A
   default value: 'blank - all messages are enabled'
@@ -1053,6 +1120,7 @@
 
 - group: tcp_server1
   name: mode
+  expert: false
   type: enum
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
@@ -1067,6 +1135,7 @@
 
 - group: tcp_server1
   name: enabled_sbp_messages
+  expert: false
   type: string
   units: N/A
   default value: 'blank - all messages are enabled'
@@ -1081,13 +1150,15 @@
 
 - group: imu
   name: imu_raw_output
+  expert: false
   type: boolean
   default value: 'False'
   Description: Enable/Disable IMU raw data output from onboard Bosch BMI160 IMU
-  Notes:  The IMU raw data can be seen in the advanced tabs of the Swift Console
+  Notes:  The IMU raw data can be seen in the Advanced Tab of the Swift Console
 
 - group: imu
   name: imu_rate
+  expert: false
   type: enum
   default value: '50'
   enumerated possible values: 25,50,100,200
@@ -1098,8 +1169,9 @@
 
 - group: imu
   name: acc_range
+  expert: false
   type: enum
-  default value: '2'
+  default value: '8'
   enumerated possible values: 2,4,8,16
   units: g
   Description: The approximate range of accelerations that can be measured
@@ -1108,6 +1180,7 @@
 
 - group: imu
   name: gyro_range
+  expert: false
   type: enum
   default value: '1000'
   enumerated possible values: 125,250,500,1000,2000
@@ -1118,115 +1191,116 @@
 
 - group: ndb
   name: erase_ephemeris
+  expert: true
   type: boolean
   default value: 'True'
-  expert: true
   Description: Erase stored ephmerides during boot
 
 - group: ndb
   name: erase_almanac
+  expert: true
   type: boolean
   default value: 'True'
-  expert: true
   Description: Erase stored almanacs during boot
 
 - group: ndb
   name: erase_almanac_wn
+  expert: true
   type: boolean
   default value: 'True'
-  expert: true
   Description: Erase stored almanac week numbers during boot
 
 - group: ndb
   name: erase_iono
+  expert: true
   type: boolean
   default value: 'True'
-  expert: true
   Description: Erase stored ionospheric parameters during boot
 
 - group: ndb
   name: erase_lgf
+  expert: true
   type: boolean
   default value: 'True'
-  expert: true
   Description: Erase stored last fix information during boot
 
 - group: ndb
   name: erase_l2c_capb
+  expert: true
   type: boolean
   default value: 'True'
-  expert: true
   Description: Erase stored L2C capability mask during boot
 
 - group: ndb
   name: erase_utc_params
+  expert: true
   type: boolean
   default value: 'True'
-  expert: true
   Description: Erase stored UTC offset parameters during boot
 
 - group: ndb
   name: lgf_update_s
+  expert: true
   type: int
   default value: '1800'
   units: seconds
-  expert: true
   Description: Update period for navigation database last good fix
 
 - group: ndb
   name: lgf_update_m
+  expert: true
   type: int
   default value: '10000'
   units: meters
-  expert: true
   Description: Change in position required to update last good fix
 
 - group: ndb
   name: valid_alm_days
+  expert: true
   type: int
   default value: '6'
   units: days
-  expert: true
   Description: Number of days for which Almanac is valid
 
 - group: ndb
   name: valid_eph_acc
+  expert: true
   type: int
   default value: '100'
   units: meters
-  expert: true
 
 - group: ndb
   name: valid_alm_acc
+  expert: true
   type: int
   default value: '5000'
   units: meters
-  expert: true
 
 - group: cell_modem
   name: enable
+  expert: true
   type: boolean
   default value: 'False'
   units: N/A
-  expert: true
 
 - group: cell_modem
   name: device
+  expert: true
   type: string
   default value: 'ttyACM0'
   units: N/A
-  expert: true
 
 - group: cell_modem
   name: APN
+  expert: true
   type: string
   default value: INTERNET
   Description: Access point name (provided by cell carrier)
   units: N/A
-  expert: true
 
 - group: standalone_logging
   name: file_duration 
+  expert: false
   type: int
   default value: '10'
   Description: Duration of each logfile 
@@ -1236,6 +1310,7 @@
 
 - group: standalone_logging
   name: max_fill
+  expert: false
   type: int
   default value: '95'
   Description: Maximum storage device usage
@@ -1245,6 +1320,7 @@
 
 - group: standalone_logging
   name: output_directory
+  expert: false
   type: string 
   default value: '/media/sda1/'
   Description: Standalone logging path 
@@ -1255,6 +1331,7 @@
 - group: standalone_logging
   name: enable
   type: boolean
+  expert: false
   default value: 'False'
   Description: Standalone logging enabled
   units: N/A
