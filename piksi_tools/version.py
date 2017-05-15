@@ -41,7 +41,7 @@ import os
 
 def check_for_git():
   try:
-      check_call(['git', 'version'])
+      check_call(['which', 'git'])
       return True
   except:
       return False 
