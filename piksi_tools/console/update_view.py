@@ -466,7 +466,10 @@ class UpdateView(HasTraits):
     self.nap_fw.clear(status)
     self.stm_fw.clear(status)
     self._write(status)
-
+    
+    if not getattr(__builtins__, "WindowsError", None):
+      class WindowsError(OSError): pass
+  
     # Get firmware files from Swift Nav's website, save to disk, and load.
     if self.update_dl.index[self.piksi_hw_rev].has_key('fw'):
       try:
@@ -477,7 +480,7 @@ class UpdateView(HasTraits):
       except AttributeError:
         self.nap_fw.clear("Error downloading firmware")
         self._write("Error downloading firmware: index file not downloaded yet")
-      except IOError:
+      except IOError, WindowsError:
         self.nap_fw.clear("IOError: unable to write to path %s. " \
                           "Verify that the path exists and is writable." % self.download_directory)
         self._write("IError: unable to write to path %s. "\
