@@ -56,6 +56,8 @@ HW_REV_LOOKUP = {
   'piksi_2.3.1': 'piksi_v2.3.1',
 }
 
+DOWNLOAD_MESSAGE = "  Please choose a directory for downloaded firmware files..."
+
 def parse_version(version):
   comp_string = version
   if version[0] == 'v':
@@ -234,7 +236,7 @@ class UpdateView(HasTraits):
   upgrade_steps = String("Firmware upgrade steps:")
 
   download_firmware = Button(label='Download Latest Firmware')
-  download_directory = Directory("  Please choose a directory for downloaded firmware files...")
+  download_directory = Directory(DOWNLOAD_MESSAGE)
   download_stm = Button(label='Download', height=HT)
   download_nap = Button(label='Download', height=HT)
   downloading = Bool(False)
@@ -323,9 +325,7 @@ class UpdateView(HasTraits):
 
     }
     try:
-      self.update_dl = UpdateDownloader()
-      if download_dir:
-        self.update_dl.set_root_path(download_dir)
+      self.update_dl = UpdateDownloader(root_dir=download_dir)
     except URLError:
       self.update_dl = None
       pass
@@ -382,7 +382,8 @@ class UpdateView(HasTraits):
 
   def _download_directory_changed(self):
     if self.update_dl:
-      self.update_dl.set_root_path(self.download_directory)
+      if self.download_directory != DOWNLOAD_MESSAGE:
+        self.update_dl.set_root_path(self.download_directory)
 
   def _updating_changed(self):
     """ Handles self.updating trait being changed. """
