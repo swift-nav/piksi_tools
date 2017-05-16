@@ -1,0 +1,45 @@
+===============================================================================
+                              Swift Navigation, Inc.
+                           Swift Console Release Notes
+
+Download: https://support.swiftnav.com/customer/en/portal/articles/2492795-swift-console-piksi-console-
+===============================================================================
+-------------------------------------------------------------------------------
+Release 1.1.G                                                        2017-05-16
+-------------------------------------------------------------------------------
+UPDATES AND FIXES:
+* Add usage popup for gui users who pass -h arg or mistake command line args.
+* Add readme.txt to console and distribution to document command line arguments 
+* Fix windows uninstaller so it removes the program upon uninstall.
+* Change default firmware download directory to ~/SwiftNav.
+* Darken Connection icon color to better distinguish from disconnected state.
+* Add TCP/IP and flow control options to console initial pop-up.
+* Change -t command line argument to be TCP/IP rather than timeout
+* Initialize IMU and GYRO plotting arrays to avoid bogus data on startup.
+* Display UTC time and Age of corrections SBP messages
+* Fix bug that allowed auto survey feature to average 0 points into survey location.
+* Update sbp to 2.2.1.
+* Remove obsolete skylark features in networking tab unless --skylark arg is used.
+* Add settings documentation for new settings in v1.1 Piksi Multi FW.
+* Performance improvements for 20 Hz data.
+* Improve settings tab when console is connected over more than 1 interface
+
+KNOWN_ISSUES
+* Sometimes the console does not exit cleanly and requires a force push
+* At high data rates and or IMU and observation rates the console can appear laggy
+* Console can run out of memory with high data rates or long-running operation
+* Console never auto-reconnects on an interface and requires closing and re-opening 
+  when communications are lost
+* Installing console dependencies and running from source is very difficult
+* --serial-upgrade command line option not robust for firmware upgrade
+-------------------------------------------------------------------------------
+Release 1.0.A                                                        2017-02-07
+-------------------------------------------------------------------------------
+Initial Support for Piksi Multi
+Features
+* Rebrand as Swift Console
+* Same features as Piksi Console (tracking, solution, baseline, observation, 
+                                  settings, update, and advanced tabs)
+* Support for SBP 2.0
+* Handle "no_fix" navigation messages
+* Handle multi-frequency GNSS tracking and observation display
