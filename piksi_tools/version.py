@@ -41,10 +41,14 @@ import os
 
 def check_for_git():
   try:
+    if sys.platform == "win32":
+      # No `which` command on Windows
       check_call(['git', 'version'])
-      return True
+    else:
+      check_call(['which', 'git'])
+    return True
   except:
-      return False 
+    return False
 
 def call_git_describe():
     try:
