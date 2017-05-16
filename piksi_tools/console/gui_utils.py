@@ -1,6 +1,21 @@
-from traitsui.api import TextEditor
+# Copyright (C) 2017 Swift Navigation Inc.
+# Contact: Pasi Miettinen  <pasi.miettinen@exafore.com>
+#
+# This source is subject to the license found in the file 'LICENSE' which must
+# be be distributed together with this source. All other rights reserved.
+#
+# THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
+# EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
+
+from traits.api import Bool, HasTraits
+from traitsui.api import HGroup, Item, Spring, TextEditor
+
 import numpy as np
 import sys
+
+from piksi_tools.console.utils import code_to_str, SUPPORTED_CODES
+
 
 class MultilineTextEditor(TextEditor):
   """
@@ -48,3 +63,37 @@ def plot_square_axes(plot, xnames, ynames):
   except:
     import traceback
     sys.__stderr__.write(traceback.format_exc() + '\n')
+
+
+class CodeFiltered(HasTraits):
+  '''
+  This class offers a horizontal group of tick boxes that can be
+  used to select which of the supported SV codes are selected. You can
+  add this feature to your class through class inheritance.
+  '''
+
+  # Add boolean variables for each supported code.
+  for code in SUPPORTED_CODES:
+    vars()['show_{}'.format(code)] = Bool()
+
+  def __init__(self):
+    super(CodeFiltered, self).__init__()
+
+    # True as default value for each code.
+    for code in SUPPORTED_CODES:
+      setattr(self, 'show_{}'.format(code), True)
+
+  @staticmethod
+  def get_filter_group():
+    '''
+    Return horizontal tick box group.
+    '''
+    hgroup = HGroup()
+
+    for code in SUPPORTED_CODES:
+      hgroup.content.append(Spring(width=8, springy=False))
+      hgroup.content.append(Item('show_{}'.format(code),
+                            label = "{}:".format(code_to_str(code))))
+
+    return hgroup
+

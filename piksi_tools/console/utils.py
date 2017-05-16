@@ -18,10 +18,48 @@ from piksi_tools.utils import sopen
 from sbp.navigation import *
 from threading import Event, Thread
 
-L1CA = 'L1CA'
-L2CM = 'L2CM'
-L1P = 'L1P'
-L2P = 'L2P'
+L1CA = 0
+L2CM = 1
+SBAS_L1CA = 2
+GLO_L1CA = 3
+GLO_L2CA = 4
+L1P = 5
+L2P = 6
+L2CL = 7
+
+SUPPORTED_CODES = [L1CA, L2CM, L2CL, GLO_L1CA, GLO_L2CA]
+
+L1CA_STR = 'L1CA'
+L2CM_STR = 'L2CM'
+SBAS_STR = 'SBAS'
+GLO_L1CA_STR = 'G1'
+GLO_L2CA_STR = 'G2'
+L1P_STR = 'L1P'
+L2P_STR = 'L2P'
+L2CL_STR = 'L2CL'
+
+CODE_TO_STR_MAP = {
+  L1CA: L1CA_STR,
+  L2CM: L2CM_STR,
+  SBAS_L1CA: SBAS_STR,
+  GLO_L1CA: GLO_L1CA_STR,
+  GLO_L2CA: GLO_L2CA_STR,
+  L1P: L1P_STR,
+  L2P: L2P_STR,
+  L2CL: L2CL_STR
+}
+
+STR_TO_CODE_MAP = {
+  L1CA_STR: L1CA,
+  L2CM_STR: L2CM,
+  SBAS_STR: SBAS_L1CA,
+  GLO_L1CA_STR: GLO_L1CA,
+  GLO_L2CA_STR: GLO_L2CA,
+  L1P_STR: L1P,
+  L2P_STR: L2P,
+  L2CL_STR: L2CL
+}
+
 CODE_NOT_AVAILABLE = 'N/A'
 EMPTY_STR = '--'
 
@@ -45,30 +83,33 @@ color_dict = {
  FLOAT_MODE: (0.75, 0, 0.75),
  FIXED_MODE: 'orange'}
 
-L1_CODES = [0,2,3]
-L2_CODES = [1,4]
 
 def code_to_str(code):
-  if code == 0:
-    return L1CA
-  elif code == 1:
-    return L2CM
-  elif code == 5:
-    return L1P
-  elif code == 6:
-    return L2P
+  if code in CODE_TO_STR_MAP:
+    return CODE_TO_STR_MAP[code]
   else:
     return CODE_NOT_AVAILABLE
 
 
 def code_is_gps(code):
-  if code == 0:
+  if code == L1CA:
     return True
-  elif code == 1:
+  elif code == L2CM:
     return True
-  elif code == 5:
+  elif code == L1P:
     return True
-  elif code == 6:
+  elif code == L2P:
+    return True
+  elif code == L2CL:
+    return True
+  else:
+    return False
+
+
+def code_is_glo(code):
+  if code == GLO_L1CA:
+    return True
+  elif code == GLO_L2CA:
     return True
   else:
     return False
@@ -93,6 +134,7 @@ def get_mode(msg):
     print "called get_mode with unsupported message type: {0}".format(msg.msg_type)
   return mode
 
+
 def determine_path():
     """Borrowed from wxglade.py"""
     try:
@@ -105,6 +147,7 @@ def determine_path():
 
 def datetime_2_str(datetm):
   return (datetm.strftime('%Y-%m-%d %H:%M'), datetm.strftime('%S.%f')) 
+
 
 def log_time_strings(week, tow):
   """Returns two tuples, first is local time, second is gps time
@@ -125,10 +168,12 @@ def log_time_strings(week, tow):
   return ((t_local_date, t_local_secs), 
           (t_gps_date, t_gps_secs))
 
+
 def call_repeatedly(interval, func, *args):
-    stopped = Event()
-    def loop():
-        while not stopped.wait(interval): # the first call is in `interval` secs
-            func(*args)
-    Thread(target=loop).start()    
-    return stopped.set
+  stopped = Event()
+  def loop():
+    while not stopped.wait(interval): # the first call is in `interval` secs
+      func(*args)
+  Thread(target=loop).start()    
+  return stopped.set
+

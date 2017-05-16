@@ -16,11 +16,14 @@ from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
 from pyface.api import GUI
 from sbp.tracking import SBP_MSG_TRACKING_STATE
-from traits.api import Instance, Dict, HasTraits, Float, List, Int, Bool
-from traitsui.api import Item, View, HSplit, VGroup, HGroup, Spring
+from traits.api import Instance, Dict, List, Int, Bool
+from traitsui.api import Item, View, VGroup, HGroup, Spring
 import numpy as np
+
 from piksi_tools.acq_results import SNR_THRESHOLD
-from piksi_tools.console.utils import code_to_str, code_is_gps, L1_CODES, L2_CODES
+from piksi_tools.console.gui_utils import CodeFiltered
+from piksi_tools.console.utils import code_to_str, code_is_gps, code_is_glo,\
+                                      SUPPORTED_CODES
 
 NUM_POINTS = 200
 TRK_RATE = 2.0
@@ -55,11 +58,10 @@ def get_color(key):
    pass
   return color
 
-class TrackingView(HasTraits):
+
+class TrackingView(CodeFiltered):
   python_console_cmds = Dict()
   legend_visible = Bool()
-  show_l1 = Bool()
-  show_l2 = Bool()
   plot = Instance(Plot)
   plots = List()
   plot_data = Instance(ArrayPlotData)
@@ -71,12 +73,11 @@ class TrackingView(HasTraits):
         editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8)),
         show_label=False,
       ),
-      HGroup(Spring(width=4, springy=False), 
-             Item('legend_visible', label="Show Legend:"),
-             Spring(width=8, springy=False),  
-             Item('show_l1', label = "Show L1:"),
-             Spring(width=8, springy=False), 
-             Item('show_l2', label = "Show L2:")),
+      HGroup(
+        Spring(width=8, springy=False),
+        Item('legend_visible', label="Show Legend:"),
+        CodeFiltered.get_filter_group(),
+      )
     )
   )
 
@@ -121,10 +122,11 @@ class TrackingView(HasTraits):
         except KeyError:
           pass
     for k, cno_array in self.CN0_dict.items():
+      if int(k[0]) not in SUPPORTED_CODES:
+        continue
       key = str(k)
       # set plot data and create plot for any selected for display
-      if ((self.show_l2 and int(k[0]) in L2_CODES) or
-          (self.show_l1 and int(k[0]) in L1_CODES)):
+      if (getattr(self, 'show_{}'.format(int(k[0])))):
           self.plot_data.set_data(key, cno_array)
           if key not in self.plot.plots.keys():
             pl = self.plot.plot(('t', key), type='line', color=get_color(k),
@@ -134,8 +136,9 @@ class TrackingView(HasTraits):
           # if channel is still active:
           if cno_array[-1] != 0:
             plots.append(pl)
-            plot_labels.append('Ch %02d (PRN%02d (%s))' %
-              (k[2], k[1], code_to_str(k[0])))
+            svid_label = 'FCN' if code_is_glo(int(k[0])) else 'PRN'
+            plot_labels.append('Ch %02d (%s%02d (%s))' %
+              (k[2], svid_label, k[1], code_to_str(k[0])))
       # Remove plot data and plots not selected
       else:
         if key in self.plot_data.list_data():
@@ -175,8 +178,6 @@ class TrackingView(HasTraits):
     self.plot.index_axis.title = 'seconds'
     self.plot.index_range.bounds_func = lambda l, h, m, tb: (h - 100, h) 
     self.legend_visible = True
-    self.show_l1 = True
-    self.show_l2 = True
     self.plot.legend.visible = True
     self.plot.legend.align = 'll'
     self.plot.legend.line_spacing = 1
