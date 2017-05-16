@@ -8,10 +8,11 @@ Download: https://support.swiftnav.com/customer/en/portal/articles/2492795-swift
 Release 1.1.G                                                        2017-05-16
 -------------------------------------------------------------------------------
 UPDATES AND FIXES:
-* Add usage popup for gui users who mistake command line args.
+* Add usage popup for gui users who pass -h arg or mistake command line args.
+* Add readme.txt to console and distribution to document command line arguments 
 * Fix windows uninstaller so it removes the program upon uninstall.
 * Change default firmware download directory to ~/SwiftNav.
-* Change Connection icon color to distinguish from disconnected state.
+* Darken Connection icon color to better distinguish from disconnected state.
 * Add TCP/IP and flow control options to console initial pop-up.
 * Change -t command line argument to be TCP/IP rather than timeout
 * Initialize IMU and GYRO plotting arrays to avoid bogus data on startup.
