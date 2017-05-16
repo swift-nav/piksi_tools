@@ -750,7 +750,7 @@
   default value: 0
   enumerated possible values:
   Description: Minimum time between events (0 = disabled)
-  Notes: Any event faster than this value will be ignored and a MSG_EXT_EVENT will not be generated.
+  Notes: Any event that is triggered within the sensitivity window after the previous event will be ignored and no MSG_EXT_EVENT will be generated.
 
 - group: track
   name: elevation_mask
