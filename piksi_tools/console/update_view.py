@@ -289,7 +289,7 @@ class UpdateView(HasTraits):
                 editor_args={'enabled': False}),
           label="Swift Console Version", show_border=True),
           ),
-      UItem('download_directory', enabled_when='download_fw_en'),
+      UItem('download_directory', enabled_when='download_fw_en', tooltip=DOWNLOAD_MESSAGE),
       UItem('download_firmware', enabled_when='download_fw_en'),
       UItem('update_full_firmware', enabled_when='update_en', visible_when='is_v2'),
       VGroup(
@@ -306,7 +306,7 @@ class UpdateView(HasTraits):
     )
   )
 
-  def __init__(self, link, download_dir=None, prompt=True, serial_upgrade=False):
+  def __init__(self, link, download_dir='', prompt=True, serial_upgrade=False):
     """
     Traits tab with UI for updating Piksi firmware.
 
@@ -324,8 +324,9 @@ class UpdateView(HasTraits):
       'update': self
 
     }
+    self.passed_dl_root_dir = download_dir
     try:
-      self.update_dl = UpdateDownloader(root_dir=download_dir)
+      self.update_dl = UpdateDownloader(root_dir=self.passed_dl_root_dir)
     except URLError:
       self.update_dl = None
       pass
@@ -467,9 +468,6 @@ class UpdateView(HasTraits):
     self.stm_fw.clear(status)
     self._write(status)
     
-    if not getattr(__builtins__, "WindowsError", None):
-      class WindowsError(OSError): pass
-  
     # Get firmware files from Swift Nav's website, save to disk, and load.
     if self.update_dl.index[self.piksi_hw_rev].has_key('fw'):
       try:
@@ -480,7 +478,7 @@ class UpdateView(HasTraits):
       except AttributeError:
         self.nap_fw.clear("Error downloading firmware")
         self._write("Error downloading firmware: index file not downloaded yet")
-      except IOError, WindowsError:
+      except IOError, OSError:
         self.nap_fw.clear("IOError: unable to write to path %s. " \
                           "Verify that the path exists and is writable." % self.download_directory)
         self._write("IError: unable to write to path %s. "\
@@ -649,7 +647,11 @@ class UpdateView(HasTraits):
   def _get_latest_version_info(self):
     """ Get latest firmware / console version from website. """
     try:
-      self.update_dl = UpdateDownloader()
+      if self.download_directory != DOWNLOAD_MESSAGE:
+        root_dir = self.download_dir
+      else:
+        root_dir = self.passed_dl_root_dir
+      self.update_dl = UpdateDownloader(root_dir=root_dir)
     except URLError:
       self._write("\nError: Failed to download latest file index from Swift Navigation's website. Please visit our website to check that you're running the latest Piksi firmware and Piksi console.\n")
       return
