@@ -479,7 +479,7 @@ class UpdateView(HasTraits):
       except IOError:
         self.nap_fw.clear("IOError: unable to write to path %s. " \
                           "Verify that the path exists and is writable." % self.download_directory)
-        self._write("IError: unable to write to path %s. "\
+        self._write("IOError: unable to write to path %s. "\
                      "Verify that the path exists and is writable." % self.download_directory)
       except KeyError:
         self.nap_fw.clear("Error downloading firmware")
