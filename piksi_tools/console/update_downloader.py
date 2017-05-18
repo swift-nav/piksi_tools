@@ -60,6 +60,9 @@ class UpdateDownloader:
     return filepath
 
   def _download_file_from_url(self, url):
+    if not os.path.isdir(self.root_dir):
+      raise IOError("Path to download file to does not exist")
+
     url = url.encode('ascii')
     urlpath = urlparse(url).path
     filename = os.path.split(urlparse(url).path)[1]
