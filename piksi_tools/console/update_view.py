@@ -56,6 +56,8 @@ HW_REV_LOOKUP = {
   'piksi_2.3.1': 'piksi_v2.3.1',
 }
 
+DOWNLOAD_MESSAGE = "  Please choose a directory for downloaded firmware files..."
+
 def parse_version(version):
   comp_string = version
   if version[0] == 'v':
@@ -234,7 +236,7 @@ class UpdateView(HasTraits):
   upgrade_steps = String("Firmware upgrade steps:")
 
   download_firmware = Button(label='Download Latest Firmware')
-  download_directory = Directory("  Please choose a directory for downloaded firmware files...")
+  download_directory = Directory(DOWNLOAD_MESSAGE)
   download_stm = Button(label='Download', height=HT)
   download_nap = Button(label='Download', height=HT)
   downloading = Bool(False)
@@ -287,7 +289,7 @@ class UpdateView(HasTraits):
                 editor_args={'enabled': False}),
           label="Swift Console Version", show_border=True),
           ),
-      UItem('download_directory', enabled_when='download_fw_en'),
+      UItem('download_directory', enabled_when='download_fw_en', tooltip=DOWNLOAD_MESSAGE),
       UItem('download_firmware', enabled_when='download_fw_en'),
       UItem('update_full_firmware', enabled_when='update_en', visible_when='is_v2'),
       VGroup(
@@ -304,7 +306,7 @@ class UpdateView(HasTraits):
     )
   )
 
-  def __init__(self, link, download_dir=None, prompt=True, serial_upgrade=False):
+  def __init__(self, link, download_dir='', prompt=True, serial_upgrade=False):
     """
     Traits tab with UI for updating Piksi firmware.
 
@@ -322,10 +324,9 @@ class UpdateView(HasTraits):
       'update': self
 
     }
+    self.passed_dl_root_dir = download_dir
     try:
-      self.update_dl = UpdateDownloader()
-      if download_dir:
-        self.update_dl.set_root_path(download_dir)
+      self.update_dl = UpdateDownloader(root_dir=self.passed_dl_root_dir)
     except URLError:
       self.update_dl = None
       pass
@@ -382,7 +383,8 @@ class UpdateView(HasTraits):
 
   def _download_directory_changed(self):
     if self.update_dl:
-      self.update_dl.set_root_path(self.download_directory)
+      if self.download_directory != DOWNLOAD_MESSAGE:
+        self.update_dl.set_root_path(self.download_directory)
 
   def _updating_changed(self):
     """ Handles self.updating trait being changed. """
@@ -465,7 +467,7 @@ class UpdateView(HasTraits):
     self.nap_fw.clear(status)
     self.stm_fw.clear(status)
     self._write(status)
-
+    
     # Get firmware files from Swift Nav's website, save to disk, and load.
     if self.update_dl.index[self.piksi_hw_rev].has_key('fw'):
       try:
@@ -476,7 +478,7 @@ class UpdateView(HasTraits):
       except AttributeError:
         self.nap_fw.clear("Error downloading firmware")
         self._write("Error downloading firmware: index file not downloaded yet")
-      except IOError:
+      except IOError, OSError:
         self.nap_fw.clear("IOError: unable to write to path %s. " \
                           "Verify that the path exists and is writable." % self.download_directory)
         self._write("IOError: unable to write to path %s. "\
@@ -645,7 +647,11 @@ class UpdateView(HasTraits):
   def _get_latest_version_info(self):
     """ Get latest firmware / console version from website. """
     try:
-      self.update_dl = UpdateDownloader()
+      if self.download_directory != DOWNLOAD_MESSAGE:
+        root_dir = self.download_dir
+      else:
+        root_dir = self.passed_dl_root_dir
+      self.update_dl = UpdateDownloader(root_dir=root_dir)
     except URLError:
       self._write("\nError: Failed to download latest file index from Swift Navigation's website. Please visit our website to check that you're running the latest Piksi firmware and Piksi console.\n")
       return

@@ -23,7 +23,7 @@ class UpdateDownloader:
   def __init__(self, root_dir=''):
     f = urlopen(INDEX_URL)
     self.index = jsonload(f)
-    self.root_dir = ''
+    self.root_dir = root_dir
     f.close()
 
   def set_root_path(self, path):
