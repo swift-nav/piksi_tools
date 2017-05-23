@@ -10,14 +10,14 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from traits.api import Dict, HasTraits, List, Bool, Str, Float, Int
+from traits.api import Dict, List, Float, Int
 from traitsui.api import Item, View, HGroup, VGroup, TabularEditor, Spring
 from traitsui.tabular_adapter import TabularAdapter
 from enable.savage.trait_defs.ui.svg_button import SVGButton
-from piksi_tools.console.utils import determine_path,sopen
-from piksi_tools.console.utils import code_to_str, code_is_gps
-from piksi_tools.console.utils import L1CA
-from piksi_tools.console.utils import EMPTY_STR, call_repeatedly
+
+from piksi_tools.console.gui_utils import CodeFiltered
+from piksi_tools.console.utils import call_repeatedly, code_to_str, EMPTY_STR,\
+                                      code_is_gps, SUPPORTED_CODES
 
 import os
 import datetime
@@ -37,7 +37,7 @@ class SimpleAdapter(TabularAdapter):
     font='courier'
     alignment='center'
 
-class ObservationView(HasTraits):
+class ObservationView(CodeFiltered):
   python_console_cmds = Dict()
 
   _obs_table_list = List()
@@ -48,26 +48,47 @@ class ObservationView(HasTraits):
   gps_tow = Float()
   obs_count = Int()
   gps_week = Int()
-  l1_count = Int()
-  l2_count = Int()
-  name = Str('Local')
+
+  for code in SUPPORTED_CODES:
+    vars()['count_{}'.format(code)] = Int()
 
   def trait_view(self, view):
+    info = HGroup(
+             Spring(width=4, springy=False),
+             Item('',
+                  label='GPS Week:',
+                  emphasized=True,
+                  tooltip='GPS Week Number (since 1980'),
+             Item('gps_week', style='readonly', show_label=False),
+             Item('',
+                  label='GPS TOW:',
+                  emphasized=True,
+                  tooltip='GPS milliseconds in week'),
+             Item('gps_tow',
+                  style='readonly',
+                  show_label=False,
+                  format_str='%.3f'),
+             Item('',
+                  label='Total obs:',
+                  emphasized=True,
+                  tooltip='Total observation count'),
+             Item('obs_count', style='readonly', show_label=False),
+           )
+
+    for code in SUPPORTED_CODES:
+      code_str = code_to_str(code)
+      info.content.append(Item('',
+                               label='{} obs:'.format(code_str),
+                               emphasized = True,
+                               tooltip='{} observation count'.format(code_str)))
+      info.content.append(Item('count_{}'.format(code),
+                               style='readonly',
+                               show_label=False))
+
     return View(
       VGroup(
-        HGroup(
-          Spring(width=4, springy=False),
-          Item('', label='GPS Week:', emphasized = True, tooltip='GPS Week Number (since 1980'),
-          Item('gps_week', style='readonly', show_label=False),
-          Item('', label='GPS TOW:', emphasized = True, tooltip='GPS milliseconds in week'),
-          Item('gps_tow', style='readonly', show_label=False, format_str='%.3f'),
-          Item('', label='Total obs:', emphasized = True, tooltip='GPS milliseconds in week'),
-          Item('obs_count', style='readonly', show_label=False),
-          Item('', label='L1 obs:', emphasized = True, tooltip='GPS milliseconds in week'),
-          Item('l1_count', style='readonly', show_label=False),
-          Item('', label='L2 obs:', emphasized = True, tooltip='GPS milliseconds in week'),
-          Item('l2_count', style='readonly', show_label=False),
-          ),
+        info,
+        CodeFiltered.get_filter_group(),
         HGroup(
           Item('_obs_table_list', style='readonly',
                editor=TabularEditor(adapter=SimpleAdapter()), show_label=False),
@@ -78,12 +99,15 @@ class ObservationView(HasTraits):
     )
 
   def update_obs(self):
-    self._obs_table_list =\
-      [(prn,) + obs for prn, obs in sorted(self.obs.items(),
-                                           key=lambda x: x[0])]
-    self.obs_count = len(self.obs)
-    self.l1_count = sum(['L1' in obs for obs in self.obs])
-    self.l2_count = sum(['L2' in obs for obs in self.obs])
+    self._obs_table_list = [('{} ({})'.format(svid[0],
+                                              code_to_str(svid[1])),) + obs
+                            for svid, obs in sorted(self.obs.items()) 
+                              if getattr(self, 'show_{}'.format(svid[1]))]
+
+    for code in SUPPORTED_CODES:
+      setattr(self,
+              'count_{}'.format(code),
+              len([key for key in self.obs.keys() if key[1] == code]))
 
   def obs_packed_callback(self, sbp_msg, **metadata):
     if (sbp_msg.sender is not None and
@@ -131,7 +155,7 @@ class ObservationView(HasTraits):
             and sbp_msg.msg_type in [SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C]):
         prn += 1
 
-      prn = '{} ({})'.format(prn, code_to_str(o.sid.code))
+      prn = (prn, o.sid.code)
 
       # DEP_B and DEP_A obs had different pseudorange scaling
       if sbp_msg.msg_type in [SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B] :
