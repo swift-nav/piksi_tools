@@ -234,13 +234,16 @@ class SettingsView(HasTraits):
   )
   
   def _selected_setting_changed(self):
-    if self.selected_setting:
-      if ( self.selected_setting.name in 
-           ['surveyed_position','broadcast','surveyed_lat', 'surveyed_lon', 'surveyed_alt'] 
-           and self.lat != 0 and self.lon != 0 ):
-        self.show_auto_survey = True
-      else:
-        self.show_auto_survey = False
+    if self.selected_setting is None:
+      return
+    if self.selected_setting.name in ['surveyed_position',
+                                      'broadcast',
+                                      'surveyed_lat',
+                                      'surveyed_lon',
+                                      'surveyed_alt']:
+      self.show_auto_survey = True
+    else:
+      self.show_auto_survey = False
 
   def _expert_changed(self, info):
     try:
@@ -289,9 +292,21 @@ class SettingsView(HasTraits):
     confirm_prompt.run(block=False)
 
   def auto_survey_fn(self):
-    lat_value = str(self.lat)
-    lon_value = str(self.lon)
-    alt_value = str(self.alt)
+    lat = self.lat[~np.isnan(self.lat)]
+    lon = self.lon[~np.isnan(self.lon)]
+    alt = self.alt[~np.isnan(self.alt)]
+
+    if 0 == lat.size or 0 == lon.size or 0 == alt.size:
+      #TODO print insufficient data warning
+      return
+
+    lat = np.mean(lat)
+    lon = np.mean(lon)
+    alt = np.mean(alt)
+
+    lat_value = str(lat)
+    lon_value = str(lon)
+    alt_value = str(alt)
     self.settings['surveyed_position']['surveyed_lat'].value = lat_value 
     self.settings['surveyed_position']['surveyed_lon'].value = lon_value
     self.settings['surveyed_position']['surveyed_alt'].value = alt_value

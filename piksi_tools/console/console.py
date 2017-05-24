@@ -412,9 +412,9 @@ class SwiftConsole(HasTraits):
     self.num_sats = temp_num_sats
 
     if self.settings_view: # for auto populating surveyed fields
-      self.settings_view.lat = self.solution_view.latitude
-      self.settings_view.lon = self.solution_view.longitude
-      self.settings_view.alt = self.solution_view.altitude
+      self.settings_view.lat = self.solution_view.latitude_list
+      self.settings_view.lon = self.solution_view.longitude_list
+      self.settings_view.alt = self.solution_view.altitude_list
     if self.system_monitor_view:
       if self.system_monitor_view.msg_obs_window_latency_ms != -1:
         self.latency = "{0} ms".format(self.system_monitor_view.msg_obs_window_latency_ms)

@@ -9,18 +9,23 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from traits.api import Instance, Dict, HasTraits, Array, Float, on_trait_change, List, Int, Button, Bool, Str, File
-from traitsui.api import Item, View, HGroup, VGroup, ArrayEditor, HSplit, TextEditor, TabularEditor, UItem, Tabbed
+from traits.api import Instance, Dict, HasTraits, Array, Float,\
+                       on_trait_change, List, Int, Button, Bool, Str, File
+from traitsui.api import Item, View, HGroup, VGroup, ArrayEditor, HSplit,\
+                         TextEditor, TabularEditor, UItem, Tabbed
 from traitsui.tabular_adapter import TabularAdapter
 from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import ZoomTool, PanTool
 from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.api import GUI
+
 from piksi_tools.console.gui_utils import plot_square_axes, MultilineTextEditor
-from piksi_tools.console.utils import determine_path, get_mode, mode_dict, color_dict, sopen,\
-                                      EMPTY_STR, SPP_MODE, FLOAT_MODE, DGNSS_MODE, FIXED_MODE, \
-                                      log_time_strings, datetime_2_str, call_repeatedly
+from piksi_tools.console.utils import determine_path, get_mode, mode_dict,\
+                                      color_dict, sopen, EMPTY_STR, SPP_MODE,\
+                                      FLOAT_MODE, DGNSS_MODE, FIXED_MODE,\
+                                      log_time_strings, datetime_2_str,\
+                                      call_repeatedly
 
 import math
 import os
@@ -30,9 +35,11 @@ import time
 
 from sbp.navigation import *
 
+
 class SimpleAdapter(TabularAdapter):
   columns = [('Item', 0), ('Value',  1)]
   width = 80
+
 
 class SolutionView(HasTraits):
   python_console_cmds = Dict()
@@ -46,15 +53,12 @@ class SolutionView(HasTraits):
   directory_name_p : location and name of velocity files
   """
   plot_history_max = Int(1000)
+  AUTO_SURVEY_MAX = Int(1000)
   logging_v = Bool(False)
   directory_name_v = File
 
   logging_p = Bool(False)
   directory_name_p = File
-
-  lats_psuedo_abs = List()
-  lngs_psuedo_abs = List()
-  alts_psuedo_abs = List()
 
   table = List()
   dops_table = List()
@@ -127,42 +131,32 @@ class SolutionView(HasTraits):
     self.running = not self.running
 
   def _reset_remove_current(self):
-    self.plot_data.set_data('cur_lat_spp', [])
-    self.plot_data.set_data('cur_lng_spp', [])
-    self.plot_data.set_data('cur_alt_spp', [])
-    self.plot_data.set_data('cur_lat_dgnss', [])
-    self.plot_data.set_data('cur_lng_dgnss', [])
-    self.plot_data.set_data('cur_alt_dgnss', [])
-    self.plot_data.set_data('cur_lat_float', [])
-    self.plot_data.set_data('cur_lng_float', [])
-    self.plot_data.set_data('cur_alt_float', [])
-    self.plot_data.set_data('cur_lat_fixed', [])
-    self.plot_data.set_data('cur_lng_fixed', [])
-    self.plot_data.set_data('cur_alt_fixed', [])
+    self.plot_data.update_data({'cur_lat_spp': []})
+    self.plot_data.update_data({'cur_lng_spp': []})
+    self.plot_data.update_data({'cur_lat_dgnss': []})
+    self.plot_data.update_data({'cur_lng_dgnss': []})
+    self.plot_data.update_data({'cur_lat_float': []})
+    self.plot_data.update_data({'cur_lng_float': []})
+    self.plot_data.update_data({'cur_lat_fixed': []})
+    self.plot_data.update_data({'cur_lng_fixed': []})
 
-  def _clear_history(self):
-    self.plot_data.set_data('lat_spp', [])
-    self.plot_data.set_data('lng_spp', [])
-    self.plot_data.set_data('alt_spp', [])
-    self.plot_data.set_data('lat_dgnss', [])
-    self.plot_data.set_data('lng_dgnss', [])
-    self.plot_data.set_data('alt_dgnss', [])
-    self.plot_data.set_data('lat_float', [])
-    self.plot_data.set_data('lng_float', [])
-    self.plot_data.set_data('alt_float', [])
-    self.plot_data.set_data('lat_fixed', [])
-    self.plot_data.set_data('lng_fixed', [])
-    self.plot_data.set_data('alt_fixed', [])
+  def _zero_init(self):
+    self.lats = np.zeros(self.plot_history_max)
+    self.lngs = np.zeros(self.plot_history_max)
+    self.tows = np.zeros(self.plot_history_max)
+    self.modes = np.zeros(self.plot_history_max, dtype='int8')
 
   def _clear_button_fired(self):
-    self.tows = np.empty(self.plot_history_max)
-    self.lats = np.empty(self.plot_history_max)
-    self.lngs = np.empty(self.plot_history_max)
-    self.alts = np.empty(self.plot_history_max)
-    self.modes = np.empty(self.plot_history_max)
-    self._clear_history()
+    self._zero_init()
+    self.plot_data.update_data({'lat_spp': []})
+    self.plot_data.update_data({'lng_spp': []})
+    self.plot_data.update_data({'lat_dgnss': []})
+    self.plot_data.update_data({'lng_dgnss': []})
+    self.plot_data.update_data({'lat_float': []})
+    self.plot_data.update_data({'lng_float': []})
+    self.plot_data.update_data({'lat_fixed': []})
+    self.plot_data.update_data({'lng_fixed': []})
     self._reset_remove_current()
-
 
   def _pos_llh_callback(self, sbp_msg, **metadata):
     # Updating an ArrayPlotData isn't thread safe (see chaco issue #9), so
@@ -171,9 +165,8 @@ class SolutionView(HasTraits):
       GUI.invoke_later(self.pos_llh_callback, sbp_msg)
   
   def age_corrections_callback(self, sbp_msg, **metadata):
-    age_msg = MsgAgeCorrections(sbp_msg)
-    if age_msg.age != 0xFFFF:
-      self.age_corrections = age_msg.age/10.0
+    if sbp_msg.age != 0xFFFF:
+      self.age_corrections = sbp_msg.age/10.0
     else:
       self.age_corrections = None
 
@@ -181,18 +174,23 @@ class SolutionView(HasTraits):
     self.table = self.pos_table + self.vel_table + self.dops_table
 
   def auto_survey(self):
-    if self.last_soln.flags != 0: 
-      self.latitude_list.append(self.last_soln.lat)
-      self.longitude_list.append(self.last_soln.lon)
-      self.altitude_list.append(self.last_soln.height)
-    if len(self.latitude_list) > 1000:
-      self.latitude_list = self.latitude_list[-1000:]
-      self.longitude_list = self.longitude_list[-1000:]
-      self.altitude_list = self.altitude_list[-1000:]
-    if len(self.latitude_list) != 0:
-      self.latitude  = sum(self.latitude_list)/len(self.latitude_list)
-      self.altitude  = sum(self.altitude_list)/len(self.latitude_list)
-      self.longitude = sum(self.longitude_list)/len(self.latitude_list)
+    if 0 == self.last_soln.flags:
+      return
+
+    self.latitude_list = np.lib.pad(self.latitude_list,
+                                    (1,0),
+                                    'constant',
+                                    constant_values=self.last_soln.lat)[:-1]
+
+    self.longitude_list = np.lib.pad(self.longitude_list,
+                                     (1,0),
+                                     'constant',
+                                     constant_values=self.last_soln.lon)[:-1]
+
+    self.altitude_list = np.lib.pad(self.altitude_list,
+                                    (1,0),
+                                    'constant',
+                                    constant_values=self.last_soln.height)[:-1]
 
   def pos_llh_callback(self, sbp_msg, **metadata):
     if sbp_msg.msg_type == SBP_MSG_POS_LLH_DEP_A:
@@ -284,33 +282,34 @@ class SolutionView(HasTraits):
     
     # set-up table variables
     self.pos_table = pos_table
-    self.update_table()
+
     # setup_plot variables
-    self.lats[1:] = self.lats[:-1]
-    self.lngs[1:] = self.lngs[:-1]
-    self.alts[1:] = self.alts[:-1]
-    self.tows[1:] = self.tows[:-1]
-    self.modes[1:] = self.modes[:-1]
-
-    self.lats[0] = soln.lat
-    self.lngs[0] = soln.lon
-    self.alts[0] = soln.height
-    self.tows[0] = soln.tow
-    self.modes[0] = self.last_pos_mode
-
-    self.lats = self.lats[-self.plot_history_max:]
-    self.lngs = self.lngs[-self.plot_history_max:]
-    self.alts = self.alts[-self.plot_history_max:]
-    self.tows = self.tows[-self.plot_history_max:]
-    self.modes = self.modes[-self.plot_history_max:]
+    self.lats = np.lib.pad(self.lats,
+                           (1,0),
+                           'constant',
+                            constant_values=soln.lat)[:-1]
+    self.lngs = np.lib.pad(self.lngs,
+                           (1,0),
+                           'constant',
+                            constant_values=soln.lon)[:-1]
+    self.tows = np.lib.pad(self.tows,
+                           (1,0),
+                           'constant',
+                            constant_values=soln.tow)[:-1]
+    self.modes = np.lib.pad(self.modes,
+                           (1,0),
+                           'constant',
+                            constant_values=self.last_pos_mode)[:-1]
 
   def solution_draw(self):
     if self.running:
       GUI.invoke_later(self._solution_draw)
 
-  def _solution_draw(self): 
-    spp_indexer, dgnss_indexer, float_indexer, fixed_indexer = None, None, None, None
-    self._clear_history()
+  def _solution_draw(self):
+    self.update_table()
+    spp_indexer, dgnss_indexer, float_indexer, fixed_indexer =\
+      None, None, None, None
+
     soln = self.last_soln
     if np.any(self.modes):
       spp_indexer = (self.modes == SPP_MODE)
@@ -320,39 +319,31 @@ class SolutionView(HasTraits):
     
     # make sure that there is at least one true in indexer before setting
       if any(spp_indexer):
-        self.plot_data.set_data('lat_spp', self.lats[spp_indexer])
-        self.plot_data.set_data('lng_spp', self.lngs[spp_indexer])
-        self.plot_data.set_data('alt_spp', self.alts[spp_indexer])
+        self.plot_data.update_data({'lat_spp': self.lats[spp_indexer]})
+        self.plot_data.update_data({'lng_spp': self.lngs[spp_indexer]})
       if any(dgnss_indexer):
-        self.plot_data.set_data('lat_dgnss', self.lats[dgnss_indexer])
-        self.plot_data.set_data('lng_dgnss', self.lngs[dgnss_indexer])
-        self.plot_data.set_data('alt_dgnss', self.alts[dgnss_indexer])
+        self.plot_data.update_data({'lat_dgnss': self.lats[dgnss_indexer]})
+        self.plot_data.update_data({'lng_dgnss': self.lngs[dgnss_indexer]})
       if any(float_indexer):
-        self.plot_data.set_data('lat_float', self.lats[float_indexer])
-        self.plot_data.set_data('lng_float', self.lngs[float_indexer])
-        self.plot_data.set_data('alt_float', self.alts[float_indexer])
+        self.plot_data.update_data({'lat_float': self.lats[float_indexer]})
+        self.plot_data.update_data({'lng_float': self.lngs[float_indexer]})
       if any(fixed_indexer):
-        self.plot_data.set_data('lat_fixed', self.lats[fixed_indexer])
-        self.plot_data.set_data('lng_fixed', self.lngs[fixed_indexer])
-        self.plot_data.set_data('alt_fixed', self.alts[fixed_indexer])
+        self.plot_data.update_data({'lat_fixed': self.lats[fixed_indexer]})
+        self.plot_data.update_data({'lng_fixed': self.lngs[fixed_indexer]})
       
       # update our "current solution" icon 
       if self.last_pos_mode == SPP_MODE:
-        self._reset_remove_current()
-        self.plot_data.set_data('cur_lat_spp', [soln.lat])
-        self.plot_data.set_data('cur_lng_spp', [soln.lon])
+        self.plot_data.update_data({'cur_lat_spp': [soln.lat]})
+        self.plot_data.update_data({'cur_lng_spp': [soln.lon]})
       elif self.last_pos_mode == DGNSS_MODE:
-        self._reset_remove_current()
-        self.plot_data.set_data('cur_lat_dgnss', [soln.lat])
-        self.plot_data.set_data('cur_lng_dgnss', [soln.lon])
+        self.plot_data.update_data({'cur_lat_dgnss': [soln.lat]})
+        self.plot_data.update_data({'cur_lng_dgnss': [soln.lon]})
       elif self.last_pos_mode == FLOAT_MODE:
-        self._reset_remove_current()
-        self.plot_data.set_data('cur_lat_float', [soln.lat])
-        self.plot_data.set_data('cur_lng_float', [soln.lon])
+        self.plot_data.update_data({'cur_lat_float': [soln.lat]})
+        self.plot_data.update_data({'cur_lng_float': [soln.lon]})
       elif self.last_pos_mode == FIXED_MODE:
-        self._reset_remove_current()
-        self.plot_data.set_data('cur_lat_fixed', [soln.lat])
-        self.plot_data.set_data('cur_lng_fixed', [soln.lon])
+        self.plot_data.update_data({'cur_lat_fixed': [soln.lat]})
+        self.plot_data.update_data({'cur_lng_fixed': [soln.lon]})
       else:
         pass
 
@@ -447,7 +438,6 @@ class SolutionView(HasTraits):
         ('Vel. D', EMPTY_STR),
       ]
     self.vel_table.append(('Vel Flags', '0x%03x' % flags))
-    self.update_table()
 
   def gps_time_callback(self, sbp_msg, **metadata):
     if sbp_msg.msg_type == SBP_MSG_GPS_TIME_DEP_A:
@@ -484,11 +474,7 @@ class SolutionView(HasTraits):
   def __init__(self, link, dirname=''):
     super(SolutionView, self).__init__()
 
-    self.lats = np.zeros(self.plot_history_max)
-    self.lngs = np.zeros(self.plot_history_max)
-    self.alts = np.zeros(self.plot_history_max)
-    self.tows = np.zeros(self.plot_history_max)
-    self.modes = np.zeros(self.plot_history_max)
+    self._zero_init()
     self.log_file = None
     self.directory_name_v = dirname
     self.directory_name_p = dirname
@@ -496,20 +482,17 @@ class SolutionView(HasTraits):
     self.last_stime_update = 0
     self.last_soln = None
 
-    self.counter = 0
-    self.latitude_list = []
-    self.longitude_list = []
-    self.altitude_list = []
-    self.altitude = 0
-    self.longitude = 0
-    self.latitude = 0
+    self.latitude_list = np.full(self.AUTO_SURVEY_MAX, np.nan)
+    self.longitude_list = np.full(self.AUTO_SURVEY_MAX, np.nan)
+    self.altitude_list = np.full(self.AUTO_SURVEY_MAX, np.nan)
+
     self.last_pos_mode = 0
 
-    self.plot_data = ArrayPlotData(lat_spp=[], lng_spp=[], alt_spp=[],
-      cur_lat_spp=[], cur_lng_spp=[], lat_dgnss=[], lng_dgnss=[], alt_dgnss=[],
-      cur_lat_dgnss=[], cur_lng_dgnss=[], lat_float=[], lng_float=[], alt_float=[],
-      cur_lat_float=[], cur_lng_float=[], lat_fixed=[], lng_fixed=[], alt_fixed=[],
-      cur_lat_fixed=[], cur_lng_fixed=[])
+    self.plot_data = ArrayPlotData(
+      lat_spp=[], lng_spp=[], cur_lat_spp=[], cur_lng_spp=[],
+      lat_dgnss=[], lng_dgnss=[], cur_lat_dgnss=[], cur_lng_dgnss=[],
+      lat_float=[], lng_float=[], cur_lat_float=[], cur_lng_float=[],
+      lat_fixed=[], lng_fixed=[], cur_lat_fixed=[], cur_lng_fixed=[])
     self.plot = Plot(self.plot_data)
 
     # 1000 point buffer
@@ -563,7 +546,7 @@ class SolutionView(HasTraits):
     self.link.add_callback(self.gps_time_callback, [SBP_MSG_GPS_TIME_DEP_A, SBP_MSG_GPS_TIME])
     self.link.add_callback(self.utc_time_callback, [SBP_MSG_UTC_TIME])
     self.link.add_callback(self.age_corrections_callback, SBP_MSG_AGE_CORRECTIONS)
-    call_repeatedly(0.2, self.solution_draw)
+    call_repeatedly(.5, self.solution_draw)
 
     self.week = None
     self.utc_time = None

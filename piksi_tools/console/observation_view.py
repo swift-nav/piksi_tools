@@ -13,7 +13,6 @@
 from traits.api import Dict, List, Float, Int
 from traitsui.api import Item, View, HGroup, VGroup, TabularEditor, Spring
 from traitsui.tabular_adapter import TabularAdapter
-from enable.savage.trait_defs.ui.svg_button import SVGButton
 
 from piksi_tools.console.gui_utils import CodeFiltered
 from piksi_tools.console.utils import call_repeatedly, code_to_str, EMPTY_STR,\
@@ -259,4 +258,4 @@ class ObservationView(CodeFiltered):
                             SBP_MSG_OBS_DEP_B,
                             SBP_MSG_OBS_DEP_C])
     self.python_console_cmds = {'obs': self}
-    call_repeatedly(0.2, self.update_obs)
+    call_repeatedly(.5, self.update_obs)
