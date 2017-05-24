@@ -25,8 +25,11 @@ import numpy as np
 
 from piksi_tools.acq_results import SNR_THRESHOLD
 from piksi_tools.console.gui_utils import CodeFiltered
-from piksi_tools.console.utils import code_to_str, code_is_gps, code_is_glo,\
+from piksi_tools.console.utils import call_repeatedly, code_to_str,\
+                                      code_is_gps, code_is_glo,\
                                       SUPPORTED_CODES
+
+from threading import Lock
 
 from sbp.tracking import SBP_MSG_TRACKING_STATE, SBP_MSG_TRACKING_STATE_DEP_B
 
@@ -105,14 +108,18 @@ class TrackingView(CodeFiltered):
       self.data_dict[code][key][-1] = (cn0, prn)
 
   def tracking_state_callback(self, sbp_msg, **metadata):
-    t = time.time() - self.t_init
-    self.time = np.lib.pad(self.time, (0,1), 'constant', constant_values=t)[1:]
+    try:
+      self.update_lock.acquire()
+      t = time.time() - self.t_init
 
-    self._shift_data_arrays()
+      self.time =\
+        np.lib.pad(self.time, (0,1), 'constant', constant_values=t)[1:]
 
-    self._update_data_arrays(sbp_msg)
+      self._shift_data_arrays()
 
-    GUI.invoke_later(self.update_plot)
+      self._update_data_arrays(sbp_msg)
+    finally:
+      self.update_lock.release()
 
   def _remove_stail_plots(self):
     keys = []
@@ -143,7 +150,7 @@ class TrackingView(CodeFiltered):
 
       # set plot data and create plot for any selected for display
       cn0_values = cno_array[:,:-1]
-      self.plot_data.set_data(key, cn0_values.reshape(len(cn0_values)))
+      self.plot_data.update_data({key: cn0_values.reshape(len(cn0_values))})
 
       # if channel is inactive:
       if 0 == cno_array[-1][0]:
@@ -175,29 +182,43 @@ class TrackingView(CodeFiltered):
 
 
   def update_plot(self):
-    plot_labels = []
-    plots = []
-    self.plot_data.set_data('t', self.time)
+    try:
+      self.update_lock.acquire()
+      plot_labels = []
+      plots = []
+      self.plot_data.update_data({'t': self.time})
 
-    self._remove_stail_plots()
+      self._remove_stail_plots()
 
-    for code in self.data_dict.keys():
-      self._update_code_plots(code, plot_labels, plots)
+      for code in self.data_dict.keys():
+        self._update_code_plots(code, plot_labels, plots)
 
-    plots = dict(zip(plot_labels, plots))
-    self.plot.legend.plots = plots
+      plots = dict(zip(plot_labels, plots))
+
+      self.plot.legend.plots = plots
+    finally:
+      self.update_lock.release()
+
+  def _update_plot(self):
+    GUI.invoke_later(self.update_plot)
 
   def _legend_visible_changed(self):
-    if self.plot:
-      if self.legend_visible==False:
-        self.plot.legend.visible = False
-      else:
-        self.plot.legend.visible = True
-      self.plot.legend.tools.append(LegendTool(self.plot.legend,
-                                    drag_button="right"))
+    try:
+      self.update_lock.acquire()
+      if self.plot:
+        if self.legend_visible==False:
+          self.plot.legend.visible = False
+        else:
+          self.plot.legend.visible = True
+        self.plot.legend.tools.append(LegendTool(self.plot.legend,
+                                      drag_button="right"))
+    finally:
+      self.update_lock.release()
+     
 
   def __init__(self, link):
     super(TrackingView, self).__init__()
+    self.update_lock = Lock()
     self.t_init = time.time()
     self.time = np.arange(-NUM_POINTS, 0, 1) / TRK_RATE
     self.data_dict = dict((code, {}) for code in SUPPORTED_CODES)
@@ -232,3 +253,5 @@ class TrackingView(CodeFiltered):
     self.python_console_cmds = {
       'track': self
     }
+    call_repeatedly(0.5, self._update_plot)
+
