@@ -15,13 +15,18 @@ Requirements:
 from sbp.table import dispatch, _SBP_TABLE
 from sbp.msg import SBP
 from struct import unpack
+from datetime import datetime, timedelta
 
 import json
 
 ARDUPILOT_LOG_HEADER = bytearray([0xA3, 0x95])  # each Ardupilot log frame starts with "0xA3 0x95"
 
+# Timestamp format : 2017-05-26T21:40:15.717000
+TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
+
 FORMAT_SIZE_BYTES = {'B': 1,
                      'H': 2,
+                     'I': 4,
                      'Q': 8,
                      }
 
@@ -61,7 +66,7 @@ pull request #411 against master
 """
 
 
-def search_binary_key(file, searched_keys):
+def search_binary_key(log, searched_keys):
   key = bytearray()
   for k in range(len(searched_keys[0])):
     key.append(bytes(0x0))
@@ -70,7 +75,7 @@ def search_binary_key(file, searched_keys):
     if key in searched_keys:
       return key
     else:
-      byte = file.read(1)
+      byte = log.read(1)
       for i in range(len(key)-1):
         key[i] = key[i+1]
       key[2] = byte
@@ -80,63 +85,112 @@ def search_binary_key(file, searched_keys):
 class SBR1:
 
   HEADER = bytearray([0xA3, 0x95, 0xE5])
+  LABELS = "TimeUS,msg_type,sender_id,msg_len,1,2,3,4,5,6,7,8"
   FORMAT_HEADER = 'QHHB'  # Data format before binary message
   FORMAT_BINARY = 'QQQQQQQQ'  # Data format for binary message
   SIZE = 77
   BINARY_SIZE = 64
 
-  def __init__(self, bytes):
+  def __init__(self, binary):
     self.time_us = None
     self.msg_type = None
     self.sender_id = None
     self.msg_len = None
     self.msg = None
-    self.read_bytes(bytes)
+    self.read_bytes(binary)
 
-  def read_bytes(self, bytes):
-    if len(bytes) == self.SIZE:
+  def read_bytes(self, binary):
+    if len(binary) == self.SIZE:
       start_index = 0
       end_index = FORMAT_SIZE_BYTES[self.FORMAT_HEADER[0]]
-      self.time_us = unpack('<'+self.FORMAT_HEADER[0], bytes[start_index:end_index])[0]
+      self.time_us = unpack('<' + self.FORMAT_HEADER[0], binary[start_index:end_index])[0]
       start_index = end_index
       end_index = start_index + FORMAT_SIZE_BYTES[self.FORMAT_HEADER[1]]
-      self.msg_type = unpack('<'+self.FORMAT_HEADER[1], bytes[start_index:end_index])[0]
+      self.msg_type = unpack('<' + self.FORMAT_HEADER[1], binary[start_index:end_index])[0]
       start_index = end_index
       end_index = start_index + FORMAT_SIZE_BYTES[self.FORMAT_HEADER[2]]
-      self.sender_id = unpack('<'+self.FORMAT_HEADER[2], bytes[start_index:end_index])[0]
+      self.sender_id = unpack('<' + self.FORMAT_HEADER[2], binary[start_index:end_index])[0]
       start_index = end_index
       end_index = start_index + FORMAT_SIZE_BYTES[self.FORMAT_HEADER[3]]
-      self.msg_len = unpack('<'+self.FORMAT_HEADER[3], bytes[start_index:end_index])[0]
-      self.msg = bytes[end_index:]
+      self.msg_len = unpack('<' + self.FORMAT_HEADER[3], binary[start_index:end_index])[0]
+      self.msg = binary[end_index:]
 
 
 class SBR2:
 
   HEADER = bytearray([0xA3, 0x95, 0xE6])
+  LABELS = "TimeUS,msg_type,1,2,3,4,5,6,7,8,9,10,11,12,13"
   FORMAT_HEADER = 'QH'  # Data format before binary message
   FORMAT_BINARY = 'QQQQQQQQQQQQQ'  # Data format for binary message
   SIZE = 114
   BINARY_SIZE = 104
 
-  def __init__(self, bytes):
+  def __init__(self, binary):
     self.time_us = None
     self.msg_type = None
     self.msg = None
-    self.read_bytes(bytes)
+    self.read_bytes(binary)
 
-  def read_bytes(self, bytes):
-    if len(bytes) == self.SIZE:
+  def read_bytes(self, binary):
+    if len(binary) == self.SIZE:
       start_index = 0
       end_index = FORMAT_SIZE_BYTES[self.FORMAT_HEADER[0]]
-      self.time_us = unpack('<'+self.FORMAT_HEADER[0], bytes[start_index:end_index])[0]
+      self.time_us = unpack('<' + self.FORMAT_HEADER[0], binary[start_index:end_index])[0]
       start_index = end_index
       end_index = start_index + FORMAT_SIZE_BYTES[self.FORMAT_HEADER[1]]
-      self.msg_type = unpack('<'+self.FORMAT_HEADER[1], bytes[start_index:end_index])[0]
-      self.msg = bytes[end_index:]
+      self.msg_type = unpack('<' + self.FORMAT_HEADER[1], binary[start_index:end_index])[0]
+      self.msg = binary[end_index:]
 
 
-def extractSBP(filename):
+class GPS:
+  HEADER = bytearray([0xA3, 0x95, 0x82])
+  HEADER2 = bytearray([0xA3, 0x95, 0x83])
+  FORMAT = "QBIHBcLLefffB"
+  LABELS = "TimeUS,Status,GMS,GWk,NSats,HDop,Lat,Lng,Alt,Spd,GCrs,VZ,U"
+  SIZE = 43
+
+  def __init__(self, binary):
+    self.time_us = None
+    self.gms = None
+    self.gwk = None
+    self.read_bytes(binary)
+
+  def read_bytes(self, binary):
+    if len(binary) == self.SIZE:
+      start_index = 0
+      end_index = FORMAT_SIZE_BYTES[self.FORMAT[0]]
+      self.time_us = unpack('<' + self.FORMAT[0], binary[start_index:end_index])[0]
+      start_index = end_index
+      end_index = start_index + FORMAT_SIZE_BYTES[self.FORMAT[1]]
+      # DO NOTHING CAUSE WE DON'T CARE OF STATUS
+      start_index = end_index
+      end_index = start_index + FORMAT_SIZE_BYTES[self.FORMAT[2]]
+      self.gms = unpack('<' + self.FORMAT[2], binary[start_index:end_index])[0]
+      start_index = end_index
+      end_index = start_index + FORMAT_SIZE_BYTES[self.FORMAT[3]]
+      self.gwk = unpack('<' + self.FORMAT[3], binary[start_index:end_index])[0]
+
+
+def get_first_gps_message(filename):
+  with open(filename, "rb") as log:
+    while search_binary_key(log, [GPS.HEADER, GPS.HEADER2]):
+      binary = log.read(GPS.SIZE)
+      assert len(binary) == GPS.SIZE, "Length of GPS message inconsistent"
+      gps = GPS(binary)
+      if gps.gwk and gps.gms:
+        return gps
+
+
+def gps_time_to_utc(gps_week, gps_milliseconds, time_us):
+  epoch = datetime.strptime("1980-01-06T00:00:00.000000", TIMESTAMP_FORMAT)
+  elapsed = timedelta(days=(gps_week * 7), microseconds=(gps_milliseconds * 1000 + time_us))
+  return datetime.strftime(epoch + elapsed, TIMESTAMP_FORMAT)
+
+
+def extract_sbp(filename):
   extracted_data = []
+
+  gps = get_first_gps_message(filename)
 
   with open(filename, "rb") as log:
     last_m = None
@@ -150,15 +204,15 @@ def extractSBP(filename):
       # SBR2 msgs are the next n bytes if the original message is longer than 64 bytes
       key = search_binary_key(log, [SBR1.HEADER, SBR2.HEADER])
       if key == SBR1.HEADER:
-        bytes = log.read(SBR1.SIZE)
-        if len(bytes) == SBR1.SIZE:
-          m = SBR1(bytes)
+        binary = log.read(SBR1.SIZE)
+        if len(binary) == SBR1.SIZE:
+          m = SBR1(binary)
         else:
           break
       elif key == SBR2.HEADER:
-        bytes = log.read(SBR2.SIZE)
-        if len(bytes) == SBR2.SIZE:
-          m = SBR2(bytes)
+        binary = log.read(SBR2.SIZE)
+        if len(binary) == SBR2.SIZE:
+          m = SBR2(binary)
         else:
           break
       else:
@@ -178,18 +232,19 @@ def extractSBP(filename):
           # If the last message was an SBR1 and the current message is SBR2
           # we combine the two into one SBP message
           msg_len = last_m.msg_len
-          timestamp = last_m.time_us
+          timestamp = gps_time_to_utc(gps.gwk, gps.gms, last_m.time_us - gps.time_us)
           bin_data = last_m.msg + m.msg
           bin_data = bin_data[:msg_len]
           msg_type = last_m.msg_type
           sender_id = last_m.sender_id
           last_m = m
 
-      elif last_last_m and last_m and isinstance(last_last_m, SBR1) and isinstance(last_m, SBR2) and isinstance(m, SBR2):
+      elif last_last_m and last_m \
+              and isinstance(last_last_m, SBR1) and isinstance(last_m, SBR2) and isinstance(m, SBR2):
         # If the last message was an SBR1 and the current message is SBR2
         # we combine the two into one SBP message
         msg_len = last_last_m.msg_len
-        timestamp = last_last_m.time_us
+        timestamp = gps_time_to_utc(gps.gwk, gps.gms, last_last_m.time_us - gps.time_us)
         bin_data = last_last_m.msg + last_m.msg + m.msg
         bin_data = bin_data[:msg_len]
         msg_type = last_last_m.msg_type
@@ -201,7 +256,7 @@ def extractSBP(filename):
         # If the last message  was SBR1 and this one is SBR1, we extract the last one
         # and save this one until the next iteration
         msg_len = last_m.msg_len
-        timestamp = last_m.time_us
+        timestamp = gps_time_to_utc(gps.gwk, gps.gms, last_m.time_us - gps.time_us)
         msg_type = last_m.msg_type
         sender_id = last_m.sender_id
         bin_data = last_m.msg[:msg_len]
@@ -220,7 +275,7 @@ def extractSBP(filename):
         if len(bin_data) != msg_len:
           print "Length of SBP message inconsitent for msg_type {0}.".format(msg_type)
           print "Expected Length {0}, Actual Length {1}".format(msg_len, len(bin_data))
-        else :
+        else:
           extracted_data.append((timestamp, msg_type, sender_id, msg_len, bin_data))
           num_msgs += 1
     print "extracted {0} messages".format(num_msgs)
@@ -237,7 +292,7 @@ def rewrite(records, outfile):
   if not records:
     print "No SBP log records passed to rewrite function. Exiting."
     return
-  start_t, msg_type, sender_id, msg_len, bin_data = records[0]
+
   items = []
   i = 0
   for (timestamp, msg_type, sender_id, msg_len, bin_data) in records:
@@ -250,7 +305,7 @@ def rewrite(records, outfile):
            "data": dispatch(sbp).to_json_dict(),
            "metadata": {}}
       new_datafile.write(json.dumps(m) + "\n")
-    except Exception as exc_info:
+    except Exception:
       print "Exception received for message type {0}.".format(_SBP_TABLE[msg_type])
       import traceback
       print traceback.format_exc()
@@ -280,8 +335,8 @@ def main():
   args = get_args()
   filename = args.dataflashfile
   outfile = args.outfile[0]
-  f = extractSBP(filename)
-  g = rewrite(f, outfile)
+  f = extract_sbp(filename)
+  rewrite(f, outfile)
   print "JSON SBP log succesfully written to {0}.".format(outfile)
   return 0
 
