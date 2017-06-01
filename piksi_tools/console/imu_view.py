@@ -34,7 +34,7 @@ colours_list = [
   0xF781BF,
 ]
 
-class IMUView(HasTraits):
+class IMU(HasTraits):
   python_console_cmds = Dict()
   plot = Instance(Plot)
   plot_data = Instance(ArrayPlotData)
@@ -62,6 +62,8 @@ class IMUView(HasTraits):
   )
 
   def imu_set_data(self):
+    if not self.parent._selected(self):
+      return
     self.plot_data.set_data('acc_x', self.acc[:,0])
     self.plot_data.set_data('acc_y', self.acc[:,1])
     self.plot_data.set_data('acc_z', self.acc[:,2])
@@ -89,8 +91,9 @@ class IMUView(HasTraits):
           self.rms_acc_y = sf * np.sqrt(np.mean(np.square(self.acc[:,1])))
           self.rms_acc_z = sf * np.sqrt(np.mean(np.square(self.acc[:,2])))
 
-  def __init__(self, link):
-    super(IMUView, self).__init__()
+  def __init__(self, link, parent):
+    super(IMU, self).__init__()
+    self.parent = parent
 
     self.acc = np.zeros((NUM_POINTS, 3))
     self.gyro = np.zeros((NUM_POINTS, 3))
@@ -139,3 +142,4 @@ class IMUView(HasTraits):
     self.python_console_cmds = {
       'track': self
     }
+

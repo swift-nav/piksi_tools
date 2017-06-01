@@ -34,7 +34,7 @@ class SimpleAdapter(TabularAdapter):
     columns = [('Item', 0), ('Value',  1)]
     width = 80
 
-class BaselineView(HasTraits):
+class Baseline(HasTraits):
 
   # This mapping should match the flag definitions in libsbp for
   # the MsgBaselineNED message. While this isn't strictly necessary
@@ -287,7 +287,8 @@ class BaselineView(HasTraits):
       table.append(('Heading', self.heading)) 
     if self.age_corrections != None:
       table.append(('Corr. Age [s]', self.age_corrections))
-    self.table = table
+    if self.parent.selected_tab == self:
+      self.table = table
     # Rotate array, deleting oldest entries to maintain
     # no more than N in plot
     self.n[1:] = self.n[:-1]
@@ -303,6 +304,8 @@ class BaselineView(HasTraits):
     self.mode[0] = self.last_mode
    
   def solution_draw(self):
+    if self.parent.selected_tab != self:
+      return
     if self.running:
       GUI.invoke_later(self._solution_draw)
   
@@ -357,8 +360,9 @@ class BaselineView(HasTraits):
     if self.zoomall:
       plot_square_axes(self.plot, ('e_fixed', 'e_float', 'e_dgnss'), ('n_fixed', 'n_float', 'n_dgnss'))
 
-  def __init__(self, link, plot_history_max=1000, dirname=''):
-    super(BaselineView, self).__init__()
+  def __init__(self, link, parent, plot_history_max=1000, dirname=''):
+    super(Baseline, self).__init__()
+    self.parent = parent
     self.log_file = None
     self.directory_name_b = dirname
     self.num_hyps = 0

@@ -126,23 +126,24 @@ basedir = determine_path()
 icon = ImageResource('icon', search_path=['images', os.path.join(basedir, 'images')])
 
 
-from piksi_tools.console.tracking_view import TrackingView
-from piksi_tools.console.solution_view import SolutionView
-from piksi_tools.console.baseline_view import BaselineView
-from piksi_tools.console.observation_view import ObservationView
-from piksi_tools.console.sbp_relay_view import SbpRelayView
-from piksi_tools.console.system_monitor_view import SystemMonitorView
-from piksi_tools.console.settings_view import SettingsView
-from piksi_tools.console.update_view import UpdateView
-from piksi_tools.console.imu_view import IMUView
-from piksi_tools.console.spectrum_analyzer_view import SpectrumAnalyzerView
+from piksi_tools.console.tracking_view import Tracking
+from piksi_tools.console.solution_view import Solution
+from piksi_tools.console.baseline_view import Baseline
+from piksi_tools.console.observation_view import Observations
+from piksi_tools.console.sbp_relay_view import Networking
+from piksi_tools.console.system_monitor_view import SystemMonitor
+from piksi_tools.console.settings_view import Settings
+from piksi_tools.console.update_view import FirmwareUpdate
+from piksi_tools.console.imu_view import IMU
 from piksi_tools.console.callback_prompt import CallbackPrompt, ok_button
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 
-from traits.api import Str, Instance, Dict, HasTraits, Any, Int, Button, List, Enum, Bool, Directory, Font
-from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
-                         InstanceEditor, EnumEditor, ShellEditor, Handler, Spring, \
-                         TableEditor, UItem, Group, ImageEditor, TextEditor, HTMLEditor
+from traits.api import Str, Instance, Dict, HasTraits, Any, Int, Button, List,\
+                       Enum, Bool, Directory, Font
+from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit,\
+                         Tabbed, InstanceEditor, EnumEditor, ShellEditor,\
+                         Handler, Spring, TableEditor, UItem, Group,\
+                         ImageEditor, TextEditor, HTMLEditor, ListEditor
 from traitsui.table_filter \
     import EvalFilterTemplate, MenuFilterTemplate, RuleFilterTemplate, \
            EvalTableFilter
@@ -188,22 +189,9 @@ class SwiftConsole(HasTraits):
 
   link = Instance(sbpc.Handler)
   console_output = Instance(OutputList())
-  python_console_env = Dict
   device_serial = Str('')
   dev_id = Str('')
-  tracking_view = Instance(TrackingView)
-  solution_view = Instance(SolutionView)
-  baseline_view = Instance(BaselineView)
-  observation_view = Instance(ObservationView)
-  networking_view = Instance(SbpRelayView)
-  observation_view_base = Instance(ObservationView)
-  system_monitor_view = Instance(SystemMonitorView)
-  settings_view = Instance(SettingsView)
-  update_view = Instance(UpdateView)
-  imu_view = Instance(IMUView)
-  spectrum_analyzer_view = Instance(SpectrumAnalyzerView)
   log_level_filter = Enum(list(SYSLOG_LEVELS.itervalues()))
-
 
   """"
   mode : baseline and solution view - SPP, Fixed or Float
@@ -253,31 +241,13 @@ class SwiftConsole(HasTraits):
     filename=os.path.join(determine_path(), 'images', 'iconic', 'x.svg'),
     width=8, height=8
   )
-
+  tab_list = List(HasTraits)
+  selected_tab = Any
   view = View(
     VSplit(
-      Tabbed(
-        Item('tracking_view', style='custom', label='Tracking'),
-        Item('solution_view', style='custom', label='Solution'),
-        Item('baseline_view', style='custom', label='Baseline'),
-        VSplit(
-          Item('observation_view', style='custom', show_label=False),
-          Item('observation_view_base', style='custom', show_label=False),
-          label='Observations',
-        ),
-        Item('settings_view', style='custom', label='Settings'),
-        Item('update_view', style='custom', label='Firmware Update'),
-        Tabbed(
-          Item('system_monitor_view', style='custom', label='System Monitor'),
-          Item('imu_view', style='custom', label='IMU'),
-          Item('networking_view', label='Networking', style='custom', show_label=False),
-          Item('spectrum_analyzer_view', label='Spectrum Analyzer', style='custom'),
-          Item('python_console_env', style='custom',
-            label='Python Console', editor=ShellEditor()),
-          label='Advanced',
-          show_labels=False
-         ),
-        show_labels=False
+      Item('tab_list', style='custom', show_label=False,
+           editor=ListEditor(use_notebook=True, deletable=False,
+           dock_style='tab', selected='selected_tab')
       ),
       VGroup(
         VGroup(
@@ -375,13 +345,13 @@ class SwiftConsole(HasTraits):
     self.console_output.clear()
 
   def _directory_name_changed(self):
-    if self.baseline_view and self.solution_view:
+    if hasattr(self, 'baseline_view') and hasattr(self, 'solution_view'):
       self.baseline_view.directory_name_b = self.directory_name
       self.solution_view.directory_name_p = self.directory_name
       self.solution_view.directory_name_v = self.directory_name
-    if self.observation_view and self.observation_view_base:
-      self.observation_view.dirname = self.directory_name
-      self.observation_view_base.dirname = self.directory_name
+    if hasattr(self, 'observation_view'):
+      self.observation_view.local.dirname = self.directory_name
+      self.observation_view.remote.dirname = self.directory_name
 
   def check_heartbeat(self):
     # if our heartbeat hasn't changed since the last timer interval the connection must have dropped
@@ -413,16 +383,15 @@ class SwiftConsole(HasTraits):
     self.mode = temp_mode
     self.num_sats = temp_num_sats
 
-    if self.settings_view: # for auto populating surveyed fields
+    if hasattr(self, 'settings_view'): # for auto populating surveyed fields
       self.settings_view.lat = self.solution_view.latitude_list
       self.settings_view.lon = self.solution_view.longitude_list
       self.settings_view.alt = self.solution_view.altitude_list
-    if self.system_monitor_view:
-      if self.system_monitor_view.msg_obs_window_latency_ms != -1:
-        self.latency = "{0} ms".format(self.system_monitor_view.msg_obs_window_latency_ms)
+    if hasattr(self, 'advanced_view'):
+      if self.advanced_view.sys.msg_obs_window_latency_ms != -1:
+        self.latency = "{0} ms".format(self.advanced_view.sys.msg_obs_window_latency_ms)
       else:
         self.latency = EMPTY_STR
-
 
   def _csv_logging_button_action(self):
     if self.csv_logging and self.baseline_view.logging_b and self.solution_view.logging_p and self.solution_view.logging_v:
@@ -539,15 +508,26 @@ class SwiftConsole(HasTraits):
       self.link.add_callback(self.update_on_heartbeat, SBP_MSG_HEARTBEAT)
       self.dep_handler = DeprecatedMessageHandler(link)
       settings_read_finished_functions = []
-      self.tracking_view = TrackingView(self.link)
-      self.solution_view = SolutionView(self.link, dirname=self.directory_name)
-      self.baseline_view = BaselineView(self.link, dirname=self.directory_name)
-      self.observation_view = ObservationView(self.link, name='Local', relay=False, dirname=self.directory_name)
-      self.observation_view_base = ObservationView(self.link, name='Remote', relay=True, dirname=self.directory_name)
-      self.system_monitor_view = SystemMonitorView(self.link)
-      self.update_view = UpdateView(self.link, download_dir=swift_path, prompt=update, serial_upgrade=serial_upgrade)
-      self.imu_view = IMUView(self.link)
-      self.spectrum_analyzer_view = SpectrumAnalyzerView(self.link)
+
+      self.selected_tab = self.tracking_view = Tracking(self.link, self)
+
+      self.solution_view = Solution(self.link,
+                                    self,
+                                    dirname=self.directory_name)
+
+      self.baseline_view = Baseline(self.link,
+                                    self,
+                                    dirname=self.directory_name)
+
+      self.observation_view = Observations(self.link,
+                                           self,
+                                           dirname=self.directory_name)
+
+      self.update_view = FirmwareUpdate(self.link,
+                                        download_dir=swift_path,
+                                        prompt=update,
+                                        serial_upgrade=serial_upgrade)
+
       settings_read_finished_functions.append(self.update_view.compare_versions)
       if networking:
         import yaml
@@ -562,7 +542,7 @@ class SwiftConsole(HasTraits):
       else:
         networking_dict = {}
       networking_dict.update({'whitelist':[SBP_MSG_POS_LLH, SBP_MSG_HEARTBEAT]})
-      self.networking_view = SbpRelayView(self.link, **networking_dict)
+
       self.json_logging = json_logging
       self.csv_logging = False
       self.first_json_press = True
@@ -585,24 +565,68 @@ class SwiftConsole(HasTraits):
           pass
         if mfg_id:
           self.device_serial = 'PK' + str(mfg_id)[-6:]
-        self.networking_view.set_route(uuid=uuid, serial_id=mfg_id)
-        if self.networking_view.connect_when_uuid_received:
-            self.networking_view._connect_rover_fired()
+        self.advanced_view.net.set_route(uuid=uuid, serial_id=mfg_id)
+        if self.advanced_view.net.connect_when_uuid_received:
+            self.advanced_view.net._connect_rover_fired()
       settings_read_finished_functions.append(update_serial)
-      self.settings_view = SettingsView(self.link,
-                                        settings_read_finished_functions,
-                                        skip=skip_settings)
+      self.settings_view = Settings(self.link,
+                                    settings_read_finished_functions,
+                                    skip=skip_settings)
       self.update_view.settings = self.settings_view.settings
       self.python_console_env = { 'send_message': self.link,
                                   'link': self.link, }
+
+      self.tab_list.append(self.tracking_view)
+      self.tab_list.append(self.solution_view)
+      self.tab_list.append(self.baseline_view)
+      self.tab_list.append(self.observation_view)
+      self.tab_list.append(self.settings_view)
+      self.tab_list.append(self.update_view)
+
+      class PythonConsole(HasTraits):
+        python_console_env = self.python_console_env
+
+        view = View(Item('python_console_env',
+                         style='custom',
+                         show_label=False,
+                         editor=ShellEditor()))
+
+        def __init__(self):
+          super(PythonConsole, self).__init__()
+
+      class Advanced(HasTraits):
+        tab_list = List(HasTraits)
+        selected_tab = Any
+        view = View(Item('tab_list', style='custom', show_label=False,
+                         editor=ListEditor(use_notebook=True, deletable=False,
+                         dock_style='tab', selected='selected_tab')))
+
+        def _selected(self, asker):
+          return (self.parent.selected_tab == self and
+                  self.selected_tab == asker)
+
+        def __init__(self, link, parent):
+          self.parent = parent
+          self.selected_tab = self.sys = SystemMonitor(link)
+          self.imu = IMU(link, self)
+          self.net = Networking(link, **networking_dict)
+          self.pycon = PythonConsole()
+          self.tab_list.append(self.sys)
+          self.tab_list.append(self.imu)
+          self.tab_list.append(self.net)
+          self.tab_list.append(self.pycon)
+          parent.python_console_env.update(self.sys.python_console_cmds)
+          parent.python_console_env.update(self.imu.python_console_cmds)
+          parent.python_console_env.update(self.net.python_console_cmds)
+
+      self.advanced_view = Advanced(self.link, self)
+      self.tab_list.append(self.advanced_view)
+
       self.python_console_env.update(self.tracking_view.python_console_cmds)
       self.python_console_env.update(self.solution_view.python_console_cmds)
       self.python_console_env.update(self.baseline_view.python_console_cmds)
       self.python_console_env.update(self.observation_view.python_console_cmds)
-      self.python_console_env.update(self.networking_view.python_console_cmds)
-      self.python_console_env.update(self.system_monitor_view.python_console_cmds)
       self.python_console_env.update(self.update_view.python_console_cmds)
-      self.python_console_env.update(self.imu_view.python_console_cmds)
       self.python_console_env.update(self.settings_view.python_console_cmds)
       self.python_console_env.update(self.spectrum_analyzer_view.python_console_cmds)
 
@@ -750,7 +774,8 @@ else:
   print "Using serial device '%s'" % port
   selected_driver = s.get_driver(args.ftdi, port, baud, args.file, rtscts=args.rtscts)
   connection_description = os.path.split(port)[-1]  + " @" + str(baud)
-  
+#import yappi
+#yappi.start()
 with selected_driver as driver:
   with sbpc.Handler(sbpc.Framer(driver.read, driver.write, args.verbose)) as link:
     if args.reset:
@@ -763,7 +788,7 @@ with selected_driver as driver:
                  log_console=args.log_console, networking=args.networking, 
                  serial_upgrade=args.serial_upgrade) as console: 
       console.configure_traits()
-
+#yappi.get_func_stats().print_all()
 # Force exit, even if threads haven't joined
 try:
   os._exit(0)

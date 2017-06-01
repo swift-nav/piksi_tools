@@ -31,7 +31,7 @@ class SimpleAdapter(TabularAdapter):
 class SimpleNetworkAdapter(TabularAdapter):
   columns = [('Interface Name', 0), ('IPv4 Addr',  1), ('Running',  2)]
 
-class SystemMonitorView(HasTraits):
+class SystemMonitor(HasTraits):
   python_console_cmds = Dict()
 
   _threads_table_list = List()
@@ -149,7 +149,7 @@ class SystemMonitorView(HasTraits):
       self.msg_obs_window_period_ms = m.obs_period.current
 
   def __init__(self, link):
-    super(SystemMonitorView, self).__init__()
+    super(SystemMonitor, self).__init__()
     self.link = link
     self.link.add_callback(self.heartbeat_callback, SBP_MSG_HEARTBEAT)
     self.link.add_callback(self.thread_state_callback, SBP_MSG_THREAD_STATE)
