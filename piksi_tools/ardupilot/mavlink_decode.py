@@ -8,7 +8,6 @@ Takes in a dataflish BIN file and produces an SBP JSON log file with the followi
 
 Requirements:
 
-  pip install pymavlink
   sudo pip install sbp
 
 """
@@ -23,6 +22,7 @@ ARDUPILOT_LOG_HEADER = bytearray([0xA3, 0x95])  # each Ardupilot log frame start
 
 # Timestamp format : 2017-05-26T21:40:15.717000
 TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
+TIME_ORIGIN = "1980-01-06T00:00:00.000000"
 
 FORMAT_SIZE_BYTES = {'B': 1,
                      'H': 2,
@@ -53,33 +53,20 @@ Format characters in the format string for mavlink binary log messages
   Q   : uint64_t
 """
 
-"""
-This function takes in a filename for a ArduPilot dataflash log,
-and returns an array of (timestamp, bytearray) tuples.
-The bytearray contains raw SBP binary data logged directly from the serial port.
-Each tuple should contain exactly one SBP message.
-
-This decoder requires pymavlink commit 0b6e5ab1f6d7911d408aaee8a4ec7a457e238399
-which defines the "get_raw_msgbuf" method on the DFReader class.
-This commit is currently in the denniszollo fork on Github and is
-pull request #411 against master
-"""
-
 
 def search_binary_key(log, searched_keys):
   key = bytearray()
   for k in range(len(searched_keys[0])):
     key.append(bytes(0x0))
-  byte = bytes(0x0)
-  while len(byte):
-    if key in searched_keys:
-      return key
-    else:
+  while key not in searched_keys:
       byte = log.read(1)
-      for i in range(len(key)-1):
-        key[i] = key[i+1]
-      key[2] = byte
-  return None
+      if len(byte):
+        for i in range(len(key)-1):
+          key[i] = key[i+1]
+        key[2] = byte
+      else:
+        return None
+  return key
 
 
 class SBR1:
@@ -182,9 +169,16 @@ def get_first_gps_message(filename):
 
 
 def gps_time_to_utc(gps_week, gps_milliseconds, time_us):
-  epoch = datetime.strptime("1980-01-06T00:00:00.000000", TIMESTAMP_FORMAT)
+  epoch = datetime.strptime(TIME_ORIGIN, TIMESTAMP_FORMAT)
   elapsed = timedelta(days=(gps_week * 7), microseconds=(gps_milliseconds * 1000 + time_us))
   return datetime.strftime(epoch + elapsed, TIMESTAMP_FORMAT)
+
+"""
+This function takes in a filename for a ArduPilot dataflash log,
+and returns an array of (timestamp, bytearray) tuples.
+The bytearray contains raw SBP binary data logged directly from the serial port.
+Each tuple should contain exactly one SBP message.
+"""
 
 
 def extract_sbp(filename):
@@ -241,8 +235,8 @@ def extract_sbp(filename):
 
       elif last_last_m and last_m \
               and isinstance(last_last_m, SBR1) and isinstance(last_m, SBR2) and isinstance(m, SBR2):
-        # If the last message was an SBR1 and the current message is SBR2
-        # we combine the two into one SBP message
+        # If the last messages were an SBR1 then an SBR2 and the current message is SBR2
+        # we combine the three into one SBP message
         msg_len = last_last_m.msg_len
         timestamp = gps_time_to_utc(gps.gwk, gps.gms, last_last_m.time_us - gps.time_us)
         bin_data = last_last_m.msg + last_m.msg + m.msg
