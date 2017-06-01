@@ -208,7 +208,7 @@ class PulsableProgressDialog(ProgressDialog):
       self.max = 100
       GUI.invoke_later(self.update, int(100*float(count)/self.passed_max))
 
-class UpdateView(HasTraits):
+class FirmwareUpdate(HasTraits):
   piksi_hw_rev = String('piksi_multi')
   is_v2 = Bool(False)
 

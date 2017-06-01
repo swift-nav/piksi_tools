@@ -170,7 +170,7 @@ class SimpleAdapter(TabularAdapter):
   def _get_Setting_name_text(self):
     return self.item.name.replace('_', ' ')
 
-class SettingsView(HasTraits):
+class Settings(HasTraits):
   """Traits-defined console settings view.
 
   link : object
@@ -421,7 +421,7 @@ class SettingsView(HasTraits):
                expert=False,
                gui_mode=True,
                skip=False):
-    super(SettingsView, self).__init__()
+    super(Settings, self).__init__()
     self.expert = expert
     self.show_auto_survey = False
     self.gui_mode = gui_mode

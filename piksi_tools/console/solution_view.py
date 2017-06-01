@@ -41,7 +41,7 @@ class SimpleAdapter(TabularAdapter):
   width = 80
 
 
-class SolutionView(HasTraits):
+class Solution(HasTraits):
   python_console_cmds = Dict()
   # we need to doubleup on Lists to store the psuedo absolutes separately
   # without rewriting everything
@@ -171,6 +171,8 @@ class SolutionView(HasTraits):
       self.age_corrections = None
 
   def update_table(self):
+    if self.parent.selected_tab != self:
+      return
     self.table = self.pos_table + self.vel_table + self.dops_table
 
   def auto_survey(self):
@@ -282,6 +284,7 @@ class SolutionView(HasTraits):
     
     # set-up table variables
     self.pos_table = pos_table
+    self.update_table()
 
     # setup_plot variables
     self.lats = np.lib.pad(self.lats,
@@ -302,11 +305,12 @@ class SolutionView(HasTraits):
                             constant_values=self.last_pos_mode)[:-1]
 
   def solution_draw(self):
+    if self.parent.selected_tab != self:
+      return
     if self.running:
       GUI.invoke_later(self._solution_draw)
 
   def _solution_draw(self):
-    self.update_table()
     spp_indexer, dgnss_indexer, float_indexer, fixed_indexer =\
       None, None, None, None
 
@@ -471,9 +475,9 @@ class SolutionView(HasTraits):
       self.utc_time = None
       self.utc_source = None
 
-  def __init__(self, link, dirname=''):
-    super(SolutionView, self).__init__()
-
+  def __init__(self, link, parent, dirname=''):
+    super(Solution, self).__init__()
+    self.parent = parent
     self._zero_init()
     self.log_file = None
     self.directory_name_v = dirname
@@ -481,6 +485,10 @@ class SolutionView(HasTraits):
     self.vel_log_file = None
     self.last_stime_update = 0
     self.last_soln = None
+    self.week = None
+    self.utc_time = None
+    self.age_corrections = None
+    self.nsec = 0
 
     self.latitude_list = np.full(self.AUTO_SURVEY_MAX, np.nan)
     self.longitude_list = np.full(self.AUTO_SURVEY_MAX, np.nan)
@@ -546,13 +554,9 @@ class SolutionView(HasTraits):
     self.link.add_callback(self.gps_time_callback, [SBP_MSG_GPS_TIME_DEP_A, SBP_MSG_GPS_TIME])
     self.link.add_callback(self.utc_time_callback, [SBP_MSG_UTC_TIME])
     self.link.add_callback(self.age_corrections_callback, SBP_MSG_AGE_CORRECTIONS)
-    call_repeatedly(.5, self.solution_draw)
-
-    self.week = None
-    self.utc_time = None
-    self.age_corrections = None
-    self.nsec = 0
+    call_repeatedly(.2, self.solution_draw)
 
     self.python_console_cmds = {
       'solution': self,
     }
+

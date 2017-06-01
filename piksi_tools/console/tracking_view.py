@@ -63,7 +63,7 @@ def get_marker(code):
   return marker
 
 
-class TrackingView(CodeFiltered):
+class Tracking(CodeFiltered):
   python_console_cmds = Dict()
   legend_visible = Bool()
   plot = Instance(Plot)
@@ -82,7 +82,7 @@ class TrackingView(CodeFiltered):
         Item('legend_visible', label="Show Legend:"),
         CodeFiltered.get_filter_group(),
       )
-    )
+    ),
   )
 
   def _shift_data_arrays(self):
@@ -201,6 +201,8 @@ class TrackingView(CodeFiltered):
 
 
   def update_plot(self):
+    if self.parent.selected_tab != self:
+      return
     try:
       self.update_lock.acquire()
       plot_labels = []
@@ -235,9 +237,10 @@ class TrackingView(CodeFiltered):
       self.update_lock.release()
      
 
-  def __init__(self, link):
-    super(TrackingView, self).__init__()
+  def __init__(self, link, parent):
+    super(Tracking, self).__init__()
     self.update_lock = Lock()
+    self.parent = parent
     self.t_init = time.time()
     self.time = np.arange(-NUM_POINTS, 0, 1) / TRK_RATE
     self.data_dict = dict((code, {}) for code in SUPPORTED_CODES)

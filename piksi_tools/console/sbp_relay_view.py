@@ -236,7 +236,7 @@ class HttpWatchdogThread(threading.Thread):
       time.sleep(0.25)
       print "Network Observation Stream Disconnected."
 
-class SbpRelayView(HasTraits):
+class Networking(HasTraits):
   """
   SBP Relay view- Class allows user to specify port, IP address, and message set
   to relay over UDP and to configure a http connection

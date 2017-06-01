@@ -10,8 +10,8 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from traits.api import Dict, List, Float, Int
-from traitsui.api import Item, View, HGroup, VGroup, TabularEditor, Spring
+from traits.api import Dict, HasTraits, Instance, List, Float, Int
+from traitsui.api import Item, View, HGroup, VGroup, TabularEditor, Spring, VSplit
 from traitsui.tabular_adapter import TabularAdapter
 
 from piksi_tools.console.gui_utils import CodeFiltered
@@ -21,6 +21,7 @@ from piksi_tools.console.utils import call_repeatedly, code_to_str, EMPTY_STR,\
 import os
 import datetime
 import copy
+import traceback
 
 from sbp.observation import *
 
@@ -36,7 +37,8 @@ class SimpleAdapter(TabularAdapter):
     font='courier'
     alignment='center'
 
-class ObservationView(CodeFiltered):
+
+class ObsView(CodeFiltered):
   python_console_cmds = Dict()
 
   _obs_table_list = List()
@@ -98,17 +100,25 @@ class ObservationView(CodeFiltered):
     )
 
   def update_obs(self):
-    self._obs_table_list = [('{} ({})'.format(svid[0],
-                                              code_to_str(svid[1])),) + obs
-                            for svid, obs in sorted(self.obs.items()) 
-                              if getattr(self, 'show_{}'.format(svid[1]))]
+    try:
+      if not self.parent._selected():
+        return
+      self._obs_table_list = [('{} ({})'.format(svid[0],
+                                                code_to_str(svid[1])),) + obs
+                              for svid, obs in sorted(self.obs.items()) 
+                                if getattr(self, 'show_{}'.format(svid[1]))]
 
-    for code in SUPPORTED_CODES:
-      setattr(self,
-              'count_{}'.format(code),
-              len([key for key in self.obs.keys() if key[1] == code]))
+      for code in SUPPORTED_CODES:
+        setattr(self,
+                'count_{}'.format(code),
+                len([key for key in self.obs.keys() if key[1] == code]))
+    except:
+      print traceback.print_exc()
 
   def obs_packed_callback(self, sbp_msg, **metadata):
+    if not self.parent._selected():
+        return
+
     if (sbp_msg.sender is not None and
         (self.relay ^ (sbp_msg.sender == 0))):
       return
@@ -141,41 +151,92 @@ class ObservationView(CodeFiltered):
     else:
       self.prev_obs_count = count
 
+    # Old PRN values had to add one for GPS
+    is_deprecated_abc =\
+      sbp_msg.msg_type in [SBP_MSG_OBS_DEP_A,
+                           SBP_MSG_OBS_DEP_B,
+                           SBP_MSG_OBS_DEP_C]
+
+    # DEP_B and DEP_A obs had different pseudorange scaling
+    is_deprecated_ab =\
+      sbp_msg.msg_type in [SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B]
+
+    if is_deprecated_ab:
+      divisor = 1e2
+    else:
+      divisor = 5e1
+
+    prn = []
+    code = []
+    D_i = []
+    D_f = []
+    cp_i = []
+    cp_f = []
+    flags = []
+
+    for o in sbp_msg.obs:
+      prn.append(o.sid.sat)
+      code.append(o.sid.code)
+      cp_i.append(o.L.i)
+      cp_f.append(o.L.f)
+
+      if is_deprecated_abc:
+        D_i.append(0)
+        D_f.append(0)
+        flags.append(0)
+      else:
+        D_i.append(o.D.i)
+        D_f.append(o.D.f)
+        flags.append(o.flags)
+
+    prn = np.array(prn)
+    code = np.array(code)
+    if code_is_gps(o.sid.code) and is_deprecated_abc:
+      prn += 1
+
+    sids = zip(prn, code)
+
+    D_i = np.array(D_i)
+    D_f = np.array(D_f)
+
+    msdopps = D_i + D_f / 256.0
+
+    cp_i = np.array(cp_i)
+    cp_f = np.array(cp_f)
+
+    cps = cp_i + cp_f / 256.0
+
+    all_flags = np.array(flags)
+
+    pr_valids = np.bitwise_and(all_flags, 0x1) == 0x1
+    cp_valids = np.bitwise_and(all_flags, 0x2) == 0x2
+    hc_valids = np.bitwise_and(all_flags, 0x4) == 0x4
+    md_valids = np.bitwise_and(all_flags, 0x8) == 0x8
+
     # Save this packet
     # See sbp_piksi.h for format
-    for o in sbp_msg.obs:
+    for i, o in enumerate(sbp_msg.obs):
       # Handle all the message specific stuff
-      prn = o.sid.sat
-      flags = 0
-      msdopp = 0
+      flags = all_flags[i]
+      msdopp = msdopps[i]
+      cp_valid = cp_valids[i]
+      pr_valid = pr_valids[i]
+      hc_valid = hc_valids[i]
+      md_valid = md_valids[i]
+      cp = cps[i]
+      sid = sids[i]
 
-      # Old PRN values had to add one for GPS
-      if (code_is_gps(o.sid.code)
-            and sbp_msg.msg_type in [SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C]):
-        prn += 1
-
-      prn = (prn, o.sid.code)
-
-      # DEP_B and DEP_A obs had different pseudorange scaling
-      if sbp_msg.msg_type in [SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B] :
-        divisor = 1e2
-      else:
-        divisor = 5e1
-
-      if sbp_msg.msg_type not in [SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C]:
-        flags = o.flags
-        msdopp = float(o.D.i) + float(o.D.f) / (1 << 8)
+      if not is_deprecated_abc:
         self.gps_tow += sbp_msg.header.t.ns_residual * 1e-9
 
       try:
-        ocp = self.old_cp[prn]
+        ocp = self.old_cp[sid]
       except:
         ocp = 0
 
-      cp = float(o.L.i) + float(o.L.f) / (1 << 8)
-
-      # Compute time difference of carrier phase for display, but only if carrier phase is valid
-      if ocp != 0 and ((sbp_msg.msg_type in [SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C]) or (flags & 0x3) == 0x3):
+      # Compute time difference of carrier phase for display, but only if
+      # carrier phase and pseudorange are valid
+      if ocp != 0 and (is_deprecated_abc or (cp_valid and pr_valid)):
         # Doppler per RINEX has opposite sign direction to carrier phase
         if self.gps_tow != self.old_tow:
           cpdopp = (ocp - cp) / float(self.gps_tow - self.old_tow)
@@ -184,29 +245,29 @@ class ObservationView(CodeFiltered):
           cpdopp = 0
 
         # Older messages had flipped sign carrier phase values
-        if sbp_msg.msg_type in [SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B]:
+        if is_deprecated_ab:
           cpdopp = -cpdopp
       else:
         cpdopp = 0
 
       # Save carrier phase value, but only if value is valid
-      if (sbp_msg.msg_type in [SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C]) or (flags & 0x3) == 0x3:
-        self.new_cp[prn] = cp
+      if (is_deprecated_abc) or cp_valid:
+        self.new_cp[sid] = cp
 
       flags_str = "0x{:04X} = ".format(flags)
 
       # Add some indicators to help understand the flags values
       # Bit 0 is Pseudorange valid
-      if (flags & 0x01):
+      if (pr_valid):
         flags_str += "PR "
       # Bit 1 is Carrier phase valid
-      if (flags & 0x02):
+      if (cp_valid):
         flags_str += "CP "
       # Bit 2 is Half-cycle ambiguity
-      if (flags & 0x04):
+      if (hc_valid):
         flags_str += "1/2C "
       # Bit 3 is Measured Doppler Valid
-      if (flags & 0x08):
+      if (md_valid):
         flags_str += "MD "
 
       pr_str = "{:11.2f}".format(float(o.P) / divisor)
@@ -217,7 +278,7 @@ class ObservationView(CodeFiltered):
       lock_str = "{:5d}".format(o.lock)
 
       # Sets invalid values to zero
-      if sbp_msg.msg_type not in [SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C]:
+      if is_deprecated_abc:
         if not (flags & 0x01):
           pr_str = EMPTY_STR
         if not (flags & 0x02):
@@ -227,7 +288,13 @@ class ObservationView(CodeFiltered):
       if (cpdopp == 0):
         cpdopp_str = EMPTY_STR
 
-      self.incoming_obs[prn] = (pr_str, cp_str, cn0_str, msdopp_str, cpdopp_str, lock_str, flags_str)
+      self.incoming_obs[sid] = (pr_str,
+                                cp_str,
+                                cn0_str,
+                                msdopp_str,
+                                cpdopp_str,
+                                lock_str,
+                                flags_str)
 
     if (count == total - 1):
       self.t = datetime.datetime(1980, 1, 6) + \
@@ -236,11 +303,11 @@ class ObservationView(CodeFiltered):
       self.obs.clear()
       self.obs.update(self.incoming_obs)
 
-
     return
 
-  def __init__(self, link, name='Local', relay=False, dirname=None):
-    super(ObservationView, self).__init__()
+  def __init__(self, link, parent, name='Local', relay=False, dirname=None):
+    super(ObsView, self).__init__()
+    self.parent = parent
     self.dirname = dirname
     self.obs = {}
     self.incoming_obs = {} 
@@ -259,3 +326,23 @@ class ObservationView(CodeFiltered):
                             SBP_MSG_OBS_DEP_C])
     self.python_console_cmds = {'obs': self}
     call_repeatedly(.5, self.update_obs)
+
+
+class Observations(HasTraits):
+  python_console_cmds = Dict()
+  local = Instance(ObsView)
+  remote = Instance(ObsView)
+  view = View(
+           Item('local', style='custom', show_label=False),
+           Item('remote', style='custom', show_label=False),
+         )
+
+  def _selected(self):
+    return self.parent.selected_tab == self
+
+  def __init__(self, link, parent, dirname=None):
+    self.parent = parent
+    self.local = ObsView(link, parent=self, name='Local', relay=False, dirname=dirname)
+    self.remote = ObsView(link, parent=self, name='Remote', relay=True, dirname=dirname)
+    self.python_console_cmds.update(self.local.python_console_cmds)
+
