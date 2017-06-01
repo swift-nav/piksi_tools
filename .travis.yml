@@ -31,8 +31,12 @@ script:
   - PYTHONPATH=. python piksi_tools/console/console.py --file --error -p ./tests/data/piksi.bin & PID=$!
   - sleep 10 
   - kill -n 9  $PID
+  - PYTHONPATH=. python piksi_tools/console/console.py --file --error -p ./tests/data/20170513-180207.1.1.26.bin & PID=$!
+  - sleep 10 
+  - kill -n 9  $PID
   - make build_console
   - sudo python setup.py install
+  - export GIT_DESCRIBE=`git describe`
 
 cache:
   directories:
@@ -45,7 +49,7 @@ addons:
     paths:
       - ./piksi_tools/console/pyinstaller/dist
     working_dir: $TRAVIS_BUILD_DIR
-    target_paths: $TRAVIS_BUILD_NUMBER$TRAVIS_OS_NAME
+    target_paths: $(GIT_DESCRIBE)$(TRAVIS_PULL_REQUEST_BRANCH)_$(TRAVIS_OS_NAME)
     bucket: console-ci-builds
     s3_region: us-west-2
 deploy:
