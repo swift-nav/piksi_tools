@@ -15,7 +15,7 @@ install:
   - cmd: pip install -r requirements_gui.txt
 
 cache:
-  - c:\xy_install.exe
+  - C:\xy_install.exe
 
 build_script:
   - ps: |
