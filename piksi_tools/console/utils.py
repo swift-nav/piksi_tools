@@ -91,28 +91,14 @@ def code_to_str(code):
     return CODE_NOT_AVAILABLE
 
 
+gps_codes = {L1CA, L2CM, L1P, L2P, L2CL}
 def code_is_gps(code):
-  if code == L1CA:
-    return True
-  elif code == L2CM:
-    return True
-  elif code == L1P:
-    return True
-  elif code == L2P:
-    return True
-  elif code == L2CL:
-    return True
-  else:
-    return False
+  return code in gps_codes  
 
 
+glo_codes = {GLO_L1CA, GLO_L2CA}
 def code_is_glo(code):
-  if code == GLO_L1CA:
-    return True
-  elif code == GLO_L2CA:
-    return True
-  else:
-    return False
+  return code in glo_codes
 
 
 def get_mode(msg):
