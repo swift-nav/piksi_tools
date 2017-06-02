@@ -15,7 +15,7 @@ import time
 from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
 from pyface.api import GUI
-from sbp.tracking import SBP_MSG_TRACKING_STATE
+from sbp.tracking import SBP_MSG_TRACKING_STATE, SBP_MSG_TRACKING_STATE_DEP_B
 from traits.api import Instance, Dict, List, Int, Bool
 from traitsui.api import Item, View, VGroup, HGroup, Spring
 import numpy as np
@@ -81,7 +81,7 @@ class TrackingView(CodeFiltered):
     )
   )
 
-  def tracking_state_callback(self, sbp_msg, **metadata):
+  def tracking_state_callback_dep_b(self, sbp_msg, **metadata):
     t = time.time() - self.t_init
     self.time[0:-1] = self.time[1:]
     self.time[-1] = t
@@ -186,7 +186,7 @@ class TrackingView(CodeFiltered):
     self.plot.legend.tools.append(LegendTool(self.plot.legend,
                                   drag_button="right"))
     self.link = link
-    self.link.add_callback(self.tracking_state_callback, SBP_MSG_TRACKING_STATE)
+    self.link.add_callback(self.tracking_state_callback_dep_b, SBP_MSG_TRACKING_STATE_DEP_B)
     self.python_console_cmds = {
       'track': self
     }
