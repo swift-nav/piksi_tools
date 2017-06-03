@@ -15,7 +15,7 @@ import time
 from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
 from pyface.api import GUI
-from sbp.tracking import SBP_MSG_TRACKING_STATE
+from sbp.tracking import SBP_MSG_TRACKING_STATE, SBP_MSG_TRACKING_STATE_DEP_B
 from traits.api import Instance, Dict, List, Int, Bool
 from traitsui.api import Item, View, VGroup, HGroup, Spring
 import numpy as np
@@ -81,7 +81,36 @@ class TrackingView(CodeFiltered):
     )
   )
 
+
   def tracking_state_callback(self, sbp_msg, **metadata):
+    t = time.time() - self.t_init
+    self.time[0:-1] = self.time[1:]
+    self.time[-1] = t
+    # first we loop over all the SIDs / channel keys we have stored and set 0 in for CN0
+    for key, cno_array in self.CN0_dict.items():
+      # p
+      if (cno_array==0).all():
+        self.CN0_dict.pop(key)
+      else:
+        self.CN0_dict[key][0:-1] = cno_array[1:]
+        self.CN0_dict[key][-1] = 0
+      # If the whole array is 0 we remove it
+    # for each satellite, we have a (code, prn, channel) keyed dict
+    # for each SID, an array of size MAX PLOT with the history of CN0's stored
+    # If there is no CN0 or not tracking for an epoch, 0 will be used
+    # each array can be plotted against host_time, t
+    for i,s in enumerate(sbp_msg.states):
+      prn = s.sid.sat
+      if code_is_gps(s.sid.code):
+        prn += 1
+      key = (s.sid.code, prn, i)
+      if s.cn0 != 0:
+        if len(self.CN0_dict.get(key, [])) == 0:
+          self.CN0_dict[key] = np.zeros(NUM_POINTS)
+        self.CN0_dict[key][-1] = s.cn0/4.0
+    GUI.invoke_later(self.update_plot)
+
+  def tracking_state_callback_dep_b(self, sbp_msg, **metadata):
     t = time.time() - self.t_init
     self.time[0:-1] = self.time[1:]
     self.time[-1] = t
@@ -108,6 +137,7 @@ class TrackingView(CodeFiltered):
           self.CN0_dict[key] = np.zeros(NUM_POINTS)
         self.CN0_dict[key][-1] = s.cn0
     GUI.invoke_later(self.update_plot)
+
 
   def update_plot(self):
     plot_labels = []
@@ -187,6 +217,7 @@ class TrackingView(CodeFiltered):
                                   drag_button="right"))
     self.link = link
     self.link.add_callback(self.tracking_state_callback, SBP_MSG_TRACKING_STATE)
+    self.link.add_callback(self.tracking_state_callback_dep_b, SBP_MSG_TRACKING_STATE_DEP_B)
     self.python_console_cmds = {
       'track': self
     }
