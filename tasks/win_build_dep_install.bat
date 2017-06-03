@@ -50,3 +50,6 @@ if %Result% EQU 1 (
 	echo "installing NSIS"
 	nsis_install /S
 )
+
+echo "install swig"
+choco install swig
