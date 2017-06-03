@@ -1,5 +1,5 @@
 numpy==1.12.1
-cython>=0.21,<=0.23
+cython>=0.25.2
 distribute==0.7.3
 pytest==3.1.1
 tox==2.7.0
