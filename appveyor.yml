@@ -20,7 +20,7 @@ cache:
 build_script:
   - ps: |
       if ($env:Compiler -eq "mingw") {
-        cd ($env:APPVEYOR_BUILD_FOLDER + "\piksi_tools\piksi_tools\pyinstaller")
+        cd ($env:APPVEYOR_BUILD_FOLDER + "\piksi_tools\piksi_tools\console\pyinstaller")
         make 
       }
 
