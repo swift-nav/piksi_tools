@@ -8,7 +8,7 @@ ifneq (,$(findstring /cygdrive/,$(PATH)))
     UNAME := Cygwin_mingw32
     PLAT_ARGS="-F"
 else
-ifneq (,$(findstring /ce/,$(PATH)))
+ifneq (,$(findstring /c/,$(PATH)))
     UNAME := Cygwin_mingw32
     PLAT_ARGS="-F"
 else
@@ -18,6 +18,7 @@ ifneq (,$(findstring WINDOWS,$(PATH)))
 else
     UNAME := $(shell uname -s)
     PLAT_ARGS="-w"
+endif
 endif
 endif
 
