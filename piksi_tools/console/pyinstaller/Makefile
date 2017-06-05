@@ -5,7 +5,11 @@ VERSION=$(shell cat ../../RELEASE-VERSION)
 LIBS=-lm
 
 ifneq (,$(findstring /cygdrive/,$(PATH)))
-    UNAME := Cygwin
+    UNAME := Cygwin_mingw32
+    PLAT_ARGS="-F"
+else
+ifneq (,$(findstring /ce/,$(PATH)))
+    UNAME := Cygwin_mingw32
     PLAT_ARGS="-F"
 else
 ifneq (,$(findstring WINDOWS,$(PATH)))
@@ -29,7 +33,7 @@ console: $(spec_file)
 
 Windows:
 	makensis "-XOutfile swift_console_v$(VERSION)_windows.exe" win_installer.nsi
-Cygwin:
+Cygwin_mingw32:
 	makensis '-XOutfile swift_console_v$(VERSION)_windows.exe' win_installer.nsi
 Darwin:
 	sudo ./create-dmg-installer.sh swift_console_v$(VERSION)_osx.dmg
