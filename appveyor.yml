@@ -15,7 +15,7 @@ install:
   - cmd: pip install -r requirements_gui.txt
 
 cache:
-  - .\tasks\download_cache
+  - tasks\download_cache
 
 build_script:
   - ps: |
