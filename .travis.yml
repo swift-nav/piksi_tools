@@ -26,7 +26,6 @@ before_script:
 
 script:
   - tox
-  - export TRAITS_DEBUG="1" 
   - rm -rf ~/home/.enthought
   - PYTHONPATH=. python piksi_tools/console/console.py --file --error -p ./tests/data/piksi.bin & PID=$!
   - sleep 10 
