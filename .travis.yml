@@ -47,9 +47,10 @@ addons:
   artifacts:
     debug: true 
     paths:
-      - ./piksi_tools/console/pyinstaller/dist
+      - ./piksi_tools/console/pyinstaller/dist/swift_console*
+      - ./piksi_tools/console/pyinstaller/build
     working_dir: $TRAVIS_BUILD_DIR
-    target_paths: $(GIT_DESCRIBE)$(TRAVIS_PULL_REQUEST_BRANCH)_$(TRAVIS_OS_NAME)
+    target_paths: $GIT_DESCRIBE$TRAVIS_PULL_REQUEST_BRANCH_$TRAVIS_OS_NAME
     bucket: console-ci-builds
     s3_region: us-west-2
 deploy:
