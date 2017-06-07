@@ -383,13 +383,10 @@ class SwiftConsole(HasTraits):
     self.mode = temp_mode
     self.num_sats = temp_num_sats
 
-    if hasattr(self, 'settings_view'): # for auto populating surveyed fields
-      self.settings_view.lat = self.solution_view.latitude_list
-      self.settings_view.lon = self.solution_view.longitude_list
-      self.settings_view.alt = self.solution_view.altitude_list
     if hasattr(self, 'advanced_view'):
       if self.advanced_view.sys.msg_obs_window_latency_ms != -1:
-        self.latency = "{0} ms".format(self.advanced_view.sys.msg_obs_window_latency_ms)
+        self.latency =\
+          "{0} ms".format(self.advanced_view.sys.msg_obs_window_latency_ms)
       else:
         self.latency = EMPTY_STR
 
@@ -570,6 +567,7 @@ class SwiftConsole(HasTraits):
             self.advanced_view.net._connect_rover_fired()
       settings_read_finished_functions.append(update_serial)
       self.settings_view = Settings(self.link,
+                                    self.solution_view,
                                     settings_read_finished_functions,
                                     skip=skip_settings)
       self.update_view.settings = self.settings_view.settings

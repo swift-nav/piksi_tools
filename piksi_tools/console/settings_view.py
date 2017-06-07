@@ -292,9 +292,12 @@ class Settings(HasTraits):
     confirm_prompt.run(block=False)
 
   def auto_survey_fn(self):
-    lat = self.lat[~np.isnan(self.lat)]
-    lon = self.lon[~np.isnan(self.lon)]
-    alt = self.alt[~np.isnan(self.alt)]
+    lat = self.solution.latitude_list
+    lon = self.solution.longitude_list
+    alt = self.solution.altitude_list
+    lat = lat[~np.isnan(lat)]
+    lon = lon[~np.isnan(lon)]
+    alt = alt[~np.isnan(alt)]
 
     if 0 == lat.size or 0 == lon.size or 0 == alt.size:
       #TODO print insufficient data warning
@@ -416,6 +419,7 @@ class Settings(HasTraits):
 
   def __init__(self,
                link,
+               solution,
                read_finished_functions=[],
                name_of_yaml_file="settings.yaml",
                expert=False,
@@ -423,6 +427,7 @@ class Settings(HasTraits):
                skip=False):
     super(Settings, self).__init__()
     self.expert = expert
+    self.solution = solution
     self.show_auto_survey = False
     self.gui_mode = gui_mode
     self.enumindex = 0
