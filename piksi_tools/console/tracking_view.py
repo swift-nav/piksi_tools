@@ -10,14 +10,17 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from chaco.api import ArrayPlotData, Plot
+from random import randint
 import time
+
+from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
 from pyface.api import GUI
-from sbp.tracking import SBP_MSG_TRACKING_STATE, SBP_MSG_TRACKING_STATE_DEP_B
+
 from traits.api import Instance, Dict, List, Int, Bool
 from traitsui.api import Item, View, VGroup, HGroup, Spring
+
 import numpy as np
 
 from piksi_tools.acq_results import SNR_THRESHOLD
@@ -25,39 +28,23 @@ from piksi_tools.console.gui_utils import CodeFiltered
 from piksi_tools.console.utils import code_to_str, code_is_gps, code_is_glo,\
                                       SUPPORTED_CODES
 
+from sbp.tracking import SBP_MSG_TRACKING_STATE, SBP_MSG_TRACKING_STATE_DEP_B
+
 NUM_POINTS = 200
 TRK_RATE = 2.0
+CHANNEL_COUNT = 64
+GLO_FCN_OFFSET = 8
 
-# These colors should be distinguishable from eachother
-color_dict = {'(0, 1)': 0xe58a8a, '(0, 2)': 0x664949, '(0, 3)': 0x590c00,
-'(0, 4)': 0xcc4631, '(0, 5)': 0xe56c1c, '(0, 6)': 0x4c2a12, '(0, 7)': 0x996325,
-'(0, 8)': 0xf2b774, '(0, 9)': 0xffaa00, '(0, 10)': 0xccb993, '(0, 11)': 0x997a00,
-'(0, 12)': 0x4c4700, '(0, 13)': 0xd0d94e, '(0, 14)': 0xaaff00, '(0, 15)': 0x4ea614,
-'(0, 16)': 0x123306, '(0, 17)': 0x18660c, '(0, 18)': 0x6e9974, '(0, 19)': 0x8ae6a2,
-'(0, 20)': 0x00ff66, '(0, 21)': 0x57f2e8, '(0, 22)': 0x1f7980, '(0, 23)': 0x263e40,
-'(0, 24)': 0x004d73, '(0, 25)': 0x37abe6, '(0, 26)': 0x7790a6, '(0, 27)': 0x144ea6,
-'(0, 28)': 0x263040, '(0, 29)': 0x152859, '(0, 30)': 0x1d39f2, '(0, 31)': 0x828ed9,
-'(0, 32)': 0x000073, '(1, 1)': 0x000066, '(1, 2)': 0x8c7aff, '(1, 3)': 0x1b0033,
-'(1, 4)': 0xd900ca, '(1, 5)': 0x730e6c, '(1, 6)': 0x402e3f, '(1, 7)': 0xcc7abc,
-'(1, 8)': 0xcc1978, '(1, 9)': 0x7f0033, '(1, 10)': 0xff1f5a, '(1, 11)': 0x330c11,
-'(1, 12)': 0xcc627e, '(1, 13)': 0x73000f, '(1, 14)': 0x663d43, '(1, 15)': 0xd9b6bb,
-'(1, 16)': 0xff0000, '(1, 17)': 0xf20000, '(1, 18)': 0xe56653, '(1, 19)': 0x4c1b09,
-'(1, 20)': 0xffbfa8, '(1, 21)': 0xf2843a, '(1, 22)': 0x8c5b3b, '(1, 23)': 0x402d17,
-'(1, 24)': 0xffdeb8, '(1, 25)': 0xd99e27, '(1, 26)': 0x736c0e, '(1, 27)': 0xfff23d,
-'(1, 28)': 0x999777, '(1, 29)': 0xf1ffb8, '(1, 30)': 0x1f2610, '(1, 31)': 0x366600,
-'(1, 32)': 0x71bf17
-}
+color_code = lambda: int('0x%02x%02x%02x' %
+                         (randint(0,255), randint(0,255), randint(0,255)), 16)
+color_list = [color_code() for c in xrange(CHANNEL_COUNT)]
 
 
-def get_color(key):
-  color = 0xff0000
+def get_color(channel):
   try:
-   key = str((key[0], key[1]%32))
-   color = color_dict.get(key, 0xff0000)
+    return color_list[channel]
   except:
-   pass
-  return color
-
+    return color_code()
 
 class TrackingView(CodeFiltered):
   python_console_cmds = Dict()
@@ -81,100 +68,122 @@ class TrackingView(CodeFiltered):
     )
   )
 
+  def _shift_data_arrays(self):
+    # first we loop over all the arrays we have stored and set 0 in for CN0.
+    # Lists are added for Python3 compatibility while deleting.
+    for code in list(self.data_dict.keys()):
+      for key, cno_array in list(self.data_dict[code].items()):
+        self.data_dict[code][key] =\
+          np.lib.pad(cno_array, ((0,1),(0,0)), "constant")[1:,:]
+        if (cno_array==0).all():
+          del self.data_dict[code][key]
+
+  def _update_data_arrays(self, sbp_msg):
+    for i,s in enumerate(sbp_msg.states):
+
+      code = s.sid.code
+      if int(code) not in SUPPORTED_CODES:
+        continue
+
+      if SBP_MSG_TRACKING_STATE == sbp_msg.msg_type and 0 == s.cn0:
+        continue
+      if SBP_MSG_TRACKING_STATE_DEP_B == sbp_msg.msg_type and 0 == s.state:
+        continue
+
+      prn = s.sid.sat + 1 if code_is_gps(code) else s.sid.sat
+
+      if SBP_MSG_TRACKING_STATE == sbp_msg.msg_type:
+        key = (s.fcn - GLO_FCN_OFFSET, i) if code_is_glo(code) else (prn, i)
+        cn0 = s.cn0 / 4.0
+      elif SBP_MSG_TRACKING_STATE_DEP_B == sbp_msg.msg_type:
+        key = (None, i) if code_is_glo(code) else (prn, i)
+        cn0 = s.cn0
+
+      if key not in self.data_dict[code]:
+        self.data_dict[code][key] = np.zeros(NUM_POINTS, dtype='2float')
+
+      self.data_dict[code][key][-1] = (cn0, prn)
 
   def tracking_state_callback(self, sbp_msg, **metadata):
     t = time.time() - self.t_init
-    self.time[0:-1] = self.time[1:]
-    self.time[-1] = t
-    # first we loop over all the SIDs / channel keys we have stored and set 0 in for CN0
-    for key, cno_array in self.CN0_dict.items():
-      # p
-      if (cno_array==0).all():
-        self.CN0_dict.pop(key)
-      else:
-        self.CN0_dict[key][0:-1] = cno_array[1:]
-        self.CN0_dict[key][-1] = 0
-    # If the whole array is 0 we remove it
-    # for each satellite, we have a (code, prn, channel) keyed dict
-    # for each SID, an array of size MAX PLOT with the history of CN0's stored
-    # If there is no CN0 or not tracking for an epoch, 0 will be used
-    # each array can be plotted against host_time, t
-    for i,s in enumerate(sbp_msg.states):
-      prn = s.sid.sat
-      if code_is_gps(s.sid.code):
-        prn += 1
-      key = (s.sid.code, prn, i)
-      if s.cn0 != 0:
-        if len(self.CN0_dict.get(key, [])) == 0:
-          self.CN0_dict[key] = np.zeros(NUM_POINTS)
-        self.CN0_dict[key][-1] = s.cn0/4.0
+    self.time = np.lib.pad(self.time, (0,1), 'constant', constant_values=t)[1:]
+
+    self._shift_data_arrays()
+
+    self._update_data_arrays(sbp_msg)
+
     GUI.invoke_later(self.update_plot)
 
-  def tracking_state_callback_dep_b(self, sbp_msg, **metadata):
-    t = time.time() - self.t_init
-    self.time[0:-1] = self.time[1:]
-    self.time[-1] = t
-    # first we loop over all the SIDs / channel keys we have stored and set 0 in for CN0
-    for key, cno_array in self.CN0_dict.items():
-      # p
-      if (cno_array==0).all():
-        self.CN0_dict.pop(key)
+  def _remove_stail_plots(self):
+    keys = []
+    for code, data in self.data_dict.items():
+      keys += [str((code,) + key) for key in data.keys()]
+
+    # remove any stale plots that got removed from the dictionary
+    for each in self.plot_data.list_data():
+      if each not in keys and each != 't':
+        try:
+          self.plot_data.del_data(each)
+          self.plot.delplot(each)
+        except KeyError:
+          pass
+
+  def _update_code_plots(self, code, plot_labels, plots):
+    for k, cno_array in self.data_dict[code].items():
+
+      key = str((code,) + k)
+
+      if not getattr(self, 'show_{}'.format(int(code))):
+        # remove plot data and plots not selected
+        if key in self.plot_data.list_data():
+          self.plot_data.del_data(key)
+        if key in self.plot.plots.keys():
+          self.plot.delplot(key)
+        continue
+
+      # set plot data and create plot for any selected for display
+      cn0_values = cno_array[:,:-1]
+      self.plot_data.set_data(key, cn0_values.reshape(len(cn0_values)))
+
+      # if channel is inactive:
+      if 0 == cno_array[-1][0]:
+        continue
+
+      if key in self.plot.plots.keys():
+        pl = self.plot.plots[key]
       else:
-        self.CN0_dict[key][0:-1] = cno_array[1:]
-        self.CN0_dict[key][-1] = 0
-      # If the whole array is 0 we remove it
-    # for each satellite, we have a (code, prn, channel) keyed dict
-    # for each SID, an array of size MAX PLOT with the history of CN0's stored
-    # If there is no CN0 or not tracking for an epoch, 0 will be used
-    # each array can be plotted against host_time, t
-    for i,s in enumerate(sbp_msg.states):
-      prn = s.sid.sat
-      if code_is_gps(s.sid.code):
-        prn += 1
-      key = (s.sid.code, prn, i)
-      if s.state != 0:
-        if len(self.CN0_dict.get(key, [])) == 0:
-          self.CN0_dict[key] = np.zeros(NUM_POINTS)
-        self.CN0_dict[key][-1] = s.cn0
-    GUI.invoke_later(self.update_plot)
+        pl = self.plot.plot(('t', key),
+                            color=get_color(k[1]),
+                            name=key)
+
+      plots.append(pl)
+
+      if code_is_glo(code):
+        # TODO check if PRN changes (cno_array[-1][1] vs cno_array[-2][1]).
+        # If it does, it means slot ID is finally decoded (changes from unknown
+        # to valid) OR a new SV took the frequency channel (valid to valid,
+        # can happen if antenna rises high enough)
+        label = 'Ch %02d (PRN%02d (%s))' % (k[1],
+                                            cno_array[-1][1],
+                                            code_to_str(code))
+        if k[0] is not None:
+          label += ' FCN %d' % (k[0])
+      else:
+        label = 'Ch %02d (PRN%02d (%s))' % (k[1], k[0], code_to_str(code))
+
+      plot_labels.append(label)
 
 
   def update_plot(self):
     plot_labels = []
     plots = []
     self.plot_data.set_data('t', self.time)
-    # Remove any stale plots that got removed from the dictionary
-    for each in self.plot_data.list_data():
-      if each not in [str(a) for a in self.CN0_dict.keys()] and each != 't':
-        try:
-          self.plot_data.del_data(each)
-          self.plot.delplot(each)
-        except KeyError:
-          pass
-    for k, cno_array in self.CN0_dict.items():
-      if int(k[0]) not in SUPPORTED_CODES:
-        continue
-      key = str(k)
-      # set plot data and create plot for any selected for display
-      if (getattr(self, 'show_{}'.format(int(k[0])))):
-          self.plot_data.set_data(key, cno_array)
-          if key not in self.plot.plots.keys():
-            pl = self.plot.plot(('t', key), type='line', color=get_color(k),
-                                name=key)
-          else:
-            pl = self.plot.plots[key]
-          # if channel is still active:
-          if cno_array[-1] != 0:
-            plots.append(pl)
-            svid_label = 'FCN' if code_is_glo(int(k[0])) else 'PRN'
-            plot_labels.append('Ch %02d (%s%02d (%s))' %
-              (k[2], svid_label, k[1], code_to_str(k[0])))
-      # Remove plot data and plots not selected
-      else:
-        if key in self.plot_data.list_data():
-          self.plot_data.del_data(key)
-        if key in self.plot.plots.keys():
-          self.plot.delplot(key)
+
+    self._remove_stail_plots()
+
+    for code in self.data_dict.keys():
+      self._update_code_plots(code, plot_labels, plots)
+
     plots = dict(zip(plot_labels, plots))
     self.plot.legend.plots = plots
 
@@ -190,8 +199,8 @@ class TrackingView(CodeFiltered):
   def __init__(self, link):
     super(TrackingView, self).__init__()
     self.t_init = time.time()
-    self.time = [x * 1/TRK_RATE for x in range(-NUM_POINTS, 0, 1)]
-    self.CN0_dict = {}
+    self.time = np.arange(-NUM_POINTS, 0, 1) / TRK_RATE
+    self.data_dict = dict((code, {}) for code in SUPPORTED_CODES)
     self.n_channels = None
     self.plot_data = ArrayPlotData(t=[0.0])
     self.plot = Plot(self.plot_data, emphasized=True)
@@ -216,8 +225,10 @@ class TrackingView(CodeFiltered):
     self.plot.legend.tools.append(LegendTool(self.plot.legend,
                                   drag_button="right"))
     self.link = link
-    self.link.add_callback(self.tracking_state_callback, SBP_MSG_TRACKING_STATE)
-    self.link.add_callback(self.tracking_state_callback_dep_b, SBP_MSG_TRACKING_STATE_DEP_B)
+
+    self.link.add_callback(self.tracking_state_callback,
+                           [SBP_MSG_TRACKING_STATE,
+                            SBP_MSG_TRACKING_STATE_DEP_B])
     self.python_console_cmds = {
       'track': self
     }
