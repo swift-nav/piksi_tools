@@ -139,12 +139,15 @@ function install_python_deps_osx () {
     if [[ ! -x /usr/local/bin/python ]]; then 
       brew install python --framework --with-brewed-openssl 2>&1 || :
     fi
-    brew install https://gist.github.com/denniszollo/cb3295c9efc0ba53f3524adb988df5d6/raw/6834992b22bb2e1caf8f8bf44f403885aa6338f1/pyside.rb
+    brew install https://gist.github.com/denniszollo/65c51cbbeb658077df030ea33f569934/raw/40b2511d7179cf33b9ad1f290a6ee642c4ef91fa/qt
+    brew install https://gist.github.com/denniszollo/7274e7d1c35fb96ae463cf5709c90f62/raw/c40c05ed21594e5ff345fbb8d4e0fffc9507c15a/shiboken.rb
     brew install libftdi openssl sip --force 2>&1 || :
     brew link openssl --forcea 2>&1 || :
+    pip install PySide==1.2.2
     pip install -r ../requirements.txt
     pip install -r ../requirements_gui.txt
     pip install PyInstaller==3.2
+    pip install Traitsui==4.4.0
 }
 
 
