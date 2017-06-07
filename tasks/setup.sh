@@ -77,7 +77,7 @@ function all_dependencies_debian () {
          python-software-properties
     sudo pip install -r ../requirements.txt
     sudo pip install -r ../requirements_gui.txt
-    sudo pip install PyInstaller==3.1
+    sudo pip install PyInstaller
     sudo pip install PySide==1.2.4
 }
 
