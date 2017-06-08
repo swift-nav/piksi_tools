@@ -32,6 +32,7 @@ FORMAT_SIZE_BYTES = {'B': 1,
 
 """
 Format characters in the format string for mavlink binary log messages
+(https://github.com/ArduPilot/ardupilot/blob/master/libraries/DataFlash/LogStructure.h)
   b   : int8_t
   B   : uint8_t
   h   : int16_t
@@ -51,6 +52,22 @@ Format characters in the format string for mavlink binary log messages
   M   : uint8_t flight mode
   q   : int64_t
   Q   : uint64_t
+"""
+
+"""
+Read a binary file until one of the searched keys is found
+
+Parameters
+----------
+  log : File, rb
+    Binary file to read
+  searched_keys : tuple of bytearrays
+    List of keys to search
+    
+Returns
+-------
+  key : bytearray
+    First key found in the file from the searched_keys
 """
 
 
@@ -101,6 +118,8 @@ class SBR1:
       end_index = start_index + FORMAT_SIZE_BYTES[self.FORMAT_HEADER[3]]
       self.msg_len = unpack('<' + self.FORMAT_HEADER[3], binary[start_index:end_index])[0]
       self.msg = binary[end_index:]
+    else:
+      raise ValueError("Binary size inconsistent")
 
 
 class SBR2:
@@ -127,6 +146,8 @@ class SBR2:
       end_index = start_index + FORMAT_SIZE_BYTES[self.FORMAT_HEADER[1]]
       self.msg_type = unpack('<' + self.FORMAT_HEADER[1], binary[start_index:end_index])[0]
       self.msg = binary[end_index:]
+    else:
+      raise ValueError("Binary size inconsistent")
 
 
 class GPS:
@@ -156,19 +177,20 @@ class GPS:
       start_index = end_index
       end_index = start_index + FORMAT_SIZE_BYTES[self.FORMAT[3]]
       self.gwk = unpack('<' + self.FORMAT[3], binary[start_index:end_index])[0]
+    else:
+      raise ValueError("Binary size inconsistent")
 
 
 def get_first_gps_message(filename):
   with open(filename, "rb") as log:
     while search_binary_key(log, [GPS.HEADER, GPS.HEADER2]):
       binary = log.read(GPS.SIZE)
-      assert len(binary) == GPS.SIZE, "Length of GPS message inconsistent"
       gps = GPS(binary)
       if gps.gwk and gps.gms:
         return gps
 
 
-def gps_time_to_utc(gps_week, gps_milliseconds, time_us):
+def gps_time_to_datetime(gps_week, gps_milliseconds, time_us):
   epoch = datetime.strptime(TIME_ORIGIN, TIMESTAMP_FORMAT)
   elapsed = timedelta(days=(gps_week * 7), microseconds=(gps_milliseconds * 1000 + time_us))
   return datetime.strftime(epoch + elapsed, TIMESTAMP_FORMAT)
@@ -226,7 +248,7 @@ def extract_sbp(filename):
           # If the last message was an SBR1 and the current message is SBR2
           # we combine the two into one SBP message
           msg_len = last_m.msg_len
-          timestamp = gps_time_to_utc(gps.gwk, gps.gms, last_m.time_us - gps.time_us)
+          timestamp = gps_time_to_datetime(gps.gwk, gps.gms, last_m.time_us - gps.time_us)
           bin_data = last_m.msg + m.msg
           bin_data = bin_data[:msg_len]
           msg_type = last_m.msg_type
@@ -238,7 +260,7 @@ def extract_sbp(filename):
         # If the last messages were an SBR1 then an SBR2 and the current message is SBR2
         # we combine the three into one SBP message
         msg_len = last_last_m.msg_len
-        timestamp = gps_time_to_utc(gps.gwk, gps.gms, last_last_m.time_us - gps.time_us)
+        timestamp = gps_time_to_datetime(gps.gwk, gps.gms, last_last_m.time_us - gps.time_us)
         bin_data = last_last_m.msg + last_m.msg + m.msg
         bin_data = bin_data[:msg_len]
         msg_type = last_last_m.msg_type
@@ -250,7 +272,7 @@ def extract_sbp(filename):
         # If the last message  was SBR1 and this one is SBR1, we extract the last one
         # and save this one until the next iteration
         msg_len = last_m.msg_len
-        timestamp = gps_time_to_utc(gps.gwk, gps.gms, last_m.time_us - gps.time_us)
+        timestamp = gps_time_to_datetime(gps.gwk, gps.gms, last_m.time_us - gps.time_us)
         msg_type = last_m.msg_type
         sender_id = last_m.sender_id
         bin_data = last_m.msg[:msg_len]
