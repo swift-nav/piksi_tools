@@ -56,12 +56,12 @@ class ObservationView(CodeFiltered):
     info = HGroup(
              Spring(width=4, springy=False),
              Item('',
-                  label='GPS Week:',
+                  label='Week:',
                   emphasized=True,
                   tooltip='GPS Week Number (since 1980'),
              Item('gps_week', style='readonly', show_label=False),
              Item('',
-                  label='GPS TOW:',
+                  label='TOW:',
                   emphasized=True,
                   tooltip='GPS milliseconds in week'),
              Item('gps_tow',
@@ -78,7 +78,7 @@ class ObservationView(CodeFiltered):
     for code in SUPPORTED_CODES:
       code_str = code_to_str(code)
       info.content.append(Item('',
-                               label='{} obs:'.format(code_str),
+                               label='{}:'.format(code_str),
                                emphasized = True,
                                tooltip='{} observation count'.format(code_str)))
       info.content.append(Item('count_{}'.format(code),
