@@ -1,0 +1,34 @@
+os: Visual Studio 2015
+
+environment:
+  matrix:
+  - Compiler: mingw
+
+#cache:
+#  - C:\mingw64
+
+install:
+  - set PATH=C:\MinGW\bin;C:\MinGW\msys\1.0\bin;%PATH%
+  - ps: Invoke-WebRequest -Uri "https://raw.githubusercontent.com/mnaoumov/Invoke-NativeApplication/master/exec.ps1" -OutFile ".\exec1.ps1"
+  - cmd: .\tasks\win_build_dep_install.bat
+  - cmd: pip install -r requirements.txt
+  - cmd: pip install -r requirements_gui.txt
+
+cache:
+  - tasks\download_cache
+
+build_script:
+  - ps: |
+      if ($env:Compiler -eq "mingw") {
+        . ($env:APPVEYOR_BUILD_FOLDER + "\exec1.ps1") 
+        cd ($env:APPVEYOR_BUILD_FOLDER + "\piksi_tools\console\pyinstaller")
+        exec {make} 
+      }
+
+artifacts:
+  - path: piksi_tools\console\pyinstaller\swift_console*
+    name: swift_console
+
+test_script:
+    cmd: echo "Tests go here"
+      

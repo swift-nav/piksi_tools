@@ -4,14 +4,15 @@ SET PATH=%PATH%;C:\cygwin\bin;
 if exist "C:\Program Files (x86)\pythonxy" (
 	echo "python already installed"
 ) else (
-	if exist xy_install.exe (
+	if exist download_cache\xy_install.exe (
 		echo "python xy install cached"
 	) else (
 		echo "python xy install downloading"
-		powershell -Command "Invoke-WebRequest 'http://ftp.ntua.gr/pub/devel/pythonxy/Python(x,y)-2.7.10.0.exe' -OutFile xy_install.exe"
+    mkdir download_cache
+		powershell -Command "Invoke-WebRequest 'http://ftp.ntua.gr/pub/devel/pythonxy/Python(x,y)-2.7.10.0.exe' -OutFile download_cache\xy_install.exe"
 	)
 	echo "installing python xy"
-	xy_install /S /FULL
+	download_cache\xy_install /S /FULL
 )
 
 echo "reinstalling python cryptography module"
@@ -50,3 +51,8 @@ if %Result% EQU 1 (
 	echo "installing NSIS"
 	nsis_install /S
 )
+
+echo "install swig"
+choco install swig
+
+pip install pyinstaller
