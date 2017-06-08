@@ -33,6 +33,7 @@ from sbp.tracking import SBP_MSG_TRACKING_STATE, SBP_MSG_TRACKING_STATE_DEP_B
 NUM_POINTS = 200
 TRK_RATE = 2.0
 CHANNEL_COUNT = 64
+GLO_FCN_OFFSET = 8
 
 color_code = lambda: int('0x%02x%02x%02x' %
                          (randint(0,255), randint(0,255), randint(0,255)), 16)
@@ -107,7 +108,7 @@ class TrackingView(CodeFiltered):
       prn = s.sid.sat + 1 if code_is_gps(code) else s.sid.sat
 
       if SBP_MSG_TRACKING_STATE == sbp_msg.msg_type:
-        key = (s.fcn, i) if code_is_glo(code) else (prn, i)
+        key = (s.fcn - GLO_FCN_OFFSET, i) if code_is_glo(code) else (prn, i)
         cn0 = s.cn0 / 4.0
       elif SBP_MSG_TRACKING_STATE_DEP_B == sbp_msg.msg_type:
         key = (None, i) if code_is_glo(code) else (prn, i)
@@ -185,7 +186,7 @@ class TrackingView(CodeFiltered):
                                             cno_array[-1][1],
                                             code_to_str(code))
         if k[0] is not None:
-          label += ' FCN %02d' % (k[0])
+          label += ' FCN %d' % (k[0])
       else:
         label = 'Ch %02d (PRN%02d (%s))' % (k[1], k[0], code_to_str(code))
 
