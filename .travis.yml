@@ -47,7 +47,7 @@ addons:
   artifacts:
     debug: true 
     paths:
-      - ./piksi_tools/console/pyinstaller/dist/swift_console*
+      - $(ls ./piksi_tools/console/pyinstaller/dist/swift_console* | tr "\n" ":")
       - ./piksi_tools/console/pyinstaller/build
     working_dir: $TRAVIS_BUILD_DIR
     target_paths: $GIT_DESCRIBE$TRAVIS_PULL_REQUEST_BRANCH_$TRAVIS_OS_NAME
