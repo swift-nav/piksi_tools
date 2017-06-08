@@ -109,7 +109,7 @@ class TrackingView(CodeFiltered):
       if SBP_MSG_TRACKING_STATE == sbp_msg.msg_type:
         key = (s.fcn, i) if code_is_glo(code) else (prn, i)
       elif SBP_MSG_TRACKING_STATE_DEP_B == sbp_msg.msg_type:
-        key = (prn, i)
+        key = (None, i) if code_is_glo(code) else (prn, i)
 
       if key not in self.data_dict[code]:
         self.data_dict[code][key] = np.zeros(NUM_POINTS, dtype='2float')
@@ -182,7 +182,8 @@ class TrackingView(CodeFiltered):
         label = 'Ch %02d (PRN%02d (%s))' % (k[1],
                                             cno_array[-1][1],
                                             code_to_str(code))
-        label += ' FCN %02d' % (k[0])
+        if k[0] is not None:
+          label += ' FCN %02d' % (k[0])
       else:
         label = 'Ch %02d (PRN%02d (%s))' % (k[1], k[0], code_to_str(code))
 
