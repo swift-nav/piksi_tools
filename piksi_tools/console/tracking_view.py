@@ -108,13 +108,15 @@ class TrackingView(CodeFiltered):
 
       if SBP_MSG_TRACKING_STATE == sbp_msg.msg_type:
         key = (s.fcn, i) if code_is_glo(code) else (prn, i)
+        cn0 = s.cn0 / 4.0
       elif SBP_MSG_TRACKING_STATE_DEP_B == sbp_msg.msg_type:
         key = (None, i) if code_is_glo(code) else (prn, i)
+        cn0 = s.cn0
 
       if key not in self.data_dict[code]:
         self.data_dict[code][key] = np.zeros(NUM_POINTS, dtype='2float')
 
-      self.data_dict[code][key][-1] = (s.cn0, prn)
+      self.data_dict[code][key][-1] = (cn0, prn)
 
   def tracking_state_callback(self, sbp_msg, **metadata):
     t = time.time() - self.t_init
@@ -201,7 +203,6 @@ class TrackingView(CodeFiltered):
       self._update_code_plots(code, plot_labels, plots)
 
     plots = dict(zip(plot_labels, plots))
-
     self.plot.legend.plots = plots
 
   def _legend_visible_changed(self):
