@@ -144,7 +144,7 @@ function install_python_deps_osx () {
     brew install libftdi openssl sip --force 2>&1 || :
     brew link openssl --forcea 2>&1 || :
     pip install PySide==1.2.2
-    wget https://raw.githubusercontent.com/PySide/pyside-setup/1.2.2/pyside_postinstall.py pyside_postinstall.py
+    wget https://raw.githubusercontent.com/PySide/pyside-setup/1.2.2/pyside_postinstall.py
     python pyside_postinstall.py -install
     pip install -r ../requirements.txt
     pip install -r ../requirements_gui.txt
