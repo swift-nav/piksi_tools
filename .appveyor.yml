@@ -1,0 +1,37 @@
+environment:
+  global:
+    # Wrapper to ensure extensions are build using the MSVC compiler matching
+    # the target Python version and architecture.
+    # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
+    # /E:ON and /V:ON options are not enabled in the batch script intepreter
+    # See: http://stackoverflow.com/a/13751649/163740
+    CMD_IN_ENV: 'cmd /E:ON /V:ON /C .\tasks\run_with_env.cmd'
+
+  matrix:
+    - PYTHON: C:\Python27
+      PYTHON_VERSION: 2.7
+      PYTHON_ARCH: 32
+
+
+cache:
+  # Cache downloaded pip packages and built wheels.
+  - '%LOCALAPPDATA%\pip\Cache\http'
+  - '%LOCALAPPDATA%\pip\Cache\wheels'
+
+install:
+  - SET PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
+  - python --version
+  # Upgrade to the latest pip.
+  - '%CMD_IN_ENV% python -m pip install -U pip setuptools wheel'
+  - choco install swig
+  - '%CMD_IN_ENV% pip install -r requirements.txt'
+  - '%CMD_IN_ENV% pip install -r requirements_gui.txt'
+  - '%CMD_IN_ENV% pip install pyside pyinstaller'
+  - '%CMD_IN_ENV% pip install -e .'
+  - '%CMD_IN_ENV% pyinstaller piksi_tools/console/console.py'
+
+build: none
+
+artifacts:
+  - path: dist
+    name: swift_console
