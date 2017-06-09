@@ -17,6 +17,7 @@ import datetime
 from piksi_tools.utils import sopen
 from sbp.navigation import *
 from threading import Event, Thread
+from time import sleep
 
 L1CA = 0
 L2CM = 1
@@ -158,8 +159,9 @@ def log_time_strings(week, tow):
 def call_repeatedly(interval, func, *args):
   stopped = Event()
   def loop():
-    while not stopped.wait(interval): # the first call is in `interval` secs
+    while not stopped.is_set():
       func(*args)
+      sleep(interval)
   Thread(target=loop).start()    
   return stopped.set
 
