@@ -772,8 +772,7 @@ else:
   print "Using serial device '%s'" % port
   selected_driver = s.get_driver(args.ftdi, port, baud, args.file, rtscts=args.rtscts)
   connection_description = os.path.split(port)[-1]  + " @" + str(baud)
-#import yappi
-#yappi.start()
+
 with selected_driver as driver:
   with sbpc.Handler(sbpc.Framer(driver.read, driver.write, args.verbose)) as link:
     if args.reset:
@@ -786,7 +785,7 @@ with selected_driver as driver:
                  log_console=args.log_console, networking=args.networking, 
                  serial_upgrade=args.serial_upgrade) as console: 
       console.configure_traits()
-#yappi.get_func_stats().print_all()
+
 # Force exit, even if threads haven't joined
 try:
   os._exit(0)
