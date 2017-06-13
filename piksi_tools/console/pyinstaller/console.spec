@@ -39,7 +39,7 @@ a = Analysis(['../console.py'],
               'pyface.i_python_editor',
              ],
              hookspath=None,
-             runtime_hooks=['rthook_pyqt4.py'])
+             runtime_hooks=[])
 
 resources = [
   ('settings.yaml', '../settings.yaml', 'DATA'),

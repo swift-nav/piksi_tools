@@ -1,9 +1,8 @@
-http://effbot.org/downloads/Imaging-1.1.7.tar.gz
-chaco==4.4.1
-enable==4.4.1
-traits==4.5.0 
-traitsui==4.4.0 
-pyface==4.4.0 
+chaco==4.6.1
+enable==4.6.1
+traits==4.6.0 
+traitsui==5.1.0 
+pyface==5.1.0 
 wsgiref==0.1.2 
 #pyside==1.2.2 
 #sip (required but installed through apt / brew)

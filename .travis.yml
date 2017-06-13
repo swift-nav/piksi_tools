@@ -1,3 +1,4 @@
+dist: trusty
 sudo: required
 
 language: c
@@ -6,9 +7,13 @@ matrix:
   include:
    - os: linux
    - os: osx
-     osx_image: Xcode 8.2
+     osx_image: Xcode 8.3.3
    - os: osx
      osx_image: Xcode 7.3.1
+   - os: osx
+     osx_image: xcode6.4
+
+  allow_failures:
    - os: osx
      osx_image: xcode6.4
 
@@ -26,7 +31,6 @@ before_script:
 
 script:
   - tox
-  - export TRAITS_DEBUG="1" 
   - rm -rf ~/home/.enthought
   - PYTHONPATH=. python piksi_tools/console/console.py --file --error -p ./tests/data/piksi.bin & PID=$!
   - sleep 10 
@@ -47,9 +51,10 @@ addons:
   artifacts:
     debug: true 
     paths:
-      - ./piksi_tools/console/pyinstaller/dist
+      - $(ls ./piksi_tools/console/pyinstaller/dist/swift_console* | tr "\n" ":")
+      - ./piksi_tools/console/pyinstaller/build
     working_dir: $TRAVIS_BUILD_DIR
-    target_paths: $(GIT_DESCRIBE)$(TRAVIS_PULL_REQUEST_BRANCH)_$(TRAVIS_OS_NAME)
+    target_paths: $GIT_DESCRIBE$TRAVIS_PULL_REQUEST_BRANCH_$TRAVIS_OS_NAME
     bucket: console-ci-builds
     s3_region: us-west-2
 deploy:
