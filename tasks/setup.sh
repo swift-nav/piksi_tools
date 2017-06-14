@@ -75,11 +75,11 @@ function all_dependencies_debian () {
          python-sip \
          python-qt4-gl \
          python-software-properties
-    pip install --upgrade pip
-    pip install -r ../requirements.txt
-    pip install -r ../requirements_gui.txt
-    pip install PyInstaller
-    pip install PySide==1.2.4
+    sudo pip install --upgrade pip
+    sudo pip install -r ../requirements.txt
+    sudo pip install -r ../requirements_gui.txt
+    sudo pip install PyInstaller
+    sudo pip install PySide==1.2.4
 }
 
 
