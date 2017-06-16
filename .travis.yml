@@ -28,7 +28,7 @@ matrix:
 before_install:
   - sleep 3 #give xvfb some time to start
   - rm -rf ~/home/.enthought
-  - travis_wait 60 make deps 
+  - make deps 
   - pip list
 
 before_script:
