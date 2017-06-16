@@ -1,7 +1,6 @@
 dist: trusty
 sudo: required
 
-language: python
 
 python:
   - "2.7"
@@ -14,16 +13,21 @@ cache:
 matrix:
   include:
    - os: linux
+     language: python
    - os: osx
      osx_image: Xcode 8.3.3
+     language: generic
    - os: osx
      osx_image: Xcode 7.3.1
+     language: generic
    - os: osx
      osx_image: xcode6.4
+     language: generic
 
   allow_failures:
    - os: osx
      osx_image: xcode6.4
+     language: generic
 
 before_install:
   - sleep 3 #give xvfb some time to start
