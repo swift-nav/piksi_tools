@@ -6,6 +6,11 @@ language: python
 python:
   - "2.7"
 
+cache:
+  directories:
+  - $HOME/.cache/pip/
+  - $HOME/Library/Caches/Homebrew/
+
 matrix:
   include:
    - os: linux
@@ -45,10 +50,6 @@ script:
   - sudo python setup.py install
   - export GIT_DESCRIBE=`git describe`
 
-cache:
-  directories:
-  - $HOME/.pip/cache/
-  - /Library/Caches/Homebrew/
 
 addons:
   artifacts:
