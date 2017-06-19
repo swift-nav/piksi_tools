@@ -1,26 +1,38 @@
 dist: trusty
 sudo: required
 
-language: c
+
+python:
+  - "2.7"
+
+cache:
+  directories:
+  - $HOME/.cache/pip/
+  - $HOME/Library/Caches/Homebrew/
 
 matrix:
   include:
    - os: linux
+     language: python
    - os: osx
      osx_image: Xcode 8.3.3
+     language: generic
    - os: osx
      osx_image: Xcode 7.3.1
+     language: generic
    - os: osx
      osx_image: xcode6.4
+     language: generic
 
   allow_failures:
    - os: osx
      osx_image: xcode6.4
+     language: generic
 
 before_install:
   - sleep 3 #give xvfb some time to start
   - rm -rf ~/home/.enthought
-  - travis_wait 60 make deps 
+  - make deps 
   - pip list
 
 before_script:
@@ -42,10 +54,6 @@ script:
   - sudo python setup.py install
   - export GIT_DESCRIBE=`git describe`
 
-cache:
-  directories:
-  - $HOME/.pip/cache/
-  - /Library/Caches/Homebrew/
 
 addons:
   artifacts:
