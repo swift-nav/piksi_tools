@@ -23,7 +23,7 @@ from traits.api import HasTraits, String, Button, Instance, Bool, Directory
 from traitsui.api import View, Item, UItem, VGroup, HGroup, InstanceEditor, Spring
 from pyface.api import GUI, FileDialog, OK, ProgressDialog
 
-from piksi_tools.version import VERSION as CONSOLE_VERSION
+from piksi_tools import __version__ as CONSOLE_VERSION
 from piksi_tools import bootload
 from piksi_tools import flash
 import piksi_tools.console.callback_prompt as prompt

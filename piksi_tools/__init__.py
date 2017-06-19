@@ -9,3 +9,9 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+from pkg_resources import get_distribution, DistributionNotFound
+try:
+  __version__ = get_distribution(__name__).version
+except DistributionNotFound:
+  # package is not installed
+  pass
