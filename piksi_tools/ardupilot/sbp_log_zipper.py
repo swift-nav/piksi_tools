@@ -44,7 +44,19 @@ msgs_filter = [
   ob.SBP_MSG_EPHEMERIS_GLO,
   ob.SBP_MSG_IONO,
   ob.SBP_MSG_BASE_POS_LLH,
-  ob.SBP_MSG_BASE_POS_ECEF
+  ob.SBP_MSG_BASE_POS_ECEF,
+  ob.SBP_MSG_EPHEMERIS_GPS_DEP_E,
+  ob.SBP_MSG_EPHEMERIS_SBAS_DEP_A,
+  ob.SBP_MSG_EPHEMERIS_GLO_DEP_A
+  ]
+
+msgs_ephemerides_filter = [
+  ob.SBP_MSG_EPHEMERIS_GPS,
+  ob.SBP_MSG_EPHEMERIS_SBAS,
+  ob.SBP_MSG_EPHEMERIS_GLO,
+  ob.SBP_MSG_EPHEMERIS_GPS_DEP_E,
+  ob.SBP_MSG_EPHEMERIS_SBAS_DEP_A,
+  ob.SBP_MSG_EPHEMERIS_GLO_DEP_A
   ]
 
 
@@ -54,7 +66,7 @@ def extract_gpstime(msg, last_gpstime=(0,0)):
   '''
   if msg.msg_type == ob.SBP_MSG_OBS:
     return (msg.header.t.wn, msg.header.t.tow)
-  elif msg.msg_type == ob.SBP_MSG_EPHEMERIS_GPS or msg.msg_type == ob.SBP_MSG_EPHEMERIS_SBAS or msg.msg_type == ob.SBP_MSG_EPHEMERIS_GLO:
+  elif msg.msg_type in msgs_ephemerides_filter:
     return (msg.toc.wn, msg.toc.tow)
   elif msg.msg_type == ob.SBP_MSG_IONO:
     return (msg.t_nmct.wn, msg.t_nmct.tow)
@@ -79,7 +91,7 @@ def compare_gpstime(g0, g1):
       return 0
 
 def print_emit(msg):
-  print msg.to_json()
+  print super(msg.__class__, msg).to_json_dict()
 
 def zip_json_generators(base_gen, rove_gen, emit_fn):
   '''
