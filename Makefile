@@ -55,7 +55,7 @@ build_console:
 
 build_console_posix:
 	cd $(SWIFTNAV_ROOT)/piksi_tools/console/pyinstaller; \
-	sudo make clean && sudo make; \
+	make clean && make; \
 	cd $(SWIFTNAV_ROOT);
 	@echo
 	@echo "Finished! Please check $(SWIFTNAV_ROOT)/piksi_tools/console/pyinstaller."
