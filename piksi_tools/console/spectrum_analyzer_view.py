@@ -19,7 +19,7 @@ from pyface.api import GUI
 from chaco.api import ArrayPlotData, Plot
 from enable.api import ComponentEditor
 
-from sbp.user import SBP_MSG_USER_DATA
+from sbp.piksi import SBP_MSG_SPECAN, MsgSpecan
 
 # How many points are in each FFT?
 NUM_POINTS = 512
@@ -63,7 +63,7 @@ class SpectrumAnalyzerView(HasTraits):
       editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8)),
       show_label=False
     ),
-    Item(name='which_plot', editor=CheckListEditor(values=["Channel 1","Channel 2","Channel 3","Channel 4"]))
+    Item(name='which_plot', show_label=False, editor=CheckListEditor(values=["Channel 1","Channel 2","Channel 3","Channel 4"]))
   )
 
   def parse_payload(self, raw_payload):
@@ -145,55 +145,50 @@ class SpectrumAnalyzerView(HasTraits):
     '''
     # Need to figure out which user_msg_tag means it's an FFT message
     # for now assume that all SBP_MSG_USER_DATA is relevant
-    fft_data = self.parse_payload(sbp_msg.contents)
-    tag = fft_data['user_msg_tag']
+    fft = MsgSpecan(sbp_msg)
+    frequencies = self.get_frequencies(fft.freq_ref,
+                                       fft.freq_step,
+                                       len(fft.amplitude_value))
+    amplitudes = self.get_amplitudes(fft.amplitude_ref,
+                                     fft.amplitude_value,
+                                     fft.amplitude_unit)
+
+    tag = fft.channel_tag
     if (tag == 1 and self.which_plot != "Channel 1"): return
     if (tag == 2 and self.which_plot != "Channel 2"): return
     if (tag == 3 and self.which_plot != "Channel 3"): return
     if (tag == 4 and self.which_plot != "Channel 4"): return
-    #~ print '{0} {1}'.format(tag, self.which_plot)
-    frequencies = self.get_frequencies(
-                    fft_data['starting_frequency'],
-                    fft_data['frequency_step'],
-                    len(fft_data['diff_amplitudes'])
-                  )
-    amplitudes = self.get_amplitudes(
-                   fft_data['min_amplitude'],
-                   fft_data['diff_amplitudes'],
-                   fft_data['amplitude_step']
-                 )
-    timestamp = GpsTime(fft_data['week'], fft_data['TOW'])
-    #~ print '{0} {1}'.format(timestamp, fft_data['starting_frequency'])
+    timestamp = GpsTime(fft.t.wn, fft.t.tow)
     if len(self.incomplete_data[timestamp]['frequencies']) + len(frequencies) == NUM_POINTS:
       self.most_recent_complete_data['frequencies'] = np.append(self.incomplete_data[timestamp]['frequencies'], frequencies, axis=0)
       self.most_recent_complete_data['amplitudes'] = np.append(self.incomplete_data[timestamp]['amplitudes'], amplitudes, axis=0)
       self.incomplete_data.pop(timestamp)
       if timestamp == None or timestamp > self.most_recent:
         self.most_recent = timestamp
+      GUI.invoke_later(self.update_plot)
     else:
       self.incomplete_data[timestamp]['frequencies'] = np.append(self.incomplete_data[timestamp]['frequencies'], frequencies, axis=0)
       self.incomplete_data[timestamp]['amplitudes'] = np.append(self.incomplete_data[timestamp]['amplitudes'], amplitudes, axis=0)
 
-    GUI.invoke_later(self.update_plot)
 
   def update_plot(self):
     most_recent_fft = self.most_recent_complete_data
     if len(most_recent_fft['frequencies']) != 0:
       self.plot_data.set_data('frequency', most_recent_fft['frequencies'])
       self.plot_data.set_data('amplitude', most_recent_fft['amplitudes'])
-      self.plot.plot(('frequency', 'amplitude'), type='line', name='spectrum')
+      self.plot.value_mapper.range.low = min(most_recent_fft['amplitudes'])
+      self.plot.value_mapper.range.high = max(most_recent_fft['amplitudes'])
 
   def __init__(self, link):
     super(SpectrumAnalyzerView, self).__init__()
     self.link = link
-    self.link.add_callback(self.spectrum_analyzer_state_callback, SBP_MSG_USER_DATA)
+    self.link.add_callback(self.spectrum_analyzer_state_callback, SBP_MSG_SPECAN)
     self.python_console_cmds = {
       'spectrum': self
     }
 
     # keys are GpsTime
     self.incomplete_data = defaultdict(lambda: {'frequencies': np.array([]), 'amplitudes': np.array([])})
-    # self.complete_data = defaultdict(lambda: {'frequencies': np.array([]), 'amplitudes': np.array([])})
     self.most_recent_complete_data = {'frequencies': np.array([]), 'amplitudes': np.array([])}
     self.most_recent = None
 
@@ -207,3 +202,6 @@ class SpectrumAnalyzerView(HasTraits):
     self.plot.value_axis.title = 'Amplitude (dB)'
 
     self.plot.index_axis.title = 'Frequency (MHz)'
+    self.plot_data.set_data('frequency', [0])
+    self.plot_data.set_data('amplitude', [0])
+    self.plot.plot(('frequency', 'amplitude'), type='line', name='spectrum')
