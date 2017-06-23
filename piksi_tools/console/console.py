@@ -23,7 +23,7 @@ import time
 
 from os.path import expanduser
 from piksi_tools.serial_link import swriter, get_uuid
-from piksi_tools.version import VERSION as CONSOLE_VERSION
+from piksi_tools import __version__ as CONSOLE_VERSION
 from piksi_tools.heartbeat import Heartbeat
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver

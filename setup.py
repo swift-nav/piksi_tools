@@ -2,7 +2,6 @@
 
 from setuptools import setup
 import os
-from piksi_tools.version import VERSION
 
 CLASSIFIERS = [
   'Intended Audience :: Developers',
@@ -29,7 +28,6 @@ PLATFORMS = [
 ]
 
 PACKAGE_DATA = { 'piksi_tools' : [
-  'RELEASE-VERSION',
   'console/settings.yaml',
   'console/images/fontawesome/download.svg',
   'console/images/fontawesome/exclamation-triangle.svg',
@@ -55,7 +53,8 @@ with open(cwd + '/requirements.txt') as f:
 setup(name='piksi_tools',
       description='Python tools for the Piksi GNSS receiver.',
       long_description=readme,
-      version=VERSION,
+      use_scm_version=True,
+      setup_requires=['setuptools_scm'],
       author='Swift Navigation',
       author_email='dev@swiftnav.com',
       url='https://github.com/swift-nav/piksi_tools',
