@@ -53,7 +53,9 @@ with open(cwd + '/requirements.txt') as f:
 setup(name='piksi_tools',
       description='Python tools for the Piksi GNSS receiver.',
       long_description=readme,
-      use_scm_version=True,
+      use_scm_version={
+          'write_to': 'piksi_tools/_version.py',
+      },
       setup_requires=['setuptools_scm'],
       author='Swift Navigation',
       author_email='dev@swiftnav.com',
