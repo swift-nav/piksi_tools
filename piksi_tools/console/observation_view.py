@@ -21,7 +21,6 @@ from piksi_tools.console.utils import call_repeatedly, code_to_str, EMPTY_STR,\
 import os
 import datetime
 import copy
-import traceback
 
 from sbp.observation import *
 
@@ -100,7 +99,6 @@ class ObsView(CodeFiltered):
     )
 
   def update_obs(self):
-    try:
       if not self.parent._selected():
         return
       self._obs_table_list = [('{} ({})'.format(svid[0],
@@ -112,8 +110,6 @@ class ObsView(CodeFiltered):
         setattr(self,
                 'count_{}'.format(code),
                 len([key for key in self.obs.keys() if key[1] == code]))
-    except:
-      print traceback.print_exc()
 
   def obs_packed_callback(self, sbp_msg, **metadata):
     if not self.parent._selected():
