@@ -24,7 +24,7 @@ from sbp.settings import (SBP_MSG_SETTINGS_READ_BY_INDEX_DONE,
                           MsgSettingsReadByIndexReq, MsgSettingsSave,
                           MsgSettingsWrite)
 from sbp.system import SBP_MSG_STARTUP
-from traits.api import (Bool, Color, Constant, 
+from traits.api import (Bool, Color, Constant,
                         Float, Font, HasTraits, Instance, List, Property,
                         Str, Undefined)
 from traits.etsconfig.api import ETSConfig

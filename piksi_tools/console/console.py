@@ -38,13 +38,13 @@ from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
 from sbp.navigation import SBP_MSG_POS_LLH
 from sbp.piksi import SBP_MSG_COMMAND_RESP, MsgCommandResp, MsgReset
 from sbp.system import SBP_MSG_HEARTBEAT
-from traits.api import ( Bool,  Dict, Directory, Enum, 
+from traits.api import ( Bool,  Dict, Directory, Enum,
                         HasTraits, Instance, Int, List, Str)
 # Toolkit
 from traits.etsconfig.api import ETSConfig
-from traitsui.api import (EnumEditor, Handler, HGroup, 
+from traitsui.api import (EnumEditor, Handler, HGroup,
                           HTMLEditor, ImageEditor, InstanceEditor, Item, Label,
-                          ShellEditor, Spring, Tabbed,  
+                          ShellEditor, Spring, Tabbed,
                           UItem, VGroup, View, VSplit)
 
 import piksi_tools.serial_link as s

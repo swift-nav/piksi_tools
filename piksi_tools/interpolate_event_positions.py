@@ -25,7 +25,7 @@ def lin_interp(oldpos, newpos, oldtow, newtow, triggertow):
     newtow : integer
       TOW of data packet after trigger
     triggertow : integer
-      TOW of trigger 
+      TOW of trigger
     """
     # Warning for not logical TOW values
     if not (oldtow < triggertow < newtow):
@@ -49,7 +49,7 @@ def fix_trigger_rollover(message_type, msg_tow, numofmsg):
     Parameters
     ----------
     message_type : list
-      names of message type 
+      names of message type
     msg_tow : list
       TOW values of the corresponding messages
     numofmsg : integer
@@ -74,13 +74,13 @@ def fix_trigger_debounce(message_type, msg_tow, numofmsg, debouncetime):
     Parameters
     ----------
     message_type : list
-      names of message type 
+      names of message type
     msg_tow : list
       TOW values of the corresponding messages
     numofmsg : integer
       Count of the number of messages in the list
     debouncetime = integer
-      Time in ms of how long to consider a debounce 
+      Time in ms of how long to consider a debounce
     """
     prev_trigger_tow = 0
     itt = 0
@@ -101,7 +101,7 @@ def get_leftbound(message_type, msg_tow, trigger_tow, msgout, numofmsg):
     Parameters
     ----------
     message_type : list
-      names of message type 
+      names of message type
     msg_tow : list
       TOW values of the corresponding messages
     numofmsg : integer
@@ -109,7 +109,7 @@ def get_leftbound(message_type, msg_tow, trigger_tow, msgout, numofmsg):
     msgout : string
       Name of the message the user wants to analyze
     trigger_tow : int
-      TOW value of the trigger being analyzed  
+      TOW value of the trigger being analyzed
     """
     itt = 0
     leftbound = 0
@@ -127,7 +127,7 @@ def get_rightbound(message_type, msg_tow, trigger_tow, msgout, numofmsg):
     Parameters
     ----------
     message_type : list
-      names of message type 
+      names of message type
     msg_tow : list
       TOW values of the corresponding messages
     numofmsg : integer
@@ -135,7 +135,7 @@ def get_rightbound(message_type, msg_tow, trigger_tow, msgout, numofmsg):
     msgout : string
       Name of the message the user wants to analyze
     trigger_tow : int
-      TOW value of the trigger being analyzed  
+      TOW value of the trigger being analyzed
     """
     itt = 0
     rightbound = msg_tow[numofmsg - 1]
@@ -149,12 +149,12 @@ def get_rightbound(message_type, msg_tow, trigger_tow, msgout, numofmsg):
 def get_position_parameter(message_type, msg_tow, msg_position, tow, numofmsg,
                            msgout):
     """
-    Finds the position of the bounds related to the trigger 
+    Finds the position of the bounds related to the trigger
 
     Parameters
     ----------
     message_type : list
-      names of message type 
+      names of message type
     msg_tow : list
       TOW values of the corresponding messages
     numofmsg : integer
@@ -163,7 +163,7 @@ def get_position_parameter(message_type, msg_tow, msg_position, tow, numofmsg,
       Name of the message the user wants to analyze
     tow : int
       TOW value of the bound message
-    msg_position : list 
+    msg_position : list
       List of the message value that will get extracted
     """
     itt = 0
@@ -178,12 +178,12 @@ def get_position_parameter(message_type, msg_tow, msg_position, tow, numofmsg,
 def get_trigger_positions(message_type, msg_tow, msgout, numofmsg,
                           msg_horizontal, msg_vertical, msg_depth, msg_sats):
     """
-    Calls the above functions to commute the data at the event triggers and saves it in the trigger list 
+    Calls the above functions to commute the data at the event triggers and saves it in the trigger list
 
     Parameters
     ----------
     message_type : list
-      names of message type 
+      names of message type
     msg_tow : list
       TOW values of the corresponding messages
     numofmsg : integer
@@ -191,7 +191,7 @@ def get_trigger_positions(message_type, msg_tow, msgout, numofmsg,
     msgout : string
       Name of the message the user wants to analyze
     msg_horizontal , msg_vertical , msg_depth, msg_sats : lists
-      Lists of the parameters with the data saved from the log 
+      Lists of the parameters with the data saved from the log
     """
     itt = 0
     while itt < numofmsg:
@@ -233,12 +233,12 @@ def get_trigger_positions(message_type, msg_tow, msgout, numofmsg,
 def display_data(message_type, msg_tow, msg_horizontal, msg_vertical,
                  msg_depth, msg_flag, msg_sats, numofmsg, msgtype, outfile):
     """
-    Outputs the interpolated data to a CSV file. 
+    Outputs the interpolated data to a CSV file.
 
     Parameters
     ----------
     message_type : list
-      names of message type 
+      names of message type
     msg_tow : list
       TOW values of the corresponding messages
     numofmsg : integer
@@ -246,11 +246,11 @@ def display_data(message_type, msg_tow, msg_horizontal, msg_vertical,
     msgout : string
       Name of the message the user wants to analyze
     msg_horizontal , msg_vertical , msg_depth, msg_sats : lists
-      Lists of the parameters with the data saved from the log 
+      Lists of the parameters with the data saved from the log
     msgtype = string
       Name of type of data user wants to analyze
     outfile = string
-      Name of the output CSV file 
+      Name of the output CSV file
     """
     fout = open(outfile, 'wt')
     writer = csv.writer(fout)
@@ -296,7 +296,7 @@ def rid_access_data(message_type, msg_tow, msg_horizontal, msg_vertical,
 
 def collect_positions(infilename, msgtype, debouncetime):
     """
-    Collects data from the log file and calls functions to analyze that data 
+    Collects data from the log file and calls functions to analyze that data
 
     Parameters
     ----------
@@ -305,7 +305,7 @@ def collect_positions(infilename, msgtype, debouncetime):
     msgtype : string
       type of parameters to analyze and output
     debouncetime : integer
-      time in milliseconds to compensate for switch debounce 
+      time in milliseconds to compensate for switch debounce
     """
     with open(infilename, 'r') as infile:
         with JSONLogIterator(infile) as log:

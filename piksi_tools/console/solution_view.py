@@ -31,7 +31,7 @@ from sbp.navigation import (SBP_MSG_AGE_CORRECTIONS, SBP_MSG_DOPS,
                             MsgVelNEDDepA)
 from traits.api import (Bool,  Dict, File,  HasTraits,
                         Instance, Int, List, Str, )
-from traitsui.api import (HGroup, HSplit, Item, 
+from traitsui.api import (HGroup, HSplit, Item,
                           TabularEditor, TextEditor,  VGroup, View)
 from traitsui.tabular_adapter import TabularAdapter
 

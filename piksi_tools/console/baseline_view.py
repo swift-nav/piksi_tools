@@ -34,7 +34,7 @@ from traitsui.tabular_adapter import TabularAdapter
 
 from piksi_tools.console.gui_utils import plot_square_axes
 from piksi_tools.console.utils import (DGNSS_MODE, EMPTY_STR, FIXED_MODE,
-                                       FLOAT_MODE, 
+                                       FLOAT_MODE,
                                        call_repeatedly, color_dict,
                                        datetime_2_str, determine_path,
                                        get_mode, log_time_strings, mode_dict)

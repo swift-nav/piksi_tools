@@ -9,7 +9,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR
 """
-Combines a base and rover JSON SBP log file into a single JSON SBP log, 
+Combines a base and rover JSON SBP log file into a single JSON SBP log,
 interleaving messages to produce a stream that increases monotonically in GPS time.
 Further, sets the sender id of base log messages to zero.
 
@@ -17,7 +17,7 @@ This script only passes through a subset of all SBP messages. Only messages
 necessary during post-processing observations to produce navigation solutions
 are preserved. Specifically, observations, ephemeris, ionosphere, and base positions.
 
-This script supports a post-processing use case for Piksi. 
+This script supports a post-processing use case for Piksi.
 You can separately record a log file on a rover and on a base Piksi.
 Use this script to create a single log file, which can be passed to
 libswiftnav-private's run_filter command to produce a RTK baseline stream.

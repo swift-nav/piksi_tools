@@ -49,8 +49,8 @@ OBS_MSGS = [
 
 class HttpConsoleConnectConfig(object):
     """ This class is intended to encase any http specific
-        config that will come in.  Eventually should come from a file 
-        or simpler command line yaml string. It should hold 
+        config that will come in.  Eventually should come from a file
+        or simpler command line yaml string. It should hold
         api connection info and separate it from the GUI"""
 
     def __init__(self, link, device_uid, url, whitelist, rover_pragma,
@@ -81,11 +81,11 @@ class HttpWatchdogThread(threading.Thread):
         Parameters
           ----------
           link : - Sbp Handler
-          config : HttpConsoleConnectConfig 
+          config : HttpConsoleConnectConfig
             object storing all settings
-          stopped_callback : function pointer 
+          stopped_callback : function pointer
             function to call when thread is stopped
-          kwargs : dict 
+          kwargs : dict
              all remaining thread constructor arguments
     """
 
@@ -167,7 +167,7 @@ class HttpWatchdogThread(threading.Thread):
         Parameters
         ----------
         link : SbpHandler
-        read_config :  HttpConsoleConnectConfig object 
+        read_config :  HttpConsoleConnectConfig object
 
         Returns
         ----------

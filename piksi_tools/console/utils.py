@@ -147,8 +147,8 @@ def datetime_2_str(datetm):
 
 def log_time_strings(week, tow):
     """Returns two tuples, first is local time, second is gps time
-       Each tuple is a string with the date and a string with the 
-       precise seconds in the minute which can be cast to a float as 
+       Each tuple is a string with the date and a string with the
+       precise seconds in the minute which can be cast to a float as
        needed
     """
     if week is not None and tow > 0:
