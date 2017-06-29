@@ -27,11 +27,11 @@ from piksi_tools.heartbeat import Heartbeat
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.network_drivers import TCPDriver
-from sbp.ext_events import Enum, MsgExtEvent, SBP_MSG_EXT_EVENT
-from sbp.logging import Enum, SBP_MSG_LOG, SBP_MSG_PRINT_DEP
+from sbp.ext_events import MsgExtEvent, SBP_MSG_EXT_EVENT
+from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
 from sbp.piksi import MsgReset
-from sbp.piksi import Enum, MsgCommandResp, MsgReset, SBP_MSG_COMMAND_RESP
-from sbp.navigation import Enum, SBP_MSG_POS_LLH
+from sbp.piksi import MsgCommandResp, MsgReset, SBP_MSG_COMMAND_RESP
+from sbp.navigation import SBP_MSG_POS_LLH
 from sbp.system import SBP_MSG_HEARTBEAT
 from sbp.client import Forwarder
 
