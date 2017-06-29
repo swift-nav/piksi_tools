@@ -25,7 +25,7 @@ from sbp.bootload import MsgBootloaderJumpToApp
 from sbp.logging import SBP_MSG_LOG
 from sbp.piksi import MsgReset
 from traits.api import Bool, Button, Directory, HasTraits, Instance, String
-from traitsui.api import (HGroup, InstanceEditor, Item, Spring, UItem, VGroup,
+from traitsui.api import (HGroup, InstanceEditor, Item, UItem, VGroup,
                           View)
 
 import piksi_tools.console.callback_prompt as prompt

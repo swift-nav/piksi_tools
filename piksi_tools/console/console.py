@@ -38,16 +38,14 @@ from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
 from sbp.navigation import SBP_MSG_POS_LLH
 from sbp.piksi import SBP_MSG_COMMAND_RESP, MsgCommandResp, MsgReset
 from sbp.system import SBP_MSG_HEARTBEAT
-from traits.api import (Any, Bool, Button, Dict, Directory, Enum, Font,
+from traits.api import ( Bool,  Dict, Directory, Enum, 
                         HasTraits, Instance, Int, List, Str)
 # Toolkit
 from traits.etsconfig.api import ETSConfig
-from traitsui.api import (EnumEditor, Group, Handler, HGroup, HSplit,
+from traitsui.api import (EnumEditor, Handler, HGroup, 
                           HTMLEditor, ImageEditor, InstanceEditor, Item, Label,
-                          ShellEditor, Spring, Tabbed, TableEditor, TextEditor,
+                          ShellEditor, Spring, Tabbed,  
                           UItem, VGroup, View, VSplit)
-from traitsui.table_filter import (EvalFilterTemplate, EvalTableFilter,
-                                   MenuFilterTemplate, RuleFilterTemplate)
 
 import piksi_tools.serial_link as s
 from piksi_tools import __version__ as CONSOLE_VERSION
@@ -57,7 +55,7 @@ from piksi_tools.console.deprecated import DeprecatedMessageHandler
 from piksi_tools.console.imu_view import IMUView
 from piksi_tools.console.observation_view import ObservationView
 from piksi_tools.console.output_list import (DEFAULT_LOG_LEVEL_FILTER,
-                                             SYSLOG_LEVELS, LogItem,
+                                             SYSLOG_LEVELS,
                                              OutputList, str_to_log_level)
 from piksi_tools.console.sbp_relay_view import SbpRelayView
 from piksi_tools.console.settings_view import SettingsView

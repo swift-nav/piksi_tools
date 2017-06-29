@@ -24,11 +24,11 @@ from sbp.settings import (SBP_MSG_SETTINGS_READ_BY_INDEX_DONE,
                           MsgSettingsReadByIndexReq, MsgSettingsSave,
                           MsgSettingsWrite)
 from sbp.system import SBP_MSG_STARTUP
-from traits.api import (Any, Array, Bool, Button, Color, Constant, Dict, Enum,
-                        Float, Font, HasTraits, Instance, Int, List, Property,
-                        Str, Undefined, on_trait_change)
+from traits.api import (Bool, Color, Constant, 
+                        Float, Font, HasTraits, Instance, List, Property,
+                        Str, Undefined)
 from traits.etsconfig.api import ETSConfig
-from traitsui.api import (ArrayEditor, EnumEditor, Handler, HGroup, HSplit,
+from traitsui.api import (EnumEditor, HGroup, HSplit,
                           Item, TabularEditor, TextEditor, UItem, VGroup, View)
 from traitsui.tabular_adapter import TabularAdapter
 

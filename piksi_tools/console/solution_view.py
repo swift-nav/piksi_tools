@@ -29,10 +29,10 @@ from sbp.navigation import (SBP_MSG_AGE_CORRECTIONS, SBP_MSG_DOPS,
                             MsgGPSTime, MsgGPSTimeDepA, MsgPosLLH,
                             MsgPosLLHDepA, MsgUtcTime, MsgVelNED,
                             MsgVelNEDDepA)
-from traits.api import (Array, Bool, Button, Dict, File, Float, HasTraits,
-                        Instance, Int, List, Str, on_trait_change)
-from traitsui.api import (ArrayEditor, HGroup, HSplit, Item, Tabbed,
-                          TabularEditor, TextEditor, UItem, VGroup, View)
+from traits.api import (Bool,  Dict, File,  HasTraits,
+                        Instance, Int, List, Str, )
+from traitsui.api import (HGroup, HSplit, Item, 
+                          TabularEditor, TextEditor,  VGroup, View)
 from traitsui.tabular_adapter import TabularAdapter
 
 from piksi_tools.console.gui_utils import MultilineTextEditor, plot_square_axes
@@ -40,7 +40,8 @@ from piksi_tools.console.utils import (DGNSS_MODE, EMPTY_STR, FIXED_MODE,
                                        FLOAT_MODE, SPP_MODE, call_repeatedly,
                                        color_dict, datetime_2_str,
                                        determine_path, get_mode,
-                                       log_time_strings, mode_dict, sopen)
+                                       log_time_strings, mode_dict)
+from piksi_tools.utils import sopen
 
 
 class SimpleAdapter(TabularAdapter):

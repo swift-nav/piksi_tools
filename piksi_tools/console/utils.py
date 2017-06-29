@@ -17,8 +17,6 @@ from threading import Event, Thread
 from sbp.navigation import (SBP_MSG_BASELINE_NED, SBP_MSG_BASELINE_NED_DEP_A,
                             SBP_MSG_POS_LLH, SBP_MSG_POS_LLH_DEP_A)
 
-from piksi_tools.utils import sopen
-
 
 L1CA = 0
 L2CM = 1

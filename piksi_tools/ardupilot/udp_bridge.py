@@ -20,8 +20,7 @@ from sbp.client import Framer, Handler
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.handler import Handler
 from sbp.client.loggers.udp_logger import UdpLogger
-from sbp.observation import (SBP_MSG_BASE_POS_ECEF, SBP_MSG_BASE_POS_LLH,
-                             SBP_MSG_OBS)
+from sbp.observation import SBP_MSG_BASE_POS_ECEF, SBP_MSG_BASE_POS_LLH
 
 OBS_MSGS = [SBP_MSG_OBS_DEP_C, SBP_MSG_BASE_POS_ECEF, SBP_MSG_BASE_POS_LLH]
 
