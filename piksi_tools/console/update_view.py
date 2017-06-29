@@ -89,7 +89,7 @@ class FirmwareFileDialog(HasTraits):
         flash_type : string
           Which Piksi flash to interact with ("M25" or "STM").
         """
-        if not flash_type in ('bin', 'M25', 'STM'):
+        if flash_type not in ('bin', 'M25', 'STM'):
             raise ValueError("flash_type must be 'bin', 'M25' or 'STM'")
         if flash_type == 'bin':
             self.file_wildcard = "Binary image set (*.bin)|*.bin|All files|*"
@@ -412,7 +412,7 @@ class UpdateView(HasTraits):
 
     def _manage_enables(self):
         """ Manages whether traits widgets are enabled in the UI or not. """
-        if self.updating == True or self.downloading == True:
+        if self.updating or self.downloading:
             self.update_stm_en = False
             self.update_nap_en = False
             self.update_en = False
@@ -510,7 +510,7 @@ class UpdateView(HasTraits):
         self._write('')
 
         # Check that we received the index file from the website.
-        if self.update_dl == None:
+        if self.update_dl is None:
             self._write("Error: Can't download firmware files")
             return
 
@@ -613,7 +613,7 @@ class UpdateView(HasTraits):
         self._get_latest_version_info()
 
         # Check that we received the index file from the website.
-        if self.update_dl == None:
+        if self.update_dl is None:
             self._write(
                 "Error: No website index to use to compare versions with local firmware"
             )
@@ -796,7 +796,7 @@ class UpdateView(HasTraits):
             nap_out_of_date = local_nap_version != remote_nap_version
         except KeyError:
             nap_out_of_date = True
-        if nap_out_of_date or check_version == False:
+        if nap_out_of_date or not check_version:
             text = "Updating NAP"
             self._write(text)
             self.create_flash("M25")

@@ -244,7 +244,7 @@ class BaselineView(HasTraits):
                 self.directory_name_b,
                 time.strftime("baseline_log_%Y%m%d-%H%M%S.csv"))
 
-        if self.logging_b == False:
+        if not self.logging_b:
             self.log_file = None
 
         if self.logging_b:
@@ -305,9 +305,9 @@ class BaselineView(HasTraits):
 
         table.append(('Flags', '0x%02x' % soln.flags))
         table.append(('Mode', mode_dict[self.last_mode]))
-        if self.heading != None:
+        if self.heading is not None:
             table.append(('Heading', self.heading))
-        if self.age_corrections != None:
+        if self.age_corrections is not None:
             table.append(('Corr. Age [s]', self.age_corrections))
         self.table = table
         # Rotate array, deleting oldest entries to maintain

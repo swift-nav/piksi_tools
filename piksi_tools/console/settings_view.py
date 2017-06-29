@@ -111,7 +111,7 @@ class Setting(SettingBase):
     def revert_after_delay(self, delay, name, old, new, popop=True):
         '''Revert setting to old value after delay in seconds has elapsed'''
         time.sleep(delay)
-        if self.confirmed_set != True:
+        if not self.confirmed_set:
             self.revert_in_progress = True
             self.value = old
             invalid_setting_prompt = prompt.CallbackPrompt(

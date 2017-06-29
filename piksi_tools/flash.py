@@ -535,7 +535,7 @@ class Flash():
                     stream.flush()
                 self.erase_sector(sector)
                 self.ihx_elapsed_ops += 1
-                if elapsed_ops_cb != None:
+                if elapsed_ops_cb is not None:
                     elapsed_ops_cb(self.ihx_elapsed_ops)
             if stream:
                 stream.write('\n')
@@ -552,7 +552,7 @@ class Flash():
                         stream.write('\r' + self.status)
                         stream.flush()
                     self.print_count = 1
-                    if elapsed_ops_cb != None:
+                    if elapsed_ops_cb is not None:
                         elapsed_ops_cb(self.ihx_elapsed_ops)
                 else:
                     self.print_count += 1

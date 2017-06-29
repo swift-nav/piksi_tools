@@ -31,7 +31,7 @@ class GpsTime():
     # these are probably not the most robust implementations
 
     def __cmp__(self, other):
-        if other == None:
+        if other is None:
             return 1
         if self.week < other.week:
             return -1
@@ -175,7 +175,7 @@ class SpectrumAnalyzerView(HasTraits):
                 amplitudes,
                 axis=0)
             self.incomplete_data.pop(timestamp)
-            if timestamp == None or timestamp > self.most_recent:
+            if timestamp is None or timestamp > self.most_recent:
                 self.most_recent = timestamp
             GUI.invoke_later(self.update_plot)
         else:

@@ -225,7 +225,7 @@ class TrackingView(CodeFiltered):
 
     def _legend_visible_changed(self):
         if self.plot:
-            if self.legend_visible == False:
+            if not self.legend_visible:
                 self.plot.legend.visible = False
             else:
                 self.plot.legend.visible = True

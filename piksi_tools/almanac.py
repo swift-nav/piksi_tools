@@ -136,7 +136,7 @@ class Sat:
 
     def __str__(self):
         dopp, _ = self.calc_vis_dopp(time_of_week(), WPR)
-        if dopp != None:
+        if dopp is not None:
             return "PRN%02d\t@ %+7.1f Hz\n" % (self.prn, dopp)
         else:
             return "PRN%02d Not Visible\n" % self.prn
@@ -146,7 +146,7 @@ class Almanac:
     sats = None
 
     def almanac_valid(self):
-        return (self.sats != None)
+        return (self.sats is not None)
 
     def download_almanac(self):
         u = urllib2.urlopen(
@@ -177,7 +177,7 @@ class Almanac:
         if self.sats:
             dopps = map(lambda s: (s.prn,) + s.calc_vis_dopp(tow,
                                                              location, elevation_mask=0.0), self.sats)
-            dopps = filter(lambda prn_dopp_el: (prn_dopp_el[1] != None), dopps)
+            dopps = filter(lambda prn_dopp_el: (prn_dopp_el[1] is not None), dopps)
             return dopps
         else:
             return None

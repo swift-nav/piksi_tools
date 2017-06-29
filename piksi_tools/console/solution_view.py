@@ -254,7 +254,7 @@ class SolutionView(HasTraits):
                 self.directory_name_p,
                 time.strftime("position_log_%Y%m%d-%H%M%S.csv"))
 
-        if self.logging_p == False:
+        if not self.logging_p:
             self.log_file = None
 
         if self.logging_p:
@@ -310,7 +310,7 @@ class SolutionView(HasTraits):
 
         pos_table.append(('Pos Flags', '0x%03x' % soln.flags))
         pos_table.append(('Pos Fix Mode', mode_dict[self.last_pos_mode]))
-        if self.age_corrections != None:
+        if self.age_corrections is not None:
             pos_table.append(('Corr. Age [s]', self.age_corrections))
 
         self.auto_survey()
@@ -446,7 +446,7 @@ class SolutionView(HasTraits):
                 self.directory_name_v,
                 time.strftime("velocity_log_%Y%m%d-%H%M%S.csv"))
 
-        if self.logging_v == False:
+        if not self.logging_v:
             self.vel_log_file = None
 
         if self.logging_v:
