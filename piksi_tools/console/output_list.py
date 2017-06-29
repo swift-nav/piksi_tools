@@ -8,7 +8,6 @@
 # THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
-
 """
 Contains the class OutputList
 Displays Device Log messages and STDOUT/STDERR.
@@ -24,14 +23,14 @@ import time
 import os
 
 # These levels are identical to sys.log levels
-LOG_EMERG = 0       # system is unusable
-LOG_ALERT = 1       # action must be taken immediately
-LOG_CRIT = 2       # critical conditions
-LOG_ERROR = 3       # error conditions
-LOG_WARN = 4       # warning conditions
-LOG_NOTICE = 5       # normal but significant condition
-LOG_INFO = 6       # informational
-LOG_DEBUG = 7       # debug-level messages
+LOG_EMERG = 0  # system is unusable
+LOG_ALERT = 1  # action must be taken immediately
+LOG_CRIT = 2  # critical conditions
+LOG_ERROR = 3  # error conditions
+LOG_WARN = 4  # warning conditions
+LOG_NOTICE = 5  # normal but significant condition
+LOG_INFO = 6  # informational
+LOG_DEBUG = 7  # debug-level messages
 
 # These log levels are defined uniquely to this module to handle the
 # list for stdout, stderror, and the device's log messages
@@ -130,9 +129,9 @@ class LogItem(HasTraits):
 
     # log level string maps the int into a the string via the global ALL_LOG_LEVELS dict
     # If we can't find the int in the dict, we print "UNKNOWN"
-    log_level_str = Property(fget=lambda self:
-                             ALL_LOG_LEVELS.get(self.log_level, "UNKNOWN"),
-                             depends_on='log_level')
+    log_level_str = Property(
+        fget=lambda self: ALL_LOG_LEVELS.get(self.log_level, "UNKNOWN"),
+        depends_on='log_level')
 
     def __init__(self, msg, level):
         """
@@ -286,8 +285,10 @@ class OutputList(HasTraits):
         """
         Copy items from unfiltered list into filtered list
         """
-        self.filtered_list = [item for item in self.unfiltered_list
-                              if item.matches_log_level_filter(self.log_level_filter)]
+        self.filtered_list = [
+            item for item in self.unfiltered_list
+            if item.matches_log_level_filter(self.log_level_filter)
+        ]
 
     def _paused_changed(self):
         """

@@ -32,7 +32,7 @@ from sbp.navigation import *
 
 
 class SimpleAdapter(TabularAdapter):
-    columns = [('Item', 0), ('Value',  1)]
+    columns = [('Item', 0), ('Value', 1)]
     width = 80
 
 
@@ -57,53 +57,60 @@ class BaselineView(HasTraits):
     position_centered = Bool(False)
 
     clear_button = SVGButton(
-        label='', tooltip='Clear',
+        label='',
+        tooltip='Clear',
         filename=os.path.join(determine_path(), 'images', 'iconic', 'x.svg'),
-        width=16, height=16
-    )
+        width=16,
+        height=16)
     zoomall_button = SVGButton(
-        label='', tooltip='Zoom All', toggle=True,
-        filename=os.path.join(determine_path(), 'images',
-                              'iconic', 'fullscreen.svg'),
-        width=16, height=16
-    )
+        label='',
+        tooltip='Zoom All',
+        toggle=True,
+        filename=os.path.join(determine_path(), 'images', 'iconic',
+                              'fullscreen.svg'),
+        width=16,
+        height=16)
     center_button = SVGButton(
-        label='', tooltip='Center on Baseline', toggle=True,
-        filename=os.path.join(determine_path(), 'images',
-                              'iconic', 'target.svg'),
-        width=16, height=16
-    )
+        label='',
+        tooltip='Center on Baseline',
+        toggle=True,
+        filename=os.path.join(determine_path(), 'images', 'iconic',
+                              'target.svg'),
+        width=16,
+        height=16)
     paused_button = SVGButton(
-        label='', tooltip='Pause', toggle_tooltip='Run', toggle=True,
-        filename=os.path.join(determine_path(), 'images',
-                              'iconic', 'pause.svg'),
-        toggle_filename=os.path.join(
-            determine_path(), 'images', 'iconic', 'play.svg'),
-        width=16, height=16
-    )
+        label='',
+        tooltip='Pause',
+        toggle_tooltip='Run',
+        toggle=True,
+        filename=os.path.join(determine_path(), 'images', 'iconic',
+                              'pause.svg'),
+        toggle_filename=os.path.join(determine_path(), 'images', 'iconic',
+                                     'play.svg'),
+        width=16,
+        height=16)
 
     reset_button = Button(label='Reset Filters')
 
     traits_view = View(
         HSplit(
-            Item('table', style='readonly', editor=TabularEditor(
-                adapter=SimpleAdapter()), show_label=False, width=0.3),
+            Item(
+                'table',
+                style='readonly',
+                editor=TabularEditor(adapter=SimpleAdapter()),
+                show_label=False,
+                width=0.3),
             VGroup(
                 HGroup(
                     Item('paused_button', show_label=False),
                     Item('clear_button', show_label=False),
                     Item('zoomall_button', show_label=False),
                     Item('center_button', show_label=False),
-                    Item('reset_button', show_label=False),
-                ),
+                    Item('reset_button', show_label=False), ),
                 Item(
                     'plot',
                     show_label=False,
-                    editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8)),
-                )
-            )
-        )
-    )
+                    editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8)), ))))
 
     def _zoomall_button_fired(self):
         self.zoomall = not self.zoomall
@@ -223,8 +230,9 @@ class BaselineView(HasTraits):
         if self.directory_name_b == '':
             filepath = time.strftime("baseline_log_%Y%m%d-%H%M%S.csv")
         else:
-            filepath = os.path.join(self.directory_name_b, time.strftime(
-                "baseline_log_%Y%m%d-%H%M%S.csv"))
+            filepath = os.path.join(
+                self.directory_name_b,
+                time.strftime("baseline_log_%Y%m%d-%H%M%S.csv"))
 
         if self.logging_b == False:
             self.log_file = None
@@ -232,21 +240,17 @@ class BaselineView(HasTraits):
         if self.logging_b:
             if self.log_file is None:
                 self.log_file = sopen(filepath, 'w')
-                self.log_file.write('pc_time,gps_time,tow(msec),north(meters),east(meters),down(meters),h_accuracy(meters),v_accuracy(meters),'
-                                    'distance(meters),num_sats,flags,num_hypothesis\n')
+                self.log_file.write(
+                    'pc_time,gps_time,tow(msec),north(meters),east(meters),down(meters),h_accuracy(meters),v_accuracy(meters),'
+                    'distance(meters),num_sats,flags,num_hypothesis\n')
             log_str_gps = ''
             if tgps != '' and secgps != 0:
                 log_str_gps = "{0}:{1:06.6f}".format(tgps, float(secgps))
-            self.log_file.write('%s,%s,%.3f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%d,%d,%d\n' % (
-                "{0}:{1:06.6f}".format(tloc, float(secloc)),
-                log_str_gps,
-                tow, soln.n, soln.e, soln.d,
-                soln.h_accuracy, soln.v_accuracy,
-                dist,
-                soln.n_sats,
-                soln.flags,
-                self.num_hyps)
-            )
+            self.log_file.write(
+                '%s,%s,%.3f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%d,%d,%d\n' %
+                ("{0}:{1:06.6f}".format(tloc, float(secloc)), log_str_gps, tow,
+                 soln.n, soln.e, soln.d, soln.h_accuracy, soln.v_accuracy,
+                 dist, soln.n_sats, soln.flags, self.num_hyps))
             self.log_file.flush()
 
         self.last_mode = get_mode(soln)
@@ -273,11 +277,11 @@ class BaselineView(HasTraits):
             table.append(('GPS TOW', "{:.3f}".format(tow)))
 
             if self.week is not None:
-                table.append(
-                    ('GPS Time', "{0}:{1:06.3f}".format(tgps, float(secgps))))
+                table.append(('GPS Time', "{0}:{1:06.3f}".format(
+                    tgps, float(secgps))))
             if self.utc_time is not None:
-                table.append(
-                    ('UTC Time', "{0}:{1:06.3f}".format(tutc, float(secutc))))
+                table.append(('UTC Time', "{0}:{1:06.3f}".format(
+                    tutc, float(secutc))))
                 table.append(('UTC Src', self.utc_source))
 
             table.append(('N', soln.n))
@@ -363,8 +367,8 @@ class BaselineView(HasTraits):
             self.plot.value_range.set_bounds(soln.n - d, soln.n + d)
 
         if self.zoomall:
-            plot_square_axes(self.plot, ('e_fixed', 'e_float',
-                                         'e_dgnss'), ('n_fixed', 'n_float', 'n_dgnss'))
+            plot_square_axes(self.plot, ('e_fixed', 'e_float', 'e_dgnss'),
+                             ('n_fixed', 'n_float', 'n_dgnss'))
 
     def __init__(self, link, plot_history_max=1000, dirname=''):
         super(BaselineView, self).__init__()
@@ -375,14 +379,29 @@ class BaselineView(HasTraits):
         self.last_btime_update = 0
         self.last_soln = None
         self.last_mode = 0
-        self.plot_data = ArrayPlotData(n_fixed=[0.0], e_fixed=[0.0], d_fixed=[0.0],
-                                       n_float=[0.0], e_float=[0.0], d_float=[0.0],
-                                       n_dgnss=[0.0], e_dgnss=[0.0], d_dgnss=[0.0],
-                                       t=[0.0],
-                                       ref_n=[0.0], ref_e=[0.0], ref_d=[0.0],
-                                       cur_fixed_e=[], cur_fixed_n=[], cur_fixed_d=[],
-                                       cur_float_e=[], cur_float_n=[], cur_float_d=[],
-                                       cur_dgnss_e=[], cur_dgnss_n=[], cur_dgnss_d=[])
+        self.plot_data = ArrayPlotData(
+            n_fixed=[0.0],
+            e_fixed=[0.0],
+            d_fixed=[0.0],
+            n_float=[0.0],
+            e_float=[0.0],
+            d_float=[0.0],
+            n_dgnss=[0.0],
+            e_dgnss=[0.0],
+            d_dgnss=[0.0],
+            t=[0.0],
+            ref_n=[0.0],
+            ref_e=[0.0],
+            ref_d=[0.0],
+            cur_fixed_e=[],
+            cur_fixed_n=[],
+            cur_fixed_d=[],
+            cur_float_e=[],
+            cur_float_n=[],
+            cur_float_d=[],
+            cur_dgnss_e=[],
+            cur_dgnss_n=[],
+            cur_dgnss_d=[])
 
         self.plot_history_max = plot_history_max
         self.n = np.zeros(plot_history_max)
@@ -391,48 +410,55 @@ class BaselineView(HasTraits):
         self.mode = np.zeros(plot_history_max)
 
         self.plot = Plot(self.plot_data)
-        pts_float = self.plot.plot(('e_float', 'n_float'),
-                                   type='scatter',
-                                   color=color_dict[FLOAT_MODE],
-                                   marker='dot',
-                                   line_width=0.0,
-                                   marker_size=1.0)
-        pts_fixed = self.plot.plot(('e_fixed', 'n_fixed'),
-                                   type='scatter',
-                                   color=color_dict[FIXED_MODE],
-                                   marker='dot',
-                                   line_width=0.0,
-                                   marker_size=1.0)
-        pts_dgnss = self.plot.plot(('e_dgnss', 'n_dgnss'),
-                                   type='scatter',
-                                   color=color_dict[DGNSS_MODE],
-                                   marker='dot',
-                                   line_width=0.0,
-                                   marker_size=1.0)
-        ref = self.plot.plot(('ref_e', 'ref_n'),
-                             type='scatter',
-                             color='red',
-                             marker='plus',
-                             marker_size=5,
-                             line_width=1.5)
-        cur_fixed = self.plot.plot(('cur_fixed_e', 'cur_fixed_n'),
-                                   type='scatter',
-                                   color=color_dict[FIXED_MODE],
-                                   marker='plus',
-                                   marker_size=5,
-                                   line_width=1.5)
-        cur_float = self.plot.plot(('cur_float_e', 'cur_float_n'),
-                                   type='scatter',
-                                   color=color_dict[FLOAT_MODE],
-                                   marker='plus',
-                                   marker_size=5,
-                                   line_width=1.5)
-        cur_dgnss = self.plot.plot(('cur_dgnss_e', 'cur_dgnss_n'),
-                                   type='scatter',
-                                   color=color_dict[DGNSS_MODE],
-                                   marker='plus',
-                                   line_width=1.5,
-                                   marker_size=5)
+        pts_float = self.plot.plot(
+            ('e_float', 'n_float'),
+            type='scatter',
+            color=color_dict[FLOAT_MODE],
+            marker='dot',
+            line_width=0.0,
+            marker_size=1.0)
+        pts_fixed = self.plot.plot(
+            ('e_fixed', 'n_fixed'),
+            type='scatter',
+            color=color_dict[FIXED_MODE],
+            marker='dot',
+            line_width=0.0,
+            marker_size=1.0)
+        pts_dgnss = self.plot.plot(
+            ('e_dgnss', 'n_dgnss'),
+            type='scatter',
+            color=color_dict[DGNSS_MODE],
+            marker='dot',
+            line_width=0.0,
+            marker_size=1.0)
+        ref = self.plot.plot(
+            ('ref_e', 'ref_n'),
+            type='scatter',
+            color='red',
+            marker='plus',
+            marker_size=5,
+            line_width=1.5)
+        cur_fixed = self.plot.plot(
+            ('cur_fixed_e', 'cur_fixed_n'),
+            type='scatter',
+            color=color_dict[FIXED_MODE],
+            marker='plus',
+            marker_size=5,
+            line_width=1.5)
+        cur_float = self.plot.plot(
+            ('cur_float_e', 'cur_float_n'),
+            type='scatter',
+            color=color_dict[FLOAT_MODE],
+            marker='plus',
+            marker_size=5,
+            line_width=1.5)
+        cur_dgnss = self.plot.plot(
+            ('cur_dgnss_e', 'cur_dgnss_n'),
+            type='scatter',
+            color=color_dict[DGNSS_MODE],
+            marker='plus',
+            line_width=1.5,
+            marker_size=5)
         plot_labels = [' Base Position', 'DGPS', 'RTK Float', 'RTK Fixed']
         plots_legend = dict(
             zip(plot_labels, [ref, cur_dgnss, cur_float, cur_fixed]))
@@ -453,8 +479,8 @@ class BaselineView(HasTraits):
         self.plot.padding = (25, 25, 25, 25)
 
         self.plot.tools.append(PanTool(self.plot))
-        zt = ZoomTool(self.plot, zoom_factor=1.1,
-                      tool_mode="box", always_on=False)
+        zt = ZoomTool(
+            self.plot, zoom_factor=1.1, tool_mode="box", always_on=False)
         self.plot.overlays.append(zt)
 
         self.week = None
@@ -465,18 +491,17 @@ class BaselineView(HasTraits):
 
         self.link = link
         self.link.add_callback(self.baseline_callback, [
-                               SBP_MSG_BASELINE_NED, SBP_MSG_BASELINE_NED_DEP_A])
-        self.link.add_callback(self.baseline_heading_callback, [
-                               SBP_MSG_BASELINE_HEADING])
+            SBP_MSG_BASELINE_NED, SBP_MSG_BASELINE_NED_DEP_A
+        ])
+        self.link.add_callback(self.baseline_heading_callback,
+                               [SBP_MSG_BASELINE_HEADING])
         self.link.add_callback(self.iar_state_callback, SBP_MSG_IAR_STATE)
-        self.link.add_callback(self.gps_time_callback, [
-                               SBP_MSG_GPS_TIME, SBP_MSG_GPS_TIME_DEP_A])
+        self.link.add_callback(self.gps_time_callback,
+                               [SBP_MSG_GPS_TIME, SBP_MSG_GPS_TIME_DEP_A])
         self.link.add_callback(self.utc_time_callback, [SBP_MSG_UTC_TIME])
-        self.link.add_callback(
-            self.age_corrections_callback, SBP_MSG_AGE_CORRECTIONS)
+        self.link.add_callback(self.age_corrections_callback,
+                               SBP_MSG_AGE_CORRECTIONS)
 
         call_repeatedly(0.2, self.solution_draw)
 
-        self.python_console_cmds = {
-            'baseline': self
-        }
+        self.python_console_cmds = {'baseline': self}

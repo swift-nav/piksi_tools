@@ -20,7 +20,6 @@ import numpy as np
 import datetime
 import time
 
-
 from os.path import expanduser
 from piksi_tools.serial_link import swriter, get_uuid
 from piksi_tools import __version__ as CONSOLE_VERSION
@@ -58,24 +57,44 @@ def get_args():
     parser = s.base_cl_options(
         override_arg_parse=ConsoleArgumentParser, add_help=False)
     parser.description = 'Swift Console'
-    parser.add_argument("-i", "--initloglevel",
-                        default=[None], nargs=1,
-                        help="Set log level filter.")
-    parser.add_argument("-u", "--update",
-                        help="don't prompt about firmware/console updates.",
-                        action="store_false")
-    parser.add_argument('--toolkit', nargs=1, default=[None],
-                        help="specify the TraitsUI toolkit to use, either 'wx' or 'qt4'.")
-    parser.add_argument('--error', action='store_true',
-                        help="Do not swallow exceptions.")
-    parser.add_argument('--log-console', action='store_true',
-                        help="Log console stdout/err to file.")
-    parser.add_argument('--networking', default=None, const='{}', nargs='?',
-                        help="key value pairs to pass to sbp_relay_view initializer for network")
-    parser.add_argument('--serial-upgrade', action='store_true',
-                        help="Allow software upgrade over serial.")
-    parser.add_argument('-h', '--help', action='store_true',
-                        help="Show usage help in a GUI popup.")
+    parser.add_argument(
+        "-i",
+        "--initloglevel",
+        default=[None],
+        nargs=1,
+        help="Set log level filter.")
+    parser.add_argument(
+        "-u",
+        "--update",
+        help="don't prompt about firmware/console updates.",
+        action="store_false")
+    parser.add_argument(
+        '--toolkit',
+        nargs=1,
+        default=[None],
+        help="specify the TraitsUI toolkit to use, either 'wx' or 'qt4'.")
+    parser.add_argument(
+        '--error', action='store_true', help="Do not swallow exceptions.")
+    parser.add_argument(
+        '--log-console',
+        action='store_true',
+        help="Log console stdout/err to file.")
+    parser.add_argument(
+        '--networking',
+        default=None,
+        const='{}',
+        nargs='?',
+        help="key value pairs to pass to sbp_relay_view initializer for network"
+    )
+    parser.add_argument(
+        '--serial-upgrade',
+        action='store_true',
+        help="Allow software upgrade over serial.")
+    parser.add_argument(
+        '-h',
+        '--help',
+        action='store_true',
+        help="Show usage help in a GUI popup.")
     return parser
 
 
@@ -87,7 +106,8 @@ try:
     baud = args.baud
     show_usage = args.help
     error_str = ""
-except (ArgumentParserError, argparse.ArgumentError, argparse.ArgumentTypeError) as e:
+except (ArgumentParserError, argparse.ArgumentError,
+        argparse.ArgumentTypeError) as e:
     print e
     show_usage = True
     error_str = "ERROR: " + str(e)
@@ -130,9 +150,8 @@ if ETSConfig.toolkit == 'qt4':
     import pyface.ui.qt4.python_shell
 from pyface.image_resource import ImageResource
 basedir = determine_path()
-icon = ImageResource('icon', search_path=[
-                     'images', os.path.join(basedir, 'images')])
-
+icon = ImageResource(
+    'icon', search_path=['images', os.path.join(basedir, 'images')])
 
 from piksi_tools.console.tracking_view import TrackingView
 from piksi_tools.console.solution_view import SolutionView
@@ -213,7 +232,6 @@ class SwiftConsole(HasTraits):
     imu_view = Instance(IMUView)
     spectrum_analyzer_view = Instance(SpectrumAnalyzerView)
     log_level_filter = Enum(list(SYSLOG_LEVELS.itervalues()))
-
     """"
   mode : baseline and solution view - SPP, Fixed or Float
   num_sat : baseline and solution view - number of satellites
@@ -237,36 +255,46 @@ class SwiftConsole(HasTraits):
     solid_connection = Bool(False)
 
     csv_logging_button = SVGButton(
-        toggle=True, label='CSV log', tooltip='start CSV logging', toggle_tooltip='stop CSV logging',
-        filename=os.path.join(determine_path(), 'images',
-                              'iconic', 'pause.svg'),
-        toggle_filename=os.path.join(
-            determine_path(), 'images', 'iconic', 'play.svg'),
+        toggle=True,
+        label='CSV log',
+        tooltip='start CSV logging',
+        toggle_tooltip='stop CSV logging',
+        filename=os.path.join(determine_path(), 'images', 'iconic',
+                              'pause.svg'),
+        toggle_filename=os.path.join(determine_path(), 'images', 'iconic',
+                                     'play.svg'),
         orientation='vertical',
-        width=2, height=2,
-    )
+        width=2,
+        height=2, )
     json_logging_button = SVGButton(
-        toggle=True, label='JSON log', tooltip='start JSON logging', toggle_tooltip='stop JSON logging',
-        filename=os.path.join(determine_path(), 'images',
-                              'iconic', 'pause.svg'),
-        toggle_filename=os.path.join(
-            determine_path(), 'images', 'iconic', 'play.svg'),
+        toggle=True,
+        label='JSON log',
+        tooltip='start JSON logging',
+        toggle_tooltip='stop JSON logging',
+        filename=os.path.join(determine_path(), 'images', 'iconic',
+                              'pause.svg'),
+        toggle_filename=os.path.join(determine_path(), 'images', 'iconic',
+                                     'play.svg'),
         orientation='vertical',
-        width=2, height=2,
-    )
+        width=2,
+        height=2, )
     paused_button = SVGButton(
-        label='', tooltip='Pause console update', toggle_tooltip='Resume console update', toggle=True,
-        filename=os.path.join(determine_path(), 'images',
-                              'iconic', 'pause.svg'),
-        toggle_filename=os.path.join(
-            determine_path(), 'images', 'iconic', 'play.svg'),
-        width=8, height=8
-    )
+        label='',
+        tooltip='Pause console update',
+        toggle_tooltip='Resume console update',
+        toggle=True,
+        filename=os.path.join(determine_path(), 'images', 'iconic',
+                              'pause.svg'),
+        toggle_filename=os.path.join(determine_path(), 'images', 'iconic',
+                                     'play.svg'),
+        width=8,
+        height=8)
     clear_button = SVGButton(
-        label='', tooltip='Clear console buffer',
+        label='',
+        tooltip='Clear console buffer',
         filename=os.path.join(determine_path(), 'images', 'iconic', 'x.svg'),
-        width=8, height=8
-    )
+        width=8,
+        height=8)
 
     view = View(
         VSplit(
@@ -276,95 +304,175 @@ class SwiftConsole(HasTraits):
                 Item('baseline_view', style='custom', label='Baseline'),
                 VSplit(
                     Item('observation_view', style='custom', show_label=False),
-                    Item('observation_view_base',
-                         style='custom', show_label=False),
-                    label='Observations',
-                ),
+                    Item(
+                        'observation_view_base',
+                        style='custom',
+                        show_label=False),
+                    label='Observations', ),
                 Item('settings_view', style='custom', label='Settings'),
                 Item('update_view', style='custom', label='Firmware Update'),
                 Tabbed(
-                    Item('system_monitor_view', style='custom',
-                         label='System Monitor'),
+                    Item(
+                        'system_monitor_view',
+                        style='custom',
+                        label='System Monitor'),
                     Item('imu_view', style='custom', label='IMU'),
-                    Item('networking_view', label='Networking',
-                         style='custom', show_label=False),
-                    Item('spectrum_analyzer_view',
-                         label='Spectrum Analyzer', style='custom'),
-                    Item('python_console_env', style='custom',
-                         label='Python Console', editor=ShellEditor()),
+                    Item(
+                        'networking_view',
+                        label='Networking',
+                        style='custom',
+                        show_label=False),
+                    Item(
+                        'spectrum_analyzer_view',
+                        label='Spectrum Analyzer',
+                        style='custom'),
+                    Item(
+                        'python_console_env',
+                        style='custom',
+                        label='Python Console',
+                        editor=ShellEditor()),
                     label='Advanced',
-                    show_labels=False
-                ),
-                show_labels=False
-            ),
+                    show_labels=False),
+                show_labels=False),
             VGroup(
                 VGroup(
                     HGroup(
                         Spring(width=4, springy=False),
-                        Item('paused_button', show_label=False,
-                             padding=0, width=8, height=8),
-                        Item('clear_button', show_label=False, width=8, height=8),
+                        Item(
+                            'paused_button',
+                            show_label=False,
+                            padding=0,
+                            width=8,
+                            height=8),
+                        Item(
+                            'clear_button',
+                            show_label=False,
+                            width=8,
+                            height=8),
                         Item('', label='Console Log', emphasized=True),
-                        Item('csv_logging_button', emphasized=True,
-                             show_label=False, width=12, height=-30, padding=0),
-                        Item('json_logging_button', emphasized=True,
-                             show_label=False, width=12, height=-30, padding=0),
-                        Item('directory_name', show_label=False, springy=True, tooltip='Choose location for file logs. Default is home/SwiftNav.',
-                             height=-25, enabled_when='not(json_logging or csv_logging)', editor_args={'auto_set': True}),
-                        UItem('log_level_filter', style='simple', padding=0, height=8, show_label=True,
-                              tooltip='Show log levels up to and including the selected level of severity.\nThe CONSOLE log level is always visible.'),
-                    ),
+                        Item(
+                            'csv_logging_button',
+                            emphasized=True,
+                            show_label=False,
+                            width=12,
+                            height=-30,
+                            padding=0),
+                        Item(
+                            'json_logging_button',
+                            emphasized=True,
+                            show_label=False,
+                            width=12,
+                            height=-30,
+                            padding=0),
+                        Item(
+                            'directory_name',
+                            show_label=False,
+                            springy=True,
+                            tooltip=
+                            'Choose location for file logs. Default is home/SwiftNav.',
+                            height=-25,
+                            enabled_when='not(json_logging or csv_logging)',
+                            editor_args={'auto_set': True}),
+                        UItem(
+                            'log_level_filter',
+                            style='simple',
+                            padding=0,
+                            height=8,
+                            show_label=True,
+                            tooltip=
+                            'Show log levels up to and including the selected level of severity.\nThe CONSOLE log level is always visible.'
+                        ), ),
                     Item(
                         'console_output',
                         style='custom',
                         editor=InstanceEditor(),
                         height=125,
                         show_label=False,
-                        full_size=True
-                    ),
-                ),
+                        full_size=True), ),
                 HGroup(
                     Spring(width=4, springy=False),
-                    Item('', label='Interface:', emphasized=True,
-                         tooltip='Interface for communicating with Swift device'),
+                    Item(
+                        '',
+                        label='Interface:',
+                        emphasized=True,
+                        tooltip='Interface for communicating with Swift device'
+                    ),
                     Item('cnx_desc', show_label=False, style='readonly'),
-                    Item('', label='FIX TYPE:', emphasized=True,
-                         tooltip='Device Mode: SPS, Float RTK, Fixed RTK'),
+                    Item(
+                        '',
+                        label='FIX TYPE:',
+                        emphasized=True,
+                        tooltip='Device Mode: SPS, Float RTK, Fixed RTK'),
                     Item('mode', show_label=False, style='readonly'),
-                    Item('', label='#Sats:', emphasized=True,
-                         tooltip='Number of satellites used in solution'),
-                    Item('num_sats', padding=2,
-                         show_label=False, style='readonly'),
-                    Item('', label='Base Latency:', emphasized=True,
-                         tooltip='Corrections latency (-1 means no corrections)'),
-                    Item('latency', padding=2,
-                         show_label=False, style='readonly'),
+                    Item(
+                        '',
+                        label='#Sats:',
+                        emphasized=True,
+                        tooltip='Number of satellites used in solution'),
+                    Item(
+                        'num_sats',
+                        padding=2,
+                        show_label=False,
+                        style='readonly'),
+                    Item(
+                        '',
+                        label='Base Latency:',
+                        emphasized=True,
+                        tooltip='Corrections latency (-1 means no corrections)'
+                    ),
+                    Item(
+                        'latency',
+                        padding=2,
+                        show_label=False,
+                        style='readonly'),
                     Spring(springy=True),
-                    Item('cnx_icon', show_label=False, padding=0, width=8, height=8, visible_when='solid_connection',
-                         springy=False, editor=ImageEditor(allow_clipping=False, image=ImageResource('arrows_blue.png',
-                                                                                                     search_path=[os.path.join(determine_path(), 'images', 'iconic')]))),
-                    Item('cnx_icon', show_label=False, padding=0, width=8, height=8, visible_when='not solid_connection',
-                         springy=False, editor=ImageEditor(allow_clipping=False, image=ImageResource('arrows_grey.png',
-                                                                                                     search_path=[os.path.join(determine_path(), 'images', 'iconic')]))),
-                    Spring(width=4, height=-2, springy=False),
-                ),
-                Spring(height=1, springy=False),
-            ),
-        ),
+                    Item(
+                        'cnx_icon',
+                        show_label=False,
+                        padding=0,
+                        width=8,
+                        height=8,
+                        visible_when='solid_connection',
+                        springy=False,
+                        editor=ImageEditor(
+                            allow_clipping=False,
+                            image=ImageResource(
+                                'arrows_blue.png',
+                                search_path=[
+                                    os.path.join(determine_path(), 'images',
+                                                 'iconic')
+                                ]))),
+                    Item(
+                        'cnx_icon',
+                        show_label=False,
+                        padding=0,
+                        width=8,
+                        height=8,
+                        visible_when='not solid_connection',
+                        springy=False,
+                        editor=ImageEditor(
+                            allow_clipping=False,
+                            image=ImageResource(
+                                'arrows_grey.png',
+                                search_path=[
+                                    os.path.join(determine_path(), 'images',
+                                                 'iconic')
+                                ]))),
+                    Spring(width=4, height=-2, springy=False), ),
+                Spring(height=1, springy=False), ), ),
         icon=icon,
         resizable=True,
         width=800,
         height=600,
         handler=ConsoleHandler(),
-        title=CONSOLE_TITLE
-    )
+        title=CONSOLE_TITLE)
 
     def print_message_callback(self, sbp_msg, **metadata):
         try:
             encoded = sbp_msg.payload.encode('ascii', 'ignore')
             for eachline in reversed(encoded.split('\n')):
-                self.console_output.write_level(eachline,
-                                                str_to_log_level(eachline.split(':')[0]))
+                self.console_output.write_level(
+                    eachline, str_to_log_level(eachline.split(':')[0]))
         except UnicodeDecodeError:
             print "Critical Error encoding the serial stream as ascii."
 
@@ -379,9 +487,9 @@ class SwiftConsole(HasTraits):
     def ext_event_callback(self, sbp_msg, **metadata):
         e = MsgExtEvent(sbp_msg)
         print 'External event: %s edge on pin %d at wn=%d, tow=%d, time qual=%s' % (
-            "Rising" if (e.flags & (1 << 0)
-                         ) else "Falling", e.pin, e.wn, e.tow,
-            "good" if (e.flags & (1 << 1)) else "unknown")
+            "Rising"
+            if (e.flags & (1 << 0)) else "Falling", e.pin, e.wn, e.tow, "good"
+            if (e.flags & (1 << 1)) else "unknown")
 
     def cmd_resp_callback(self, sbp_msg, **metadata):
         r = MsgCommandResp(sbp_msg)
@@ -504,8 +612,7 @@ class SwiftConsole(HasTraits):
             confirm_prompt = CallbackPrompt(
                 title="Logging directory creation",
                 actions=[ok_button],
-                callback=self._json_logging_button_action
-            )
+                callback=self._json_logging_button_action)
             confirm_prompt.text = "\nThe selected logging directory does not exist and will be created."
             confirm_prompt.run(block=False)
         else:
@@ -516,8 +623,7 @@ class SwiftConsole(HasTraits):
             confirm_prompt = CallbackPrompt(
                 title="Logging directory creation",
                 actions=[ok_button],
-                callback=self._csv_logging_button_action
-            )
+                callback=self._csv_logging_button_action)
             confirm_prompt.text = "\nThe selected logging directory does not exist and will be created."
             confirm_prompt.run(block=False)
         else:
@@ -529,9 +635,19 @@ class SwiftConsole(HasTraits):
     def __exit__(self, exc_type, exc_value, traceback):
         self.console_output.close()
 
-    def __init__(self, link, update, log_level_filter, skip_settings=False, error=False,
-                 cnx_desc=None, json_logging=False, log_dirname=None, override_filename=None,
-                 log_console=False, networking=None, serial_upgrade=False):
+    def __init__(self,
+                 link,
+                 update,
+                 log_level_filter,
+                 skip_settings=False,
+                 error=False,
+                 cnx_desc=None,
+                 json_logging=False,
+                 log_dirname=None,
+                 override_filename=None,
+                 log_console=False,
+                 networking=None,
+                 serial_upgrade=False):
         self.error = error
         self.cnx_desc = cnx_desc
         self.dev_id = cnx_desc
@@ -547,8 +663,8 @@ class SwiftConsole(HasTraits):
         if log_dirname:
             self.directory_name = log_dirname
             if override_filename:
-                override_filename = os.path.join(
-                    log_dirname, override_filename)
+                override_filename = os.path.join(log_dirname,
+                                                 override_filename)
         else:
             self.directory_name = swift_path
 
@@ -556,8 +672,8 @@ class SwiftConsole(HasTraits):
         self.console_output = OutputList(
             tfile=log_console, outdir=self.directory_name)
         sys.stdout = self.console_output
-        self.console_output.write(
-            "Console: " + CONSOLE_VERSION + " starting...")
+        self.console_output.write("Console: " + CONSOLE_VERSION +
+                                  " starting...")
         if not error:
             sys.stderr = self.console_output
 
@@ -566,12 +682,12 @@ class SwiftConsole(HasTraits):
             log_level_filter)
         try:
             self.link = link
-            self.link.add_callback(
-                self.print_message_callback, SBP_MSG_PRINT_DEP)
+            self.link.add_callback(self.print_message_callback,
+                                   SBP_MSG_PRINT_DEP)
             self.link.add_callback(self.log_message_callback, SBP_MSG_LOG)
             self.link.add_callback(self.ext_event_callback, SBP_MSG_EXT_EVENT)
-            self.link.add_callback(
-                self.cmd_resp_callback, SBP_MSG_COMMAND_RESP)
+            self.link.add_callback(self.cmd_resp_callback,
+                                   SBP_MSG_COMMAND_RESP)
             self.link.add_callback(self.update_on_heartbeat, SBP_MSG_HEARTBEAT)
             self.dep_handler = DeprecatedMessageHandler(link)
             settings_read_finished_functions = []
@@ -581,12 +697,21 @@ class SwiftConsole(HasTraits):
             self.baseline_view = BaselineView(
                 self.link, dirname=self.directory_name)
             self.observation_view = ObservationView(
-                self.link, name='Local', relay=False, dirname=self.directory_name)
+                self.link,
+                name='Local',
+                relay=False,
+                dirname=self.directory_name)
             self.observation_view_base = ObservationView(
-                self.link, name='Remote', relay=True, dirname=self.directory_name)
+                self.link,
+                name='Remote',
+                relay=True,
+                dirname=self.directory_name)
             self.system_monitor_view = SystemMonitorView(self.link)
             self.update_view = UpdateView(
-                self.link, download_dir=swift_path, prompt=update, serial_upgrade=serial_upgrade)
+                self.link,
+                download_dir=swift_path,
+                prompt=update,
+                serial_upgrade=serial_upgrade)
             self.imu_view = IMUView(self.link)
             self.spectrum_analyzer_view = SpectrumAnalyzerView(self.link)
             settings_read_finished_functions.append(
@@ -603,8 +728,9 @@ class SwiftConsole(HasTraits):
                     networking_dict = {'show_networking': True}
             else:
                 networking_dict = {}
-            networking_dict.update(
-                {'whitelist': [SBP_MSG_POS_LLH, SBP_MSG_HEARTBEAT]})
+            networking_dict.update({
+                'whitelist': [SBP_MSG_POS_LLH, SBP_MSG_HEARTBEAT]
+            })
             self.networking_view = SbpRelayView(self.link, **networking_dict)
             self.json_logging = json_logging
             self.csv_logging = False
@@ -614,6 +740,7 @@ class SwiftConsole(HasTraits):
                 self.json_logging = True
             # we set timer interval to 1200 milliseconds because we expect a heartbeat each second
             self.timer_cancel = call_repeatedly(1.2, self.check_heartbeat)
+
             # Once we have received the settings, update device_serial with
             # the Swift serial number which will be displayed in the window
             # title. This callback will also update the header route as used
@@ -623,8 +750,10 @@ class SwiftConsole(HasTraits):
                 uuid = None
                 mfg_id = None
                 try:
-                    uuid = self.settings_view.settings['system_info']['uuid'].value
-                    mfg_id = self.settings_view.settings['system_info']['serial_number'].value
+                    uuid = self.settings_view.settings['system_info'][
+                        'uuid'].value
+                    mfg_id = self.settings_view.settings['system_info'][
+                        'serial_number'].value
                 except KeyError:
                     pass
                 if mfg_id:
@@ -632,13 +761,17 @@ class SwiftConsole(HasTraits):
                 self.networking_view.set_route(uuid=uuid, serial_id=mfg_id)
                 if self.networking_view.connect_when_uuid_received:
                     self.networking_view._connect_rover_fired()
+
             settings_read_finished_functions.append(update_serial)
-            self.settings_view = SettingsView(self.link,
-                                              settings_read_finished_functions,
-                                              skip=skip_settings)
+            self.settings_view = SettingsView(
+                self.link,
+                settings_read_finished_functions,
+                skip=skip_settings)
             self.update_view.settings = self.settings_view.settings
-            self.python_console_env = {'send_message': self.link,
-                                       'link': self.link, }
+            self.python_console_env = {
+                'send_message': self.link,
+                'link': self.link,
+            }
             self.python_console_env.update(
                 self.tracking_view.python_console_cmds)
             self.python_console_env.update(
@@ -674,9 +807,15 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 class ShowUsage(HasTraits):
     usage_str = Str()
     traits_view = View(
-        Item("usage_str", style='readonly', show_label=False,
-             editor=HTMLEditor(), resizable=True),
-        width=680, resizable=True, icon=icon,
+        Item(
+            "usage_str",
+            style='readonly',
+            show_label=False,
+            editor=HTMLEditor(),
+            resizable=True),
+        width=680,
+        resizable=True,
+        icon=icon,
         title='Swift Console Usage')
 
     def __init__(self, usage, error_str):
@@ -685,9 +824,9 @@ class ShowUsage(HasTraits):
         else:
             self.usage_str = "<pre>" + usage + "</pre>"
 
+
 # If using a device connected to an actual port, then invoke the
 # regular console dialog for port selection
-
 
 flow_control_options_list = ['None', 'Hardware RTS/CTS']
 cnx_type_list = ['Serial/USB', 'TCP/IP']
@@ -707,49 +846,63 @@ class PortChooser(HasTraits):
             Spring(height=8),
             HGroup(
                 Spring(width=-2, springy=False),
-                Item('mode', style='custom', editor=EnumEditor(values=cnx_type_list,
-                                                               cols=2, format_str='%s'), show_label=False)
-            ),
+                Item(
+                    'mode',
+                    style='custom',
+                    editor=EnumEditor(
+                        values=cnx_type_list, cols=2, format_str='%s'),
+                    show_label=False)),
             HGroup(
                 VGroup(
                     Label('Serial Device:'),
-                    Item('port', editor=EnumEditor(
-                        name='ports'), show_label=False),
-                ),
+                    Item(
+                        'port',
+                        editor=EnumEditor(name='ports'),
+                        show_label=False), ),
                 VGroup(
                     Label('Baudrate:'),
-                    Item('baudrate', editor=EnumEditor(values=BAUD_LIST),
-                         show_label=False, visible_when='choose_baud'),
-                    Item('baudrate', show_label=False,
-                         visible_when='not choose_baud', style='readonly'),
-                ),
+                    Item(
+                        'baudrate',
+                        editor=EnumEditor(values=BAUD_LIST),
+                        show_label=False,
+                        visible_when='choose_baud'),
+                    Item(
+                        'baudrate',
+                        show_label=False,
+                        visible_when='not choose_baud',
+                        style='readonly'), ),
                 VGroup(
                     Label('Flow Control:'),
-                    Item('flow_control', editor=EnumEditor(
-                        values=flow_control_options_list, format_str='%s'), show_label=False),
-                ),
+                    Item(
+                        'flow_control',
+                        editor=EnumEditor(
+                            values=flow_control_options_list, format_str='%s'),
+                        show_label=False), ),
                 visible_when="mode==\'Serial/USB\'"),
             HGroup(
                 VGroup(
                     Label('IP Address:'),
-                    Item('ip_address', label="IP Address", style='simple', show_label=False,
-                         height=-24),
-                ),
+                    Item(
+                        'ip_address',
+                        label="IP Address",
+                        style='simple',
+                        show_label=False,
+                        height=-24), ),
                 VGroup(
                     Label('IP Port:'),
-                    Item('ip_port', label="IP Port", style='simple',
-                         show_label=False, height=-24),
-                ),
+                    Item(
+                        'ip_port',
+                        label="IP Port",
+                        style='simple',
+                        show_label=False,
+                        height=-24), ),
                 Spring(),
-                visible_when="mode==\'TCP/IP\'"
-            ),
-        ),
+                visible_when="mode==\'TCP/IP\'"), ),
         buttons=['OK', 'Cancel'],
         close_result=False,
         icon=icon,
         width=400,
-        title='Swift Console - Select Piksi Interface',
-    )
+        title='Swift Console - Select Piksi Interface', )
 
     def __init__(self, baudrate=None):
         try:
@@ -804,7 +957,8 @@ elif not port:
     else:
         # Use either TCP/IP or serial selected from gui
         if mode == cnx_type_list[1]:
-            print "Using TCP/IP at address %s and port %d" % (ip_address, ip_port)
+            print "Using TCP/IP at address %s and port %d" % (ip_address,
+                                                              ip_port)
             selected_driver = TCPDriver(ip_address, int(ip_port))
             connection_description = ip_address + ":" + str(ip_port)
         else:
@@ -820,16 +974,25 @@ else:
     connection_description = os.path.split(port)[-1] + " @" + str(baud)
 
 with selected_driver as driver:
-    with sbpc.Handler(sbpc.Framer(driver.read, driver.write, args.verbose)) as link:
+    with sbpc.Handler(
+            sbpc.Framer(driver.read, driver.write, args.verbose)) as link:
         if args.reset:
             link(MsgReset(flags=0))
         log_filter = DEFAULT_LOG_LEVEL_FILTER
         if args.initloglevel[0]:
             log_filter = args.initloglevel[0]
-        with SwiftConsole(link, args.update, log_filter, cnx_desc=connection_description, error=args.error,
-                          json_logging=args.log, log_dirname=args.log_dirname, override_filename=args.logfilename,
-                          log_console=args.log_console, networking=args.networking,
-                          serial_upgrade=args.serial_upgrade) as console:
+        with SwiftConsole(
+                link,
+                args.update,
+                log_filter,
+                cnx_desc=connection_description,
+                error=args.error,
+                json_logging=args.log,
+                log_dirname=args.log_dirname,
+                override_filename=args.logfilename,
+                log_console=args.log_console,
+                networking=args.networking,
+                serial_upgrade=args.serial_upgrade) as console:
             console.configure_traits()
 
 # Force exit, even if threads haven't joined

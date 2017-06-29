@@ -17,7 +17,6 @@
 # THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
-
 """
 The :mod:`piksi_tools.bootload` module contains functions loading firmware
 images.
@@ -63,10 +62,10 @@ class Bootloader():
     def stop(self):
         """ Remove Bootloader instance callbacks from serial link. """
         self.stopped = True
-        self.link.remove_callback(
-            self._deprecated_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_DEP_A)
-        self.link.remove_callback(
-            self._handshake_callback, SBP_MSG_BOOTLOADER_HANDSHAKE_RESP)
+        self.link.remove_callback(self._deprecated_callback,
+                                  SBP_MSG_BOOTLOADER_HANDSHAKE_DEP_A)
+        self.link.remove_callback(self._handshake_callback,
+                                  SBP_MSG_BOOTLOADER_HANDSHAKE_RESP)
 
     def _deprecated_callback(self, sbp_msg, **metadata):
         """ Bootloader handshake for deprecated message ID. """
@@ -85,8 +84,8 @@ class Bootloader():
         """ Bootloader handshake callback. """
         hs_device = MsgBootloaderHandshakeResp(sbp_msg)
         self.version = hs_device.version
-        self.sbp_version = ((hs_device.flags >> 8) &
-                            0xFF, hs_device.flags & 0xFF)
+        self.sbp_version = ((hs_device.flags >> 8) & 0xFF,
+                            hs_device.flags & 0xFF)
         self.handshake_received = True
 
     def handshake(self, timeout=None):
@@ -136,33 +135,52 @@ def get_args():
     """
     import argparse
     parser = argparse.ArgumentParser(description='Piksi Bootloader')
-    parser.add_argument("file",
-                        help="the Intel hex file to write to flash.")
-    parser.add_argument('-m', '--m25',
-                        help='write the file to the M25 (FPGA) flash.',
-                        action="store_true")
-    parser.add_argument('-s', '--stm',
-                        help='write the file to the STM flash.',
-                        action="store_true")
-    parser.add_argument('-e', '--erase',
-                        help='erase sectors 1-11 of the STM flash.',
-                        action="store_true")
-    parser.add_argument('-p', '--port',
-                        default=[serial_link.SERIAL_PORT], nargs=1,
-                        help='specify the serial port to use.')
-    parser.add_argument("-b", "--baud",
-                        default=[serial_link.SERIAL_BAUD], nargs=1,
-                        help="specify the baud rate to use.")
-    parser.add_argument("-q", "--max-queued-ops",
-                        default=[1], nargs=1,
-                        help="Maximum number of queued operations.")
-    parser.add_argument("-f", "--ftdi",
-                        help="use pylibftdi instead of pyserial.",
-                        action="store_true")
-    parser.add_argument("-t", "--timeout", nargs=1, type=int,
-                        default=[None],
-                        help="Specify Timeout for which to wait for handshake.",
-                        )
+    parser.add_argument("file", help="the Intel hex file to write to flash.")
+    parser.add_argument(
+        '-m',
+        '--m25',
+        help='write the file to the M25 (FPGA) flash.',
+        action="store_true")
+    parser.add_argument(
+        '-s',
+        '--stm',
+        help='write the file to the STM flash.',
+        action="store_true")
+    parser.add_argument(
+        '-e',
+        '--erase',
+        help='erase sectors 1-11 of the STM flash.',
+        action="store_true")
+    parser.add_argument(
+        '-p',
+        '--port',
+        default=[serial_link.SERIAL_PORT],
+        nargs=1,
+        help='specify the serial port to use.')
+    parser.add_argument(
+        "-b",
+        "--baud",
+        default=[serial_link.SERIAL_BAUD],
+        nargs=1,
+        help="specify the baud rate to use.")
+    parser.add_argument(
+        "-q",
+        "--max-queued-ops",
+        default=[1],
+        nargs=1,
+        help="Maximum number of queued operations.")
+    parser.add_argument(
+        "-f",
+        "--ftdi",
+        help="use pylibftdi instead of pyserial.",
+        action="store_true")
+    parser.add_argument(
+        "-t",
+        "--timeout",
+        nargs=1,
+        type=int,
+        default=[None],
+        help="Specify Timeout for which to wait for handshake.", )
     args = parser.parse_args()
     if args.stm and args.m25:
         parser.error("Only one of -s or -m options may be chosen")
@@ -203,7 +221,8 @@ def main():
                         args.timeout[0])
                 except KeyboardInterrupt:
                     return
-                if not (handshake_received and piksi_bootloader.handshake_received):
+                if not (handshake_received and
+                        piksi_bootloader.handshake_received):
                     print "No handshake received."
                     sys.exit(1)
                 print "received."
@@ -214,8 +233,12 @@ def main():
                 # Catch all other errors and exit cleanly.
                 try:
                     import flash
-                    with flash.Flash(link, flash_type=("STM" if use_stm else "M25"),
-                                     sbp_version=piksi_bootloader.sbp_version, max_queued_ops=int(args.max_queued_ops[0])) as piksi_flash:
+                    with flash.Flash(
+                            link,
+                            flash_type=("STM" if use_stm else "M25"),
+                            sbp_version=piksi_bootloader.sbp_version,
+                            max_queued_ops=int(
+                                args.max_queued_ops[0])) as piksi_flash:
                         if erase:
                             for s in range(1, 12):
                                 print "\rErasing STM Sector", s,

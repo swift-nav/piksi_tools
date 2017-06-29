@@ -8,7 +8,6 @@
 # THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR
-
 """
 Combines a base and rover JSON SBP log file into a single JSON SBP log, 
 interleaving messages to produce a stream that increases monotonically in GPS time.
@@ -38,12 +37,8 @@ import sbp.navigation as nav
 from sbp.msg import SBP
 
 msgs_filter = [
-    ob.SBP_MSG_OBS,
-    ob.SBP_MSG_EPHEMERIS_GPS,
-    ob.SBP_MSG_EPHEMERIS_SBAS,
-    ob.SBP_MSG_EPHEMERIS_GLO,
-    ob.SBP_MSG_IONO,
-    ob.SBP_MSG_BASE_POS_LLH,
+    ob.SBP_MSG_OBS, ob.SBP_MSG_EPHEMERIS_GPS, ob.SBP_MSG_EPHEMERIS_SBAS,
+    ob.SBP_MSG_EPHEMERIS_GLO, ob.SBP_MSG_IONO, ob.SBP_MSG_BASE_POS_LLH,
     ob.SBP_MSG_BASE_POS_ECEF
 ]
 

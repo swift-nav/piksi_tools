@@ -16,18 +16,30 @@ def get_args():
     import argparse
     parser = argparse.ArgumentParser(
         description="Swift Navigation UDP Receive tool.")
-    parser.add_argument("-s", "--serial-port",
-                        default=[DEFAULT_SERIAL_PORT], nargs=1,
-                        help="specify the serial port to use.")
-    parser.add_argument("-b", "--baud",
-                        default=[DEFAULT_SERIAL_BAUD], nargs=1,
-                        help="specify the baud rate to use.")
-    parser.add_argument("-a", "--address",
-                        default=[DEFAULT_UDP_ADDRESS], nargs=1,
-                        help="specify the UDP IP Address to use.")
-    parser.add_argument("-p", "--udp-port",
-                        default=[DEFAULT_UDP_PORT], nargs=1,
-                        help="specify the UDP Port to use.")
+    parser.add_argument(
+        "-s",
+        "--serial-port",
+        default=[DEFAULT_SERIAL_PORT],
+        nargs=1,
+        help="specify the serial port to use.")
+    parser.add_argument(
+        "-b",
+        "--baud",
+        default=[DEFAULT_SERIAL_BAUD],
+        nargs=1,
+        help="specify the baud rate to use.")
+    parser.add_argument(
+        "-a",
+        "--address",
+        default=[DEFAULT_UDP_ADDRESS],
+        nargs=1,
+        help="specify the UDP IP Address to use.")
+    parser.add_argument(
+        "-p",
+        "--udp-port",
+        default=[DEFAULT_UDP_PORT],
+        nargs=1,
+        help="specify the UDP Port to use.")
     return parser.parse_args()
 
 
@@ -39,8 +51,9 @@ def main():
     port = int(args.udp_port[0])
     address = args.address[0]
     ser = serial.Serial(args.serial_port[0], args.baud[0])
-    sock = socket.socket(socket.AF_INET,    # Internet
-                         socket.SOCK_DGRAM)  # UDP
+    sock = socket.socket(
+        socket.AF_INET,  # Internet
+        socket.SOCK_DGRAM)  # UDP
     sock.bind((args.address[0], args.udp_port[0]))
     try:
         while True:

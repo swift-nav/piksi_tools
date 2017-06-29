@@ -45,7 +45,8 @@ def split_logs(filename, seconds2split, prefix=None, verbose=False):
             timediff = m._timestamp - previous_ts
             if timediff > seconds2split:
                 if verbose:
-                    print "Breaking at {0} for type{1}".format(m._timestamp, m.get_type())
+                    print "Breaking at {0} for type{1}".format(
+                        m._timestamp, m.get_type())
                 with open(outfile + "." + str(part), 'w') as fd:
                     before_message = log.offset - len(m.binary)
                     # if we are in the first message, no need to repeat the header
@@ -53,8 +54,8 @@ def split_logs(filename, seconds2split, prefix=None, verbose=False):
                         fd.write(log.data[starting_offset:before_message])
                     # repeat the header for other segments
                     else:
-                        fd.write(
-                            header + log.data[starting_offset:before_message])
+                        fd.write(header +
+                                 log.data[starting_offset:before_message])
                     starting_offset = before_message
                     part += 1
         else:
@@ -71,17 +72,20 @@ def get_args():
     import argparse
     parser = argparse.ArgumentParser(
         description='Mavlink to SBP JSON converter')
-    parser.add_argument("dataflashfile",
-                        help="the dataflashfile to convert.")
-    parser.add_argument('-t', '--timestep',
-                        default=[10], nargs=1,
-                        help='number of seconds gap at which to split a file')
-    parser.add_argument('-p', '--prefix',
-                        default=[None], nargs=1,
-                        help='file prefix')
-    parser.add_argument("-v", "--verbose",
-                        action="store_true",
-                        help="print extra debugging information.")
+    parser.add_argument("dataflashfile", help="the dataflashfile to convert.")
+    parser.add_argument(
+        '-t',
+        '--timestep',
+        default=[10],
+        nargs=1,
+        help='number of seconds gap at which to split a file')
+    parser.add_argument(
+        '-p', '--prefix', default=[None], nargs=1, help='file prefix')
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="print extra debugging information.")
     args = parser.parse_args()
     return args
 

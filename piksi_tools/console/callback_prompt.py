@@ -17,18 +17,17 @@ from piksi_tools.console.utils import determine_path
 from threading import Thread
 from time import sleep
 
+auto_survey_button = Action(
+    name="Auto Survey", action="set_execute_callback_true", show_label=False)
 
-auto_survey_button = Action(name="Auto Survey", action="set_execute_callback_true",
-                            show_label=False)
-
-update_button = Action(name="Update", action="set_execute_callback_true",
-                       show_label=False)
-reset_button = Action(name="Reset", action="set_execute_callback_true",
-                      show_label=False)
-close_button = Action(name="Close", action="set_execute_callback_false",
-                      show_label=False)
-ok_button = Action(name="Ok", action="set_execute_callback_true",
-                   show_label=False)
+update_button = Action(
+    name="Update", action="set_execute_callback_true", show_label=False)
+reset_button = Action(
+    name="Reset", action="set_execute_callback_true", show_label=False)
+close_button = Action(
+    name="Close", action="set_execute_callback_false", show_label=False)
+ok_button = Action(
+    name="Ok", action="set_execute_callback_true", show_label=False)
 
 from new import instancemethod
 
@@ -36,8 +35,8 @@ import sys
 import os
 from pyface.image_resource import ImageResource
 basedir = determine_path()
-icon = ImageResource('icon',
-                     search_path=['images', os.path.join(basedir, 'images')])
+icon = ImageResource(
+    'icon', search_path=['images', os.path.join(basedir, 'images')])
 
 # Handler methods that can be associated with buttons.
 
@@ -60,8 +59,8 @@ class CallbackHandler(Handler):
         for a in actions:
             # Add instancemethod to self for Action.action.
             handler = globals()[a.action]
-            self.__dict__[a.action] = instancemethod(
-                handler, self, CallbackHandler)
+            self.__dict__[a.action] = instancemethod(handler, self,
+                                                     CallbackHandler)
 
     # X button was pressed.
     def close(self, info, is_ok):
@@ -93,14 +92,12 @@ class CallbackPrompt(HasTraits):
                 'text',
                 style='readonly',
                 editor=TextEditor(),
-                show_label=False
-            ),
+                show_label=False),
             buttons=actions,
             title=title,
             handler=CallbackHandler(actions),
             icon=icon,
-            resizable=True,
-        )
+            resizable=True, )
 
     def run(self, block=True):
         try:

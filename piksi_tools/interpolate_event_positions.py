@@ -27,12 +27,13 @@ def lin_interp(oldpos, newpos, oldtow, newtow, triggertow):
       TOW of trigger 
     """
     # Warning for not logical TOW values
-    if not(oldtow < triggertow < newtow):
+    if not (oldtow < triggertow < newtow):
         print 'TOW values ERROR at {0}'.format(triggertow)
 
     # Warning for big end-point differences
     if (newtow - oldtow) > 3000:
-        print "Interpolation end-points for Trigger at TOW {0} too far away".format(triggertow)
+        print "Interpolation end-points for Trigger at TOW {0} too far away".format(
+            triggertow)
 
     d = float(newpos - oldpos)
     t = (newtow - oldtow)
@@ -56,7 +57,9 @@ def fix_trigger_rollover(message_type, msg_tow, numofmsg):
     pre_tow = msg_tow[0]
     itt = 1
     while itt < numofmsg:
-        if (pre_tow - msg_tow[itt]) > 261000 and (pre_tow - msg_tow[itt]) < 263000 and message_type[itt] == "MsgExtEvent":
+        if (pre_tow - msg_tow[itt]) > 261000 and (
+                pre_tow -
+                msg_tow[itt]) < 263000 and message_type[itt] == "MsgExtEvent":
             msg_tow[itt] += ((1 / 16368000.0 * 2**32) * 1000)
         pre_tow = msg_tow[itt]
         itt += 1
@@ -81,7 +84,8 @@ def fix_trigger_debounce(message_type, msg_tow, numofmsg, debouncetime):
     prev_trigger_tow = 0
     itt = 0
     while itt < numofmsg:
-        if (msg_tow[itt] - prev_trigger_tow) < debouncetime and message_type[itt] == "MsgExtEvent":
+        if (msg_tow[itt] - prev_trigger_tow
+            ) < debouncetime and message_type[itt] == "MsgExtEvent":
             msg_tow[itt] = 0
         elif message_type[itt] == "MsgExtEvent":
             prev_trigger_tow = msg_tow[itt]
@@ -141,7 +145,8 @@ def get_rightbound(message_type, msg_tow, trigger_tow, msgout, numofmsg):
     return rightbound
 
 
-def get_position_parameter(message_type, msg_tow, msg_position, tow, numofmsg, msgout):
+def get_position_parameter(message_type, msg_tow, msg_position, tow, numofmsg,
+                           msgout):
     """
     Finds the position of the bounds related to the trigger 
 
@@ -169,7 +174,8 @@ def get_position_parameter(message_type, msg_tow, msg_position, tow, numofmsg, m
     return value
 
 
-def get_trigger_positions(message_type, msg_tow, msgout, numofmsg, msg_horizontal, msg_vertical, msg_depth, msg_sats):
+def get_trigger_positions(message_type, msg_tow, msgout, numofmsg,
+                          msg_horizontal, msg_vertical, msg_depth, msg_sats):
     """
     Calls the above functions to commute the data at the event triggers and saves it in the trigger list 
 
@@ -190,10 +196,10 @@ def get_trigger_positions(message_type, msg_tow, msgout, numofmsg, msg_horizonta
     while itt < numofmsg:
         if message_type[itt] == "MsgExtEvent" and msg_tow[itt] > 0:
             # get left and right tow bounds
-            left = get_leftbound(message_type, msg_tow,
-                                 msg_tow[itt], msgout, numofmsg)
-            right = get_rightbound(message_type, msg_tow,
-                                   msg_tow[itt], msgout, numofmsg)
+            left = get_leftbound(message_type, msg_tow, msg_tow[itt], msgout,
+                                 numofmsg)
+            right = get_rightbound(message_type, msg_tow, msg_tow[itt], msgout,
+                                   numofmsg)
 
             # get left and right vertical horizontal and depth positions
             left_h = get_position_parameter(
@@ -204,26 +210,27 @@ def get_trigger_positions(message_type, msg_tow, msgout, numofmsg, msg_horizonta
                 message_type, msg_tow, msg_vertical, left, numofmsg, msgout)
             right_v = get_position_parameter(
                 message_type, msg_tow, msg_vertical, right, numofmsg, msgout)
-            left_d = get_position_parameter(
-                message_type, msg_tow, msg_depth, left, numofmsg, msgout)
-            right_d = get_position_parameter(
-                message_type, msg_tow, msg_depth, right, numofmsg, msgout)
-            left_sats = get_position_parameter(
-                message_type, msg_tow, msg_sats, left, numofmsg, msgout)
+            left_d = get_position_parameter(message_type, msg_tow, msg_depth,
+                                            left, numofmsg, msgout)
+            right_d = get_position_parameter(message_type, msg_tow, msg_depth,
+                                             right, numofmsg, msgout)
+            left_sats = get_position_parameter(message_type, msg_tow, msg_sats,
+                                               left, numofmsg, msgout)
 
             # interpolate trigger position
-            msg_horizontal[itt] = lin_interp(
-                left_h, right_h, left, right, msg_tow[itt])
-            msg_vertical[itt] = lin_interp(
-                left_v, right_v, left, right, msg_tow[itt])
-            msg_depth[itt] = lin_interp(
-                left_d, right_d, left, right, msg_tow[itt])
+            msg_horizontal[itt] = lin_interp(left_h, right_h, left, right,
+                                             msg_tow[itt])
+            msg_vertical[itt] = lin_interp(left_v, right_v, left, right,
+                                           msg_tow[itt])
+            msg_depth[itt] = lin_interp(left_d, right_d, left, right,
+                                        msg_tow[itt])
             msg_sats[itt] = left_sats
         itt += 1
     return
 
 
-def display_data(message_type, msg_tow, msg_horizontal, msg_vertical, msg_depth, msg_flag, msg_sats, numofmsg, msgtype, outfile):
+def display_data(message_type, msg_tow, msg_horizontal, msg_vertical,
+                 msg_depth, msg_flag, msg_sats, numofmsg, msgtype, outfile):
     """
     Outputs the interpolated data to a CSV file. 
 
@@ -257,13 +264,15 @@ def display_data(message_type, msg_tow, msg_horizontal, msg_vertical, msg_depth,
     itt = 0
     while itt < numofmsg:
         if message_type[itt] == "MsgExtEvent" and msg_tow[itt] > 0:
-            writer.writerow((msg_tow[itt], msg_horizontal[itt], msg_vertical[itt],
-                             msg_depth[itt], msg_sats[itt], msg_flag[itt]))
+            writer.writerow(
+                (msg_tow[itt], msg_horizontal[itt], msg_vertical[itt],
+                 msg_depth[itt], msg_sats[itt], msg_flag[itt]))
         itt += 1
     return
 
 
-def rid_access_data(message_type, msg_tow, msg_horizontal, msg_vertical, msg_depth, msg_flag, msg_sats, numofmsg):
+def rid_access_data(message_type, msg_tow, msg_horizontal, msg_vertical,
+                    msg_depth, msg_flag, msg_sats, numofmsg):
     """
     Gets rid of all access data in lists.
     Only trigger and interpolated data remains.
@@ -316,8 +325,10 @@ def collect_positions(infilename, msgtype, debouncetime):
                     msg, metadata = log.next()
                     hostdelta = metadata['delta']
                     hosttimestamp = metadata['timestamp']
-                    valid_msg = ["MsgBaselineECEF", "MsgPosECEF",
-                                 "MsgBaselineNED", "MsgPosLLH", "MsgExtEvent"]
+                    valid_msg = [
+                        "MsgBaselineECEF", "MsgPosECEF", "MsgBaselineNED",
+                        "MsgPosLLH", "MsgExtEvent"
+                    ]
                     # collect all data in lists
                     if msg.__class__.__name__ in valid_msg:
                         message_type.append(msg.__class__.__name__)
@@ -347,18 +358,21 @@ def collect_positions(infilename, msgtype, debouncetime):
                         numofmsg += 1
 
                 except StopIteration:
-                    print "reached end of file after {0} milli-seconds".format(hostdelta)
+                    print "reached end of file after {0} milli-seconds".format(
+                        hostdelta)
                     fix_trigger_rollover(message_type, msg_tow, numofmsg)
                     print 'done roll'
-                    fix_trigger_debounce(
-                        message_type, msg_tow, numofmsg, debouncetime)
+                    fix_trigger_debounce(message_type, msg_tow, numofmsg,
+                                         debouncetime)
                     print ' done bebounce'
-                    get_trigger_positions(
-                        message_type, msg_tow, msgtype, numofmsg, msg_horizontal, msg_vertical, msg_depth, msg_sats)
+                    get_trigger_positions(message_type, msg_tow, msgtype,
+                                          numofmsg, msg_horizontal,
+                                          msg_vertical, msg_depth, msg_sats)
                     print 'done interpolation'
                     print
                     numofmsg = rid_access_data(
-                        message_type, msg_tow, msg_horizontal, msg_vertical, msg_depth, msg_flag, msg_sats, numofmsg)
+                        message_type, msg_tow, msg_horizontal, msg_vertical,
+                        msg_depth, msg_flag, msg_sats, numofmsg)
 
                     return message_type, msg_tow, msg_horizontal, msg_vertical, msg_depth, msg_flag, msg_sats, numofmsg
 
@@ -369,18 +383,31 @@ def get_args():
     """
     import argparse
     parser = argparse.ArgumentParser(description='MetaData xml creator')
-    parser.add_argument('-f', '--filename',
-                        default=[None], nargs=1,
-                        help="The SBP log file to extract data from.")
-    parser.add_argument('-o', '--outfile',
-                        default=["output.csv"], nargs=1,
-                        help='specify the name of the CSV file output.')
-    parser.add_argument('-t', '--type', nargs=1,
-                        default=['MsgBaselineNED'],
-                        help='Type of message to interpolate.')
-    parser.add_argument('-d', '--debouncetime', type=int,
-                        default=[1000], nargs=1,
-                        help='Specify the debounce time for trigger in ms.')
+    parser.add_argument(
+        '-f',
+        '--filename',
+        default=[None],
+        nargs=1,
+        help="The SBP log file to extract data from.")
+    parser.add_argument(
+        '-o',
+        '--outfile',
+        default=["output.csv"],
+        nargs=1,
+        help='specify the name of the CSV file output.')
+    parser.add_argument(
+        '-t',
+        '--type',
+        nargs=1,
+        default=['MsgBaselineNED'],
+        help='Type of message to interpolate.')
+    parser.add_argument(
+        '-d',
+        '--debouncetime',
+        type=int,
+        default=[1000],
+        nargs=1,
+        help='Specify the debounce time for trigger in ms.')
     args = parser.parse_args()
     return args
 

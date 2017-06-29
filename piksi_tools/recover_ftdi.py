@@ -31,15 +31,23 @@ def get_args():
     """
     import argparse
     parser = argparse.ArgumentParser(description='Piksi Recover FTDI')
-    parser.add_argument('-p', '--port',
-                        default=[serial_link.SERIAL_PORT], nargs=1,
-                        help='specify the serial port to use.')
-    parser.add_argument("-b", "--baud",
-                        default=[serial_link.SERIAL_BAUD], nargs=1,
-                        help="specify the baud rate to use.")
-    parser.add_argument("-f", "--ftdi",
-                        help="use pylibftdi instead of pyserial.",
-                        action="store_true")
+    parser.add_argument(
+        '-p',
+        '--port',
+        default=[serial_link.SERIAL_PORT],
+        nargs=1,
+        help='specify the serial port to use.')
+    parser.add_argument(
+        "-b",
+        "--baud",
+        default=[serial_link.SERIAL_BAUD],
+        nargs=1,
+        help="specify the baud rate to use.")
+    parser.add_argument(
+        "-f",
+        "--ftdi",
+        help="use pylibftdi instead of pyserial.",
+        action="store_true")
     return parser.parse_args()
 
 

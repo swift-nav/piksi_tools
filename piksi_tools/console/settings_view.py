@@ -71,15 +71,22 @@ class Setting(SettingBase):
             Item('value', editor=TextEditor(auto_set=False, enter_set=True)),
             Item('units', style='readonly'),
             Item('default_value', style='readonly'),
-            UItem('description', style='readonly', editor=MultilineTextEditor(TextEditor(multi_line=True)),
-                  show_label=True, resizable=True),
-            UItem('notes', label="Notes", height=-1,
-                  editor=MultilineTextEditor(TextEditor(multi_line=True)), style='readonly',
-                  show_label=True, resizable=True),
+            UItem(
+                'description',
+                style='readonly',
+                editor=MultilineTextEditor(TextEditor(multi_line=True)),
+                show_label=True,
+                resizable=True),
+            UItem(
+                'notes',
+                label="Notes",
+                height=-1,
+                editor=MultilineTextEditor(TextEditor(multi_line=True)),
+                style='readonly',
+                show_label=True,
+                resizable=True),
             show_border=True,
-            label='Setting',
-        ),
-    )
+            label='Setting', ), )
 
     def __init__(self, name, section, value, ordering, settings):
         self.name = name
@@ -89,12 +96,12 @@ class Setting(SettingBase):
         self.ordering = ordering
         self.settings = settings
         self.expert = settings.settings_yaml.get_field(section, name, 'expert')
-        self.description = settings.settings_yaml.get_field(section,
-                                                            name, 'Description')
+        self.description = settings.settings_yaml.get_field(
+            section, name, 'Description')
         self.units = settings.settings_yaml.get_field(section, name, 'units')
         self.notes = settings.settings_yaml.get_field(section, name, 'Notes')
-        self.default_value = settings.settings_yaml.get_field(section, name,
-                                                              'default value')
+        self.default_value = settings.settings_yaml.get_field(
+            section, name, 'default value')
         self.revert_in_progress = False
         self.confirmed_set = False
 
@@ -106,8 +113,7 @@ class Setting(SettingBase):
             self.value = old
             invalid_setting_prompt = prompt.CallbackPrompt(
                 title="Settings Write Error",
-                actions=[prompt.close_button],
-            )
+                actions=[prompt.close_button], )
             invalid_setting_prompt.text = \
                 ("\n   Unable to confirm that {0} was set to {1}.\n"
                  "   Ensure the range and formatting of the entry are correct.\n"
@@ -117,9 +123,7 @@ class Setting(SettingBase):
         self.confirmed_set = False
 
     def _value_changed(self, name, old, new):
-        if (old != new and
-            old is not Undefined and
-                new is not Undefined):
+        if (old != new and old is not Undefined and new is not Undefined):
             if type(self.value) == unicode:
                 self.value = self.value.encode('ascii', 'replace')
             if not self.revert_in_progress:
@@ -137,15 +141,22 @@ class EnumSetting(Setting):
             Item('full_name', label='Name', style='readonly'),
             Item('value', editor=EnumEditor(name='values')),
             Item('default_value', style='readonly'),
-            UItem('description', style='readonly', editor=MultilineTextEditor(TextEditor(multi_line=True)),
-                  show_label=True, resizable=True),
-            UItem('notes', label="Notes", height=-1,
-                  editor=MultilineTextEditor(TextEditor(multi_line=True)), style='readonly',
-                  show_label=True, resizable=True),
+            UItem(
+                'description',
+                style='readonly',
+                editor=MultilineTextEditor(TextEditor(multi_line=True)),
+                show_label=True,
+                resizable=True),
+            UItem(
+                'notes',
+                label="Notes",
+                height=-1,
+                editor=MultilineTextEditor(TextEditor(multi_line=True)),
+                style='readonly',
+                show_label=True,
+                resizable=True),
             show_border=True,
-            label='Setting',
-        ),
-    )
+            label='Setting', ), )
 
     def __init__(self, name, section, value, ordering, values, **kwargs):
         self.values = values
@@ -160,7 +171,7 @@ class SectionHeading(SettingBase):
 
 
 class SimpleAdapter(TabularAdapter):
-    columns = [('Name', 'name'), ('Value',  'value')]
+    columns = [('Name', 'name'), ('Value', 'value')]
     font = Font('12')
     can_edit = Bool(False)
     SectionHeading_bg_color = Color(0xE0E0E0)
@@ -197,60 +208,69 @@ class SettingsView(HasTraits):
     show_auto_survey = Bool(False)
     settings_yaml = list()
     auto_survey = SVGButton(
-        label='Auto Survey', tooltip='Auto populate surveyed lat, lon and alt fields',
+        label='Auto Survey',
+        tooltip='Auto populate surveyed lat, lon and alt fields',
         filename='',
-        width=16, height=20)
+        width=16,
+        height=20)
     settings_read_button = SVGButton(
-        label='Reload', tooltip='Reload settings from Piksi',
-        filename=os.path.join(determine_path(), 'images',
-                              'fontawesome', 'refresh.svg'),
-        width=16, height=20)
+        label='Reload',
+        tooltip='Reload settings from Piksi',
+        filename=os.path.join(determine_path(), 'images', 'fontawesome',
+                              'refresh.svg'),
+        width=16,
+        height=20)
     settings_save_button = SVGButton(
-        label='Save to Flash', tooltip='Save settings to Flash',
-        filename=os.path.join(determine_path(), 'images',
-                              'fontawesome', 'download.svg'),
-        width=16, height=20)
+        label='Save to Flash',
+        tooltip='Save settings to Flash',
+        filename=os.path.join(determine_path(), 'images', 'fontawesome',
+                              'download.svg'),
+        width=16,
+        height=20)
     factory_default_button = SVGButton(
-        label='Reset to Defaults', tooltip='Reset to Factory Defaults',
-        filename=os.path.join(determine_path(), 'images',
-                              'fontawesome', 'exclamation-triangle.svg'),
-        width=16, height=20)
+        label='Reset to Defaults',
+        tooltip='Reset to Factory Defaults',
+        filename=os.path.join(determine_path(), 'images', 'fontawesome',
+                              'exclamation-triangle.svg'),
+        width=16,
+        height=20)
     settings_list = List(SettingBase)
     expert = Bool()
     selected_setting = Instance(SettingBase)
     traits_view = View(
         HSplit(
-            Item('settings_list',
-                 editor=TabularEditor(
-                     adapter=SimpleAdapter(),
-                     editable_labels=False,
-                     auto_update=True,
-                     editable=False,
-                     selected='selected_setting'
-                 ),
-                 show_label=False,
-                 ),
+            Item(
+                'settings_list',
+                editor=TabularEditor(
+                    adapter=SimpleAdapter(),
+                    editable_labels=False,
+                    auto_update=True,
+                    editable=False,
+                    selected='selected_setting'),
+                show_label=False, ),
             VGroup(
                 HGroup(
                     Item('settings_read_button', show_label=False),
                     Item('settings_save_button', show_label=False),
                     Item('factory_default_button', show_label=False),
-                    Item('auto_survey', show_label=False,
-                         visible_when='show_auto_survey'),
-                ),
+                    Item(
+                        'auto_survey',
+                        show_label=False,
+                        visible_when='show_auto_survey'), ),
                 HGroup(
-                    Item('expert', label="Show Advanced Settings", show_label=True)),
-                Item('selected_setting', style='custom', show_label=False),
-            ),
-        )
-    )
+                    Item(
+                        'expert',
+                        label="Show Advanced Settings",
+                        show_label=True)),
+                Item('selected_setting', style='custom', show_label=False), ),
+        ))
 
     def _selected_setting_changed(self):
         if self.selected_setting:
-            if (self.selected_setting.name in
-                ['surveyed_position', 'broadcast', 'surveyed_lat',
-                    'surveyed_lon', 'surveyed_alt']
-                    and self.lat != 0 and self.lon != 0):
+            if (self.selected_setting.name in [
+                    'surveyed_position', 'broadcast', 'surveyed_lat',
+                    'surveyed_lon', 'surveyed_alt'
+            ] and self.lat != 0 and self.lon != 0):
                 self.show_auto_survey = True
             else:
                 self.show_auto_survey = False
@@ -273,8 +293,7 @@ class SettingsView(HasTraits):
         confirm_prompt = prompt.CallbackPrompt(
             title="Reset to Factory Defaults?",
             actions=[prompt.close_button, prompt.reset_button],
-            callback=self.reset_factory_defaults
-        )
+            callback=self.reset_factory_defaults)
         confirm_prompt.text = "This will erase all settings and then reset the device.\n" \
             + "Are you sure you want to reset to factory defaults?"
         confirm_prompt.run(block=False)
@@ -287,8 +306,7 @@ class SettingsView(HasTraits):
         confirm_prompt = prompt.CallbackPrompt(
             title="Auto populate surveyed position?",
             actions=[prompt.close_button, prompt.auto_survey_button],
-            callback=self.auto_survey_fn
-        )
+            callback=self.auto_survey_fn)
         confirm_prompt.text = "\n" \
             + "This will set the Surveyed Position section to the \n" \
             + "mean position of the last 1000 position solutions.\n \n" \
@@ -316,8 +334,9 @@ class SettingsView(HasTraits):
         sections = sorted(self.settings.keys())
         for sec in sections:
             this_section = []
-            for name, setting in sorted(self.settings[sec].iteritems(),
-                                        key=lambda (n, s): s.ordering):
+            for name, setting in sorted(
+                    self.settings[sec].iteritems(),
+                    key=lambda (n, s): s.ordering):
                 if not setting.expert or (self.expert and setting.expert):
                     this_section.append(setting)
             if this_section:
@@ -338,13 +357,14 @@ class SettingsView(HasTraits):
         confirmed_set = True
         settings_list = sbp_msg.setting.split("\0")
         if len(settings_list) <= 3:
-            print "Received malformed settings read response {0}".format(sbp_msg)
+            print "Received malformed settings read response {0}".format(
+                sbp_msg)
             confirmed_set = False
         try:
             if self.settings[settings_list[0]][settings_list[1]].value != settings_list[2]:
                 try:
-                    float_val = float(
-                        self.settings[settings_list[0]][settings_list[1]].value)
+                    float_val = float(self.settings[settings_list[0]][
+                        settings_list[1]].value)
                     float_val2 = float(settings_list[2])
                     if abs(float_val - float_val2) > 0.000001:
                         confirmed_set = False
@@ -354,14 +374,14 @@ class SettingsView(HasTraits):
             if not confirmed_set:
                 pass
                 # We pass if the new value doesn't match current console value.  It would be nice to update it, but that may cause side effects.
-            self.settings[settings_list[0]][settings_list[1]
-                                            ].confirmed_set = confirmed_set
+            self.settings[settings_list[0]][settings_list[
+                1]].confirmed_set = confirmed_set
         except KeyError:
             return
 
     def settings_read_by_index_callback(self, sbp_msg, **metadata):
-        section, setting, value, format_type = sbp_msg.payload[2:].split('\0')[
-            :4]
+        section, setting, value, format_type = sbp_msg.payload[2:].split(
+            '\0')[:4]
         self.ordering_counter += 1
         if format_type == '':
             format_type = None
@@ -371,23 +391,26 @@ class SettingsView(HasTraits):
             self.settings[section] = {}
         if format_type is None:
             # Plain old setting, no format information
-            self.settings[section][setting] = Setting(setting, section, value,
-                                                      ordering=self.ordering_counter,
-                                                      settings=self
-                                                      )
+            self.settings[section][setting] = Setting(
+                setting,
+                section,
+                value,
+                ordering=self.ordering_counter,
+                settings=self)
         else:
             if setting_type == 'enum':
                 enum_values = setting_format.split(',')
-                self.settings[section][setting] = EnumSetting(setting, section, value,
-                                                              ordering=self.ordering_counter,
-                                                              values=enum_values,
-                                                              settings=self
-                                                              )
+                self.settings[section][setting] = EnumSetting(
+                    setting,
+                    section,
+                    value,
+                    ordering=self.ordering_counter,
+                    values=enum_values,
+                    settings=self)
             else:
                 # Unknown type, just treat is as a string
-                self.settings[section][setting] = Setting(setting, section, value,
-                                                          settings=self
-                                                          )
+                self.settings[section][setting] = Setting(
+                    setting, section, value, settings=self)
         if self.enumindex == sbp_msg.index:
             self.enumindex += 1
             self.link(MsgSettingsReadByIndexReq(index=self.enumindex))
@@ -397,8 +420,8 @@ class SettingsView(HasTraits):
         self._settings_read_button_fired()
 
     def set(self, section, name, value):
-        self.link(MsgSettingsWrite(setting='%s\0%s\0%s\0' %
-                                   (section, name, value)))
+        self.link(
+            MsgSettingsWrite(setting='%s\0%s\0%s\0' % (section, name, value)))
 
     def cleanup(self):
         """ Remove callbacks from serial link. """

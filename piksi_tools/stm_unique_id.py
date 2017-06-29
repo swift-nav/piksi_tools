@@ -41,14 +41,14 @@ class STMUniqueID(object):
 
     def __enter__(self):
         self.link.add_callback(self.heartbeat, SBP_MSG_HEARTBEAT)
-        self.link.add_callback(
-            self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_RESP)
+        self.link.add_callback(self.receive_stm_unique_id_callback,
+                               SBP_MSG_STM_UNIQUE_ID_RESP)
         return self
 
     def __exit__(self, *args):
         self.link.remove_callback(self.heartbeat, SBP_MSG_HEARTBEAT)
-        self.link.remove_callback(
-            self.receive_stm_unique_id_callback, SBP_MSG_STM_UNIQUE_ID_RESP)
+        self.link.remove_callback(self.receive_stm_unique_id_callback,
+                                  SBP_MSG_STM_UNIQUE_ID_RESP)
 
     def receive_stm_unique_id_callback(self, sbp_msg, **metadata):
         """
@@ -80,15 +80,23 @@ def get_args():
     """
     import argparse
     parser = argparse.ArgumentParser(description='STM Unique ID')
-    parser.add_argument("-f", "--ftdi",
-                        help="use pylibftdi instead of pyserial.",
-                        action="store_true")
-    parser.add_argument('-p', '--port',
-                        default=[serial_link.SERIAL_PORT], nargs=1,
-                        help='specify the serial port to use.')
-    parser.add_argument("-b", "--baud",
-                        default=[serial_link.SERIAL_BAUD], nargs=1,
-                        help="specify the baud rate to use.")
+    parser.add_argument(
+        "-f",
+        "--ftdi",
+        help="use pylibftdi instead of pyserial.",
+        action="store_true")
+    parser.add_argument(
+        '-p',
+        '--port',
+        default=[serial_link.SERIAL_PORT],
+        nargs=1,
+        help='specify the serial port to use.')
+    parser.add_argument(
+        "-b",
+        "--baud",
+        default=[serial_link.SERIAL_BAUD],
+        nargs=1,
+        help="specify the baud rate to use.")
     return parser.parse_args()
 
 
@@ -104,7 +112,8 @@ def main():
         with Handler(Framer(driver.read, driver.write)) as link:
             with STMUniqueID(link) as stm_unique_id:
                 unique_id = stm_unique_id.get_id()
-            print "STM Unique ID =", "0x" + ''.join(["%02x" % (b) for b in unique_id])
+            print "STM Unique ID =", "0x" + ''.join(
+                ["%02x" % (b) for b in unique_id])
 
 
 if __name__ == "__main__":

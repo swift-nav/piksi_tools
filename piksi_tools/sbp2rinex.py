@@ -8,7 +8,6 @@
 # THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
-
 """Generates a RINEX 2.11 observation file from a SBP log.
 """
 
@@ -22,7 +21,8 @@ import time
 import datetime
 
 
-def from_base(msg): return msg.sender == 0
+def from_base(msg):
+    return msg.sender == 0
 
 
 def _is_nested(attr):
@@ -51,7 +51,7 @@ class StoreToRINEX(object):
         self.time = None
         self.first_spp = False
 
-    def _process_spp(self,  msg):
+    def _process_spp(self, msg):
         self.x = float(msg.x)
         self.y = float(msg.y)
         self.z = float(msg.z)
@@ -80,11 +80,19 @@ class StoreToRINEX(object):
                 l_scale = 1
             v = t.get(time, {}).get(prn, {})
             if code == 0:
-                v.update({'P': o.P * p_scale, 'L': l_scale * (o.L.i + o.L.f / 256.0),
-                          'S': o.cn0 / 4.0, 'lock': o.lock})
+                v.update({
+                    'P': o.P * p_scale,
+                    'L': l_scale * (o.L.i + o.L.f / 256.0),
+                    'S': o.cn0 / 4.0,
+                    'lock': o.lock
+                })
             elif code == 1:
-                v.update({'P2': o.P * p_scale, 'L2': l_scale * (o.L.i + o.L.f / 256.0),
-                          'S2': o.cn0 / 4.0, 'lock2': o.lock})
+                v.update({
+                    'P2': o.P * p_scale,
+                    'L2': l_scale * (o.L.i + o.L.f / 256.0),
+                    'S2': o.cn0 / 4.0,
+                    'lock2': o.lock
+                })
             if time in t:
                 t[time].update({prn: v})
             else:
@@ -98,7 +106,7 @@ class StoreToRINEX(object):
             else:
                 ti[time] = {'total': total, 'counts': 1 << count}
 
-    def process_message(self,  msg):
+    def process_message(self, msg):
         """Processes messages.
 
         Parameters
@@ -135,15 +143,15 @@ sbp2rinex                               %s UTC PGM / RUN BY / DATE
      6    C1    L1    S1   C2    L2    S2                   # / TYPES OF OBSERV
 %s%13.7f     GPS         TIME OF FIRST OBS
                                                             END OF HEADER
-""" % (datetime.datetime.utcnow().strftime("%Y%m%d %H%M%S"),
-                        self.x, self.y, self.z,
-                        t.strftime("  %Y    %m    %d    %H    %M"), t.second + t.microsecond * 1e-6)
+""" % (datetime.datetime.utcnow().strftime("%Y%m%d %H%M%S"), self.x, self.y,
+       self.z, t.strftime("  %Y    %m    %d    %H    %M"),
+       t.second + t.microsecond * 1e-6)
                     f.write(header)
                     header_written = True
 
-                f.write("%s %10.7f  0 %2d" % (t.strftime(" %y %m %d %H %M"),
-                                              t.second + t.microsecond * 1e-6,
-                                              len(sats)))
+                f.write("%s %10.7f  0 %2d" %
+                        (t.strftime(" %y %m %d %H %M"),
+                         t.second + t.microsecond * 1e-6, len(sats)))
 
                 for prn, obs in sorted(sats.iteritems()):
                     f.write('G%02d' % (prn))
@@ -159,7 +167,8 @@ sbp2rinex                               %s UTC PGM / RUN BY / DATE
                     # now we write the L1 lock indicator
                     lock_indicator = 1
                     last_obs = self.rover_obs.get(last_t, {}).get((prn), None)
-                    if last_obs and last_obs.get('lock', None) and obs.get('lock', None):
+                    if last_obs and last_obs.get('lock', None) and obs.get(
+                            'lock', None):
                         if last_obs['lock'] == obs['lock']:
                             lock_indicator = 0
                     f.write("%01d  \n" % lock_indicator)
@@ -206,15 +215,15 @@ def main():
     import argparse
     parser = argparse.ArgumentParser(
         description='Swift Nav SBP log to RINEX tool.')
-    parser.add_argument('file',
-                        help='Specify the log file to use.')
-    parser.add_argument('-o', '--output',
-                        nargs=1,
-                        help='RINEX output filename.')
-    parser.add_argument('-n', '--num_records',
-                        nargs=1,
-                        default=[None],
-                        help='Number or SBP records to process.')
+    parser.add_argument('file', help='Specify the log file to use.')
+    parser.add_argument(
+        '-o', '--output', nargs=1, help='RINEX output filename.')
+    parser.add_argument(
+        '-n',
+        '--num_records',
+        nargs=1,
+        default=[None],
+        help='Number or SBP records to process.')
     args = parser.parse_args()
     log_datafile = args.file
     if args.output is None:

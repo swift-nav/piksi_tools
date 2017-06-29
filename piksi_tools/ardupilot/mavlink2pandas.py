@@ -63,14 +63,19 @@ def get_args():
     """
     import argparse
     parser = argparse.ArgumentParser(description='Mavlink to Pandas table')
-    parser.add_argument("dataflashfile",
-                        help="the dataflashfile to convert.")
-    parser.add_argument('-o', '--outfile',
-                        default=["mavlink_convert.hdf5"], nargs=1,
-                        help='specify the name of the file output.')
-    parser.add_argument('-t', '--types',
-                        default=['GPS', 'GPS2'], nargs='+',
-                        help='specify the mavlink messages to convert.')
+    parser.add_argument("dataflashfile", help="the dataflashfile to convert.")
+    parser.add_argument(
+        '-o',
+        '--outfile',
+        default=["mavlink_convert.hdf5"],
+        nargs=1,
+        help='specify the name of the file output.')
+    parser.add_argument(
+        '-t',
+        '--types',
+        default=['GPS', 'GPS2'],
+        nargs='+',
+        help='specify the mavlink messages to convert.')
     args = parser.parse_args()
     return args
 

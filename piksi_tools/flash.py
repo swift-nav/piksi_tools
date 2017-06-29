@@ -76,7 +76,8 @@ def stm_addr_sector_map(addr):
         return 11
     else:
         raise IndexError(
-            "Attempted to access flash memory at (%s) outside of range (wrong firmware file?)." % hex(addr))
+            "Attempted to access flash memory at (%s) outside of range (wrong firmware file?)."
+            % hex(addr))
         return None
 
 
@@ -96,7 +97,8 @@ def m25_addr_sector_map(addr):
     """
     if addr < 0 or addr > 0xFFFFF:
         raise IndexError(
-            "Attempted to access flash memory at (%s) outside of range (wrong firmware file?)." % hex(addr))
+            "Attempted to access flash memory at (%s) outside of range (wrong firmware file?)."
+            % hex(addr))
     return addr >> 16
 
 
@@ -114,14 +116,18 @@ def ihx_ranges(ihx):
     out : list[(int, int), (int, int), ...]
         List of min/max tuples of occupied address ranges.
     """
+
     def first_last(x):
         first = x.next()
         last = first
         for last in x:
             pass
         return (first[1], last[1])
-    return [first_last(v) for k, v in
-            groupby(enumerate(ihx.addresses()), lambda (i, x): i - x)]
+
+    return [
+        first_last(v)
+        for k, v in groupby(enumerate(ihx.addresses()), lambda (i, x): i - x)
+    ]
 
 
 def sectors_used(addrs, addr_sector_map):
@@ -176,6 +182,7 @@ def ihx_n_ops(ihx, addr_sector_map, erase=True):
         return erase_ops + program_ops + read_ops
     return program_ops + read_ops
 
+
 # Defining separate functions to lock/unlock STM sectors and to read/write M25
 # status register, as there isn't a great way to define lock/unlock sector
 # callbacks that will be general to both flashes (see M25Pxx datasheet).
@@ -192,7 +199,7 @@ def _stm_lock_sector(self, sector):
     sector : int
         Sector of STM flash to lock (> 0, <= 11).
     """
-    if not 0 <= sector < + 11:
+    if not 0 <= sector < +11:
         raise ValueError("Must have 0 <= sector <= 11, received %d" % sector)
     self.inc_n_queued_ops()
     self.link(MsgStmFlashLockSector(sector=sector))
@@ -236,7 +243,6 @@ def _m25_write_status(self, sr):
 
 
 class Flash():
-
     def __init__(self, link, flash_type, sbp_version, max_queued_ops=1):
         """
         Object representing either of the two flashes (STM/M25) on the Piksi,
@@ -294,8 +300,9 @@ class Flash():
             self.n_sectors = M25_N_SECTORS
             self.restricted_sectors = M25_RESTRICTED_SECTORS
         else:
-            raise ValueError("flash_type must be \"STM\" or \"M25\", got \"%s\""
-                             % flash_type)
+            raise ValueError(
+                "flash_type must be \"STM\" or \"M25\", got \"%s\"" %
+                flash_type)
 
     def __enter__(self):
         return self
@@ -382,7 +389,8 @@ class Flash():
             raise Warning(text)
         msg_buf = struct.pack("BB", self.flash_type_byte, sector)
         self.inc_n_queued_ops()
-        self.link(MsgFlashErase(target=self.flash_type_byte, sector_num=sector))
+        self.link(
+            MsgFlashErase(target=self.flash_type_byte, sector_num=sector))
         while self.get_n_queued_ops() > 0:
             time.sleep(0.001)
 
@@ -405,10 +413,12 @@ class Flash():
         if self.sbp_version < (0, 45):
             self.link(SBP(SBP_MSG_FLASH_DONE, payload=msg_buf + data))
         else:
-            self.link(MsgFlashProgram(target=self.flash_type_byte,
-                                      addr_start=address,
-                                      addr_len=len(data),
-                                      data=data))
+            self.link(
+                MsgFlashProgram(
+                    target=self.flash_type_byte,
+                    addr_start=address,
+                    addr_len=len(data),
+                    data=data))
 
     def read(self, address, length, block=False):
         """
@@ -436,9 +446,11 @@ class Flash():
         if self.sbp_version < (0, 45):
             self.link(SBP(SBP_MSG_FLASH_READ_RESP, payload=msg_buf))
         else:
-            self.link(MsgFlashReadReq(target=self.flash_type_byte,
-                                      addr_start=address,
-                                      addr_len=length))
+            self.link(
+                MsgFlashReadReq(
+                    target=self.flash_type_byte,
+                    addr_start=address,
+                    addr_len=length))
         if block:
             while self.get_n_queued_ops() > 0:
                 time.sleep(0.001)
@@ -481,7 +493,12 @@ class Flash():
         assert self.get_n_queued_ops() >= 0, \
             "Number of queued flash operations is negative"
 
-    def write_ihx(self, ihx, stream=None, mod_print=0, elapsed_ops_cb=None, erase=True):
+    def write_ihx(self,
+                  ihx,
+                  stream=None,
+                  mod_print=0,
+                  elapsed_ops_cb=None,
+                  erase=True):
         """
         Perform all operations to write an intelhex.IntelHex to the flash
         and verify.
@@ -561,8 +578,10 @@ class Flash():
                     r = self._read_callback_ihx.gets(i, 1)
                     p = ihx.gets(i, 1)
                     if r != p:
-                        raise Exception('Data read from flash != Data programmed to flash'
-                                        ('Addr: %x, Programmed: %x, Read: %x' % (i, r, p)).upper())
+                        raise Exception(
+                            'Data read from flash != Data programmed to flash' (
+                                'Addr: %x, Programmed: %x, Read: %x' % (
+                                    i, r, p)).upper())
 
         self.status = self.flash_type + " Flash: Successfully programmed and " + \
                                         "verified, total time = %d seconds" % \

@@ -9,13 +9,11 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-
 # Auto-generate the simulation_data.c file from a given almanac.
 #   Written by Niels Joubert
 #   April 2014
 
 from almanac import *
-
 
 import argparse
 
@@ -42,29 +40,30 @@ def to_struct(sat):
   },\n\
   .healthy   = %d,\n\
   .valid     = %d,\n\
-}" % (sat.ecc,
-      sat.toa,
-      sat.inc,
-      sat.rora,
-      sat.a,
-      sat.raaw,
-      sat.argp,
-      sat.ma,
-      sat.af0,
-      sat.af1,
-      sat.week,
-      0,  # CONSTELLATION_GPS
-      0,  # BAND_L1
-      sat.prn,
-      sat.healthy,
-      1)
+}" % (
+        sat.ecc,
+        sat.toa,
+        sat.inc,
+        sat.rora,
+        sat.a,
+        sat.raaw,
+        sat.argp,
+        sat.ma,
+        sat.af0,
+        sat.af1,
+        sat.week,
+        0,  # CONSTELLATION_GPS
+        0,  # BAND_L1
+        sat.prn,
+        sat.healthy,
+        1)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='Swift Nav Almanac C Generator')
-    parser.add_argument("file",
-                        help="the almanac file to process into C structs")
+    parser.add_argument(
+        "file", help="the almanac file to process into C structs")
 
     args = parser.parse_args()
 

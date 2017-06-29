@@ -17,7 +17,6 @@
 # THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
-
 """
 The :mod:`piksi_tools.bootload` module contains functions loading firmware
 images.
@@ -41,17 +40,24 @@ def get_args():
     """
     import argparse
     parser = argparse.ArgumentParser(description='Piksi Bootloader')
-    parser.add_argument("file",
-                        help="the image set file to write to flash.")
-    parser.add_argument('-p', '--port',
-                        default=[serial_link.SERIAL_PORT], nargs=1,
-                        help='specify the serial port to use.')
-    parser.add_argument("-b", "--baud",
-                        default=[serial_link.SERIAL_BAUD], nargs=1,
-                        help="specify the baud rate to use.")
-    parser.add_argument("-f", "--ftdi",
-                        help="use pylibftdi instead of pyserial.",
-                        action="store_true")
+    parser.add_argument("file", help="the image set file to write to flash.")
+    parser.add_argument(
+        '-p',
+        '--port',
+        default=[serial_link.SERIAL_PORT],
+        nargs=1,
+        help='specify the serial port to use.')
+    parser.add_argument(
+        "-b",
+        "--baud",
+        default=[serial_link.SERIAL_BAUD],
+        nargs=1,
+        help="specify the baud rate to use.")
+    parser.add_argument(
+        "-f",
+        "--ftdi",
+        help="use pylibftdi instead of pyserial.",
+        action="store_true")
     return parser.parse_args()
 
 
@@ -65,9 +71,10 @@ def shell_command(link, cmd, timeout=None, progress_cb=None):
         if msg.sequence == seq:
             ret['code'] = msg.code
             ev.set()
+
     link.add_callback(resp_handler, SBP_MSG_COMMAND_RESP)
     link(MsgCommandReq(sequence=seq, command=cmd))
-    while(elapsed_intervals < timeout):
+    while (elapsed_intervals < timeout):
         ev.wait(timeout)
         if progress_cb:
             progress_cb(float(elapsed_intervals) / float(timeout) * 100)
@@ -100,12 +107,13 @@ def main():
                 sys.stdout.write("\rProgress: %d%%    \r" %
                                  (100 * size / len(data)))
                 sys.stdout.flush()
+
             print('Transferring image file...')
-            FileIO(link).write("upgrade.image_set.bin",
-                               data, progress_cb=progress_cb)
+            FileIO(link).write(
+                "upgrade.image_set.bin", data, progress_cb=progress_cb)
             print('Committing file to flash...')
-            code = shell_command(
-                link, "upgrade_tool upgrade.image_set.bin", 300)
+            code = shell_command(link, "upgrade_tool upgrade.image_set.bin",
+                                 300)
             if code != 0:
                 print('Failed to perform upgrade (code = %d)' % code)
                 return

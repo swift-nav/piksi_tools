@@ -121,18 +121,19 @@ class FileIO(object):
         def cb(req, resp):
             if len(closure['buf']) < req.offset:
                 closure['buf'] += [0] * (req.offset - len(closure['buf']))
-            closure['buf'][req.offset:req.offset +
-                           len(resp.contents)] = resp.contents
+            closure['buf'][req.offset:
+                           req.offset + len(resp.contents)] = resp.contents
             if req.chunk_size != len(resp.contents):
                 closure['done'] = True
 
         with SelectiveRepeater(self.link, SBP_MSG_FILEIO_READ_RESP, cb) as sr:
             while not closure['done']:
                 seq = self.next_seq()
-                msg = MsgFileioReadReq(sequence=seq,
-                                       offset=offset,
-                                       chunk_size=chunksize,
-                                       filename=filename)
+                msg = MsgFileioReadReq(
+                    sequence=seq,
+                    offset=offset,
+                    chunk_size=chunksize,
+                    filename=filename)
                 sr.send(msg)
                 offset += chunksize
             return bytearray(closure['buf'])
@@ -154,9 +155,8 @@ class FileIO(object):
         files = []
         while True:
             seq = self.next_seq()
-            msg = MsgFileioReadDirReq(sequence=seq,
-                                      offset=len(files),
-                                      dirname=dirname)
+            msg = MsgFileioReadDirReq(
+                sequence=seq, offset=len(files), dirname=dirname)
             self.link(msg)
             reply = self.link.wait(SBP_MSG_FILEIO_READ_DIR_RESP, timeout=1.0)
             if not reply:
@@ -221,9 +221,11 @@ class FileIO(object):
                 # print "going from {0} to {1} in array for chunksize {2}".format(offset, end_index, chunksize)
                 chunk = data[offset:offset + chunksize - 1]
                 # print "len is {0}".format(len(chunk))
-                msg = MsgFileioWriteReq(sequence=seq,
-                                        filename=(filename + '\0' + chunk),
-                                        offset=offset, data='')
+                msg = MsgFileioWriteReq(
+                    sequence=seq,
+                    filename=(filename + '\0' + chunk),
+                    offset=offset,
+                    data='')
                 sr.send(msg)
                 offset += len(chunk)
                 if progress_cb is not None:
@@ -277,32 +279,42 @@ def get_args():
     """
     import argparse
     parser = argparse.ArgumentParser(description='Swift Nav File I/O Utility.')
-    parser.add_argument('-w', '--write', nargs=1,
-                        help='write a file')
-    parser.add_argument('-r', '--read', nargs=1,
-                        help='read a file')
-    parser.add_argument('-l', '--list', default=None, nargs=1,
-                        help='list a directory')
-    parser.add_argument('-d', '--delete', nargs=1,
-                        help='delete a file')
-    parser.add_argument('-p', '--port',
-                        default=[serial_link.SERIAL_PORT], nargs=1,
-                        help='specify the serial port to use.')
-    parser.add_argument("-b", "--baud",
-                        default=[serial_link.SERIAL_BAUD], nargs=1,
-                        help="specify the baud rate to use.")
-    parser.add_argument("--tcp", action="store_true", default=False,
-                        help="Use a TCP connection instead of a local serial port. \
-                      If TCP is selected, the port is interpreted as host:port")
-    parser.add_argument("-v", "--verbose",
-                        help="print extra debugging information.",
-                        action="store_true")
-    parser.add_argument("-x", "--hex",
-                        help="output in hex dump format.",
-                        action="store_true")
-    parser.add_argument("-f", "--ftdi",
-                        help="use pylibftdi instead of pyserial.",
-                        action="store_true")
+    parser.add_argument('-w', '--write', nargs=1, help='write a file')
+    parser.add_argument('-r', '--read', nargs=1, help='read a file')
+    parser.add_argument(
+        '-l', '--list', default=None, nargs=1, help='list a directory')
+    parser.add_argument('-d', '--delete', nargs=1, help='delete a file')
+    parser.add_argument(
+        '-p',
+        '--port',
+        default=[serial_link.SERIAL_PORT],
+        nargs=1,
+        help='specify the serial port to use.')
+    parser.add_argument(
+        "-b",
+        "--baud",
+        default=[serial_link.SERIAL_BAUD],
+        nargs=1,
+        help="specify the baud rate to use.")
+    parser.add_argument(
+        "--tcp",
+        action="store_true",
+        default=False,
+        help="Use a TCP connection instead of a local serial port. \
+                      If TCP is selected, the port is interpreted as host:port"
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        help="print extra debugging information.",
+        action="store_true")
+    parser.add_argument(
+        "-x", "--hex", help="output in hex dump format.", action="store_true")
+    parser.add_argument(
+        "-f",
+        "--ftdi",
+        help="use pylibftdi instead of pyserial.",
+        action="store_true")
     return parser.parse_args()
 
 

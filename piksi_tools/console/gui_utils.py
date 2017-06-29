@@ -95,7 +95,9 @@ class CodeFiltered(HasTraits):
 
         for code in SUPPORTED_CODES:
             hgroup.content.append(Spring(width=8, springy=False))
-            hgroup.content.append(Item('show_{}'.format(code),
-                                       label="{}:".format(code_to_str(code))))
+            hgroup.content.append(
+                Item(
+                    'show_{}'.format(code),
+                    label="{}:".format(code_to_str(code))))
 
         return hgroup

@@ -71,17 +71,19 @@ NO_FIX_MODE = 0
 
 mode_dict = {
     NO_FIX_MODE: 'No Fix',
-    SPP_MODE:    'SPP',
-    DGNSS_MODE:  'DGPS',
-    FLOAT_MODE:  'Float RTK',
-    FIXED_MODE:  'Fixed RTK'}
+    SPP_MODE: 'SPP',
+    DGNSS_MODE: 'DGPS',
+    FLOAT_MODE: 'Float RTK',
+    FIXED_MODE: 'Fixed RTK'
+}
 
 color_dict = {
     NO_FIX_MODE: None,
     SPP_MODE: (0, 0, 1.0),
     DGNSS_MODE: (0, 0.7, 1.0),
     FLOAT_MODE: (0.75, 0, 0.75),
-    FIXED_MODE: 'orange'}
+    FIXED_MODE: 'orange'
+}
 
 
 def code_to_str(code):
@@ -119,9 +121,12 @@ def get_mode(msg):
             mode = 4
         elif mode == 2:
             mode = 3
-    elif msg.msg_type not in [SBP_MSG_BASELINE_NED_DEP_A, SBP_MSG_POS_LLH_DEP_A,
-                              SBP_MSG_POS_LLH, SBP_MSG_BASELINE_NED]:
-        print "called get_mode with unsupported message type: {0}".format(msg.msg_type)
+    elif msg.msg_type not in [
+            SBP_MSG_BASELINE_NED_DEP_A, SBP_MSG_POS_LLH_DEP_A, SBP_MSG_POS_LLH,
+            SBP_MSG_BASELINE_NED
+    ]:
+        print "called get_mode with unsupported message type: {0}".format(
+            msg.msg_type)
     return mode
 
 
@@ -156,15 +161,16 @@ def log_time_strings(week, tow):
         t_gps_secs = 0
     t = datetime.datetime.now()
     (t_local_date, t_local_secs) = datetime_2_str(t)
-    return ((t_local_date, t_local_secs),
-            (t_gps_date, t_gps_secs))
+    return ((t_local_date, t_local_secs), (t_gps_date, t_gps_secs))
 
 
 def call_repeatedly(interval, func, *args):
     stopped = Event()
 
     def loop():
-        while not stopped.wait(interval):  # the first call is in `interval` secs
+        while not stopped.wait(
+                interval):  # the first call is in `interval` secs
             func(*args)
+
     Thread(target=loop).start()
     return stopped.set

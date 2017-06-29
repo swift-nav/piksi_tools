@@ -134,8 +134,10 @@ def setup_piksi(handler, stm_fw, nap_fw, verbose=False):
         if verbose:
             print "Received bootloader handshake"
 
-        with Flash(handler, flash_type="STM",
-                   sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
+        with Flash(
+                handler,
+                flash_type="STM",
+                sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
             # Erase entire STM flash (except bootloader).
             if verbose:
                 print "Erasing STM"
@@ -152,8 +154,10 @@ def setup_piksi(handler, stm_fw, nap_fw, verbose=False):
                 else:
                     piksi_flash.write_ihx(stm_fw, erase=False)
 
-        with Flash(handler, flash_type="M25",
-                   sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
+        with Flash(
+                handler,
+                flash_type="M25",
+                sbp_version=piksi_bootloader.sbp_version) as piksi_flash:
             # Write NAP hexfile.
             with Timeout(TIMEOUT_WRITE_NAP) as timeout:
                 if verbose:

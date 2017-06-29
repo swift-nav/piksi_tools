@@ -25,12 +25,12 @@ ARDUPILOT_LOG_HEADER = bytearray([0xA3, 0x95])
 TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
 TIME_ORIGIN = "1980-01-06T00:00:00.000000"
 
-FORMAT_SIZE_BYTES = {'B': 1,
-                     'H': 2,
-                     'I': 4,
-                     'Q': 8,
-                     }
-
+FORMAT_SIZE_BYTES = {
+    'B': 1,
+    'H': 2,
+    'I': 4,
+    'Q': 8,
+}
 """
 Format characters in the format string for mavlink binary log messages
 (https://github.com/ArduPilot/ardupilot/blob/master/libraries/DataFlash/LogStructure.h)
@@ -54,7 +54,6 @@ Format characters in the format string for mavlink binary log messages
   q   : int64_t
   Q   : uint64_t
 """
-
 """
 Read a binary file until one of the searched keys is found
 
@@ -108,20 +107,20 @@ class SBR1:
         if len(binary) == self.SIZE:
             start_index = 0
             end_index = FORMAT_SIZE_BYTES[self.FORMAT_HEADER[0]]
-            self.time_us = unpack(
-                '<' + self.FORMAT_HEADER[0], binary[start_index:end_index])[0]
+            self.time_us = unpack('<' + self.FORMAT_HEADER[0],
+                                  binary[start_index:end_index])[0]
             start_index = end_index
             end_index = start_index + FORMAT_SIZE_BYTES[self.FORMAT_HEADER[1]]
-            self.msg_type = unpack(
-                '<' + self.FORMAT_HEADER[1], binary[start_index:end_index])[0]
+            self.msg_type = unpack('<' + self.FORMAT_HEADER[1],
+                                   binary[start_index:end_index])[0]
             start_index = end_index
             end_index = start_index + FORMAT_SIZE_BYTES[self.FORMAT_HEADER[2]]
-            self.sender_id = unpack(
-                '<' + self.FORMAT_HEADER[2], binary[start_index:end_index])[0]
+            self.sender_id = unpack('<' + self.FORMAT_HEADER[2],
+                                    binary[start_index:end_index])[0]
             start_index = end_index
             end_index = start_index + FORMAT_SIZE_BYTES[self.FORMAT_HEADER[3]]
-            self.msg_len = unpack(
-                '<' + self.FORMAT_HEADER[3], binary[start_index:end_index])[0]
+            self.msg_len = unpack('<' + self.FORMAT_HEADER[3],
+                                  binary[start_index:end_index])[0]
             self.msg = binary[end_index:]
         else:
             raise ValueError("Binary size inconsistent")
@@ -146,12 +145,12 @@ class SBR2:
         if len(binary) == self.SIZE:
             start_index = 0
             end_index = FORMAT_SIZE_BYTES[self.FORMAT_HEADER[0]]
-            self.time_us = unpack(
-                '<' + self.FORMAT_HEADER[0], binary[start_index:end_index])[0]
+            self.time_us = unpack('<' + self.FORMAT_HEADER[0],
+                                  binary[start_index:end_index])[0]
             start_index = end_index
             end_index = start_index + FORMAT_SIZE_BYTES[self.FORMAT_HEADER[1]]
-            self.msg_type = unpack(
-                '<' + self.FORMAT_HEADER[1], binary[start_index:end_index])[0]
+            self.msg_type = unpack('<' + self.FORMAT_HEADER[1],
+                                   binary[start_index:end_index])[0]
             self.msg = binary[end_index:]
         else:
             raise ValueError("Binary size inconsistent")
@@ -174,19 +173,19 @@ class GPS:
         if len(binary) == self.SIZE:
             start_index = 0
             end_index = FORMAT_SIZE_BYTES[self.FORMAT[0]]
-            self.time_us = unpack(
-                '<' + self.FORMAT[0], binary[start_index:end_index])[0]
+            self.time_us = unpack('<' + self.FORMAT[0],
+                                  binary[start_index:end_index])[0]
             start_index = end_index
             end_index = start_index + FORMAT_SIZE_BYTES[self.FORMAT[1]]
             # DO NOTHING CAUSE WE DON'T CARE OF STATUS
             start_index = end_index
             end_index = start_index + FORMAT_SIZE_BYTES[self.FORMAT[2]]
-            self.gms = unpack(
-                '<' + self.FORMAT[2], binary[start_index:end_index])[0]
+            self.gms = unpack('<' + self.FORMAT[2],
+                              binary[start_index:end_index])[0]
             start_index = end_index
             end_index = start_index + FORMAT_SIZE_BYTES[self.FORMAT[3]]
-            self.gwk = unpack(
-                '<' + self.FORMAT[3], binary[start_index:end_index])[0]
+            self.gwk = unpack('<' + self.FORMAT[3],
+                              binary[start_index:end_index])[0]
         else:
             raise ValueError("Binary size inconsistent")
 
@@ -202,8 +201,8 @@ def get_first_gps_message(filename):
 
 def gps_time_to_datetime(gps_week, gps_milliseconds, time_us):
     epoch = datetime.strptime(TIME_ORIGIN, TIMESTAMP_FORMAT)
-    elapsed = timedelta(days=(gps_week * 7),
-                        microseconds=(gps_milliseconds * 1000 + time_us))
+    elapsed = timedelta(
+        days=(gps_week * 7), microseconds=(gps_milliseconds * 1000 + time_us))
     return datetime.strftime(epoch + elapsed, TIMESTAMP_FORMAT)
 
 
@@ -286,8 +285,8 @@ def extract_sbp(filename):
                 # If the last message  was SBR1 and this one is SBR1, we extract the last one
                 # and save this one until the next iteration
                 msg_len = last_m.msg_len
-                timestamp = gps_time_to_datetime(
-                    gps.gwk, gps.gms, last_m.time_us - gps.time_us)
+                timestamp = gps_time_to_datetime(gps.gwk, gps.gms,
+                                                 last_m.time_us - gps.time_us)
                 msg_type = last_m.msg_type
                 sender_id = last_m.sender_id
                 bin_data = last_m.msg[:msg_len]
@@ -304,11 +303,13 @@ def extract_sbp(filename):
                 last_m = m
             if bin_data:
                 if len(bin_data) != msg_len:
-                    print "Length of SBP message inconsitent for msg_type {0}.".format(msg_type)
-                    print "Expected Length {0}, Actual Length {1}".format(msg_len, len(bin_data))
+                    print "Length of SBP message inconsitent for msg_type {0}.".format(
+                        msg_type)
+                    print "Expected Length {0}, Actual Length {1}".format(
+                        msg_len, len(bin_data))
                 else:
-                    extracted_data.append(
-                        (timestamp, msg_type, sender_id, msg_len, bin_data))
+                    extracted_data.append((timestamp, msg_type, sender_id,
+                                           msg_len, bin_data))
                     num_msgs += 1
         print "extracted {0} messages".format(num_msgs)
         return extracted_data
@@ -333,12 +334,15 @@ def rewrite(records, outfile):
             _SBP_TABLE[msg_type](sbp)
             item = (timestamp, sbp, dispatch(sbp))
             items.append(item)
-            m = {"time": timestamp,
-                 "data": dispatch(sbp).to_json_dict(),
-                 "metadata": {}}
+            m = {
+                "time": timestamp,
+                "data": dispatch(sbp).to_json_dict(),
+                "metadata": {}
+            }
             new_datafile.write(json.dumps(m) + "\n")
         except Exception:
-            print "Exception received for message type {0}.".format(_SBP_TABLE[msg_type])
+            print "Exception received for message type {0}.".format(
+                _SBP_TABLE[msg_type])
             import traceback
             print traceback.format_exc()
             i += 1
@@ -355,11 +359,13 @@ def get_args():
     import argparse
     parser = argparse.ArgumentParser(
         description='Mavlink to SBP JSON converter')
-    parser.add_argument("dataflashfile",
-                        help="the dataflashfile to convert.")
-    parser.add_argument('-o', '--outfile',
-                        default=["serial_link_datflash_convert.log.json"], nargs=1,
-                        help='specify the name of the file output.')
+    parser.add_argument("dataflashfile", help="the dataflashfile to convert.")
+    parser.add_argument(
+        '-o',
+        '--outfile',
+        default=["serial_link_datflash_convert.log.json"],
+        nargs=1,
+        help='specify the name of the file output.')
     args = parser.parse_args()
     return args
 

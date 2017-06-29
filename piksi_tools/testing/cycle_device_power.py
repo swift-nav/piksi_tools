@@ -41,8 +41,8 @@ ports = map(get_device_location, device_files)
 
 # Turn off all devices
 for bus, dev, port in ports:
-    ret = subprocess.call("./hub_ctrl -b %d -d %d -P %d -p 0" %
-                          (bus, dev, port), shell=True)
+    ret = subprocess.call(
+        "./hub_ctrl -b %d -d %d -P %d -p 0" % (bus, dev, port), shell=True)
     if ret != 0:
         sys.exit(ret)
 
@@ -50,7 +50,7 @@ time.sleep(2)
 
 # Turn on all devices
 for bus, dev, port in ports:
-    ret = subprocess.call("./hub_ctrl -b %d -d %d -P %d -p 1" %
-                          (bus, dev, port), shell=True)
+    ret = subprocess.call(
+        "./hub_ctrl -b %d -d %d -P %d -p 1" % (bus, dev, port), shell=True)
     if ret != 0:
         sys.exit(ret)

@@ -140,15 +140,18 @@ class DropSatsState(TestState):
           not yet dispatched message received by device
         """
         msg = dispatch(msg)
-        if isinstance(msg, MsgTrackingState) or isinstance(msg, MsgTrackingStateDepA):
+        if isinstance(msg, MsgTrackingState) or isinstance(
+                msg, MsgTrackingStateDepA):
             if self.debug:
-                print "currently tracking {0} sats".format(self.num_tracked_sats)
+                print "currently tracking {0} sats".format(
+                    self.num_tracked_sats)
             self.num_tracked_sats = 0
             for channel, track_state in enumerate(msg.states):
                 try:
                     # MsgTrackingState
                     prn = track_state.sid.sat
-                    if ((track_state.sid.constellation == 0) and (track_state.sid.band == 0)):
+                    if ((track_state.sid.constellation == 0) and
+                        (track_state.sid.band == 0)):
                         prn += 1
                 except AttributeError:
                     # MsgTrackingStateDepA
@@ -201,12 +204,12 @@ class DropSatsState(TestState):
         """
         num_drop = self.get_num_sats_to_drop()
         if num_drop > 0:
-            prns_to_drop = random.sample(
-                self.channel_status_dict.values(), num_drop)
+            prns_to_drop = random.sample(self.channel_status_dict.values(),
+                                         num_drop)
             if self.debug:
-                print ("satellite drop triggered: "
-                       "will drop {0} out of {1} sats").format(num_drop,
-                                                               self.num_tracked_sats)
+                print("satellite drop triggered: "
+                      "will drop {0} out of {1} sats").format(
+                          num_drop, self.num_tracked_sats)
             self.drop_prns(prns_to_drop)
 
     def action(self):
@@ -223,12 +226,18 @@ def get_args():
     """
     import argparse
     parser = sl.base_cl_options()
-    parser.add_argument("-i", "--interval",
-                        default=[DEFAULT_POLL_INTERVAL], nargs=1,
-                        help="Number of seconds between satellite drop events.")
-    parser.add_argument("-m", "--minsats",
-                        default=[DEFAULT_MIN_SATS], nargs=1,
-                        help="Minimum number of satellites to retain during drop events.")
+    parser.add_argument(
+        "-i",
+        "--interval",
+        default=[DEFAULT_POLL_INTERVAL],
+        nargs=1,
+        help="Number of seconds between satellite drop events.")
+    parser.add_argument(
+        "-m",
+        "--minsats",
+        default=[DEFAULT_MIN_SATS],
+        nargs=1,
+        help="Minimum number of satellites to retain during drop events.")
     return parser.parse_args()
 
 
@@ -255,7 +264,8 @@ def main():
             # Logger with context
             with sl.get_logger(args.log, log_filename) as logger:
                 # Append logger iwth context
-                with sl.get_append_logger(append_log_filename, tags) as append_logger:
+                with sl.get_append_logger(append_log_filename,
+                                          tags) as append_logger:
                     # print out SBP_MSG_PRINT_DEP messages
                     link.add_callback(sl.printer, SBP_MSG_PRINT_DEP)
                     link.add_callback(sl.log_printer, SBP_MSG_LOG)
@@ -270,8 +280,12 @@ def main():
                         while not piksi_diag.heartbeat_received:
                             time.sleep(0.1)
                         # add Teststates and associated callbacks
-                        with DropSatsState(link, piksi_diag.sbp_version, interval,
-                                           minsats, debug=args.verbose) as drop:
+                        with DropSatsState(
+                                link,
+                                piksi_diag.sbp_version,
+                                interval,
+                                minsats,
+                                debug=args.verbose) as drop:
                             link.add_callback(drop.process_message)
 
                             if timeout is not None:

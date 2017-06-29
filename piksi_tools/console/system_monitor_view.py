@@ -28,11 +28,11 @@ def ip_bytes_to_string(ip_bytes):
 
 
 class SimpleAdapter(TabularAdapter):
-    columns = [('Thread Name', 0), ('CPU %',  1), ('Stack Free',  2)]
+    columns = [('Thread Name', 0), ('CPU %', 1), ('Stack Free', 2)]
 
 
 class SimpleNetworkAdapter(TabularAdapter):
-    columns = [('Interface Name', 0), ('IPv4 Addr',  1), ('Running',  2)]
+    columns = [('Interface Name', 0), ('IPv4 Addr', 1), ('Running', 2)]
 
 
 class SystemMonitorView(HasTraits):
@@ -54,73 +54,102 @@ class SystemMonitorView(HasTraits):
     msg_obs_window_period_ms = Int(0)
 
     piksi_reset_button = SVGButton(
-        label='Reset Piksi', tooltip='Reset Piksi',
-        filename=os.path.join(determine_path(), 'images',
-                              'fontawesome', 'power27.svg'),
-        width=16, height=16, aligment='center'
-    )
+        label='Reset Piksi',
+        tooltip='Reset Piksi',
+        filename=os.path.join(determine_path(), 'images', 'fontawesome',
+                              'power27.svg'),
+        width=16,
+        height=16,
+        aligment='center')
 
     network_refresh_button = SVGButton(
-        label='Refresh Network Status', tooltip='Refresh Network Status',
-        filename=os.path.join(determine_path(), 'images',
-                              'fontawesome', 'refresh.svg'),
-        width=16, height=16, aligment='center'
-    )
+        label='Refresh Network Status',
+        tooltip='Refresh Network Status',
+        filename=os.path.join(determine_path(), 'images', 'fontawesome',
+                              'refresh.svg'),
+        width=16,
+        height=16,
+        aligment='center')
 
     traits_view = View(
         VGroup(
             Item(
-                '_threads_table_list', style='readonly',
+                '_threads_table_list',
+                style='readonly',
                 editor=TabularEditor(adapter=SimpleAdapter()),
-                show_label=False, width=0.85,
-            ),
+                show_label=False,
+                width=0.85, ),
             HGroup(
                 VGroup(
                     HGroup(
                         VGroup(
-                            Item('msg_obs_window_latency_ms', label='Curr',
-                                 style='readonly', format_str='%dms'),
-                            Item('msg_obs_avg_latency_ms', label='Avg',
-                                 style='readonly', format_str='%dms'),
-                            Item('msg_obs_min_latency_ms', label='Min',
-                                 style='readonly', format_str='%dms'),
-                            Item('msg_obs_max_latency_ms', label='Max',
-                                 style='readonly', format_str='%dms'),
-                            label='Latency', show_border=True
-                        ),
+                            Item(
+                                'msg_obs_window_latency_ms',
+                                label='Curr',
+                                style='readonly',
+                                format_str='%dms'),
+                            Item(
+                                'msg_obs_avg_latency_ms',
+                                label='Avg',
+                                style='readonly',
+                                format_str='%dms'),
+                            Item(
+                                'msg_obs_min_latency_ms',
+                                label='Min',
+                                style='readonly',
+                                format_str='%dms'),
+                            Item(
+                                'msg_obs_max_latency_ms',
+                                label='Max',
+                                style='readonly',
+                                format_str='%dms'),
+                            label='Latency',
+                            show_border=True),
                         VGroup(
-                            Item('msg_obs_window_period_ms', label='Curr',
-                                 style='readonly', format_str='%dms'),
-                            Item('msg_obs_avg_period_ms', label='Avg',
-                                 style='readonly', format_str='%dms'),
-                            Item('msg_obs_min_period_ms', label='Min',
-                                 style='readonly', format_str='%dms'),
-                            Item('msg_obs_max_period_ms', label='Max',
-                                 style='readonly', format_str='%dms'),
-                            label='Period', show_border=True,
-                        ),
-                        show_border=True, label="Observation Connection Monitor"
-                    ),
+                            Item(
+                                'msg_obs_window_period_ms',
+                                label='Curr',
+                                style='readonly',
+                                format_str='%dms'),
+                            Item(
+                                'msg_obs_avg_period_ms',
+                                label='Avg',
+                                style='readonly',
+                                format_str='%dms'),
+                            Item(
+                                'msg_obs_min_period_ms',
+                                label='Min',
+                                style='readonly',
+                                format_str='%dms'),
+                            Item(
+                                'msg_obs_max_period_ms',
+                                label='Max',
+                                style='readonly',
+                                format_str='%dms'),
+                            label='Period',
+                            show_border=True, ),
+                        show_border=True,
+                        label="Observation Connection Monitor"),
                     Item('piksi_reset_button', show_label=False, width=0.50),
                 ),
                 VGroup(
                     Item(
-                        '_network_info', style='readonly',
+                        '_network_info',
+                        style='readonly',
                         editor=TabularEditor(adapter=SimpleNetworkAdapter()),
-                        show_label=False,
-                    ),
-                    Item('network_refresh_button',
-                         show_label=False, width=0.50),
-                    show_border=True, label="Network"
-                ),
-            ),
-        ),
-    )
+                        show_label=False, ),
+                    Item(
+                        'network_refresh_button', show_label=False,
+                        width=0.50),
+                    show_border=True,
+                    label="Network"), ), ), )
 
     def update_threads(self):
-        self._threads_table_list = [(thread_name, state.cpu, state.stack_free)
-                                    for thread_name, state in sorted(
-            self.threads, key=lambda x: x[1].cpu, reverse=True)]
+        self._threads_table_list = [
+            (thread_name, state.cpu, state.stack_free)
+            for thread_name, state in sorted(
+                self.threads, key=lambda x: x[1].cpu, reverse=True)
+        ]
 
     def heartbeat_callback(self, sbp_msg, **metadata):
         if self.threads != []:
@@ -141,8 +170,9 @@ class SystemMonitorView(HasTraits):
         self.link(MsgNetworkStateReq())
 
     def _network_callback(self, m, **metadata):
-        self._network_info.append((m.interface_name, ip_bytes_to_string(
-            m.ipv4_address.ipv4_address), ((m.flags & (1 << 6)) != 0)))
+        self._network_info.append(
+            (m.interface_name, ip_bytes_to_string(m.ipv4_address.ipv4_address),
+             ((m.flags & (1 << 6)) != 0)))
 
     def uart_state_callback(self, m, **metadata):
 
@@ -160,13 +190,11 @@ class SystemMonitorView(HasTraits):
         super(SystemMonitorView, self).__init__()
         self.link = link
         self.link.add_callback(self.heartbeat_callback, SBP_MSG_HEARTBEAT)
-        self.link.add_callback(
-            self.thread_state_callback, SBP_MSG_THREAD_STATE)
-        self.link.add_callback(self.uart_state_callback, [
-                               SBP_MSG_UART_STATE, SBP_MSG_UART_STATE_DEPA])
+        self.link.add_callback(self.thread_state_callback,
+                               SBP_MSG_THREAD_STATE)
+        self.link.add_callback(self.uart_state_callback,
+                               [SBP_MSG_UART_STATE, SBP_MSG_UART_STATE_DEPA])
         self.link.add_callback(self._network_callback,
                                SBP_MSG_NETWORK_STATE_RESP)
 
-        self.python_console_cmds = {
-            'mon': self
-        }
+        self.python_console_cmds = {'mon': self}

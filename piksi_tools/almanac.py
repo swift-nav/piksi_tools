@@ -112,23 +112,25 @@ class Sat:
 
         # normalize the vectors to find the angle in between them
         angle_to_normal = m.acos(
-            n.vdot(vec_rec_sat, receiver_pos) / m.sqrt(n.vdot(receiver_pos, receiver_pos)))
+            n.vdot(vec_rec_sat, receiver_pos) /
+            m.sqrt(n.vdot(receiver_pos, receiver_pos)))
         angle_to_horizon = m.pi / 2 - angle_to_normal
         # velocity of the satellite in the axis of the vector from receiver to satellite
         radial_velocity = n.vdot(vec_rec_sat, sat_vel)
         doppler_shift = GPS_L1_HZ * -radial_velocity / NAV_C
 
-        if (angle_to_horizon > elevation_mask * (m.pi / 180)) and (self.healthy):
+        if (angle_to_horizon > elevation_mask *
+            (m.pi / 180)) and (self.healthy):
             return (doppler_shift, angle_to_horizon)
         else:
             return (None, None)
 
     def packed(self):
         import struct
-        return struct.pack("<ddddddddddHBBB",
-                           self.ecc, self.toa, self.inc, self.rora, self.a, self.raaw, self.argp,
-                           self.ma, self.af0, self.af1, self.week, self.prn, self.healthy, 1
-                           )
+        return struct.pack("<ddddddddddHBBB", self.ecc, self.toa, self.inc,
+                           self.rora, self.a, self.raaw, self.argp, self.ma,
+                           self.af0, self.af1, self.week, self.prn,
+                           self.healthy, 1)
 
     def __str__(self):
         dopp, _ = self.calc_vis_dopp(time_of_week(), WPR)

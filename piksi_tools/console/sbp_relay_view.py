@@ -40,12 +40,10 @@ os.environ['REQUESTS_CA_BUNDLE'] = cert_path
 
 DEFAULT_UDP_ADDRESS = "127.0.0.1"
 DEFAULT_UDP_PORT = 13320
-OBS_MSGS = [SBP_MSG_OBS_DEP_C,
-            SBP_MSG_OBS_DEP_B,
-            SBP_MSG_BASE_POS_LLH,
-            SBP_MSG_BASE_POS_ECEF,
-            SBP_MSG_OBS
-            ]
+OBS_MSGS = [
+    SBP_MSG_OBS_DEP_C, SBP_MSG_OBS_DEP_B, SBP_MSG_BASE_POS_LLH,
+    SBP_MSG_BASE_POS_ECEF, SBP_MSG_OBS
+]
 
 
 class HttpConsoleConnectConfig(object):
@@ -54,8 +52,8 @@ class HttpConsoleConnectConfig(object):
         or simpler command line yaml string. It should hold 
         api connection info and separate it from the GUI"""
 
-    def __init__(self, link, device_uid, url, whitelist,
-                 rover_pragma, base_pragma, rover_uuid, base_uuid):
+    def __init__(self, link, device_uid, url, whitelist, rover_pragma,
+                 base_pragma, rover_uuid, base_uuid):
         self.link = link
         if url:
             self.url = url
@@ -72,9 +70,9 @@ class HttpConsoleConnectConfig(object):
         return ("link: {0}, url {1}, device_uid: {2}, "
                 "whitelist {3}, rover pragma: {4}, base_pragma: {5}, "
                 "rover_uuid: {6}, base_uuid {7}").format(
-                    self.link, self.url, self.device_uid,
-                    self.whitelist, self.rover_pragma, self.base_pragma,
-                    self.rover_uuid, self.base_uuid)
+                    self.link, self.url, self.device_uid, self.whitelist,
+                    self.rover_pragma, self.base_pragma, self.rover_uuid,
+                    self.base_uuid)
 
 
 class HttpWatchdogThread(threading.Thread):
@@ -90,11 +88,18 @@ class HttpWatchdogThread(threading.Thread):
              all remaining thread constructor arguments
     """
 
-    def __init__(self, link=None, http_config=None, stopped_callback=None,
-                 group=None, target=None, name=None,
-                 args=(), kwargs=None, verbose=None):
-        threading.Thread.__init__(self, group=group, target=target, name=name,
-                                  verbose=verbose)
+    def __init__(self,
+                 link=None,
+                 http_config=None,
+                 stopped_callback=None,
+                 group=None,
+                 target=None,
+                 name=None,
+                 args=(),
+                 kwargs=None,
+                 verbose=None):
+        threading.Thread.__init__(
+            self, group=group, target=target, name=name, verbose=verbose)
         self.args = args
         self.kwargs = kwargs
         self.link = link
@@ -132,9 +137,10 @@ class HttpWatchdogThread(threading.Thread):
                 import traceback
                 print traceback.format_exc()
         if self.verbose:
-            print ("HttpWatchdogThread initialized "
-                   "at {0} and connected since {1} stopped at {2}").format(
-                self.get_init_time(), self.get_connect_time(), self.get_stop_time())
+            print("HttpWatchdogThread initialized "
+                  "at {0} and connected since {1} stopped at {2}").format(
+                      self.get_init_time(),
+                      self.get_connect_time(), self.get_stop_time())
 
     def stopped(self):
         """ determines if thread is stopped currently """
@@ -178,9 +184,10 @@ class HttpWatchdogThread(threading.Thread):
                 self.get_connect_time(), read_config)
         i = 0
         repeats = 5
-        http = HTTPDriver(device_uid=read_config.base_uuid,
-                          url=read_config.url)
-        if not http.connect_write(link, read_config.whitelist, pragma=read_config.base_pragma):
+        http = HTTPDriver(
+            device_uid=read_config.base_uuid, url=read_config.url)
+        if not http.connect_write(
+                link, read_config.whitelist, pragma=read_config.base_pragma):
             msg = ("\nUnable to connect!\n\n" +
                    "Please check that you have a network connection.")
             self._prompt_networking_error(msg)
@@ -191,8 +198,9 @@ class HttpWatchdogThread(threading.Thread):
 
         # If we get here, we were able to connect as a base
         print "Attempting to read observations ..."
-        while (not self.stopped() and http
-               and not http.connect_read(device_uid=read_config.rover_uuid, pragma=read_config.rover_pragma)):
+        while (not self.stopped() and http and not http.connect_read(
+                device_uid=read_config.rover_uuid,
+                pragma=read_config.rover_pragma)):
             time.sleep(0.1)
             i += 1
             if i >= repeats:
@@ -253,16 +261,18 @@ class SbpRelayView(HasTraits):
     msg_enum = Enum('Observations', 'All')
     ip_ad = String(DEFAULT_UDP_ADDRESS)
     port = Int(DEFAULT_UDP_PORT)
-    information = String('UDP Streaming\n\nBroadcast SBP information received by'
-                         ' the console to other machines or processes over UDP. With the \'Observations\''
-                         ' radio button selected, the console will broadcast the necessary information'
-                         ' for a rover Piksi to acheive an RTK solution.'
-                         '\n\nThis can be used to stream observations to a remote Piksi through'
-                         ' aircraft telemetry via ground control software such as MAVProxy or'
-                         ' Mission Planner.')
+    information = String(
+        'UDP Streaming\n\nBroadcast SBP information received by'
+        ' the console to other machines or processes over UDP. With the \'Observations\''
+        ' radio button selected, the console will broadcast the necessary information'
+        ' for a rover Piksi to acheive an RTK solution.'
+        '\n\nThis can be used to stream observations to a remote Piksi through'
+        ' aircraft telemetry via ground control software such as MAVProxy or'
+        ' Mission Planner.')
     show_networking = Bool(False)
-    http_information = String('Experimental Piksi Networking\n\n'
-                              "Use this widget to connect Piksi receivers to http servers.\n\n")
+    http_information = String(
+        'Experimental Piksi Networking\n\n'
+        "Use this widget to connect Piksi receivers to http servers.\n\n")
     start = Button(label='Start', toggle=True, width=32)
     stop = Button(label='Stop', toggle=True, width=32)
     connected_rover = Bool(False)
@@ -275,68 +285,97 @@ class SbpRelayView(HasTraits):
     rover_device_uid = String()
     toggle = True
     view = View(
-        VGroup(
-            spring,
-            HGroup(
-                VGroup(
-                    Item('running', show_label=True,
-                         style='readonly', visible_when='running'),
-                    Item('msg_enum', label="Messages to broadcast",
-                         style='custom', enabled_when='not running'),
-                    Item('ip_ad', label='IP Address',
-                         enabled_when='not running'),
-                    Item('port', label="Port", enabled_when='not running'),
-                    HGroup(
-                        spring,
-                        UItem('start', enabled_when='not running',
-                              show_label=False),
-                        UItem('stop', enabled_when='running', show_label=False),
-                        spring)),
-                VGroup(
-                    Item('information', label="Notes", height=10,
-                         editor=MultilineTextEditor(TextEditor(multi_line=True)), style='readonly',
-                         show_label=False, resizable=True, padding=15),
-                    spring,
-                ),
-            ),
-            spring,
-            HGroup(
-                VGroup(
-                    HGroup(
-                        spring,
-                        UItem('connect_rover',
-                              enabled_when='not connected_rover', show_label=False),
-                        UItem('disconnect_rover',
-                              enabled_when='connected_rover', show_label=False),
-                        spring),
-                    HGroup(Spring(springy=False, width=2),
-                           Item('url', enabled_when='not connected_rover',
-                                show_label=True),
-                           Spring(springy=False, width=2)
-                           ),
-                    HGroup(spring,
-                           Item('base_pragma',  label='Base option '),
-                           Item('base_device_uid',  label='Base device '),
-                           spring),
-                    HGroup(spring,
-                           Item('rover_pragma', label='Rover option'),
-                           Item('rover_device_uid',  label='Rover device'),
-                           spring),),
-                VGroup(
-                    Item('http_information', label="Notes", height=10,
-                         editor=MultilineTextEditor(TextEditor(multi_line=True)), style='readonly',
-                         show_label=False, resizable=True, padding=15),
-                    spring,
-                ),
-                visible_when='show_networking',
-            ),
-            spring
-        )
-    )
+        VGroup(spring,
+               HGroup(
+                   VGroup(
+                       Item(
+                           'running',
+                           show_label=True,
+                           style='readonly',
+                           visible_when='running'),
+                       Item(
+                           'msg_enum',
+                           label="Messages to broadcast",
+                           style='custom',
+                           enabled_when='not running'),
+                       Item(
+                           'ip_ad',
+                           label='IP Address',
+                           enabled_when='not running'),
+                       Item('port', label="Port", enabled_when='not running'),
+                       HGroup(spring,
+                              UItem(
+                                  'start',
+                                  enabled_when='not running',
+                                  show_label=False),
+                              UItem(
+                                  'stop',
+                                  enabled_when='running',
+                                  show_label=False), spring)),
+                   VGroup(
+                       Item(
+                           'information',
+                           label="Notes",
+                           height=10,
+                           editor=MultilineTextEditor(
+                               TextEditor(multi_line=True)),
+                           style='readonly',
+                           show_label=False,
+                           resizable=True,
+                           padding=15),
+                       spring, ), ), spring,
+               HGroup(
+                   VGroup(
+                       HGroup(spring,
+                              UItem(
+                                  'connect_rover',
+                                  enabled_when='not connected_rover',
+                                  show_label=False),
+                              UItem(
+                                  'disconnect_rover',
+                                  enabled_when='connected_rover',
+                                  show_label=False), spring),
+                       HGroup(
+                           Spring(springy=False, width=2),
+                           Item(
+                               'url',
+                               enabled_when='not connected_rover',
+                               show_label=True), Spring(
+                                   springy=False, width=2)),
+                       HGroup(spring,
+                              Item('base_pragma', label='Base option '),
+                              Item('base_device_uid', label='Base device '),
+                              spring),
+                       HGroup(spring,
+                              Item('rover_pragma', label='Rover option'),
+                              Item('rover_device_uid', label='Rover device'),
+                              spring), ),
+                   VGroup(
+                       Item(
+                           'http_information',
+                           label="Notes",
+                           height=10,
+                           editor=MultilineTextEditor(
+                               TextEditor(multi_line=True)),
+                           style='readonly',
+                           show_label=False,
+                           resizable=True,
+                           padding=15),
+                       spring, ),
+                   visible_when='show_networking', ), spring))
 
-    def __init__(self, link, show_networking=False, device_uid=None, url='',
-                 whitelist=None, rover_pragma='', base_pragma='', rover_uuid='', base_uuid='',
-                 connect=False, verbose=False):
+    def __init__(self,
+                 link,
+                 show_networking=False,
+                 device_uid=None,
+                 url='',
+                 whitelist=None,
+                 rover_pragma='',
+                 base_pragma='',
+                 rover_uuid='',
+                 base_uuid='',
+                 connect=False,
+                 verbose=False):
         """
         Traits tab with UI for UDP broadcast of SBP.
 
@@ -431,10 +470,11 @@ class SbpRelayView(HasTraits):
                not self.http_watchdog_thread.stopped():
                 self.http_watchdog_thread.stop()
             else:
-                print ("Unable to disconnect: Http watchdog thread "
-                       "inititalized at {0} and connected since {1} has "
-                       "already been stopped").format(self.http_watchdog_thread.get_init_time(),
-                                                      self.http_watchdog_thread.get_connect_time())
+                print("Unable to disconnect: Http watchdog thread "
+                      "inititalized at {0} and connected since {1} has "
+                      "already been stopped").format(
+                          self.http_watchdog_thread.get_init_time(),
+                          self.http_watchdog_thread.get_connect_time())
             self.connected_rover = False
         except:
             self.connected_rover = False
@@ -451,12 +491,15 @@ class SbpRelayView(HasTraits):
         try:
             _base_device_uid = self.base_device_uid or self.device_uid
             _rover_device_uid = self.rover_device_uid or self.device_uid
-            config = HttpConsoleConnectConfig(self.link, self.device_uid,
-                                              self.url, self.whitelist, self.rover_pragma,
-                                              self.base_pragma, _rover_device_uid, _base_device_uid)
-            self.http_watchdog_thread = HttpWatchdogThread(link=self.link, http_config=config,
-                                                           stopped_callback=self._disconnect_rover_fired,
-                                                           verbose=self.verbose)
+            config = HttpConsoleConnectConfig(
+                self.link, self.device_uid, self.url, self.whitelist,
+                self.rover_pragma, self.base_pragma, _rover_device_uid,
+                _base_device_uid)
+            self.http_watchdog_thread = HttpWatchdogThread(
+                link=self.link,
+                http_config=config,
+                stopped_callback=self._disconnect_rover_fired,
+                verbose=self.verbose)
             self.connected_rover = True
             self.http_watchdog_thread.start()
         except:

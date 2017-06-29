@@ -20,7 +20,6 @@ INDEX_URL = 'http://downloads.swiftnav.com/index.json'
 
 
 class UpdateDownloader:
-
     def __init__(self, root_dir=''):
         f = urlopen(INDEX_URL)
         self.index = jsonload(f)
@@ -39,7 +38,8 @@ class UpdateDownloader:
                 "Error downloading firmware: URL not present in index")
         except URLError:
             raise URLError(
-                "Error: Failed to download latest STM firmware from Swift Navigation's website")
+                "Error: Failed to download latest STM firmware from Swift Navigation's website"
+            )
         return filepath
 
     def download_nap_firmware(self, hwrev):
@@ -51,7 +51,8 @@ class UpdateDownloader:
                 "Error downloading firmware: URL not present in index")
         except URLError:
             raise URLError(
-                "Error: Failed to download latest NAP firmware from Swift Navigation's website")
+                "Error: Failed to download latest NAP firmware from Swift Navigation's website"
+            )
         return filepath
 
     def download_multi_firmware(self, hwrev):
@@ -63,7 +64,8 @@ class UpdateDownloader:
                 "Error downloading firmware: URL not present in index")
         except URLError:
             raise URLError(
-                "Error: Failed to download latest Multi firmware from Swift Navigation's website")
+                "Error: Failed to download latest Multi firmware from Swift Navigation's website"
+            )
         return filepath
 
     def _download_file_from_url(self, url):

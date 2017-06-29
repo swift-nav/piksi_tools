@@ -46,8 +46,8 @@ if getattr(sys, 'frozen', False):
 else:
     # we are running in a normal Python environment
     basedir = determine_path()
-icon = ImageResource('icon',
-                     search_path=['images', os.path.join(basedir, 'images')])
+icon = ImageResource(
+    'icon', search_path=['images', os.path.join(basedir, 'images')])
 
 HT = 8
 COLUMN_WIDTH = 100
@@ -62,7 +62,9 @@ def parse_version(version):
     comp_string = version
     if version[0] == 'v':
         version = version[1:]
-    return pkparse_version(version.replace("dirty", "",))
+    return pkparse_version(version.replace(
+        "dirty",
+        "", ))
 
 
 class FirmwareFileDialog(HasTraits):
@@ -72,9 +74,8 @@ class FirmwareFileDialog(HasTraits):
     status = String('Please choose a file')
     choose_fw = Button(label='...', padding=-1)
     view = View(
-        HGroup(UItem('status', resizable=True),
-               UItem('choose_fw', width=-0.1)),
-    )
+        HGroup(
+            UItem('status', resizable=True), UItem('choose_fw', width=-0.1)), )
 
     def __init__(self, flash_type):
         """
@@ -137,15 +138,15 @@ class FirmwareFileDialog(HasTraits):
         ihx_addrs = flash.ihx_ranges(self.ihx)
         if self._flash_type == "M25":
             try:
-                sectors = flash.sectors_used(
-                    ihx_addrs, flash.m25_addr_sector_map)
+                sectors = flash.sectors_used(ihx_addrs,
+                                             flash.m25_addr_sector_map)
             except IndexError:
                 self.clear('Error: HEX File contains restricted address ' +
                            '(STM Firmware File Chosen?)')
         elif self._flash_type == "STM":
             try:
-                sectors = flash.sectors_used(
-                    ihx_addrs, flash.stm_addr_sector_map)
+                sectors = flash.sectors_used(ihx_addrs,
+                                             flash.stm_addr_sector_map)
             except:
                 self.clear('Error: HEX File contains restricted address ' +
                            '(NAP Firmware File Chosen?)')
@@ -163,8 +164,10 @@ class FirmwareFileDialog(HasTraits):
 
     def _choose_fw_fired(self):
         """ Activate file dialog window to choose IntelHex firmware file. """
-        dialog = FileDialog(label='Choose Firmware File',
-                            action='open', wildcard=self.file_wildcard)
+        dialog = FileDialog(
+            label='Choose Firmware File',
+            action='open',
+            wildcard=self.file_wildcard)
         dialog.open()
         if dialog.return_code == OK:
             filepath = os.path.join(dialog.directory, dialog.filename)
@@ -177,7 +180,6 @@ class FirmwareFileDialog(HasTraits):
 
 
 class PulsableProgressDialog(ProgressDialog):
-
     def __init__(self, max, pulsed=False):
         """
         Pop-up window for showing a process's progress.
@@ -209,12 +211,12 @@ class PulsableProgressDialog(ProgressDialog):
         if self.pulsed:
             if count > 12:
                 self.max = 100
-                GUI.invoke_later(self.update, int(
-                    100 * float(count) / self.passed_max))
+                GUI.invoke_later(self.update,
+                                 int(100 * float(count) / self.passed_max))
         else:
             self.max = 100
-            GUI.invoke_later(self.update, int(
-                100 * float(count) / self.passed_max))
+            GUI.invoke_later(self.update,
+                             int(100 * float(count) / self.passed_max))
 
 
 class UpdateView(HasTraits):
@@ -258,65 +260,111 @@ class UpdateView(HasTraits):
 
     view = View(
         VGroup(
-            Item('piksi_hw_rev', label='Hardware Revision',
-                 editor_args={'enabled': False}, resizable=True),
+            Item(
+                'piksi_hw_rev',
+                label='Hardware Revision',
+                editor_args={'enabled': False},
+                resizable=True),
             HGroup(
                 VGroup(
-                    Item('piksi_stm_vers', label='Current', resizable=True,
-                         editor_args={'enabled': False}),
-                    Item('newest_stm_vers', label='Latest', resizable=True,
-                         editor_args={'enabled': False,
-                                      'readonly_allow_selection': True}),
-                    Item('stm_fw', style='custom', show_label=True,
-                         label="Local File", enabled_when='download_fw_en',
-                         visible_when='serial_upgrade',
-                         editor_args={'enabled': False}),
-                    HGroup(Item('update_stm_firmware', show_label=False,
-                                enabled_when='update_stm_en', visible_when='serial_upgrade'),
-                           Item('erase_stm', label='Erase STM flash\n(recommended)',
-                                enabled_when='erase_en', show_label=True, visible_when='is_v2')),
-                    show_border=True, label="Firmware Version"
-                ),
+                    Item(
+                        'piksi_stm_vers',
+                        label='Current',
+                        resizable=True,
+                        editor_args={'enabled': False}),
+                    Item(
+                        'newest_stm_vers',
+                        label='Latest',
+                        resizable=True,
+                        editor_args={
+                            'enabled': False,
+                            'readonly_allow_selection': True
+                        }),
+                    Item(
+                        'stm_fw',
+                        style='custom',
+                        show_label=True,
+                        label="Local File",
+                        enabled_when='download_fw_en',
+                        visible_when='serial_upgrade',
+                        editor_args={'enabled': False}),
+                    HGroup(
+                        Item(
+                            'update_stm_firmware',
+                            show_label=False,
+                            enabled_when='update_stm_en',
+                            visible_when='serial_upgrade'),
+                        Item(
+                            'erase_stm',
+                            label='Erase STM flash\n(recommended)',
+                            enabled_when='erase_en',
+                            show_label=True,
+                            visible_when='is_v2')),
+                    show_border=True,
+                    label="Firmware Version"),
                 VGroup(
-                    Item('piksi_nap_vers', label='Current', resizable=True,
-                         editor_args={'enabled': False}),
-                    Item('newest_nap_vers', label='Latest', resizable=True,
-                         editor_args={'enabled': False}),
-                    Item('nap_fw', style='custom', show_label=True,
-                         label="Local File", enabled_when='download_fw_en',
-                         editor_args={'enabled': False}),
-                    HGroup(Item('update_nap_firmware', show_label=False,
-                                enabled_when='update_nap_en', visible_when='serial_upgrade'),
-                           Item(width=50, label="                  ")),
-                    show_border=True, label="NAP Version",
-                    visible_when='is_v2'
-                ),
+                    Item(
+                        'piksi_nap_vers',
+                        label='Current',
+                        resizable=True,
+                        editor_args={'enabled': False}),
+                    Item(
+                        'newest_nap_vers',
+                        label='Latest',
+                        resizable=True,
+                        editor_args={'enabled': False}),
+                    Item(
+                        'nap_fw',
+                        style='custom',
+                        show_label=True,
+                        label="Local File",
+                        enabled_when='download_fw_en',
+                        editor_args={'enabled': False}),
+                    HGroup(
+                        Item(
+                            'update_nap_firmware',
+                            show_label=False,
+                            enabled_when='update_nap_en',
+                            visible_when='serial_upgrade'),
+                        Item(width=50, label="                  ")),
+                    show_border=True,
+                    label="NAP Version",
+                    visible_when='is_v2'),
                 VGroup(
-                    Item('local_console_vers', label='Current', resizable=True,
-                         editor_args={'enabled': False}),
-                    Item('newest_console_vers', label='Latest',
-                         editor_args={'enabled': False}),
-                    label="Swift Console Version", show_border=True),
-            ),
+                    Item(
+                        'local_console_vers',
+                        label='Current',
+                        resizable=True,
+                        editor_args={'enabled': False}),
+                    Item(
+                        'newest_console_vers',
+                        label='Latest',
+                        editor_args={'enabled': False}),
+                    label="Swift Console Version",
+                    show_border=True), ),
             UItem('download_directory', enabled_when='download_fw_en'),
             UItem('download_firmware', enabled_when='download_fw_en'),
-            UItem('update_full_firmware',
-                  enabled_when='update_en', visible_when='is_v2'),
+            UItem(
+                'update_full_firmware',
+                enabled_when='update_en',
+                visible_when='is_v2'),
             VGroup(
-                UItem('upgrade_steps',
-                      visible_when='not serial_upgrade', style='readonly'),
+                UItem(
+                    'upgrade_steps',
+                    visible_when='not serial_upgrade',
+                    style='readonly'),
                 Item(
                     'stream',
                     style='custom',
                     editor=InstanceEditor(),
-                    show_label=False,
-                ),
-                show_border=True,
-            )
-        )
-    )
+                    show_label=False, ),
+                show_border=True, )))
 
-    def __init__(self, link, download_dir=None, prompt=True, serial_upgrade=False):
+    def __init__(self,
+                 link,
+                 download_dir=None,
+                 prompt=True,
+                 serial_upgrade=False):
         """
         Traits tab with UI for updating Piksi firmware.
 
@@ -330,10 +378,7 @@ class UpdateView(HasTraits):
         self.link = link
         self.settings = {}
         self.prompt = prompt
-        self.python_console_cmds = {
-            'update': self
-
-        }
+        self.python_console_cmds = {'update': self}
         try:
             self.update_dl = UpdateDownloader()
             if download_dir:
@@ -429,8 +474,8 @@ class UpdateView(HasTraits):
         except AttributeError:
             pass
 
-        self._firmware_update_thread = Thread(target=self.manage_firmware_updates,
-                                              args=("STM",))
+        self._firmware_update_thread = Thread(
+            target=self.manage_firmware_updates, args=("STM", ))
         self._firmware_update_thread.start()
 
     def _update_nap_firmware_fired(self):
@@ -444,8 +489,8 @@ class UpdateView(HasTraits):
         except AttributeError:
             pass
 
-        self._firmware_update_thread = Thread(target=self.manage_firmware_updates,
-                                              args=("M25",))
+        self._firmware_update_thread = Thread(
+            target=self.manage_firmware_updates, args=("M25", ))
         self._firmware_update_thread.start()
 
     def _update_full_firmware_fired(self):
@@ -459,8 +504,8 @@ class UpdateView(HasTraits):
         except AttributeError:
             pass
 
-        self._firmware_update_thread = Thread(target=self.manage_firmware_updates,
-                                              args=("ALL",))
+        self._firmware_update_thread = Thread(
+            target=self.manage_firmware_updates, args=("ALL", ))
         self._firmware_update_thread.start()
 
     def _download_firmware(self):
@@ -489,12 +534,16 @@ class UpdateView(HasTraits):
             except AttributeError:
                 self.nap_fw.clear("Error downloading firmware")
                 self._write(
-                    "Error downloading firmware: index file not downloaded yet")
+                    "Error downloading firmware: index file not downloaded yet"
+                )
             except IOError:
-                self.nap_fw.clear("IOError: unable to write to path %s. "
-                                  "Verify that the path exists and is writable." % self.download_directory)
+                self.nap_fw.clear(
+                    "IOError: unable to write to path %s. "
+                    "Verify that the path exists and is writable." %
+                    self.download_directory)
                 self._write("IOError: unable to write to path %s. "
-                            "Verify that the path exists and is writable." % self.download_directory)
+                            "Verify that the path exists and is writable." %
+                            self.download_directory)
             except KeyError:
                 self.nap_fw.clear("Error downloading firmware")
                 self._write(
@@ -502,7 +551,8 @@ class UpdateView(HasTraits):
             except URLError:
                 self.nap_fw.clear("Error downloading firmware")
                 self._write(
-                    "Error: Failed to download latest NAP firmware from Swift Navigation's website")
+                    "Error: Failed to download latest NAP firmware from Swift Navigation's website"
+                )
             self.downloading = False
             return
 
@@ -552,7 +602,8 @@ class UpdateView(HasTraits):
                 self.settings['system_info']['firmware_version'].value
         except KeyError:
             self._write(
-                "\nError: Settings received from Piksi don't contain firmware version keys. Please contact Swift Navigation.\n")
+                "\nError: Settings received from Piksi don't contain firmware version keys. Please contact Swift Navigation.\n"
+            )
             return
 
         self.is_v2 = self.piksi_hw_rev.startswith('piksi_v2')
@@ -567,12 +618,14 @@ class UpdateView(HasTraits):
         # Check that we received the index file from the website.
         if self.update_dl == None:
             self._write(
-                "Error: No website index to use to compare versions with local firmware")
+                "Error: No website index to use to compare versions with local firmware"
+            )
             return
         # Get local stm version
         local_stm_version = None
         try:
-            local_stm_version = self.settings['system_info']['firmware_version'].value
+            local_stm_version = self.settings['system_info'][
+                'firmware_version'].value
         except:
             pass
         # Check if console is out of date and notify user if so.
@@ -666,20 +719,27 @@ class UpdateView(HasTraits):
         try:
             self.update_dl = UpdateDownloader()
         except URLError:
-            self._write("\nError: Failed to download latest file index from Swift Navigation's website. Please visit our website to check that you're running the latest Piksi firmware and Piksi console.\n")
+            self._write(
+                "\nError: Failed to download latest file index from Swift Navigation's website. Please visit our website to check that you're running the latest Piksi firmware and Piksi console.\n"
+            )
             return
 
         # Make sure index contains all keys we are interested in.
         try:
             if self.update_dl.index[self.piksi_hw_rev].has_key('fw'):
-                self.newest_stm_vers = self.update_dl.index[self.piksi_hw_rev]['fw']['version']
+                self.newest_stm_vers = self.update_dl.index[self.piksi_hw_rev][
+                    'fw']['version']
             else:
-                self.newest_stm_vers = self.update_dl.index[self.piksi_hw_rev]['stm_fw']['version']
-                self.newest_nap_vers = self.update_dl.index[self.piksi_hw_rev]['nap_fw']['version']
-            self.newest_console_vers = self.update_dl.index[self.piksi_hw_rev]['console']['version']
+                self.newest_stm_vers = self.update_dl.index[self.piksi_hw_rev][
+                    'stm_fw']['version']
+                self.newest_nap_vers = self.update_dl.index[self.piksi_hw_rev][
+                    'nap_fw']['version']
+            self.newest_console_vers = self.update_dl.index[self.piksi_hw_rev][
+                'console']['version']
         except KeyError:
             self._write(
-                "\nError: Index downloaded from Swift Navigation's website (%s) doesn't contain all keys. Please contact Swift Navigation.\n" % INDEX_URL)
+                "\nError: Index downloaded from Swift Navigation's website (%s) doesn't contain all keys. Please contact Swift Navigation.\n"
+                % INDEX_URL)
             return
 
     def manage_stm_firmware_update(self):
@@ -697,8 +757,8 @@ class UpdateView(HasTraits):
             erase_count = 0
             for s in sorted(sectors_to_erase):
                 progress_dialog.progress(erase_count)
-                self._write('Erasing %s sector %d' %
-                            (self.pk_flash.flash_type, s))
+                self._write('Erasing %s sector %d' % (self.pk_flash.flash_type,
+                                                      s))
                 self.pk_flash.erase_sector(s)
                 erase_count += 1
             self.stop_flash()
@@ -711,15 +771,18 @@ class UpdateView(HasTraits):
         text = "Updating STM"
         self._write(text)
         self.create_flash("STM")
-        stm_n_ops = self.pk_flash.ihx_n_ops(self.stm_fw.ihx,
-                                            erase=not self.erase_stm)
+        stm_n_ops = self.pk_flash.ihx_n_ops(
+            self.stm_fw.ihx, erase=not self.erase_stm)
         progress_dialog = PulsableProgressDialog(stm_n_ops, True)
         progress_dialog.title = text
         GUI.invoke_later(progress_dialog.open)
         # Don't erase sectors if we've already done so above.
-        self.pk_flash.write_ihx(self.stm_fw.ihx, self.stream, mod_print=0x40,
-                                elapsed_ops_cb=progress_dialog.progress,
-                                erase=not self.erase_stm)
+        self.pk_flash.write_ihx(
+            self.stm_fw.ihx,
+            self.stream,
+            mod_print=0x40,
+            elapsed_ops_cb=progress_dialog.progress,
+            erase=not self.erase_stm)
         self.stop_flash()
         self._write("")
         try:
@@ -744,8 +807,11 @@ class UpdateView(HasTraits):
             progress_dialog = PulsableProgressDialog(nap_n_ops, True)
             progress_dialog.title = text
             GUI.invoke_later(progress_dialog.open)
-            self.pk_flash.write_ihx(self.nap_fw.ihx, self.stream, mod_print=0x40,
-                                    elapsed_ops_cb=progress_dialog.progress)
+            self.pk_flash.write_ihx(
+                self.nap_fw.ihx,
+                self.stream,
+                mod_print=0x40,
+                elapsed_ops_cb=progress_dialog.progress)
             self.stop_flash()
             self._write("")
             try:
@@ -766,8 +832,10 @@ class UpdateView(HasTraits):
         GUI.invoke_later(progress_dialog.open)
         self._write("Transferring image file...")
         try:
-            FileIO(self.link).write("upgrade.image_set.bin", self.stm_fw.blob,
-                                    progress_cb=progress_dialog.progress)
+            FileIO(self.link).write(
+                "upgrade.image_set.bin",
+                self.stm_fw.blob,
+                progress_cb=progress_dialog.progress)
         except Exception as e:
             self._write("Failed to transfer image file to Piksi: %s\n" % e)
             progress_dialog.close()
@@ -783,10 +851,15 @@ class UpdateView(HasTraits):
         GUI.invoke_later(progress_dialog.open)
         self._write("Committing file to flash...")
 
-        def log_cb(msg, **kwargs): self._write(msg.text)
+        def log_cb(msg, **kwargs):
+            self._write(msg.text)
+
         self.link.add_callback(log_cb, SBP_MSG_LOG)
-        code = shell_command(self.link, "upgrade_tool upgrade.image_set.bin", 600,
-                             progress_cb=progress_dialog.progress)
+        code = shell_command(
+            self.link,
+            "upgrade_tool upgrade.image_set.bin",
+            600,
+            progress_cb=progress_dialog.progress)
         self.link.remove_callback(log_cb, SBP_MSG_LOG)
         progress_dialog.close()
 
@@ -872,8 +945,8 @@ class UpdateView(HasTraits):
         self._write("Piksi Onboard Bootloader Version: " +
                     self.pk_boot.version)
 
-        self.pk_flash = flash.Flash(
-            self.link, flash_type, self.pk_boot.sbp_version)
+        self.pk_flash = flash.Flash(self.link, flash_type,
+                                    self.pk_boot.sbp_version)
 
     def stop_flash(self):
         """

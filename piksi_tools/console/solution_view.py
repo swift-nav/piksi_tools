@@ -32,7 +32,7 @@ from sbp.navigation import *
 
 
 class SimpleAdapter(TabularAdapter):
-    columns = [('Item', 0), ('Value',  1)]
+    columns = [('Item', 0), ('Value', 1)]
     width = 80
 
 
@@ -40,7 +40,6 @@ class SolutionView(HasTraits):
     python_console_cmds = Dict()
     # we need to doubleup on Lists to store the psuedo absolutes separately
     # without rewriting everything
-
     """
   logging_v : toggle logging for velocity files
   directory_name_v : location and name of velocity files
@@ -64,7 +63,8 @@ class SolutionView(HasTraits):
     vel_table = List()
 
     rtk_pos_note = Str(
-        "It is necessary to enter the \"Surveyed Position\" settings for the base station in order to view the RTK Positions in this tab.")
+        "It is necessary to enter the \"Surveyed Position\" settings for the base station in order to view the RTK Positions in this tab."
+    )
 
     plot = Instance(Plot)
     plot_data = Instance(ArrayPlotData)
@@ -75,54 +75,66 @@ class SolutionView(HasTraits):
     position_centered = Bool(False)
 
     clear_button = SVGButton(
-        label='', tooltip='Clear',
+        label='',
+        tooltip='Clear',
         filename=os.path.join(determine_path(), 'images', 'iconic', 'x.svg'),
-        width=16, height=16
-    )
+        width=16,
+        height=16)
     zoomall_button = SVGButton(
-        label='', tooltip='Zoom All', toggle=True,
-        filename=os.path.join(determine_path(), 'images',
-                              'iconic', 'fullscreen.svg'),
-        width=16, height=16
-    )
+        label='',
+        tooltip='Zoom All',
+        toggle=True,
+        filename=os.path.join(determine_path(), 'images', 'iconic',
+                              'fullscreen.svg'),
+        width=16,
+        height=16)
     center_button = SVGButton(
-        label='', tooltip='Center on Solution', toggle=True,
-        filename=os.path.join(determine_path(), 'images',
-                              'iconic', 'target.svg'),
-        width=16, height=16
-    )
+        label='',
+        tooltip='Center on Solution',
+        toggle=True,
+        filename=os.path.join(determine_path(), 'images', 'iconic',
+                              'target.svg'),
+        width=16,
+        height=16)
     paused_button = SVGButton(
-        label='', tooltip='Pause', toggle_tooltip='Run', toggle=True,
-        filename=os.path.join(determine_path(), 'images',
-                              'iconic', 'pause.svg'),
-        toggle_filename=os.path.join(
-            determine_path(), 'images', 'iconic', 'play.svg'),
-        width=16, height=16
-    )
+        label='',
+        tooltip='Pause',
+        toggle_tooltip='Run',
+        toggle=True,
+        filename=os.path.join(determine_path(), 'images', 'iconic',
+                              'pause.svg'),
+        toggle_filename=os.path.join(determine_path(), 'images', 'iconic',
+                                     'play.svg'),
+        width=16,
+        height=16)
 
     traits_view = View(
         HSplit(
             VGroup(
-                Item('table', style='readonly',
-                     editor=TabularEditor(adapter=SimpleAdapter()),
-                     show_label=False, width=0.3),
-                Item('rtk_pos_note', show_label=False, resizable=True,
-                     editor=MultilineTextEditor(TextEditor(multi_line=True)),
-                     style='readonly', width=0.3, height=-40),
-            ),
+                Item(
+                    'table',
+                    style='readonly',
+                    editor=TabularEditor(adapter=SimpleAdapter()),
+                    show_label=False,
+                    width=0.3),
+                Item(
+                    'rtk_pos_note',
+                    show_label=False,
+                    resizable=True,
+                    editor=MultilineTextEditor(TextEditor(multi_line=True)),
+                    style='readonly',
+                    width=0.3,
+                    height=-40), ),
             VGroup(
                 HGroup(
                     Item('paused_button', show_label=False),
                     Item('clear_button', show_label=False),
                     Item('zoomall_button', show_label=False),
-                    Item('center_button', show_label=False),
-                ),
-                Item('plot',
-                     show_label=False,
-                     editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8))),
-            )
-        )
-    )
+                    Item('center_button', show_label=False), ),
+                Item(
+                    'plot',
+                    show_label=False,
+                    editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8))), )))
 
     def _zoomall_button_fired(self):
         self.zoomall = not self.zoomall
@@ -222,11 +234,12 @@ class SolutionView(HasTraits):
         if self.utc_time:
             ((tutc, secutc)) = datetime_2_str(self.utc_time)
 
-        if(self.directory_name_p == ''):
+        if (self.directory_name_p == ''):
             filepath_p = time.strftime("position_log_%Y%m%d-%H%M%S.csv")
         else:
-            filepath_p = os.path.join(self.directory_name_p, time.strftime(
-                "position_log_%Y%m%d-%H%M%S.csv"))
+            filepath_p = os.path.join(
+                self.directory_name_p,
+                time.strftime("position_log_%Y%m%d-%H%M%S.csv"))
 
         if self.logging_p == False:
             self.log_file = None
@@ -234,18 +247,17 @@ class SolutionView(HasTraits):
         if self.logging_p:
             if self.log_file is None:
                 self.log_file = sopen(filepath_p, 'w')
-                self.log_file.write("pc_time,gps_time,tow(msec),latitude(degrees),longitude(degrees),altitude(meters),"
-                                    "h_accuracy(meters),v_accuracy(meters),n_sats,flags\n")
+                self.log_file.write(
+                    "pc_time,gps_time,tow(msec),latitude(degrees),longitude(degrees),altitude(meters),"
+                    "h_accuracy(meters),v_accuracy(meters),n_sats,flags\n")
             log_str_gps = ""
             if tgps != "" and secgps != 0:
                 log_str_gps = "{0}:{1:06.6f}".format(tgps, float(secgps))
-            self.log_file.write('%s,%s,%.3f,%.10f,%.10f,%.4f,%.4f,%.4f,%d,%d\n' % (
-                "{0}:{1:06.6f}".format(tloc, float(secloc)),
-                log_str_gps,
-                tow, soln.lat, soln.lon, soln.height,
-                soln.h_accuracy, soln.v_accuracy,
-                soln.n_sats, soln.flags)
-            )
+            self.log_file.write(
+                '%s,%s,%.3f,%.10f,%.10f,%.4f,%.4f,%.4f,%d,%d\n' %
+                ("{0}:{1:06.6f}".format(tloc, float(secloc)), log_str_gps, tow,
+                 soln.lat, soln.lon, soln.height, soln.h_accuracy,
+                 soln.v_accuracy, soln.n_sats, soln.flags))
             self.log_file.flush()
 
         if self.last_pos_mode == 0:
@@ -266,11 +278,11 @@ class SolutionView(HasTraits):
             pos_table.append(('GPS TOW', "{:.3f}".format(tow)))
 
             if self.week is not None:
-                pos_table.append(
-                    ('GPS Time', "{0}:{1:06.3f}".format(tgps, float(secgps))))
+                pos_table.append(('GPS Time', "{0}:{1:06.3f}".format(
+                    tgps, float(secgps))))
             if self.utc_time is not None:
-                pos_table.append(
-                    ('UTC Time', "{0}:{1:06.3f}".format(tutc, float(secutc))))
+                pos_table.append(('UTC Time', "{0}:{1:06.3f}".format(
+                    tutc, float(secutc))))
                 pos_table.append(('UTC Src', self.utc_source))
             if self.utc_time is None:
                 pos_table.append(('UTC Time', EMPTY_STR))
@@ -326,7 +338,7 @@ class SolutionView(HasTraits):
             float_indexer = (self.modes == FLOAT_MODE)
             fixed_indexer = (self.modes == FIXED_MODE)
 
-        # make sure that there is at least one true in indexer before setting
+            # make sure that there is at least one true in indexer before setting
             if any(spp_indexer):
                 self.plot_data.set_data('lat_spp', self.lats[spp_indexer])
                 self.plot_data.set_data('lng_spp', self.lngs[spp_indexer])
@@ -373,8 +385,10 @@ class SolutionView(HasTraits):
             d = (self.plot.value_range.high - self.plot.value_range.low) / 2.
             self.plot.value_range.set_bounds(soln.lat - d, soln.lat + d)
         if self.zoomall:
-            plot_square_axes(self.plot, ('lng_spp', 'lng_dgnss', 'lng_float', 'lng_fixed'),
-                             ('lat_spp', 'lat_dgnss', 'lat_float', 'lat_fixed'))
+            plot_square_axes(self.plot, ('lng_spp', 'lng_dgnss', 'lng_float',
+                                         'lng_fixed'),
+                             ('lat_spp', 'lat_dgnss', 'lat_float',
+                              'lat_fixed'))
 
     def dops_callback(self, sbp_msg, **metadata):
         flags = 0
@@ -385,21 +399,16 @@ class SolutionView(HasTraits):
             dops = MsgDops(sbp_msg)
             flags = dops.flags
         if flags != 0:
-            self.dops_table = [
-                ('PDOP', '%.1f' % (dops.pdop * 0.01)),
-                ('GDOP', '%.1f' % (dops.gdop * 0.01)),
-                ('TDOP', '%.1f' % (dops.tdop * 0.01)),
-                ('HDOP', '%.1f' % (dops.hdop * 0.01)),
-                ('VDOP', '%.1f' % (dops.vdop * 0.01))
-            ]
+            self.dops_table = [('PDOP', '%.1f' % (dops.pdop * 0.01)),
+                               ('GDOP', '%.1f' % (dops.gdop * 0.01)),
+                               ('TDOP', '%.1f' % (dops.tdop * 0.01)),
+                               ('HDOP', '%.1f' %
+                                (dops.hdop * 0.01)), ('VDOP', '%.1f' %
+                                                      (dops.vdop * 0.01))]
         else:
-            self.dops_table = [
-                ('PDOP', EMPTY_STR),
-                ('GDOP', EMPTY_STR),
-                ('TDOP', EMPTY_STR),
-                ('HDOP', EMPTY_STR),
-                ('VDOP', EMPTY_STR)
-            ]
+            self.dops_table = [('PDOP', EMPTY_STR), ('GDOP', EMPTY_STR),
+                               ('TDOP', EMPTY_STR), ('HDOP', EMPTY_STR),
+                               ('VDOP', EMPTY_STR)]
 
         self.dops_table.append(('DOPS Flags', '0x%03x' % flags))
 
@@ -420,8 +429,9 @@ class SolutionView(HasTraits):
         if self.directory_name_v == '':
             filepath_v = time.strftime("velocity_log_%Y%m%d-%H%M%S.csv")
         else:
-            filepath_v = os.path.join(self.directory_name_v, time.strftime(
-                "velocity_log_%Y%m%d-%H%M%S.csv"))
+            filepath_v = os.path.join(
+                self.directory_name_v,
+                time.strftime("velocity_log_%Y%m%d-%H%M%S.csv"))
 
         if self.logging_v == False:
             self.vel_log_file = None
@@ -430,19 +440,17 @@ class SolutionView(HasTraits):
             if self.vel_log_file is None:
                 self.vel_log_file = sopen(filepath_v, 'w')
                 self.vel_log_file.write(
-                    'pc_time,gps_time,tow,north(m/s),east(m/s),down(m/s),speed(m/s),flags,num_signals\n')
+                    'pc_time,gps_time,tow,north(m/s),east(m/s),down(m/s),speed(m/s),flags,num_signals\n'
+                )
             log_str_gps = ''
             if tgps != "" and secgps != 0:
                 log_str_gps = "{0}:{1:06.6f}".format(tgps, float(secgps))
-            self.vel_log_file.write('%s,%s,%.3f,%.6f,%.6f,%.6f,%.6f,%d,%d\n' % (
-                "{0}:{1:06.6f}".format(tloc, float(secloc)),
-                log_str_gps,
-                tow, vel_ned.n * 1e-3, vel_ned.e * 1e-3, vel_ned.d * 1e-3,
-                math.sqrt(vel_ned.n * vel_ned.n +
-                          vel_ned.e * vel_ned.e) * 1e-3,
-                flags,
-                vel_ned.n_sats)
-            )
+            self.vel_log_file.write(
+                '%s,%s,%.3f,%.6f,%.6f,%.6f,%.6f,%d,%d\n' %
+                ("{0}:{1:06.6f}".format(tloc, float(secloc)), log_str_gps, tow,
+                 vel_ned.n * 1e-3, vel_ned.e * 1e-3, vel_ned.d * 1e-3,
+                 math.sqrt(vel_ned.n * vel_ned.n + vel_ned.e * vel_ned.e
+                           ) * 1e-3, flags, vel_ned.n_sats))
             self.vel_log_file.flush()
         if flags != 0:
             self.vel_table = [
@@ -515,39 +523,119 @@ class SolutionView(HasTraits):
         self.latitude = 0
         self.last_pos_mode = 0
 
-        self.plot_data = ArrayPlotData(lat_spp=[], lng_spp=[], alt_spp=[],
-                                       cur_lat_spp=[], cur_lng_spp=[], lat_dgnss=[], lng_dgnss=[], alt_dgnss=[],
-                                       cur_lat_dgnss=[], cur_lng_dgnss=[], lat_float=[], lng_float=[], alt_float=[],
-                                       cur_lat_float=[], cur_lng_float=[], lat_fixed=[], lng_fixed=[], alt_fixed=[],
-                                       cur_lat_fixed=[], cur_lng_fixed=[])
+        self.plot_data = ArrayPlotData(
+            lat_spp=[],
+            lng_spp=[],
+            alt_spp=[],
+            cur_lat_spp=[],
+            cur_lng_spp=[],
+            lat_dgnss=[],
+            lng_dgnss=[],
+            alt_dgnss=[],
+            cur_lat_dgnss=[],
+            cur_lng_dgnss=[],
+            lat_float=[],
+            lng_float=[],
+            alt_float=[],
+            cur_lat_float=[],
+            cur_lng_float=[],
+            lat_fixed=[],
+            lng_fixed=[],
+            alt_fixed=[],
+            cur_lat_fixed=[],
+            cur_lng_fixed=[])
         self.plot = Plot(self.plot_data)
 
         # 1000 point buffer
-        self.plot.plot(('lng_spp', 'lat_spp'), type='line',
-                       line_width=0.1, name='', color=color_dict[SPP_MODE])
-        self.plot.plot(('lng_spp', 'lat_spp'), type='scatter',  name='', color=color_dict[SPP_MODE],
-                       marker='dot', line_width=0.0, marker_size=1.0)
-        self.plot.plot(('lng_dgnss', 'lat_dgnss'), type='line',
-                       line_width=0.1, name='', color=color_dict[DGNSS_MODE])
-        self.plot.plot(('lng_dgnss', 'lat_dgnss'), type='scatter', name='', color=color_dict[DGNSS_MODE],
-                       marker='dot', line_width=0.0, marker_size=1.0)
-        self.plot.plot(('lng_float', 'lat_float'), type='line',
-                       line_width=0.1, name='', color=color_dict[FLOAT_MODE])
-        self.plot.plot(('lng_float', 'lat_float'), type='scatter', name='', color=color_dict[FLOAT_MODE],
-                       marker='dot', line_width=0.0, marker_size=1.0)
-        self.plot.plot(('lng_fixed', 'lat_fixed'), type='line',
-                       line_width=0.1, name='', color=color_dict[FIXED_MODE])
-        self.plot.plot(('lng_fixed', 'lat_fixed'), type='scatter', name='', color=color_dict[FIXED_MODE],
-                       marker='dot', line_width=0.0, marker_size=1.0)
+        self.plot.plot(
+            ('lng_spp', 'lat_spp'),
+            type='line',
+            line_width=0.1,
+            name='',
+            color=color_dict[SPP_MODE])
+        self.plot.plot(
+            ('lng_spp', 'lat_spp'),
+            type='scatter',
+            name='',
+            color=color_dict[SPP_MODE],
+            marker='dot',
+            line_width=0.0,
+            marker_size=1.0)
+        self.plot.plot(
+            ('lng_dgnss', 'lat_dgnss'),
+            type='line',
+            line_width=0.1,
+            name='',
+            color=color_dict[DGNSS_MODE])
+        self.plot.plot(
+            ('lng_dgnss', 'lat_dgnss'),
+            type='scatter',
+            name='',
+            color=color_dict[DGNSS_MODE],
+            marker='dot',
+            line_width=0.0,
+            marker_size=1.0)
+        self.plot.plot(
+            ('lng_float', 'lat_float'),
+            type='line',
+            line_width=0.1,
+            name='',
+            color=color_dict[FLOAT_MODE])
+        self.plot.plot(
+            ('lng_float', 'lat_float'),
+            type='scatter',
+            name='',
+            color=color_dict[FLOAT_MODE],
+            marker='dot',
+            line_width=0.0,
+            marker_size=1.0)
+        self.plot.plot(
+            ('lng_fixed', 'lat_fixed'),
+            type='line',
+            line_width=0.1,
+            name='',
+            color=color_dict[FIXED_MODE])
+        self.plot.plot(
+            ('lng_fixed', 'lat_fixed'),
+            type='scatter',
+            name='',
+            color=color_dict[FIXED_MODE],
+            marker='dot',
+            line_width=0.0,
+            marker_size=1.0)
         # current values
-        spp = self.plot.plot(('cur_lng_spp', 'cur_lat_spp'), type='scatter', name=mode_dict[SPP_MODE],
-                             color=color_dict[SPP_MODE], marker='plus', line_width=1.5, marker_size=5.0)
-        dgnss = self.plot.plot(('cur_lng_dgnss', 'cur_lat_dgnss'), type='scatter', name=mode_dict[DGNSS_MODE],
-                               color=color_dict[DGNSS_MODE], marker='plus', line_width=1.5, marker_size=5.0)
-        rtkfloat = self.plot.plot(('cur_lng_float', 'cur_lat_float'), type='scatter', name=mode_dict[FLOAT_MODE],
-                                  color=color_dict[FLOAT_MODE], marker='plus', line_width=1.5, marker_size=5.0)
-        rtkfix = self.plot.plot(('cur_lng_fixed', 'cur_lat_fixed'), type='scatter', name=mode_dict[FIXED_MODE],
-                                color=color_dict[FIXED_MODE], marker='plus', line_width=1.5, marker_size=5.0)
+        spp = self.plot.plot(
+            ('cur_lng_spp', 'cur_lat_spp'),
+            type='scatter',
+            name=mode_dict[SPP_MODE],
+            color=color_dict[SPP_MODE],
+            marker='plus',
+            line_width=1.5,
+            marker_size=5.0)
+        dgnss = self.plot.plot(
+            ('cur_lng_dgnss', 'cur_lat_dgnss'),
+            type='scatter',
+            name=mode_dict[DGNSS_MODE],
+            color=color_dict[DGNSS_MODE],
+            marker='plus',
+            line_width=1.5,
+            marker_size=5.0)
+        rtkfloat = self.plot.plot(
+            ('cur_lng_float', 'cur_lat_float'),
+            type='scatter',
+            name=mode_dict[FLOAT_MODE],
+            color=color_dict[FLOAT_MODE],
+            marker='plus',
+            line_width=1.5,
+            marker_size=5.0)
+        rtkfix = self.plot.plot(
+            ('cur_lng_fixed', 'cur_lat_fixed'),
+            type='scatter',
+            name=mode_dict[FIXED_MODE],
+            color=color_dict[FIXED_MODE],
+            marker='plus',
+            line_width=1.5,
+            marker_size=5.0)
         plot_labels = ['SPP', 'DGPS', "RTK float", "RTK fixed"]
         plots_legend = dict(zip(plot_labels, [spp, dgnss, rtkfloat, rtkfix]))
         self.plot.legend.plots = plots_legend
@@ -567,22 +655,22 @@ class SolutionView(HasTraits):
         self.plot.padding = (25, 25, 25, 25)
 
         self.plot.tools.append(PanTool(self.plot))
-        zt = ZoomTool(self.plot, zoom_factor=1.1,
-                      tool_mode="box", always_on=False)
+        zt = ZoomTool(
+            self.plot, zoom_factor=1.1, tool_mode="box", always_on=False)
         self.plot.overlays.append(zt)
 
         self.link = link
-        self.link.add_callback(self.pos_llh_callback, [
-                               SBP_MSG_POS_LLH_DEP_A, SBP_MSG_POS_LLH])
-        self.link.add_callback(self.vel_ned_callback, [
-                               SBP_MSG_VEL_NED_DEP_A, SBP_MSG_VEL_NED])
-        self.link.add_callback(self.dops_callback, [
-                               SBP_MSG_DOPS_DEP_A, SBP_MSG_DOPS])
-        self.link.add_callback(self.gps_time_callback, [
-                               SBP_MSG_GPS_TIME_DEP_A, SBP_MSG_GPS_TIME])
+        self.link.add_callback(self.pos_llh_callback,
+                               [SBP_MSG_POS_LLH_DEP_A, SBP_MSG_POS_LLH])
+        self.link.add_callback(self.vel_ned_callback,
+                               [SBP_MSG_VEL_NED_DEP_A, SBP_MSG_VEL_NED])
+        self.link.add_callback(self.dops_callback,
+                               [SBP_MSG_DOPS_DEP_A, SBP_MSG_DOPS])
+        self.link.add_callback(self.gps_time_callback,
+                               [SBP_MSG_GPS_TIME_DEP_A, SBP_MSG_GPS_TIME])
         self.link.add_callback(self.utc_time_callback, [SBP_MSG_UTC_TIME])
-        self.link.add_callback(
-            self.age_corrections_callback, SBP_MSG_AGE_CORRECTIONS)
+        self.link.add_callback(self.age_corrections_callback,
+                               SBP_MSG_AGE_CORRECTIONS)
         call_repeatedly(0.2, self.solution_draw)
 
         self.week = None

@@ -20,15 +20,14 @@ settings = SettingsList("settings.yaml")
 groups = settings.return_groups()
 
 # Note, these reg exps will not replace the '^' character to allow exponents in the units text field
-LATEX_SUBS_ALLOW_EXPONENTS = (
-    (re.compile(r'\\'), r'\\textbackslash'),
-    (re.compile(r'([{}_#%&$])'), r'\\\1'),
-    (re.compile(r'~'), r'\~{}'),
-    (re.compile(r'_'), r'_'),
-    (re.compile(r'"'), r"''"),
-    (re.compile(r'\.\.\.+'), r'\\ldots'),
-    (re.compile(r'\n'), r'\\newline ')
-)
+LATEX_SUBS_ALLOW_EXPONENTS = ((re.compile(r'\\'), r'\\textbackslash'),
+                              (re.compile(r'([{}_#%&$])'),
+                               r'\\\1'), (re.compile(r'~'),
+                                          r'\~{}'), (re.compile(r'_'), r'_'),
+                              (re.compile(r'"'),
+                               r"''"), (re.compile(r'\.\.\.+'),
+                                        r'\\ldots'), (re.compile(r'\n'),
+                                                      r'\\newline '))
 
 NO_UNDERSCORE = re.compile(r'_')
 
@@ -63,19 +62,20 @@ jenv = jinja2.Environment(
     variable_end_string=')))',
     comment_start_string='((=',
     comment_end_string='=))',
-    loader=jinja2.FileSystemLoader("./")
-)
+    loader=jinja2.FileSystemLoader("./"))
 jenv.filters['escape_tex_exp'] = escape_tex_exp
 jenv.filters['no_us'] = no_us
 
-
 latex_template = jenv.get_template('settings_template.tex')
 with open("settings_out.tex", 'w') as f:
-    f.write(latex_template.render(groups=sorted(groups),
-                                  setting=sorted(settings.list_of_dicts), version='v0.15'))
+    f.write(
+        latex_template.render(
+            groups=sorted(groups),
+            setting=sorted(settings.list_of_dicts),
+            version='v0.15'))
 
 import subprocess
 
-subprocess.Popen(["pdflatex", "--shell-escape",
-                  "settings_out.tex"], env=myenviron).wait()
+subprocess.Popen(
+    ["pdflatex", "--shell-escape", "settings_out.tex"], env=myenviron).wait()
 subprocess.call(["mv", "settings_out.pdf", "../docs/settings.pdf"])

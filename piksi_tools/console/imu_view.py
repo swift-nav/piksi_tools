@@ -50,17 +50,13 @@ class IMUView(HasTraits):
             Item(
                 'plot',
                 editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8)),
-                show_label=False,
-            ),
+                show_label=False, ),
             HGroup(
                 Item('imu_temp', format_str='%.2f C'),
                 Item('imu_conf', format_str='0x%02X'),
                 Item('rms_acc_x', format_str='%.2f g'),
                 Item('rms_acc_y', format_str='%.2f g'),
-                Item('rms_acc_z', format_str='%.2f g'),
-            ),
-        )
-    )
+                Item('rms_acc_z', format_str='%.2f g'), ), ))
 
     def imu_set_data(self):
         self.plot_data.set_data('acc_x', self.acc[:, 0])
@@ -96,9 +92,14 @@ class IMUView(HasTraits):
         self.acc = np.zeros((NUM_POINTS, 3))
         self.gyro = np.zeros((NUM_POINTS, 3))
 
-        self.plot_data = ArrayPlotData(t=np.arange(NUM_POINTS),
-                                       acc_x=[0.0], acc_y=[0.0], acc_z=[0.0],
-                                       gyr_x=[0.0], gyr_y=[0.0], gyr_z=[0.0])
+        self.plot_data = ArrayPlotData(
+            t=np.arange(NUM_POINTS),
+            acc_x=[0.0],
+            acc_y=[0.0],
+            acc_z=[0.0],
+            gyr_x=[0.0],
+            gyr_y=[0.0],
+            gyr_z=[0.0])
 
         self.plot = Plot(
             self.plot_data, auto_colors=colours_list, emphasized=True)
@@ -119,25 +120,23 @@ class IMUView(HasTraits):
         self.plot.legend.line_spacing = 1
         self.plot.legend.font = 'modern 8'
         self.plot.legend.draw_layer = 'overlay'
-        self.plot.legend.tools.append(LegendTool(self.plot.legend,
-                                                 drag_button="right"))
+        self.plot.legend.tools.append(
+            LegendTool(self.plot.legend, drag_button="right"))
 
-        acc_x = self.plot.plot(('t', 'acc_x'), type='line', color='auto',
-                               name='Accn. X')
-        acc_x = self.plot.plot(('t', 'acc_y'), type='line', color='auto',
-                               name='Accn. Y')
-        acc_x = self.plot.plot(('t', 'acc_z'), type='line', color='auto',
-                               name='Accn. Z')
-        acc_x = self.plot.plot(('t', 'gyr_x'), type='line', color='auto',
-                               name='Gyro X')
-        acc_x = self.plot.plot(('t', 'gyr_y'), type='line', color='auto',
-                               name='Gyro Y')
-        acc_x = self.plot.plot(('t', 'gyr_z'), type='line', color='auto',
-                               name='Gyro Z')
+        acc_x = self.plot.plot(
+            ('t', 'acc_x'), type='line', color='auto', name='Accn. X')
+        acc_x = self.plot.plot(
+            ('t', 'acc_y'), type='line', color='auto', name='Accn. Y')
+        acc_x = self.plot.plot(
+            ('t', 'acc_z'), type='line', color='auto', name='Accn. Z')
+        acc_x = self.plot.plot(
+            ('t', 'gyr_x'), type='line', color='auto', name='Gyro X')
+        acc_x = self.plot.plot(
+            ('t', 'gyr_y'), type='line', color='auto', name='Gyro Y')
+        acc_x = self.plot.plot(
+            ('t', 'gyr_z'), type='line', color='auto', name='Gyro Z')
 
         self.link = link
         self.link.add_callback(self.imu_raw_callback, SBP_MSG_IMU_RAW)
         self.link.add_callback(self.imu_aux_callback, SBP_MSG_IMU_AUX)
-        self.python_console_cmds = {
-            'track': self
-        }
+        self.python_console_cmds = {'track': self}

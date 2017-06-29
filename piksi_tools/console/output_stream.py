@@ -8,7 +8,6 @@
 # THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
-
 """Contains the class OutputStream, a HasTraits file-like text buffer."""
 
 from traits.api import HasTraits, Str, Bool, Trait, Int
@@ -16,12 +15,10 @@ from traitsui.api import View, UItem, TextEditor, Handler
 from traits.etsconfig.api import ETSConfig
 from pyface.api import GUI
 
-
 DEFAULT_MAX_LEN = 8000
 
 
 class _OutputStreamViewHandler(Handler):
-
     def object_text_changed(self, uiinfo):
         ui = uiinfo.ui
         if ui is None:

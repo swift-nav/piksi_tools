@@ -16,14 +16,13 @@ def get_args():
     import argparse
     parser = argparse.ArgumentParser(
         description='Check Piksi firmware versions')
-    parser.add_argument("-d",
-                        "--diagnostics-filename",
-                        nargs=1,
-                        help="Settings YAML file")
-    parser.add_argument("-v",
-                        "--version-filename",
-                        nargs=1,
-                        help="Name of git describe VERSION file")
+    parser.add_argument(
+        "-d", "--diagnostics-filename", nargs=1, help="Settings YAML file")
+    parser.add_argument(
+        "-v",
+        "--version-filename",
+        nargs=1,
+        help="Name of git describe VERSION file")
     return parser.parse_args()
 
 

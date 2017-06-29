@@ -8,7 +8,6 @@
 # THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
-
 """Deprecated SBP message types and utilities.
 
 If you having sbp problems I feel bad for you son
@@ -20,13 +19,11 @@ from sbp.acquisition import SBP_MSG_ACQ_RESULT_DEP_A
 from sbp.observation import *
 from sbp.tracking import SBP_MSG_TRACKING_STATE_DEP_A
 
-DEPRECATED_SBP_MESSAGES = [SBP_MSG_ACQ_RESULT_DEP_A,
-                           SBP_MSG_EPHEMERIS_DEP_A,
-                           SBP_MSG_EPHEMERIS_DEP_B,
-                           SBP_MSG_EPHEMERIS_DEP_C,
-                           SBP_MSG_EPHEMERIS_DEP_D,
-                           SBP_MSG_OBS_DEP_A,
-                           SBP_MSG_TRACKING_STATE_DEP_A]
+DEPRECATED_SBP_MESSAGES = [
+    SBP_MSG_ACQ_RESULT_DEP_A, SBP_MSG_EPHEMERIS_DEP_A, SBP_MSG_EPHEMERIS_DEP_B,
+    SBP_MSG_EPHEMERIS_DEP_C, SBP_MSG_EPHEMERIS_DEP_D, SBP_MSG_OBS_DEP_A,
+    SBP_MSG_TRACKING_STATE_DEP_A
+]
 
 
 class DeprecatedMessageHandler(object):
@@ -50,14 +47,16 @@ class DeprecatedMessageHandler(object):
 
     def _dep_msg_handler(self, sbp_msg, **metadata):
         if not self._user_warned:
-            msg = ("Warning! Piksi is outputing deprecated observations \n"
-                   "which cannot be displayed with the current version of the console.\n\n"
-                   "We highly recommend upgrading your firmware to\n"
-                   "most recent version available at http://downloads.swiftnav.com.\n\n")
+            msg = (
+                "Warning! Piksi is outputing deprecated observations \n"
+                "which cannot be displayed with the current version of the console.\n\n"
+                "We highly recommend upgrading your firmware to\n"
+                "most recent version available at http://downloads.swiftnav.com.\n\n"
+            )
             self._prompt_dep_warning(msg)
             self._user_warned = True
-            self._link.remove_callback(
-                self._dep_msg_handler, self._dep_whitelist)
+            self._link.remove_callback(self._dep_msg_handler,
+                                       self._dep_whitelist)
 
     def _prompt_dep_warning(self, text):
         """Nonblocking prompt for a deprecation warning.

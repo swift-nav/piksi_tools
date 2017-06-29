@@ -91,7 +91,8 @@ class Diagnostics(object):
         print msg.text
 
     def _deprecated_handshake_callback(self, sbp_msg, **metadata):
-        if len(sbp_msg.payload) == 1 and struct.unpack('B', sbp_msg.payload[0]) == 0:
+        if len(sbp_msg.payload) == 1 and struct.unpack(
+                'B', sbp_msg.payload[0]) == 0:
             self.diagnostics['versions']['bootloader'] = "v0.1"
         else:
             self.diagnostics['versions']['bootloader'] = sbp_msg.payload
@@ -114,8 +115,8 @@ class Diagnostics(object):
         if not sbp_msg.payload:
             self.settings_received = True
         else:
-            section, setting, value, format_type = sbp_msg.payload[2:].split('\0')[
-                :4]
+            section, setting, value, format_type = sbp_msg.payload[2:].split(
+                '\0')[:4]
             if not self.diagnostics['settings'].has_key(section):
                 self.diagnostics['settings'][section] = {}
             self.diagnostics['settings'][section][setting] = value
@@ -160,18 +161,29 @@ def get_args():
     """
     import argparse
     parser = argparse.ArgumentParser(description='Acquisition Monitor')
-    parser.add_argument("-f", "--ftdi",
-                        help="use pylibftdi instead of pyserial.",
-                        action="store_true")
-    parser.add_argument('-p', '--port',
-                        default=[serial_link.SERIAL_PORT], nargs=1,
-                        help='specify the serial port to use.')
-    parser.add_argument("-b", "--baud",
-                        default=[serial_link.SERIAL_BAUD], nargs=1,
-                        help="specify the baud rate to use.")
-    parser.add_argument("-o", "--diagnostics-filename",
-                        default=[DIAGNOSTICS_FILENAME], nargs=1,
-                        help="file to write diagnostics to.")
+    parser.add_argument(
+        "-f",
+        "--ftdi",
+        help="use pylibftdi instead of pyserial.",
+        action="store_true")
+    parser.add_argument(
+        '-p',
+        '--port',
+        default=[serial_link.SERIAL_PORT],
+        nargs=1,
+        help='specify the serial port to use.')
+    parser.add_argument(
+        "-b",
+        "--baud",
+        default=[serial_link.SERIAL_BAUD],
+        nargs=1,
+        help="specify the baud rate to use.")
+    parser.add_argument(
+        "-o",
+        "--diagnostics-filename",
+        default=[DIAGNOSTICS_FILENAME],
+        nargs=1,
+        help="file to write diagnostics to.")
     return parser.parse_args()
 
 
@@ -188,8 +200,8 @@ def main():
         with Handler(Framer(driver.read, driver.write)) as link:
             diagnostics = Diagnostics(link).diagnostics
             with open(diagnostics_filename, 'w') as diagnostics_file:
-                yaml.dump(diagnostics, diagnostics_file,
-                          default_flow_style=False)
+                yaml.dump(
+                    diagnostics, diagnostics_file, default_flow_style=False)
                 print "wrote diagnostics file"
 
 
