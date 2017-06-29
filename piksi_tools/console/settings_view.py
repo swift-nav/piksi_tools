@@ -11,13 +11,10 @@
 
 from __future__ import print_function
 from __future__ import absolute_import
-import datetime
-import math
 import os
 import threading
 import time
 
-import numpy as np
 from pyface.api import GUI
 from sbp.piksi import MsgReset
 from sbp.settings import (SBP_MSG_SETTINGS_READ_BY_INDEX_DONE,
@@ -38,7 +35,6 @@ from traitsui.tabular_adapter import TabularAdapter
 import piksi_tools.console.callback_prompt as prompt
 from piksi_tools.console.gui_utils import MultilineTextEditor
 from piksi_tools.console.utils import determine_path
-from piksi_tools.fileio import FileIO
 from .settings_list import SettingsList
 
 if ETSConfig.toolkit != 'null':
@@ -377,7 +373,6 @@ class SettingsView(HasTraits):
                         confirmed_set = False
                 except ValueError:
                     confirmed_set = False
-                    pass
             if not confirmed_set:
                 pass
                 # We pass if the new value doesn't match current console value.  It would be nice to update it, but that may cause side effects.

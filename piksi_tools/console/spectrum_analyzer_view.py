@@ -17,7 +17,7 @@ from enable.api import ComponentEditor
 from pyface.api import GUI
 from sbp.piksi import SBP_MSG_SPECAN, MsgSpecan
 from traits.api import Dict, HasTraits, Instance, Str
-from traitsui.api import CheckListEditor, Item, Spring, View
+from traitsui.api import CheckListEditor, Item, View
 
 # How many points are in each FFT?
 NUM_POINTS = 512

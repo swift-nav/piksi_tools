@@ -18,9 +18,7 @@ import time
 
 import sbp.navigation as nav
 import sbp.observation as ob
-import sbp.piksi as piksi
 from sbp.client.loggers.json_logger import JSONLogIterator
-from sbp.utils import exclude_fields, walk_json_dict
 
 
 def from_base(msg):

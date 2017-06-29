@@ -18,7 +18,6 @@ import os
 import sys
 import time
 import uuid
-import warnings
 
 import serial.tools.list_ports
 from sbp.client import Forwarder, Framer, Handler
@@ -129,7 +128,6 @@ def get_args():
     """
     Get and parse arguments.
     """
-    import argparse
     parser = base_cl_options()
     parser.add_argument(
         "-u", "--base", default=DEFAULT_BASE, help="Base station URI.")

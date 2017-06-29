@@ -17,7 +17,7 @@ from sbp.piksi import (SBP_MSG_NETWORK_STATE_RESP, SBP_MSG_THREAD_STATE,
 from sbp.system import SBP_MSG_HEARTBEAT
 from traits.api import Dict, HasTraits, Int, List
 from traits.etsconfig.api import ETSConfig
-from traitsui.api import HGroup, Item, Spring, TabularEditor, VGroup, View
+from traitsui.api import HGroup, Item, TabularEditor, VGroup, View
 from traitsui.tabular_adapter import TabularAdapter
 
 from piksi_tools.console.utils import determine_path

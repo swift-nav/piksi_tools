@@ -10,15 +10,14 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 import os
-import sys
 from new import instancemethod
 from threading import Thread
 from time import sleep
 
 from pyface.api import GUI
 from pyface.image_resource import ImageResource
-from traits.api import Button, Event, HasTraits, Instance, String
-from traitsui.api import Action, Handler, Item, TextEditor, UItem, VGroup, View
+from traits.api import Event, HasTraits, String
+from traitsui.api import Action, Handler, Item, TextEditor, View
 
 from piksi_tools.console.utils import determine_path
 

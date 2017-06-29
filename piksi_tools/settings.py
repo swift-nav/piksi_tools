@@ -12,10 +12,8 @@
 from __future__ import print_function
 from __future__ import absolute_import
 import struct
-import sys
 import time
 
-import yaml
 from sbp.client import Framer, Handler
 from sbp.logging import SBP_MSG_LOG, MsgLog
 from sbp.piksi import MsgReset

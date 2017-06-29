@@ -11,10 +11,8 @@
 
 from __future__ import print_function
 import argparse
-import datetime
 # Logging
 import logging
-import math
 import os
 import signal
 import sys
@@ -23,7 +21,6 @@ import time
 import warnings
 from os.path import expanduser
 
-import numpy as np
 import pygments.lexers
 import sbp.client as sbpc
 from enable.savage.trait_defs.ui.svg_button import SVGButton
@@ -35,10 +32,7 @@ from pyface.image_resource import ImageResource
 # The horrible workaround is to load the PythonLexer class explicitly and then
 # manually insert it into the pygments.lexers module.
 from pygments.lexers.agile import PythonLexer
-from sbp.client import Forwarder
 from sbp.client.drivers.network_drivers import TCPDriver
-from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
-from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.ext_events import SBP_MSG_EXT_EVENT, MsgExtEvent
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
 from sbp.navigation import SBP_MSG_POS_LLH
@@ -52,7 +46,6 @@ from traitsui.api import (EnumEditor, Group, Handler, HGroup, HSplit,
                           HTMLEditor, ImageEditor, InstanceEditor, Item, Label,
                           ShellEditor, Spring, Tabbed, TableEditor, TextEditor,
                           UItem, VGroup, View, VSplit)
-from traitsui.table_column import ExpressionColumn, ObjectColumn
 from traitsui.table_filter import (EvalFilterTemplate, EvalTableFilter,
                                    MenuFilterTemplate, RuleFilterTemplate)
 
@@ -75,8 +68,6 @@ from piksi_tools.console.tracking_view import TrackingView
 from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
                                        determine_path, get_mode, mode_dict)
-from piksi_tools.heartbeat import Heartbeat
-from piksi_tools.serial_link import get_uuid, swriter
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
@@ -151,7 +142,6 @@ except (ArgumentParserError, argparse.ArgumentError,
     print(e)
     show_usage = True
     error_str = "ERROR: " + str(e)
-    pass
 
 if args and args.toolkit[0] is not None:
     ETSConfig.toolkit = args.toolkit[0]
@@ -169,8 +159,7 @@ except ImportError:
 # These imports seem to be required to make pyinstaller work?
 # (usually traitsui would load them automatically)
 if ETSConfig.toolkit == 'qt4':
-    import pyface.ui.qt4.resource_manager
-    import pyface.ui.qt4.python_shell
+    pass
 basedir = determine_path()
 icon = ImageResource(
     'icon', search_path=['images', os.path.join(basedir, 'images')])

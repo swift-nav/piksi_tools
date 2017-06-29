@@ -18,7 +18,7 @@ from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
 from pyface.api import GUI
 from sbp.tracking import SBP_MSG_TRACKING_STATE, SBP_MSG_TRACKING_STATE_DEP_B
-from traits.api import Bool, Dict, Instance, Int, List
+from traits.api import Bool, Dict, Instance, List
 from traitsui.api import HGroup, Item, Spring, VGroup, View
 
 from piksi_tools.acq_results import SNR_THRESHOLD

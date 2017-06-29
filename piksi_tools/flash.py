@@ -13,7 +13,6 @@
 from __future__ import print_function
 import new
 import struct
-import sys
 import time
 from itertools import groupby
 from threading import Lock

@@ -8,8 +8,7 @@ import time
 
 from sbp.client import Forwarder, Framer, Handler
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
-from sbp.piksi import SBP_MSG_MASK_SATELLITE, SBP_MSG_RESET, MsgMaskSatellite
-from sbp.system import SBP_MSG_HEARTBEAT
+from sbp.piksi import MsgMaskSatellite, SBP_MSG_MASK_SATELLITE
 from sbp.table import dispatch
 from sbp.tracking import MsgTrackingState, MsgTrackingStateDepA
 
@@ -226,7 +225,6 @@ def get_args():
     """
     Get and parse arguments.
     """
-    import argparse
     parser = sl.base_cl_options()
     parser.add_argument(
         "-i",

@@ -383,7 +383,6 @@ class UpdateView(HasTraits):
                 self.update_dl.set_root_path(download_dir)
         except URLError:
             self.update_dl = None
-            pass
         self.erase_en = True
         self.stm_fw = FirmwareFileDialog('bin')
         self.stm_fw.on_trait_change(self._manage_enables, 'status')

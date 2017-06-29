@@ -14,7 +14,6 @@ messages from a serial port, filtering for observations, and sending them over u
 to a mavproxy instance or Mission Planner for transmission to an ArduCopter quad.
 """
 
-import socket
 import time
 
 from sbp.client import Framer, Handler

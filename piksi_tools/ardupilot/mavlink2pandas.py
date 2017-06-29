@@ -2,11 +2,9 @@ from __future__ import print_function
 from __future__ import absolute_import
 import datetime
 import os
-import tempfile
 
 import pandas as pd
-from .mavlink_decode import extractSBP
-from pymavlink.DFReader import DFMessage, DFReader_binary
+from pymavlink.DFReader import DFReader_binary
 
 NUMLEAPSECONDS = 17
 

@@ -15,12 +15,10 @@ import numpy as np
 from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
-from pyface.api import GUI
 from sbp.imu import SBP_MSG_IMU_AUX, SBP_MSG_IMU_RAW
-from traits.api import Bool, Dict, Float, HasTraits, Instance, Int, List
-from traitsui.api import HGroup, HSplit, Item, VGroup, View
+from traits.api import Dict, Float, HasTraits, Instance, Int
+from traitsui.api import HGroup, Item, VGroup, View
 
-from piksi_tools.acq_results import SNR_THRESHOLD
 from piksi_tools.console.utils import call_repeatedly
 
 NUM_POINTS = 200

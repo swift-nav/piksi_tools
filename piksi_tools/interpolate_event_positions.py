@@ -7,7 +7,6 @@ from __future__ import print_function
 import csv
 
 from sbp.client.loggers.json_logger import JSONLogIterator
-from sbp.ext_events import SBP_MSG_EXT_EVENT
 
 
 def lin_interp(oldpos, newpos, oldtow, newtow, triggertow):

@@ -6,7 +6,6 @@ import os
 import re
 import subprocess
 
-import yaml
 
 import jinja2
 from .settings_list import SettingsList

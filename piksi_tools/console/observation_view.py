@@ -11,11 +11,8 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 from __future__ import print_function
-import copy
 import datetime
-import os
 
-from enable.savage.trait_defs.ui.svg_button import SVGButton
 from sbp.observation import (SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B,
                              SBP_MSG_OBS_DEP_C)
 from traits.api import Dict, Float, Int, List
