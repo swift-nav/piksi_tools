@@ -1,4 +1,12 @@
 from __future__ import print_function
+
+import datetime
+import os
+from threading import Event, Thread
+
+from sbp.navigation import (SBP_MSG_BASELINE_NED, SBP_MSG_BASELINE_NED_DEP_A,
+                            SBP_MSG_POS_LLH, SBP_MSG_POS_LLH_DEP_A)
+
 # Copyright (C) 2011-2014, 2016 Swift Navigation Inc.
 # Contact: Gareth McMullin <gareth@swift-nav.com>
 #          Pasi Miettinen  <pasi.miettinen@exafore.com>
@@ -9,14 +17,6 @@ from __future__ import print_function
 # THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
-
-import datetime
-import os
-from threading import Event, Thread
-
-from sbp.navigation import (SBP_MSG_BASELINE_NED, SBP_MSG_BASELINE_NED_DEP_A,
-                            SBP_MSG_POS_LLH, SBP_MSG_POS_LLH_DEP_A)
-
 
 L1CA = 0
 L2CM = 1

@@ -11,6 +11,7 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 from __future__ import print_function
+
 import new
 import struct
 import time
@@ -129,7 +130,8 @@ def ihx_ranges(ihx):
 
     return [
         first_last(v)
-        for k, v in groupby(enumerate(ihx.addresses()), lambda i_x: i_x[0] - i_x[1])
+        for k, v in groupby(
+            enumerate(ihx.addresses()), lambda i_x: i_x[0] - i_x[1])
     ]
 
 

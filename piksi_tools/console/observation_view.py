@@ -11,6 +11,7 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 from __future__ import print_function
+
 import datetime
 
 from sbp.observation import (SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B,
@@ -20,9 +21,8 @@ from traitsui.api import HGroup, Item, Spring, TabularEditor, VGroup, View
 from traitsui.tabular_adapter import TabularAdapter
 
 from piksi_tools.console.gui_utils import CodeFiltered
-from piksi_tools.console.utils import (EMPTY_STR, SUPPORTED_CODES,
-                                       call_repeatedly, code_is_gps,
-                                       code_to_str)
+from piksi_tools.console.utils import (
+    EMPTY_STR, SUPPORTED_CODES, call_repeatedly, code_is_gps, code_to_str)
 
 
 class SimpleAdapter(TabularAdapter):
@@ -190,7 +190,9 @@ class ObservationView(CodeFiltered):
                 if self.gps_tow != self.old_tow:
                     cpdopp = (ocp - cp) / float(self.gps_tow - self.old_tow)
                 else:
-                    print("Received two complete observation sets with identical TOW")
+                    print(
+                        "Received two complete observation sets with identical TOW"
+                    )
                     cpdopp = 0
 
                 # Older messages had flipped sign carrier phase values

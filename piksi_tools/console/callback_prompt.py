@@ -33,7 +33,6 @@ close_button = Action(
 ok_button = Action(
     name="Ok", action="set_execute_callback_true", show_label=False)
 
-
 basedir = determine_path()
 icon = ImageResource(
     'icon', search_path=['images', os.path.join(basedir, 'images')])

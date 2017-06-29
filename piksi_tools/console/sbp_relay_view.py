@@ -10,6 +10,7 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 from __future__ import print_function
+
 import os
 import threading
 import time
@@ -134,14 +135,16 @@ class HttpWatchdogThread(threading.Thread):
             try:
                 self.stopped_callback()
             except:
-                print("Error stopping HttpWatchdogThread: User supplied callback has unhandeled exception")
+                print(
+                    "Error stopping HttpWatchdogThread: User supplied callback has unhandeled exception"
+                )
                 import traceback
                 print(traceback.format_exc())
         if self.verbose:
             print(("HttpWatchdogThread initialized "
-                  "at {0} and connected since {1} stopped at {2}").format(
-                      self.get_init_time(),
-                      self.get_connect_time(), self.get_stop_time()))
+                   "at {0} and connected since {1} stopped at {2}").format(
+                       self.get_init_time(),
+                       self.get_connect_time(), self.get_stop_time()))
 
     def stopped(self):
         """ determines if thread is stopped currently """
@@ -181,8 +184,9 @@ class HttpWatchdogThread(threading.Thread):
         assert isinstance(read_config, HttpConsoleConnectConfig)
         self._connect_time = time.time()
         if self.verbose:
-            print("HttpWatchdogThread connection attempted at time {0} with parameters {1}".format(
-                self.get_connect_time(), read_config))
+            print(
+                "HttpWatchdogThread connection attempted at time {0} with parameters {1}".
+                format(self.get_connect_time(), read_config))
         i = 0
         repeats = 5
         http = HTTPDriver(
@@ -444,7 +448,9 @@ class SbpRelayView(HasTraits):
         elif serial_id:
             device_uid = str(get_uuid(channel, serial_id % 1000))
         else:
-            print("Improper call of set_route, either a serial number or UUID should be passed")
+            print(
+                "Improper call of set_route, either a serial number or UUID should be passed"
+            )
             device_uid = str(get_uuid(channel, 1234))
             print("Setting UUID to default value of {0}".format(device_uid))
         self.device_uid = device_uid
@@ -472,10 +478,10 @@ class SbpRelayView(HasTraits):
                 self.http_watchdog_thread.stop()
             else:
                 print(("Unable to disconnect: Http watchdog thread "
-                      "inititalized at {0} and connected since {1} has "
-                      "already been stopped").format(
-                          self.http_watchdog_thread.get_init_time(),
-                          self.http_watchdog_thread.get_connect_time()))
+                       "inititalized at {0} and connected since {1} has "
+                       "already been stopped").format(
+                           self.http_watchdog_thread.get_init_time(),
+                           self.http_watchdog_thread.get_connect_time()))
             self.connected_rover = False
         except:
             self.connected_rover = False

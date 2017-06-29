@@ -12,6 +12,7 @@ Requirements:
 
 """
 from __future__ import print_function
+
 import json
 from datetime import datetime, timedelta
 from struct import unpack
@@ -304,8 +305,9 @@ def extract_sbp(filename):
                 last_m = m
             if bin_data:
                 if len(bin_data) != msg_len:
-                    print("Length of SBP message inconsitent for msg_type {0}.".format(
-                        msg_type))
+                    print(
+                        "Length of SBP message inconsitent for msg_type {0}.".
+                        format(msg_type))
                     print("Expected Length {0}, Actual Length {1}".format(
                         msg_len, len(bin_data)))
                 else:

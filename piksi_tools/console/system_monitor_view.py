@@ -26,7 +26,6 @@ if ETSConfig.toolkit != 'null':
     from enable.savage.trait_defs.ui.svg_button import SVGButton
 
 
-
 def ip_bytes_to_string(ip_bytes):
     return '.'.join(str(x) for x in ip_bytes)
 

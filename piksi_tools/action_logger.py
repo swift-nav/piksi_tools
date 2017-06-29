@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
+
 import random
 import struct
 import sys
@@ -8,7 +9,7 @@ import time
 
 from sbp.client import Forwarder, Framer, Handler
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
-from sbp.piksi import MsgMaskSatellite, SBP_MSG_MASK_SATELLITE
+from sbp.piksi import SBP_MSG_MASK_SATELLITE, MsgMaskSatellite
 from sbp.table import dispatch
 from sbp.tracking import MsgTrackingState, MsgTrackingStateDepA
 
@@ -209,8 +210,8 @@ class DropSatsState(TestState):
                                          num_drop)
             if self.debug:
                 print(("satellite drop triggered: "
-                      "will drop {0} out of {1} sats").format(
-                          num_drop, self.num_tracked_sats))
+                       "will drop {0} out of {1} sats").format(
+                           num_drop, self.num_tracked_sats))
             self.drop_prns(prns_to_drop)
 
     def action(self):

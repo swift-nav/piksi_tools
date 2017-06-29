@@ -10,6 +10,7 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 from __future__ import print_function
+
 import argparse
 # Logging
 import logging
@@ -38,14 +39,13 @@ from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
 from sbp.navigation import SBP_MSG_POS_LLH
 from sbp.piksi import SBP_MSG_COMMAND_RESP, MsgCommandResp, MsgReset
 from sbp.system import SBP_MSG_HEARTBEAT
-from traits.api import ( Bool,  Dict, Directory, Enum,
-                        HasTraits, Instance, Int, List, Str)
+from traits.api import (Bool, Dict, Directory, Enum, HasTraits, Instance, Int,
+                        List, Str)
 # Toolkit
 from traits.etsconfig.api import ETSConfig
-from traitsui.api import (EnumEditor, Handler, HGroup,
-                          HTMLEditor, ImageEditor, InstanceEditor, Item, Label,
-                          ShellEditor, Spring, Tabbed,
-                          UItem, VGroup, View, VSplit)
+from traitsui.api import (EnumEditor, Handler, HGroup, HTMLEditor, ImageEditor,
+                          InstanceEditor, Item, Label, ShellEditor, Spring,
+                          Tabbed, UItem, VGroup, View, VSplit)
 
 import piksi_tools.serial_link as s
 from piksi_tools import __version__ as CONSOLE_VERSION
@@ -54,9 +54,8 @@ from piksi_tools.console.callback_prompt import CallbackPrompt, ok_button
 from piksi_tools.console.deprecated import DeprecatedMessageHandler
 from piksi_tools.console.imu_view import IMUView
 from piksi_tools.console.observation_view import ObservationView
-from piksi_tools.console.output_list import (DEFAULT_LOG_LEVEL_FILTER,
-                                             SYSLOG_LEVELS,
-                                             OutputList, str_to_log_level)
+from piksi_tools.console.output_list import (
+    DEFAULT_LOG_LEVEL_FILTER, SYSLOG_LEVELS, OutputList, str_to_log_level)
 from piksi_tools.console.sbp_relay_view import SbpRelayView
 from piksi_tools.console.settings_view import SettingsView
 from piksi_tools.console.solution_view import SolutionView
@@ -161,8 +160,6 @@ if ETSConfig.toolkit == 'qt4':
 basedir = determine_path()
 icon = ImageResource(
     'icon', search_path=['images', os.path.join(basedir, 'images')])
-
-
 
 CONSOLE_TITLE = 'Swift Console v:' + CONSOLE_VERSION
 BAUD_LIST = [57600, 115200, 230400, 921600, 1000000]
@@ -474,15 +471,15 @@ class SwiftConsole(HasTraits):
 
     def ext_event_callback(self, sbp_msg, **metadata):
         e = MsgExtEvent(sbp_msg)
-        print('External event: %s edge on pin %d at wn=%d, tow=%d, time qual=%s' % (
-            "Rising"
-            if (e.flags & (1 << 0)) else "Falling", e.pin, e.wn, e.tow, "good"
-            if (e.flags & (1 << 1)) else "unknown"))
+        print(
+            'External event: %s edge on pin %d at wn=%d, tow=%d, time qual=%s'
+            % ("Rising" if (e.flags & (1 << 0)) else "Falling", e.pin, e.wn,
+               e.tow, "good" if (e.flags & (1 << 1)) else "unknown"))
 
     def cmd_resp_callback(self, sbp_msg, **metadata):
         r = MsgCommandResp(sbp_msg)
-        print("Received a command response message with code {0}".format(
-            r.code))
+        print(
+            "Received a command response message with code {0}".format(r.code))
 
     def _paused_button_fired(self):
         self.console_output.paused = not self.console_output.paused
@@ -585,7 +582,9 @@ class SwiftConsole(HasTraits):
 
     def _json_logging_button_action(self):
         if self.first_json_press and self.json_logging:
-            print("JSON Logging initiated via CMD line.  Please press button again to stop logging")
+            print(
+                "JSON Logging initiated via CMD line.  Please press button again to stop logging"
+            )
         elif self.json_logging:
             self._stop_json_logging()
             self.json_logging = False
@@ -710,7 +709,9 @@ class SwiftConsole(HasTraits):
                     networking_dict = yaml.load(networking)
                     networking_dict.update({'show_networking': True})
                 except yaml.YAMLError:
-                    print("Unable to interpret networking cmdline argument.  It will be ignored.")
+                    print(
+                        "Unable to interpret networking cmdline argument.  It will be ignored."
+                    )
                     import traceback
                     print(traceback.format_exc())
                     networking_dict = {'show_networking': True}

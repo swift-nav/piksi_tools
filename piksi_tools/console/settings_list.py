@@ -10,6 +10,7 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 from __future__ import print_function
+
 import os
 import pprint
 
@@ -40,7 +41,8 @@ class SettingsList():
             else:
                 if not self.warned_dict.get(name + group, False):
                     print(("No settings documentation entry "
-                          "for name {0} and group is {1}").format(name, group))
+                           "for name {0} and group is {1}").format(
+                               name, group))
                     self.warned_dict[name + group] = True
         if not returnvar:
             returnvar = ""

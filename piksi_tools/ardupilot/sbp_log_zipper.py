@@ -29,6 +29,7 @@ Requirements:
 
 """
 from __future__ import print_function
+
 import argparse
 
 import sbp.client.loggers.json_logger as json_logger

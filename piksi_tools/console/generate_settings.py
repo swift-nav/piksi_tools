@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
+
 import os
 import re
 import subprocess
 
-
 import jinja2
+
 from .settings_list import SettingsList
 
 swift_nav_style_path = "../libsbp/docs"
@@ -77,7 +77,6 @@ with open("settings_out.tex", 'w') as f:
             groups=sorted(groups),
             setting=sorted(settings.list_of_dicts),
             version='v0.15'))
-
 
 subprocess.Popen(
     ["pdflatex", "--shell-escape", "settings_out.tex"], env=myenviron).wait()

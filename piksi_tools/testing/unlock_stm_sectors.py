@@ -3,6 +3,7 @@
 # Unlock all sectors of the Piksi STM32 flash.
 
 from __future__ import print_function
+
 import sys
 
 from sbp.client.handler import Handler
@@ -49,16 +50,20 @@ def main():
         # Handler with context
         with Handler(driver.read, driver.write) as link:
             with Bootloader(link) as piksi_bootloader:
-                print("Waiting for bootloader handshake message from Piksi ...", end=' ')
+                print(
+                    "Waiting for bootloader handshake message from Piksi ...",
+                    end=' ')
                 sys.stdout.flush()
                 try:
                     piksi_bootloader.handshake()
                 except KeyboardInterrupt:
                     return
                 print("received.")
-                print("Piksi Onboard Bootloader Version:", piksi_bootloader.version)
+                print("Piksi Onboard Bootloader Version:",
+                      piksi_bootloader.version)
                 if piksi_bootloader.sbp_version > (0, 0):
-                    print("Piksi Onboard SBP Protocol Version:", piksi_bootloader.sbp_version)
+                    print("Piksi Onboard SBP Protocol Version:",
+                          piksi_bootloader.sbp_version)
 
                 # Catch all other errors and exit cleanly.
                 try:

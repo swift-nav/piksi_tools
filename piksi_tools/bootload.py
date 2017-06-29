@@ -21,17 +21,15 @@
 The :mod:`piksi_tools.bootload` module contains functions loading firmware
 images.
 """
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import sys
 import time
 
-from sbp.bootload import (SBP_MSG_BOOTLOADER_HANDSHAKE_DEP_A,
-                          SBP_MSG_BOOTLOADER_HANDSHAKE_RESP,
-                          MsgBootloaderHandshakeDepA,
-                          MsgBootloaderHandshakeReq,
-                          MsgBootloaderHandshakeResp, MsgBootloaderJumpToApp)
+from sbp.bootload import (
+    SBP_MSG_BOOTLOADER_HANDSHAKE_DEP_A, SBP_MSG_BOOTLOADER_HANDSHAKE_RESP,
+    MsgBootloaderHandshakeDepA, MsgBootloaderHandshakeReq,
+    MsgBootloaderHandshakeResp, MsgBootloaderJumpToApp)
 from sbp.client import Framer, Handler
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
 from sbp.piksi import MsgResetDep
@@ -220,7 +218,9 @@ def main():
 
             # Tell Bootloader we want to write to the flash.
             with Bootloader(link) as piksi_bootloader:
-                print("Waiting for bootloader handshake message from Piksi ...", end=' ')
+                print(
+                    "Waiting for bootloader handshake message from Piksi ...",
+                    end=' ')
                 sys.stdout.flush()
                 try:
                     handshake_received = piksi_bootloader.handshake(
@@ -232,9 +232,11 @@ def main():
                     print("No handshake received.")
                     sys.exit(1)
                 print("received.")
-                print("Piksi Onboard Bootloader Version:", piksi_bootloader.version)
+                print("Piksi Onboard Bootloader Version:",
+                      piksi_bootloader.version)
                 if piksi_bootloader.sbp_version > (0, 0):
-                    print("Piksi Onboard SBP Protocol Version:", piksi_bootloader.sbp_version)
+                    print("Piksi Onboard SBP Protocol Version:",
+                          piksi_bootloader.sbp_version)
 
                 # Catch all other errors and exit cleanly.
                 try:

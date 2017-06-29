@@ -9,19 +9,18 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
+
 import struct
 import time
 
 from sbp.client import Framer, Handler
 from sbp.logging import SBP_MSG_LOG, MsgLog
 from sbp.piksi import MsgReset
-from sbp.settings import (SBP_MSG_SETTINGS_READ_BY_INDEX_DONE,
-                          SBP_MSG_SETTINGS_READ_BY_INDEX_RESP,
-                          SBP_MSG_SETTINGS_READ_RESP,
-                          MsgSettingsReadByIndexReq, MsgSettingsReadReq,
-                          MsgSettingsSave, MsgSettingsWrite)
+from sbp.settings import (
+    SBP_MSG_SETTINGS_READ_BY_INDEX_DONE, SBP_MSG_SETTINGS_READ_BY_INDEX_RESP,
+    SBP_MSG_SETTINGS_READ_RESP, MsgSettingsReadByIndexReq, MsgSettingsReadReq,
+    MsgSettingsSave, MsgSettingsWrite)
 
 from . import serial_link
 

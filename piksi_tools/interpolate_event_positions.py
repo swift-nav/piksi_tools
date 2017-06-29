@@ -33,8 +33,8 @@ def lin_interp(oldpos, newpos, oldtow, newtow, triggertow):
 
     # Warning for big end-point differences
     if (newtow - oldtow) > 3000:
-        print("Interpolation end-points for Trigger at TOW {0} too far away".format(
-            triggertow))
+        print("Interpolation end-points for Trigger at TOW {0} too far away".
+              format(triggertow))
 
     d = float(newpos - oldpos)
     t = (newtow - oldtow)

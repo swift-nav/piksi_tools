@@ -11,6 +11,7 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 from __future__ import print_function
+
 import numpy as np
 from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import LegendTool

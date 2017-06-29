@@ -9,42 +9,36 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
+
 import os
 import threading
 import time
 
 from pyface.api import GUI
 from sbp.piksi import MsgReset
-from sbp.settings import (SBP_MSG_SETTINGS_READ_BY_INDEX_DONE,
-                          SBP_MSG_SETTINGS_READ_BY_INDEX_REQ,
-                          SBP_MSG_SETTINGS_READ_BY_INDEX_RESP,
-                          SBP_MSG_SETTINGS_READ_RESP,
-                          MsgSettingsReadByIndexReq, MsgSettingsSave,
-                          MsgSettingsWrite)
+from sbp.settings import (
+    SBP_MSG_SETTINGS_READ_BY_INDEX_DONE, SBP_MSG_SETTINGS_READ_BY_INDEX_REQ,
+    SBP_MSG_SETTINGS_READ_BY_INDEX_RESP, SBP_MSG_SETTINGS_READ_RESP,
+    MsgSettingsReadByIndexReq, MsgSettingsSave, MsgSettingsWrite)
 from sbp.system import SBP_MSG_STARTUP
-from traits.api import (Bool, Color, Constant,
-                        Float, Font, HasTraits, Instance, List, Property,
-                        Str, Undefined)
+from traits.api import (Bool, Color, Constant, Float, Font, HasTraits,
+                        Instance, List, Property, Str, Undefined)
 from traits.etsconfig.api import ETSConfig
-from traitsui.api import (EnumEditor, HGroup, HSplit,
-                          Item, TabularEditor, TextEditor, UItem, VGroup, View)
+from traitsui.api import (EnumEditor, HGroup, HSplit, Item, TabularEditor,
+                          TextEditor, UItem, VGroup, View)
 from traitsui.tabular_adapter import TabularAdapter
 
 import piksi_tools.console.callback_prompt as prompt
 from piksi_tools.console.gui_utils import MultilineTextEditor
 from piksi_tools.console.utils import determine_path
+
 from .settings_list import SettingsList
 
 if ETSConfig.toolkit != 'null':
     from enable.savage.trait_defs.ui.svg_button import SVGButton
 else:
     SVGButton = dict
-
-
-
-
 
 
 class SettingBase(HasTraits):
@@ -474,6 +468,8 @@ class SettingsView(HasTraits):
             try:
                 self._settings_read_button_fired()
             except IOError:
-                print("IOError in settings_view startup call of _settings_read_button_fired.")
+                print(
+                    "IOError in settings_view startup call of _settings_read_button_fired."
+                )
                 print("Verify that write permissions exist on the port.")
         self.python_console_cmds = {'settings': self}

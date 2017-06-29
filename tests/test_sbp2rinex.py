@@ -11,7 +11,6 @@
 
 import os
 
-
 import piksi_tools.sbp2rinex as s2r
 
 

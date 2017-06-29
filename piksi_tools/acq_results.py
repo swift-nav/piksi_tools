@@ -13,8 +13,7 @@
 The :mod:`piksi_tools.acq_results` module contains functions related to
 monitoring acquisition.
 """
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import time
 

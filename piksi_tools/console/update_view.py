@@ -9,8 +9,8 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
+
 import os
 import sys
 from threading import Thread
@@ -25,16 +25,16 @@ from sbp.bootload import MsgBootloaderJumpToApp
 from sbp.logging import SBP_MSG_LOG
 from sbp.piksi import MsgReset
 from traits.api import Bool, Button, Directory, HasTraits, Instance, String
-from traitsui.api import (HGroup, InstanceEditor, Item, UItem, VGroup,
-                          View)
+from traitsui.api import HGroup, InstanceEditor, Item, UItem, VGroup, View
 
 import piksi_tools.console.callback_prompt as prompt
-from .output_stream import OutputStream
 from piksi_tools import __version__ as CONSOLE_VERSION
 from piksi_tools import bootload, flash
 from piksi_tools.bootload_v3 import shell_command
 from piksi_tools.console.utils import determine_path
 from piksi_tools.fileio import FileIO
+
+from .output_stream import OutputStream
 from .update_downloader import INDEX_URL, UpdateDownloader
 
 if getattr(sys, 'frozen', False):
