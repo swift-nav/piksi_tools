@@ -11,19 +11,20 @@
 
 from sbp.system import MsgHeartbeat
 
+
 class Heartbeat(object):
-  """
-  Handle receiving heartbeat messages from Piksi. Instance is callable and
-  should be registered as callback for SBP_MSG_HEARTBEAT with
-  sbp.client.handler.Handler.
-  """
+    """
+    Handle receiving heartbeat messages from Piksi. Instance is callable and
+    should be registered as callback for SBP_MSG_HEARTBEAT with
+    sbp.client.handler.Handler.
+    """
 
-  def __init__(self):
-    self.received = False
-    # SBP version is unset in older devices
-    self.sbp_version = (0, 0)
+    def __init__(self):
+        self.received = False
+        # SBP version is unset in older devices
+        self.sbp_version = (0, 0)
 
-  def __call__(self, sbp_msg, **metadata):
-    hb = MsgHeartbeat(sbp_msg)
-    self.sbp_version = ((hb.flags >> 16) & 0xFF, (hb.flags >> 8) & 0xFF)
-    self.received = True
+    def __call__(self, sbp_msg, **metadata):
+        hb = MsgHeartbeat(sbp_msg)
+        self.sbp_version = ((hb.flags >> 16) & 0xFF, (hb.flags >> 8) & 0xFF)
+        self.received = True

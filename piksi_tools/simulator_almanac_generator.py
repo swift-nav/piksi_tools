@@ -19,8 +19,9 @@ from almanac import *
 
 import argparse
 
+
 def to_struct(sat):
-  return "{ \n\
+    return "{ \n\
   .gps = { \n\
     .ecc       = %f,\n\
     .toa       = %f,\n\
@@ -42,40 +43,42 @@ def to_struct(sat):
   .healthy   = %d,\n\
   .valid     = %d,\n\
 }" % (sat.ecc,
-  sat.toa,
-  sat.inc,
-  sat.rora,
-  sat.a,
-  sat.raaw,
-  sat.argp,
-  sat.ma,
-  sat.af0,
-  sat.af1,
-  sat.week,
-  0, # CONSTELLATION_GPS
-  0, # BAND_L1
-  sat.prn,
-  sat.healthy,
-  1);
+      sat.toa,
+      sat.inc,
+      sat.rora,
+      sat.a,
+      sat.raaw,
+      sat.argp,
+      sat.ma,
+      sat.af0,
+      sat.af1,
+      sat.week,
+      0,  # CONSTELLATION_GPS
+      0,  # BAND_L1
+      sat.prn,
+      sat.healthy,
+      1)
+
 
 if __name__ == "__main__":
-  parser = argparse.ArgumentParser(description='Swift Nav Almanac C Generator')
-  parser.add_argument("file",
-    help="the almanac file to process into C structs")
+    parser = argparse.ArgumentParser(
+        description='Swift Nav Almanac C Generator')
+    parser.add_argument("file",
+                        help="the almanac file to process into C structs")
 
-  args = parser.parse_args();
+    args = parser.parse_args()
 
-  alm = Almanac()
-  with open(args.file) as f:
-    alm.process_yuma(f.readlines())
-    print "#include \"simulator_data.h\""
-    print "/* AUTO-GENERATED FROM simulator_almanac_generator.py */\n"
-    print "u16 simulation_week_number = 1787;\n"
-    print "double simulation_sats_pos[%d][3];\n" % len(alm.sats)
-    print "double simulation_sats_vel[%d][3];\n" % len(alm.sats)
-    print "u32 simulation_fake_carrier_bias[%d];\n" % len(alm.sats)
-    print "u8 simulation_num_almanacs = %d;\n" % len(alm.sats)
-    print "const almanac_t simulation_almanacs[%d] = {" % len(alm.sats)
-    for s in alm.sats:
-      print "%s," % to_struct(s)
-    print "};"
+    alm = Almanac()
+    with open(args.file) as f:
+        alm.process_yuma(f.readlines())
+        print "#include \"simulator_data.h\""
+        print "/* AUTO-GENERATED FROM simulator_almanac_generator.py */\n"
+        print "u16 simulation_week_number = 1787;\n"
+        print "double simulation_sats_pos[%d][3];\n" % len(alm.sats)
+        print "double simulation_sats_vel[%d][3];\n" % len(alm.sats)
+        print "u32 simulation_fake_carrier_bias[%d];\n" % len(alm.sats)
+        print "u8 simulation_num_almanacs = %d;\n" % len(alm.sats)
+        print "const almanac_t simulation_almanacs[%d] = {" % len(alm.sats)
+        for s in alm.sats:
+            print "%s," % to_struct(s)
+        print "};"

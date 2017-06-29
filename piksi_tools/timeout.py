@@ -12,59 +12,60 @@
 import signal
 
 # Seconds to use for various timeouts.
-TIMEOUT_FW_DOWNLOAD       = 30
-TIMEOUT_BOOT              = 30
-TIMEOUT_ERASE_STM         = 30
-TIMEOUT_PROGRAM_STM       = 100
-TIMEOUT_WRITE_STM         = TIMEOUT_ERASE_STM + TIMEOUT_PROGRAM_STM
-TIMEOUT_WRITE_NAP         = 250
-TIMEOUT_LOCK_SECTOR       = 5
-TIMEOUT_READ_STM          = 5
-TIMEOUT_READ_M25          = 5
-TIMEOUT_WRITE_M25         = 5
-TIMEOUT_ERASE_SECTOR      = 5
-TIMEOUT_READ_SETTINGS     = 10
-TIMEOUT_READ_DNA          = 5
-TIMEOUT_CREATE_LINK       = 5
-TIMEOUT_GET_UNIQUE_ID     = 5
-TIMEOUT_WRITE_M25_STATUS  = 5
+TIMEOUT_FW_DOWNLOAD = 30
+TIMEOUT_BOOT = 30
+TIMEOUT_ERASE_STM = 30
+TIMEOUT_PROGRAM_STM = 100
+TIMEOUT_WRITE_STM = TIMEOUT_ERASE_STM + TIMEOUT_PROGRAM_STM
+TIMEOUT_WRITE_NAP = 250
+TIMEOUT_LOCK_SECTOR = 5
+TIMEOUT_READ_STM = 5
+TIMEOUT_READ_M25 = 5
+TIMEOUT_WRITE_M25 = 5
+TIMEOUT_ERASE_SECTOR = 5
+TIMEOUT_READ_SETTINGS = 10
+TIMEOUT_READ_DNA = 5
+TIMEOUT_CREATE_LINK = 5
+TIMEOUT_GET_UNIQUE_ID = 5
+TIMEOUT_WRITE_M25_STATUS = 5
 
 
 class TimeoutError(Exception):
-  pass
+    pass
+
 
 def timeout_handler(signum, frame):
-  raise TimeoutError
+    raise TimeoutError
+
 
 class Timeout(object):
-  """
-  Configurable timeout to raise an Exception after a certain number of
-  seconds.
-
-  Note: Will not work on Windows: uses SIGALRM.
-  """
-
-  def __init__(self, seconds):
     """
-    Parameters
-    ==========
-    seconds : int
-      Number of seconds before Exception is raised.
+    Configurable timeout to raise an Exception after a certain number of
+    seconds.
+
+    Note: Will not work on Windows: uses SIGALRM.
     """
-    signal.signal(signal.SIGALRM, timeout_handler)
-    self.seconds = seconds
 
-  def __enter__(self):
-    self.start()
-    return self
+    def __init__(self, seconds):
+        """
+        Parameters
+        ==========
+        seconds : int
+          Number of seconds before Exception is raised.
+        """
+        signal.signal(signal.SIGALRM, timeout_handler)
+        self.seconds = seconds
 
-  def __exit__(self, *args):
-    self.cancel()
+    def __enter__(self):
+        self.start()
+        return self
 
-  def start(self):
-    signal.alarm(self.seconds)
+    def __exit__(self, *args):
+        self.cancel()
 
-  def cancel(self):
-    """ Cancel scheduled Exception. """
-    signal.alarm(0)
+    def start(self):
+        signal.alarm(self.seconds)
 
+    def cancel(self):
+        """ Cancel scheduled Exception. """
+        signal.alarm(0)

@@ -27,7 +27,7 @@ class _OutputStreamViewHandler(Handler):
         if ui is None:
             return
 
-        for ed in  ui._editors:
+        for ed in ui._editors:
             if ed.name == 'text':
                 break
         else:
@@ -75,7 +75,8 @@ class OutputStream(HasTraits):
 
     def write(self, s):
         if self.paused:
-            self._paused_buffer = self._truncated_concat(self._paused_buffer, s)
+            self._paused_buffer = self._truncated_concat(
+                self._paused_buffer, s)
         else:
             self.text = self._truncated_concat(self.text, s)
 
@@ -113,8 +114,8 @@ class OutputStream(HasTraits):
     def traits_view(self):
         view = \
             View(
-                UItem('text', editor=TextEditor(multi_line=True), style='custom'),
+                UItem('text', editor=TextEditor(
+                    multi_line=True), style='custom'),
                 handler=_OutputStreamViewHandler(),
             )
         return view
-

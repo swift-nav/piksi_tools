@@ -14,8 +14,6 @@ import pytest
 import os
 
 
-
 def test_function():
-  s2r.wrapper("./tests/data/sbp2rinex_data", '/tmp/out', None)
-  assert os.path.exists('/tmp/out')
-
+    s2r.wrapper("./tests/data/sbp2rinex_data", '/tmp/out', None)
+    assert os.path.exists('/tmp/out')

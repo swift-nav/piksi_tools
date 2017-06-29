@@ -33,8 +33,8 @@ d.zs = 500 * d.zs / np.max(d.zs)
 print d.zs.shape
 
 x_len, y_len = d.zs.shape
-xs = np.arange(x_min, x_max, (x_max-x_min)/x_len)
-ys = np.arange(y_min, y_max, (y_max-y_min)/y_len)
+xs = np.arange(x_min, x_max, (x_max - x_min) / x_len)
+ys = np.arange(y_min, y_max, (y_max - y_min) / y_len)
 xs, ys = np.meshgrid(ys, xs)
 
 s = mlab.surf(xs, ys, d.zs)

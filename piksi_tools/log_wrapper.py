@@ -13,24 +13,28 @@ import json
 import sys
 from piksi_tools.utils import wrap_sbp_dict
 
+
 def get_args():
-  parser = argparse.ArgumentParser(description="Swift Navigation JSON wrapper tool.")
-  return parser.parse_args()
+    parser = argparse.ArgumentParser(
+        description="Swift Navigation JSON wrapper tool.")
+    return parser.parse_args()
+
 
 def main():
-  """Simple command line interface for wrapping up the output of SBP2JSON"
+    """Simple command line interface for wrapping up the output of SBP2JSON"
 
-  """
-  index = 0
-  timestamp = 0
-  time_increment_guess = 10 #ms
-  index_increment_guess = 10 #ms
-  for line in sys.stdin:
-    data = json.loads(line)
-    outdata = wrap_sbp_dict(data, index, timestamp)
-    print json.dumps(outdata)
-    index += index_increment_guess
-    timestamp += time_increment_guess
+    """
+    index = 0
+    timestamp = 0
+    time_increment_guess = 10  # ms
+    index_increment_guess = 10  # ms
+    for line in sys.stdin:
+        data = json.loads(line)
+        outdata = wrap_sbp_dict(data, index, timestamp)
+        print json.dumps(outdata)
+        index += index_increment_guess
+        timestamp += time_increment_guess
+
 
 if __name__ == "__main__":
-  main()
+    main()
