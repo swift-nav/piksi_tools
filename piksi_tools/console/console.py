@@ -134,6 +134,7 @@ from piksi_tools.console.sbp_relay_view import Networking
 from piksi_tools.console.system_monitor_view import SystemMonitor
 from piksi_tools.console.settings_view import Settings
 from piksi_tools.console.update_view import FirmwareUpdate
+from piksi_tools.console.spectrum_analyzer_view import SpectrumAnalyzerView
 from piksi_tools.console.imu_view import IMU
 from piksi_tools.console.callback_prompt import CallbackPrompt, ok_button
 from enable.savage.trait_defs.ui.svg_button import SVGButton
@@ -607,15 +608,18 @@ class SwiftConsole(HasTraits):
           self.parent = parent
           self.selected_tab = self.sys = SystemMonitor(link)
           self.imu = IMU(link, self)
+          self.spectrum_analyzer_view = SpectrumAnalyzerView(link)
           self.net = Networking(link, **networking_dict)
           self.pycon = PythonConsole()
           self.tab_list.append(self.sys)
           self.tab_list.append(self.imu)
+          self.tab_list.append(self.spectrum_analyzer_view)
           self.tab_list.append(self.net)
           self.tab_list.append(self.pycon)
           parent.python_console_env.update(self.sys.python_console_cmds)
           parent.python_console_env.update(self.imu.python_console_cmds)
           parent.python_console_env.update(self.net.python_console_cmds)
+          parent.python_console_env.update(self.spectrum_analyzer_view.python_console_cmds)
 
       self.advanced_view = Advanced(self.link, self)
       self.tab_list.append(self.advanced_view)
@@ -626,7 +630,6 @@ class SwiftConsole(HasTraits):
       self.python_console_env.update(self.observation_view.python_console_cmds)
       self.python_console_env.update(self.update_view.python_console_cmds)
       self.python_console_env.update(self.settings_view.python_console_cmds)
-      self.python_console_env.update(self.spectrum_analyzer_view.python_console_cmds)
 
     except:
       import traceback

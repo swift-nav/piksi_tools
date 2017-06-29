@@ -21,6 +21,7 @@ from piksi_tools.console.utils import call_repeatedly, code_to_str, EMPTY_STR,\
 import os
 import datetime
 import copy
+import numpy as np
 
 from sbp.observation import *
 
