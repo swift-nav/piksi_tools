@@ -1,18 +1,19 @@
 #!/usr/bin/env python
-import piksi_tools.serial_link as sl
-import piksi_tools.diagnostics as ptd
-from sbp.client import Handler, Framer, Forwarder
+import random
+import struct
+import sys
+import threading
+import time
+
+from sbp.client import Forwarder, Framer, Handler
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
-from sbp.tracking import MsgTrackingState, MsgTrackingStateDepA
 from sbp.piksi import SBP_MSG_MASK_SATELLITE, SBP_MSG_RESET, MsgMaskSatellite
 from sbp.system import SBP_MSG_HEARTBEAT
 from sbp.table import dispatch
+from sbp.tracking import MsgTrackingState, MsgTrackingStateDepA
 
-import time
-import sys
-import random
-import threading
-import struct
+import piksi_tools.diagnostics as ptd
+import piksi_tools.serial_link as sl
 
 DEFAULT_POLL_INTERVAL = 60  # Seconds
 DEFAULT_MIN_SATS = 5  # min satellites to try and retain

@@ -10,20 +10,21 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from traits.api import Dict, List, Float, Int
-from traitsui.api import Item, View, HGroup, VGroup, TabularEditor, Spring
-from traitsui.tabular_adapter import TabularAdapter
+import copy
+import datetime
+import os
+
 from enable.savage.trait_defs.ui.svg_button import SVGButton
+from sbp.observation import (SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B,
+                             SBP_MSG_OBS_DEP_C)
+from traits.api import Dict, Float, Int, List
+from traitsui.api import HGroup, Item, Spring, TabularEditor, VGroup, View
+from traitsui.tabular_adapter import TabularAdapter
 
 from piksi_tools.console.gui_utils import CodeFiltered
-from piksi_tools.console.utils import call_repeatedly, code_to_str, EMPTY_STR,\
-    code_is_gps, SUPPORTED_CODES
-
-import os
-import datetime
-import copy
-
-from sbp.observation import SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C
+from piksi_tools.console.utils import (EMPTY_STR, SUPPORTED_CODES,
+                                       call_repeatedly, code_is_gps,
+                                       code_to_str)
 
 
 class SimpleAdapter(TabularAdapter):

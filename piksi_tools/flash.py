@@ -10,15 +10,18 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-import struct
-import time
-import sys
 import new
-from intelhex import IntelHex
+import struct
+import sys
+import time
+from itertools import groupby
 from threading import Lock
 
-from itertools import groupby
-from sbp.flash import MsgFlashErase, MsgFlashProgram, MsgFlashReadReq, MsgStmFlashLockSector, MsgStmFlashUnlockSector, SBP, SBP_MSG_FLASH_DONE, SBP_MSG_FLASH_READ_RESP, SBP_MSG_M25_FLASH_WRITE_STATUS
+from intelhex import IntelHex
+from sbp.flash import (SBP, SBP_MSG_FLASH_DONE, SBP_MSG_FLASH_READ_RESP,
+                       SBP_MSG_M25_FLASH_WRITE_STATUS, MsgFlashErase,
+                       MsgFlashProgram, MsgFlashReadReq, MsgStmFlashLockSector,
+                       MsgStmFlashUnlockSector)
 
 ADDRS_PER_OP = 128
 

@@ -13,22 +13,22 @@ The :mod:`piksi_tools.serial_link` module contains functions related to
 setting up and running SBP message handling.
 """
 
-import sys
 import os
+import sys
 import time
 import uuid
 import warnings
 
-from sbp.logging import MsgLog, SBP_MSG_LOG, SBP_MSG_PRINT_DEP
-from sbp.piksi import MsgReset
-from sbp.client.drivers.network_drivers import HTTPDriver
-from sbp.client.drivers.pyserial_driver import PySerialDriver
-from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
+import serial.tools.list_ports
+from sbp.client import Forwarder, Framer, Handler
 from sbp.client.drivers.cdc_driver import CdcDriver
+from sbp.client.drivers.network_drivers import HTTPDriver
+from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
+from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.loggers.json_logger import JSONLogger
 from sbp.client.loggers.null_logger import NullLogger
-from sbp.client import Handler, Framer, Forwarder
-import serial.tools.list_ports
+from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP, MsgLog
+from sbp.piksi import MsgReset
 
 from piksi_tools.utils import mkdir_p
 

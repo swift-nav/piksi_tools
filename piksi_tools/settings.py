@@ -9,16 +9,21 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-import serial_link
 import struct
-import time
-import yaml
 import sys
+import time
 
-from sbp.client import Handler, Framer
+import yaml
+from sbp.client import Framer, Handler
+from sbp.logging import SBP_MSG_LOG, MsgLog
 from sbp.piksi import MsgReset
-from sbp.settings import MsgSettingsReadByIndexReq, MsgSettingsReadReq, MsgSettingsSave, MsgSettingsWrite, SBP_MSG_SETTINGS_READ_BY_INDEX_DONE, SBP_MSG_SETTINGS_READ_BY_INDEX_RESP, SBP_MSG_SETTINGS_READ_RESP
-from sbp.logging import MsgLog, SBP_MSG_LOG
+from sbp.settings import (SBP_MSG_SETTINGS_READ_BY_INDEX_DONE,
+                          SBP_MSG_SETTINGS_READ_BY_INDEX_RESP,
+                          SBP_MSG_SETTINGS_READ_RESP,
+                          MsgSettingsReadByIndexReq, MsgSettingsReadReq,
+                          MsgSettingsSave, MsgSettingsWrite)
+
+import serial_link
 
 
 class Settings(object):

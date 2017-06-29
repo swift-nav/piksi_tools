@@ -11,14 +11,15 @@
 """Generates a RINEX 2.11 observation file from a SBP log.
 """
 
+import datetime
+import os
+import time
+
+import sbp.navigation as nav
+import sbp.observation as ob
+import sbp.piksi as piksi
 from sbp.client.loggers.json_logger import JSONLogIterator
 from sbp.utils import exclude_fields, walk_json_dict
-import os
-import sbp.observation as ob
-import sbp.navigation as nav
-import sbp.piksi as piksi
-import time
-import datetime
 
 
 def from_base(msg):

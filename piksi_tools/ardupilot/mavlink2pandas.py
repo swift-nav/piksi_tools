@@ -1,9 +1,10 @@
-from mavlink_decode import extractSBP
-import os
-import pandas as pd
-import tempfile
-from pymavlink.DFReader import DFReader_binary, DFMessage
 import datetime
+import os
+import tempfile
+
+import pandas as pd
+from mavlink_decode import extractSBP
+from pymavlink.DFReader import DFMessage, DFReader_binary
 
 NUMLEAPSECONDS = 17
 

@@ -11,6 +11,7 @@
 
 import json
 import sys
+
 from piksi_tools.utils import wrap_sbp_dict
 
 

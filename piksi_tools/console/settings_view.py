@@ -9,39 +9,44 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from traits.api import Instance, Dict, HasTraits, Array, Float, \
-    on_trait_change, List, Int, Button, Bool, Str, Color, \
-    Constant, Font, Undefined, Property, Any, Enum
-from traitsui.api import Item, UItem, View, HGroup, Handler, VGroup, \
-    ArrayEditor, HSplit, TabularEditor, TextEditor, \
-    EnumEditor
-from traitsui.tabular_adapter import TabularAdapter
+import datetime
+import math
+import os
+import threading
+import time
+
+import numpy as np
+from pyface.api import GUI
+from sbp.piksi import MsgReset
+from sbp.settings import (SBP_MSG_SETTINGS_READ_BY_INDEX_DONE,
+                          SBP_MSG_SETTINGS_READ_BY_INDEX_REQ,
+                          SBP_MSG_SETTINGS_READ_BY_INDEX_RESP,
+                          SBP_MSG_SETTINGS_READ_RESP,
+                          MsgSettingsReadByIndexReq, MsgSettingsSave,
+                          MsgSettingsWrite)
+from sbp.system import SBP_MSG_STARTUP
+from traits.api import (Any, Array, Bool, Button, Color, Constant, Dict, Enum,
+                        Float, Font, HasTraits, Instance, Int, List, Property,
+                        Str, Undefined, on_trait_change)
 from traits.etsconfig.api import ETSConfig
+from traitsui.api import (ArrayEditor, EnumEditor, Handler, HGroup, HSplit,
+                          Item, TabularEditor, TextEditor, UItem, VGroup, View)
+from traitsui.tabular_adapter import TabularAdapter
+
+import piksi_tools.console.callback_prompt as prompt
+from piksi_tools.console.gui_utils import MultilineTextEditor
+from piksi_tools.console.utils import determine_path
+from piksi_tools.fileio import FileIO
+from settings_list import SettingsList
 
 if ETSConfig.toolkit != 'null':
     from enable.savage.trait_defs.ui.svg_button import SVGButton
 else:
     SVGButton = dict
-from pyface.api import GUI
 
-import math
-import os
-import numpy as np
-import datetime
-import threading
-import time
 
-from piksi_tools.fileio import FileIO
-import piksi_tools.console.callback_prompt as prompt
-from piksi_tools.console.gui_utils import MultilineTextEditor
-from piksi_tools.console.utils import determine_path
-import piksi_tools.console.callback_prompt as prompt
 
-from sbp.piksi import MsgReset
-from sbp.settings import MsgSettingsReadByIndexReq, MsgSettingsSave, MsgSettingsWrite, SBP_MSG_SETTINGS_READ_BY_INDEX_DONE, SBP_MSG_SETTINGS_READ_BY_INDEX_REQ, SBP_MSG_SETTINGS_READ_BY_INDEX_RESP, SBP_MSG_SETTINGS_READ_RESP
-from sbp.system import SBP_MSG_STARTUP
 
-from settings_list import SettingsList
 
 
 class SettingBase(HasTraits):

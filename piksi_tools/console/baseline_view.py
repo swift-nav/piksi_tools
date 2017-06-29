@@ -8,27 +8,37 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from traits.api import Instance, Dict, HasTraits, Array, Float, on_trait_change, List, Int, Button, Bool, File
-from traitsui.api import Item, View, HGroup, VGroup, ArrayEditor, HSplit, TabularEditor
-from traitsui.tabular_adapter import TabularAdapter
+import datetime
+import math
+import os
+import time
+
+import numpy as np
 from chaco.api import ArrayPlotData, Plot
-from chaco.tools.api import ZoomTool, PanTool
+from chaco.tools.api import PanTool, ZoomTool
 from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.api import GUI
+from sbp.navigation import (SBP_MSG_AGE_CORRECTIONS, SBP_MSG_BASELINE_HEADING,
+                            SBP_MSG_BASELINE_NED, SBP_MSG_BASELINE_NED_DEP_A,
+                            SBP_MSG_GPS_TIME, SBP_MSG_GPS_TIME_DEP_A,
+                            SBP_MSG_UTC_TIME, MsgAgeCorrections,
+                            MsgBaselineHeading, MsgBaselineNEDDepA, MsgGPSTime,
+                            MsgGPSTimeDepA, MsgUtcTime)
+from sbp.piksi import SBP_MSG_IAR_STATE, MsgResetFilters
+from traits.api import (Array, Bool, Button, Dict, File, Float, HasTraits,
+                        Instance, Int, List, on_trait_change)
+from traitsui.api import (ArrayEditor, HGroup, HSplit, Item, TabularEditor,
+                          VGroup, View)
+from traitsui.tabular_adapter import TabularAdapter
+
 from piksi_tools.console.gui_utils import plot_square_axes
-from piksi_tools.console.utils import determine_path, mode_dict, get_mode, color_dict, FLOAT_MODE, \
-    SPP_MODE, DGNSS_MODE, NO_FIX_MODE, FIXED_MODE, EMPTY_STR, \
-    sopen, log_time_strings, datetime_2_str, call_repeatedly
-
-import math
-import os
-import numpy as np
-import datetime
-import time
-
-from sbp.piksi import MsgResetFilters, SBP_MSG_IAR_STATE
-from sbp.navigation import MsgAgeCorrections, MsgBaselineHeading, MsgBaselineNEDDepA, MsgGPSTime, MsgGPSTimeDepA, MsgUtcTime, SBP_MSG_AGE_CORRECTIONS, SBP_MSG_BASELINE_HEADING, SBP_MSG_BASELINE_NED, SBP_MSG_BASELINE_NED_DEP_A, SBP_MSG_GPS_TIME, SBP_MSG_GPS_TIME_DEP_A, SBP_MSG_UTC_TIME
+from piksi_tools.console.utils import (DGNSS_MODE, EMPTY_STR, FIXED_MODE,
+                                       FLOAT_MODE, NO_FIX_MODE, SPP_MODE,
+                                       call_repeatedly, color_dict,
+                                       datetime_2_str, determine_path,
+                                       get_mode, log_time_strings, mode_dict,
+                                       sopen)
 
 
 class SimpleAdapter(TabularAdapter):

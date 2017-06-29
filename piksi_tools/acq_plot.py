@@ -9,10 +9,12 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from mayavi import mlab
 import math
+
 import numpy as np
+
 import data_real4 as d
+from mayavi import mlab
 
 #x_min = -600.0
 #x_max = -400.0

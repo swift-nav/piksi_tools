@@ -9,15 +9,19 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+import errno
+import os
 import sys
 import time
-import os
-import errno
-from piksi_tools.flash import Flash
-from piksi_tools.timeout import TIMEOUT_BOOT, TIMEOUT_ERASE_STM, TIMEOUT_PROGRAM_STM, TIMEOUT_WRITE_NAP, Timeout
-from piksi_tools.heartbeat import Heartbeat
-from sbp.system import SBP_MSG_HEARTBEAT
+
 from sbp.piksi import SBP_MSG_RESET
+from sbp.system import SBP_MSG_HEARTBEAT
+
+from piksi_tools.flash import Flash
+from piksi_tools.heartbeat import Heartbeat
+from piksi_tools.timeout import (TIMEOUT_BOOT, TIMEOUT_ERASE_STM,
+                                 TIMEOUT_PROGRAM_STM, TIMEOUT_WRITE_NAP,
+                                 Timeout)
 
 
 def set_app_mode(handler, verbose=False):

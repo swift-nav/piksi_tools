@@ -32,8 +32,8 @@ import argparse
 import json
 
 import sbp.client.loggers.json_logger as json_logger
-import sbp.observation as ob
 import sbp.navigation as nav
+import sbp.observation as ob
 from sbp.msg import SBP
 
 msgs_filter = [

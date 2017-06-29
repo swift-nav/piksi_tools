@@ -10,14 +10,15 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+import numpy as np
 from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
 from pyface.api import GUI
-from sbp.imu import SBP_MSG_IMU_RAW, SBP_MSG_IMU_AUX
-from traits.api import Instance, Dict, HasTraits, Float, List, Int, Bool
-from traitsui.api import Item, View, HSplit, VGroup, HGroup
-import numpy as np
+from sbp.imu import SBP_MSG_IMU_AUX, SBP_MSG_IMU_RAW
+from traits.api import Bool, Dict, Float, HasTraits, Instance, Int, List
+from traitsui.api import HGroup, HSplit, Item, VGroup, View
+
 from piksi_tools.acq_results import SNR_THRESHOLD
 from piksi_tools.console.utils import call_repeatedly
 

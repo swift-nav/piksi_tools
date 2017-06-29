@@ -6,10 +6,11 @@
 # Usage:
 # ./device_power.py /dev/ttyUSB0
 
-import pyudev
-import sys
 import subprocess
+import sys
 import time
+
+import pyudev
 
 device_files = sys.argv[1:]
 

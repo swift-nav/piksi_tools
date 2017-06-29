@@ -9,26 +9,38 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from traits.api import Instance, Dict, HasTraits, Array, Float, on_trait_change, List, Int, Button, Bool, Str, File
-from traitsui.api import Item, View, HGroup, VGroup, ArrayEditor, HSplit, TextEditor, TabularEditor, UItem, Tabbed
-from traitsui.tabular_adapter import TabularAdapter
+import datetime
+import math
+import os
+import time
+
+import numpy as np
 from chaco.api import ArrayPlotData, Plot
-from chaco.tools.api import ZoomTool, PanTool
+from chaco.tools.api import PanTool, ZoomTool
 from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.api import GUI
-from piksi_tools.console.gui_utils import plot_square_axes, MultilineTextEditor
-from piksi_tools.console.utils import determine_path, get_mode, mode_dict, color_dict, sopen,\
-    EMPTY_STR, SPP_MODE, FLOAT_MODE, DGNSS_MODE, FIXED_MODE, \
-    log_time_strings, datetime_2_str, call_repeatedly
+from sbp.navigation import (SBP_MSG_AGE_CORRECTIONS, SBP_MSG_DOPS,
+                            SBP_MSG_DOPS_DEP_A, SBP_MSG_GPS_TIME,
+                            SBP_MSG_GPS_TIME_DEP_A, SBP_MSG_POS_LLH,
+                            SBP_MSG_POS_LLH_DEP_A, SBP_MSG_UTC_TIME,
+                            SBP_MSG_VEL_NED, SBP_MSG_VEL_NED_DEP_A,
+                            MsgAgeCorrections, MsgDops, MsgDopsDepA,
+                            MsgGPSTime, MsgGPSTimeDepA, MsgPosLLH,
+                            MsgPosLLHDepA, MsgUtcTime, MsgVelNED,
+                            MsgVelNEDDepA)
+from traits.api import (Array, Bool, Button, Dict, File, Float, HasTraits,
+                        Instance, Int, List, Str, on_trait_change)
+from traitsui.api import (ArrayEditor, HGroup, HSplit, Item, Tabbed,
+                          TabularEditor, TextEditor, UItem, VGroup, View)
+from traitsui.tabular_adapter import TabularAdapter
 
-import math
-import os
-import numpy as np
-import datetime
-import time
-
-from sbp.navigation import MsgAgeCorrections, MsgDops, MsgDopsDepA, MsgGPSTime, MsgGPSTimeDepA, MsgPosLLH, MsgPosLLHDepA, MsgUtcTime, MsgVelNED, MsgVelNEDDepA, SBP_MSG_AGE_CORRECTIONS, SBP_MSG_DOPS, SBP_MSG_DOPS_DEP_A, SBP_MSG_GPS_TIME, SBP_MSG_GPS_TIME_DEP_A, SBP_MSG_POS_LLH, SBP_MSG_POS_LLH_DEP_A, SBP_MSG_UTC_TIME, SBP_MSG_VEL_NED, SBP_MSG_VEL_NED_DEP_A
+from piksi_tools.console.gui_utils import MultilineTextEditor, plot_square_axes
+from piksi_tools.console.utils import (DGNSS_MODE, EMPTY_STR, FIXED_MODE,
+                                       FLOAT_MODE, SPP_MODE, call_repeatedly,
+                                       color_dict, datetime_2_str,
+                                       determine_path, get_mode,
+                                       log_time_strings, mode_dict, sopen)
 
 
 class SimpleAdapter(TabularAdapter):

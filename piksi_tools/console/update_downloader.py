@@ -9,10 +9,10 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from urllib2 import urlopen, URLError
-from json import load as jsonload
-from urlparse import urlparse
 import os
+from json import load as jsonload
+from urllib2 import URLError, urlopen
+from urlparse import urlparse
 
 from piksi_tools.utils import sopen
 

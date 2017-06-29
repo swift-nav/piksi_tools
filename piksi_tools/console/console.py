@@ -9,35 +9,74 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+import argparse
+import datetime
+# Logging
+import logging
+import math
 import os
-import piksi_tools.serial_link as s
-import sbp.client as sbpc
 import signal
 import sys
-
-import math
-import numpy as np
-import datetime
 import time
-
-from os.path import expanduser
-from piksi_tools.serial_link import swriter, get_uuid
-from piksi_tools import __version__ as CONSOLE_VERSION
-from piksi_tools.heartbeat import Heartbeat
-from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
-from sbp.client.drivers.pyserial_driver import PySerialDriver
-from sbp.client.drivers.network_drivers import TCPDriver
-from sbp.ext_events import MsgExtEvent, SBP_MSG_EXT_EVENT
-from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
-from sbp.piksi import MsgReset
-from sbp.piksi import MsgCommandResp, MsgReset, SBP_MSG_COMMAND_RESP
-from sbp.navigation import SBP_MSG_POS_LLH
-from sbp.system import SBP_MSG_HEARTBEAT
-from sbp.client import Forwarder
-
 # Shut chaco up for now
 import warnings
-import argparse
+from os.path import expanduser
+
+import numpy as np
+import pygments.lexers
+import sbp.client as sbpc
+from enable.savage.trait_defs.ui.svg_button import SVGButton
+from pyface.image_resource import ImageResource
+# When bundled with pyInstaller, PythonLexer can't be found. The problem is
+# pygments.lexers is doing some crazy magic to load up all of the available
+# lexers at runtime which seems to break when frozen.
+#
+# The horrible workaround is to load the PythonLexer class explicitly and then
+# manually insert it into the pygments.lexers module.
+from pygments.lexers.agile import PythonLexer
+from sbp.client import Forwarder
+from sbp.client.drivers.network_drivers import TCPDriver
+from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
+from sbp.client.drivers.pyserial_driver import PySerialDriver
+from sbp.ext_events import SBP_MSG_EXT_EVENT, MsgExtEvent
+from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
+from sbp.navigation import SBP_MSG_POS_LLH
+from sbp.piksi import SBP_MSG_COMMAND_RESP, MsgCommandResp, MsgReset
+from sbp.system import SBP_MSG_HEARTBEAT
+from traits.api import (Any, Bool, Button, Dict, Directory, Enum, Font,
+                        HasTraits, Instance, Int, List, Str)
+# Toolkit
+from traits.etsconfig.api import ETSConfig
+from traitsui.api import (EnumEditor, Group, Handler, HGroup, HSplit,
+                          HTMLEditor, ImageEditor, InstanceEditor, Item, Label,
+                          ShellEditor, Spring, Tabbed, TableEditor, TextEditor,
+                          UItem, VGroup, View, VSplit)
+from traitsui.table_column import ExpressionColumn, ObjectColumn
+from traitsui.table_filter import (EvalFilterTemplate, EvalTableFilter,
+                                   MenuFilterTemplate, RuleFilterTemplate)
+
+import piksi_tools.serial_link as s
+from piksi_tools import __version__ as CONSOLE_VERSION
+from piksi_tools.console.baseline_view import BaselineView
+from piksi_tools.console.callback_prompt import CallbackPrompt, ok_button
+from piksi_tools.console.deprecated import DeprecatedMessageHandler
+from piksi_tools.console.imu_view import IMUView
+from piksi_tools.console.observation_view import ObservationView
+from piksi_tools.console.output_list import (DEFAULT_LOG_LEVEL_FILTER,
+                                             SYSLOG_LEVELS, LogItem,
+                                             OutputList, str_to_log_level)
+from piksi_tools.console.sbp_relay_view import SbpRelayView
+from piksi_tools.console.settings_view import SettingsView
+from piksi_tools.console.solution_view import SolutionView
+from piksi_tools.console.spectrum_analyzer_view import SpectrumAnalyzerView
+from piksi_tools.console.system_monitor_view import SystemMonitorView
+from piksi_tools.console.tracking_view import TrackingView
+from piksi_tools.console.update_view import UpdateView
+from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
+                                       determine_path, get_mode, mode_dict)
+from piksi_tools.heartbeat import Heartbeat
+from piksi_tools.serial_link import get_uuid, swriter
+
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 
@@ -113,30 +152,13 @@ except (ArgumentParserError, argparse.ArgumentError,
     error_str = "ERROR: " + str(e)
     pass
 
-# Toolkit
-from traits.etsconfig.api import ETSConfig
 if args and args.toolkit[0] is not None:
     ETSConfig.toolkit = args.toolkit[0]
 else:
     ETSConfig.toolkit = 'qt4'
 
-# Logging
-import logging
 logging.basicConfig()
-from piksi_tools.console.output_list import OutputList, LogItem, str_to_log_level, \
-    SYSLOG_LEVELS, DEFAULT_LOG_LEVEL_FILTER
-from piksi_tools.console.utils import determine_path, get_mode, mode_dict, EMPTY_STR, \
-    call_repeatedly
-from piksi_tools.console.deprecated import DeprecatedMessageHandler
 
-# When bundled with pyInstaller, PythonLexer can't be found. The problem is
-# pygments.lexers is doing some crazy magic to load up all of the available
-# lexers at runtime which seems to break when frozen.
-#
-# The horrible workaround is to load the PythonLexer class explicitly and then
-# manually insert it into the pygments.lexers module.
-from pygments.lexers.agile import PythonLexer
-import pygments.lexers
 pygments.lexers.PythonLexer = PythonLexer
 try:
     import pygments.lexers.c_cpp
@@ -148,33 +170,11 @@ except ImportError:
 if ETSConfig.toolkit == 'qt4':
     import pyface.ui.qt4.resource_manager
     import pyface.ui.qt4.python_shell
-from pyface.image_resource import ImageResource
 basedir = determine_path()
 icon = ImageResource(
     'icon', search_path=['images', os.path.join(basedir, 'images')])
 
-from piksi_tools.console.tracking_view import TrackingView
-from piksi_tools.console.solution_view import SolutionView
-from piksi_tools.console.baseline_view import BaselineView
-from piksi_tools.console.observation_view import ObservationView
-from piksi_tools.console.sbp_relay_view import SbpRelayView
-from piksi_tools.console.system_monitor_view import SystemMonitorView
-from piksi_tools.console.settings_view import SettingsView
-from piksi_tools.console.update_view import UpdateView
-from piksi_tools.console.imu_view import IMUView
-from piksi_tools.console.spectrum_analyzer_view import SpectrumAnalyzerView
-from piksi_tools.console.callback_prompt import CallbackPrompt, ok_button
-from enable.savage.trait_defs.ui.svg_button import SVGButton
 
-from traits.api import Str, Instance, Dict, HasTraits, Any, Int, Button, List, Enum, Bool, Directory, Font
-from traitsui.api import Item, Label, View, HGroup, VGroup, VSplit, HSplit, Tabbed, \
-    InstanceEditor, EnumEditor, ShellEditor, Handler, Spring, \
-    TableEditor, UItem, Group, ImageEditor, TextEditor, HTMLEditor
-from traitsui.table_filter \
-    import EvalFilterTemplate, MenuFilterTemplate, RuleFilterTemplate, \
-    EvalTableFilter
-from traitsui.table_column \
-    import ObjectColumn, ExpressionColumn
 
 CONSOLE_TITLE = 'Swift Console v:' + CONSOLE_VERSION
 BAUD_LIST = [57600, 115200, 230400, 921600, 1000000]

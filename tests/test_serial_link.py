@@ -9,8 +9,9 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-import piksi_tools.serial_link as l
 from uuid import UUID
+
+import piksi_tools.serial_link as l
 
 
 def test_uuid():

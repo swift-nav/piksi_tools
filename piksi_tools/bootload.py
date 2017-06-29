@@ -22,15 +22,20 @@ The :mod:`piksi_tools.bootload` module contains functions loading firmware
 images.
 """
 
-import time
 import struct
 import sys
-import serial_link
+import time
 
-from sbp.bootload import MsgBootloaderHandshakeDepA, MsgBootloaderHandshakeReq, MsgBootloaderHandshakeResp, MsgBootloaderJumpToApp, SBP_MSG_BOOTLOADER_HANDSHAKE_DEP_A, SBP_MSG_BOOTLOADER_HANDSHAKE_RESP
+from sbp.bootload import (SBP_MSG_BOOTLOADER_HANDSHAKE_DEP_A,
+                          SBP_MSG_BOOTLOADER_HANDSHAKE_RESP,
+                          MsgBootloaderHandshakeDepA,
+                          MsgBootloaderHandshakeReq,
+                          MsgBootloaderHandshakeResp, MsgBootloaderJumpToApp)
+from sbp.client import Framer, Handler
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
 from sbp.piksi import MsgResetDep
-from sbp.client import Handler, Framer
+
+import serial_link
 
 
 class Bootloader():

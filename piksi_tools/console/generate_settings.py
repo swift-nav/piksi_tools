@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
-import yaml
-import jinja2
-import re
-from settings_list import SettingsList
 import os
+import re
+import subprocess
+
+import yaml
+
+import jinja2
+from settings_list import SettingsList
 
 swift_nav_style_path = "../libsbp/docs"
 environment_variables_to_append = ["TEXINPUTS", "PATH"]
@@ -74,7 +77,6 @@ with open("settings_out.tex", 'w') as f:
             setting=sorted(settings.list_of_dicts),
             version='v0.15'))
 
-import subprocess
 
 subprocess.Popen(
     ["pdflatex", "--shell-escape", "settings_out.tex"], env=myenviron).wait()

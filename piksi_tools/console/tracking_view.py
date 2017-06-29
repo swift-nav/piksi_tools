@@ -10,20 +10,21 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from chaco.api import ArrayPlotData, Plot
 import time
+
+import numpy as np
+from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
 from pyface.api import GUI
 from sbp.tracking import SBP_MSG_TRACKING_STATE, SBP_MSG_TRACKING_STATE_DEP_B
-from traits.api import Instance, Dict, List, Int, Bool
-from traitsui.api import Item, View, VGroup, HGroup, Spring
-import numpy as np
+from traits.api import Bool, Dict, Instance, Int, List
+from traitsui.api import HGroup, Item, Spring, VGroup, View
 
 from piksi_tools.acq_results import SNR_THRESHOLD
 from piksi_tools.console.gui_utils import CodeFiltered
-from piksi_tools.console.utils import code_to_str, code_is_gps, code_is_glo,\
-    SUPPORTED_CODES
+from piksi_tools.console.utils import (SUPPORTED_CODES, code_is_glo,
+                                       code_is_gps, code_to_str)
 
 NUM_POINTS = 200
 TRK_RATE = 2.0

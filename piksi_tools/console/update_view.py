@@ -9,36 +9,32 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from urllib2 import URLError
-from time import sleep
-from intelhex import IntelHex, HexRecordError
-from pkg_resources import parse_version as pkparse_version
-
-from sbp.bootload import MsgBootloaderJumpToApp
-from sbp.piksi import MsgReset
-
-from threading import Thread
-
-from traits.api import HasTraits, String, Button, Instance, Bool, Directory
-from traitsui.api import View, Item, UItem, VGroup, HGroup, InstanceEditor, Spring
-from pyface.api import GUI, FileDialog, OK, ProgressDialog
-
-from piksi_tools import __version__ as CONSOLE_VERSION
-from piksi_tools import bootload
-from piksi_tools import flash
-import piksi_tools.console.callback_prompt as prompt
-from piksi_tools.console.utils import determine_path
-
-from update_downloader import UpdateDownloader, INDEX_URL
-from output_stream import OutputStream
-
-from piksi_tools.bootload_v3 import shell_command
-from piksi_tools.fileio import FileIO
-from sbp.logging import SBP_MSG_LOG
-
-import sys
 import os
+import sys
+from threading import Thread
+from time import sleep
+from urllib2 import URLError
+
+from intelhex import HexRecordError, IntelHex
+from pkg_resources import parse_version as pkparse_version
+from pyface.api import GUI, OK, FileDialog, ProgressDialog
 from pyface.image_resource import ImageResource
+from sbp.bootload import MsgBootloaderJumpToApp
+from sbp.logging import SBP_MSG_LOG
+from sbp.piksi import MsgReset
+from traits.api import Bool, Button, Directory, HasTraits, Instance, String
+from traitsui.api import (HGroup, InstanceEditor, Item, Spring, UItem, VGroup,
+                          View)
+
+import piksi_tools.console.callback_prompt as prompt
+from output_stream import OutputStream
+from piksi_tools import __version__ as CONSOLE_VERSION
+from piksi_tools import bootload, flash
+from piksi_tools.bootload_v3 import shell_command
+from piksi_tools.console.utils import determine_path
+from piksi_tools.fileio import FileIO
+from update_downloader import INDEX_URL, UpdateDownloader
+
 if getattr(sys, 'frozen', False):
     # we are running in a |PyInstaller| bundle
     basedir = sys._MEIPASS

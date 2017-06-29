@@ -3,9 +3,10 @@ interpolate_event_trigger.py allows user to analyze log files
 with external event triggers.
 """
 
+import csv
+
 from sbp.client.loggers.json_logger import JSONLogIterator
 from sbp.ext_events import SBP_MSG_EXT_EVENT
-import csv
 
 
 def lin_interp(oldpos, newpos, oldtow, newtow, triggertow):

@@ -9,15 +9,17 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-import time
 import struct
 import sys
-import serial_link
+import time
 
-from piksi_tools.heartbeat import Heartbeat
-from sbp.flash import MsgStmUniqueIdReq, MsgStmUniqueIdResp, SBP_MSG_STM_UNIQUE_ID_RESP
-from sbp.system import SBP_MSG_HEARTBEAT
 from sbp.client import Framer, Handler
+from sbp.flash import (SBP_MSG_STM_UNIQUE_ID_RESP, MsgStmUniqueIdReq,
+                       MsgStmUniqueIdResp)
+from sbp.system import SBP_MSG_HEARTBEAT
+
+import serial_link
+from piksi_tools.heartbeat import Heartbeat
 
 
 class STMUniqueID(object):

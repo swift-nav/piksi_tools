@@ -14,14 +14,15 @@ messages from a serial port, filtering for observations, and sending them over u
 to a mavproxy instance or Mission Planner for transmission to an ArduCopter quad.
 """
 
-from sbp.client import Handler, Framer
+import socket
+import time
+
+from sbp.client import Framer, Handler
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.handler import Handler
 from sbp.client.loggers.udp_logger import UdpLogger
-from sbp.observation import SBP_MSG_OBS, SBP_MSG_BASE_POS_ECEF, SBP_MSG_BASE_POS_LLH
-
-import socket
-import time
+from sbp.observation import (SBP_MSG_BASE_POS_ECEF, SBP_MSG_BASE_POS_LLH,
+                             SBP_MSG_OBS)
 
 OBS_MSGS = [SBP_MSG_OBS_DEP_C, SBP_MSG_BASE_POS_ECEF, SBP_MSG_BASE_POS_LLH]
 

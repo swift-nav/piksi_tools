@@ -13,14 +13,16 @@ Contains the class OutputList
 Displays Device Log messages and STDOUT/STDERR.
 """
 
-from traits.api import HasTraits, Str, Bool, Trait, Int, List, Font, Float, \
-    Enum, Property
-from traitsui.api import View, UItem, TabularEditor
-from pyface.api import GUI
-from traitsui.tabular_adapter import TabularAdapter
-from piksi_tools.utils import sopen
-import time
 import os
+import time
+
+from pyface.api import GUI
+from traits.api import (Bool, Enum, Float, Font, HasTraits, Int, List,
+                        Property, Str, Trait)
+from traitsui.api import TabularEditor, UItem, View
+from traitsui.tabular_adapter import TabularAdapter
+
+from piksi_tools.utils import sopen
 
 # These levels are identical to sys.log levels
 LOG_EMERG = 0  # system is unusable

@@ -10,9 +10,10 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 import math as m
-import numpy as n
 import time
 import urllib2
+
+import numpy as n
 
 NAV_GM = 3.986005e14
 NAV_OMEGAE_DOT = 7.2921151467e-005

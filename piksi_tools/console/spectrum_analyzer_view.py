@@ -9,17 +9,15 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 import struct
-
 from collections import defaultdict
-import numpy as np
 
-from traits.api import Instance, HasTraits, Str, Dict
-from traitsui.api import Item, Spring, View, Spring, CheckListEditor
-from pyface.api import GUI
+import numpy as np
 from chaco.api import ArrayPlotData, Plot
 from enable.api import ComponentEditor
-
+from pyface.api import GUI
 from sbp.piksi import SBP_MSG_SPECAN, MsgSpecan
+from traits.api import Dict, HasTraits, Instance, Str
+from traitsui.api import CheckListEditor, Item, Spring, View
 
 # How many points are in each FFT?
 NUM_POINTS = 512

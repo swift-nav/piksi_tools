@@ -1,6 +1,7 @@
 import socket
-import serial
 import time
+
+import serial
 
 DEFAULT_SERIAL_PORT = "/dev/ttyUSB0"
 DEFAULT_SERIAL_BAUD = 1000000

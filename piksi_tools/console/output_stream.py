@@ -10,10 +10,10 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 """Contains the class OutputStream, a HasTraits file-like text buffer."""
 
-from traits.api import HasTraits, Str, Bool, Trait, Int
-from traitsui.api import View, UItem, TextEditor, Handler
-from traits.etsconfig.api import ETSConfig
 from pyface.api import GUI
+from traits.api import Bool, HasTraits, Int, Str, Trait
+from traits.etsconfig.api import ETSConfig
+from traitsui.api import Handler, TextEditor, UItem, View
 
 DEFAULT_MAX_LEN = 8000
 

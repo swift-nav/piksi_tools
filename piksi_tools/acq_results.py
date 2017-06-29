@@ -14,13 +14,14 @@ The :mod:`piksi_tools.acq_results` module contains functions related to
 monitoring acquisition.
 """
 
-import serial_link
 import time
 
 from numpy import mean
-from sbp.acquisition import MsgAcqResult, MsgAcqResultDepA, SBP_MSG_ACQ_RESULT
-from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
+from sbp.acquisition import SBP_MSG_ACQ_RESULT, MsgAcqResult, MsgAcqResultDepA
 from sbp.client import Framer, Handler
+from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
+
+import serial_link
 
 N_RECORD = 0  # Number of results to keep in memory, 0 = no limit.
 N_PRINT = 32

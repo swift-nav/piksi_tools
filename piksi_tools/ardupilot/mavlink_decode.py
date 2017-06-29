@@ -11,12 +11,12 @@ Requirements:
   sudo pip install sbp
 
 """
-from sbp.table import dispatch, _SBP_TABLE
-from sbp.msg import SBP
-from struct import unpack
-from datetime import datetime, timedelta
-
 import json
+from datetime import datetime, timedelta
+from struct import unpack
+
+from sbp.msg import SBP
+from sbp.table import _SBP_TABLE, dispatch
 
 # each Ardupilot log frame starts with "0xA3 0x95"
 ARDUPILOT_LOG_HEADER = bytearray([0xA3, 0x95])

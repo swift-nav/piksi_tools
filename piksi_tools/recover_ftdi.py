@@ -11,14 +11,15 @@
 
 # This script resets the FDTI settings to its default values
 
-import serial_link
-import time
-import struct
 import argparse
+import struct
 import sys
+import time
 
-from sbp.client import Handler, Framer
+from sbp.client import Framer, Handler
 from sbp.settings import SBP_MSG_SETTINGS_SAVE, SBP_MSG_SETTINGS_WRITE
+
+import serial_link
 
 
 def send_setting(link, section, name, value):

@@ -9,26 +9,27 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from piksi_tools.console.callback_prompt import CallbackPrompt, close_button
-from piksi_tools.serial_link import swriter, get_uuid, \
-    DEFAULT_BASE, CHANNEL_UUID
-from piksi_tools.console.utils import determine_path
-from piksi_tools.console.gui_utils import MultilineTextEditor
+import os
+import sys
+import threading
+import time
+
 from sbp.client.drivers.network_drivers import HTTPDriver
 from sbp.client.forwarder import Forwarder
 from sbp.client.framer import Framer
 from sbp.client.handler import Handler
 from sbp.client.loggers.udp_logger import UdpLogger
-from sbp.observation import SBP_MSG_OBS, SBP_MSG_OBS_DEP_C, SBP_MSG_OBS_DEP_B, \
-    SBP_MSG_BASE_POS_LLH, SBP_MSG_BASE_POS_ECEF
-from traits.api import HasTraits, String, Button, Int, Bool, Enum
-from traitsui.api import View, Item, VGroup, UItem, HGroup, TextEditor, \
-    spring, Spring
+from sbp.observation import (SBP_MSG_BASE_POS_ECEF, SBP_MSG_BASE_POS_LLH,
+                             SBP_MSG_OBS, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C)
+from traits.api import Bool, Button, Enum, HasTraits, Int, String
+from traitsui.api import (HGroup, Item, Spring, TextEditor, UItem, VGroup,
+                          View, spring)
 
-import os
-import sys
-import time
-import threading
+from piksi_tools.console.callback_prompt import CallbackPrompt, close_button
+from piksi_tools.console.gui_utils import MultilineTextEditor
+from piksi_tools.console.utils import determine_path
+from piksi_tools.serial_link import (CHANNEL_UUID, DEFAULT_BASE, get_uuid,
+                                     swriter)
 
 basedir = determine_path()
 cert_path = "cacert.pem"

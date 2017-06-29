@@ -8,13 +8,13 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+import sys
+
+import numpy as np
 from traits.api import Bool, HasTraits
 from traitsui.api import HGroup, Item, Spring, TextEditor
 
-import numpy as np
-import sys
-
-from piksi_tools.console.utils import code_to_str, SUPPORTED_CODES
+from piksi_tools.console.utils import SUPPORTED_CODES, code_to_str
 
 
 class MultilineTextEditor(TextEditor):

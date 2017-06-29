@@ -5,9 +5,10 @@
 import sys
 
 from sbp.client.handler import Handler
+
+from piksi_tools import serial_link
 from piksi_tools.bootload import Bootloader
 from piksi_tools.flash import Flash
-from piksi_tools import serial_link
 
 
 def get_args():

@@ -9,13 +9,18 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from traits.api import HasTraits, Event, String, Button, Instance
-from traitsui.api import View, Handler, Action, Item, TextEditor, VGroup, UItem
-from pyface.api import GUI
-from piksi_tools.console.utils import determine_path
-
+import os
+import sys
+from new import instancemethod
 from threading import Thread
 from time import sleep
+
+from pyface.api import GUI
+from pyface.image_resource import ImageResource
+from traits.api import Button, Event, HasTraits, Instance, String
+from traitsui.api import Action, Handler, Item, TextEditor, UItem, VGroup, View
+
+from piksi_tools.console.utils import determine_path
 
 auto_survey_button = Action(
     name="Auto Survey", action="set_execute_callback_true", show_label=False)
@@ -29,11 +34,7 @@ close_button = Action(
 ok_button = Action(
     name="Ok", action="set_execute_callback_true", show_label=False)
 
-from new import instancemethod
 
-import sys
-import os
-from pyface.image_resource import ImageResource
 basedir = determine_path()
 icon = ImageResource(
     'icon', search_path=['images', os.path.join(basedir, 'images')])

@@ -9,8 +9,9 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-import piksi_tools.diagnostics as d
 import pytest
+
+import piksi_tools.diagnostics as d
 
 
 def test_diag_check():

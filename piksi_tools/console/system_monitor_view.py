@@ -10,17 +10,21 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 import os
-from traits.api import Dict, HasTraits, List, Int
-from traitsui.api import Item, View, HGroup, VGroup, TabularEditor, Spring
+
+from sbp.piksi import (SBP_MSG_NETWORK_STATE_RESP, SBP_MSG_THREAD_STATE,
+                       SBP_MSG_UART_STATE, SBP_MSG_UART_STATE_DEPA,
+                       MsgNetworkStateReq, MsgReset)
+from sbp.system import SBP_MSG_HEARTBEAT
+from traits.api import Dict, HasTraits, Int, List
+from traits.etsconfig.api import ETSConfig
+from traitsui.api import HGroup, Item, Spring, TabularEditor, VGroup, View
 from traitsui.tabular_adapter import TabularAdapter
 
-from traits.etsconfig.api import ETSConfig
+from piksi_tools.console.utils import determine_path
+
 if ETSConfig.toolkit != 'null':
     from enable.savage.trait_defs.ui.svg_button import SVGButton
 
-from sbp.piksi import SBP_MSG_THREAD_STATE, SBP_MSG_NETWORK_STATE_RESP, SBP_MSG_UART_STATE, SBP_MSG_UART_STATE_DEPA, MsgReset, MsgNetworkStateReq
-from sbp.system import SBP_MSG_HEARTBEAT
-from piksi_tools.console.utils import determine_path
 
 
 def ip_bytes_to_string(ip_bytes):

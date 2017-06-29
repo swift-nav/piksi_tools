@@ -9,9 +9,11 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-import piksi_tools.sbp2rinex as s2r
-import pytest
 import os
+
+import pytest
+
+import piksi_tools.sbp2rinex as s2r
 
 
 def test_function():

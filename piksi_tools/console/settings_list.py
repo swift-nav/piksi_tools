@@ -9,11 +9,13 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-import yaml
+import os
 import pprint
 import sys
+
+import yaml
+
 from piksi_tools.console.utils import determine_path
-import os
 
 
 class SettingsList():
