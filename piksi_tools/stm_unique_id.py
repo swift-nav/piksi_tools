@@ -14,10 +14,10 @@ import struct
 import sys
 import serial_link
 
-from piksi_tools.heartbeat import *
-from sbp.flash import *
-from sbp.system import *
-from sbp.client import *
+from piksi_tools.heartbeat import Heartbeat
+from sbp.flash import MsgStmUniqueIdReq, MsgStmUniqueIdResp, SBP_MSG_STM_UNIQUE_ID_RESP
+from sbp.system import SBP_MSG_HEARTBEAT
+from sbp.client import Framer, Handler
 
 
 class STMUniqueID(object):

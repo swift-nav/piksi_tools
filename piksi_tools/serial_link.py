@@ -19,8 +19,7 @@ import time
 import uuid
 import warnings
 
-from sbp.bootload import *
-from sbp.logging import *
+from sbp.logging import MsgLog, SBP_MSG_LOG, SBP_MSG_PRINT_DEP
 from sbp.piksi import MsgReset
 from sbp.client.drivers.network_drivers import HTTPDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver

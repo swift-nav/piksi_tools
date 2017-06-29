@@ -27,9 +27,8 @@ import serial_link
 import threading
 import random
 
-from sbp.bootload import *
-from sbp.logging import *
-from sbp.piksi import *
+from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
+from sbp.piksi import MsgCommandReq, MsgReset, SBP_MSG_COMMAND_RESP
 from sbp.client import Handler, Framer
 from fileio import FileIO
 

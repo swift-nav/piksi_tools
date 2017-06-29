@@ -37,9 +37,9 @@ from piksi_tools.console.gui_utils import MultilineTextEditor
 from piksi_tools.console.utils import determine_path
 import piksi_tools.console.callback_prompt as prompt
 
-from sbp.piksi import *
-from sbp.settings import *
-from sbp.system import *
+from sbp.piksi import MsgReset
+from sbp.settings import MsgSettingsReadByIndexReq, MsgSettingsSave, MsgSettingsWrite, SBP_MSG_SETTINGS_READ_BY_INDEX_DONE, SBP_MSG_SETTINGS_READ_BY_INDEX_REQ, SBP_MSG_SETTINGS_READ_BY_INDEX_RESP, SBP_MSG_SETTINGS_READ_RESP
+from sbp.system import SBP_MSG_STARTUP
 
 from settings_list import SettingsList
 

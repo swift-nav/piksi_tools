@@ -15,12 +15,10 @@ import time
 import yaml
 import sys
 
-from sbp.bootload import *
 from sbp.client import Handler, Framer
-from sbp.piksi import *
-from sbp.settings import *
-from sbp.system import *
-from sbp.logging import *
+from sbp.piksi import MsgReset
+from sbp.settings import MsgSettingsReadByIndexReq, MsgSettingsReadReq, MsgSettingsSave, MsgSettingsWrite, SBP_MSG_SETTINGS_READ_BY_INDEX_DONE, SBP_MSG_SETTINGS_READ_BY_INDEX_RESP, SBP_MSG_SETTINGS_READ_RESP
+from sbp.logging import MsgLog, SBP_MSG_LOG
 
 
 class Settings(object):

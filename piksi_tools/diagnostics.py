@@ -14,12 +14,12 @@ import struct
 import time
 import yaml
 
-from sbp.bootload import *
+from sbp.bootload import MsgBootloaderJumpToApp, SBP_MSG_BOOTLOADER_HANDSHAKE_DEP_A, SBP_MSG_BOOTLOADER_HANDSHAKE_RESP
 from sbp.client import Handler, Framer
-from sbp.piksi import *
-from sbp.settings import *
-from sbp.system import *
-from sbp.logging import *
+from sbp.piksi import MsgReset
+from sbp.settings import MsgSettingsReadByIndexReq, SBP_MSG_SETTINGS_READ_BY_INDEX_DONE, SBP_MSG_SETTINGS_READ_BY_INDEX_REQ, SBP_MSG_SETTINGS_READ_BY_INDEX_RESP
+from sbp.system import MsgHeartbeat, SBP_MSG_HEARTBEAT
+from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
 
 DIAGNOSTICS_FILENAME = "diagnostics.yaml"
 

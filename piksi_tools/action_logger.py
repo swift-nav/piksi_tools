@@ -2,7 +2,7 @@
 import piksi_tools.serial_link as sl
 import piksi_tools.diagnostics as ptd
 from sbp.client import Handler, Framer, Forwarder
-from sbp.logging import *
+from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
 from sbp.tracking import MsgTrackingState, MsgTrackingStateDepA
 from sbp.piksi import SBP_MSG_MASK_SATELLITE, SBP_MSG_RESET, MsgMaskSatellite
 from sbp.system import SBP_MSG_HEARTBEAT

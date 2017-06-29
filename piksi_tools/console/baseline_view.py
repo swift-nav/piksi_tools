@@ -27,8 +27,8 @@ import numpy as np
 import datetime
 import time
 
-from sbp.piksi import *
-from sbp.navigation import *
+from sbp.piksi import MsgResetFilters, SBP_MSG_IAR_STATE
+from sbp.navigation import MsgAgeCorrections, MsgBaselineHeading, MsgBaselineNEDDepA, MsgGPSTime, MsgGPSTimeDepA, MsgUtcTime, SBP_MSG_AGE_CORRECTIONS, SBP_MSG_BASELINE_HEADING, SBP_MSG_BASELINE_NED, SBP_MSG_BASELINE_NED_DEP_A, SBP_MSG_GPS_TIME, SBP_MSG_GPS_TIME_DEP_A, SBP_MSG_UTC_TIME
 
 
 class SimpleAdapter(TabularAdapter):

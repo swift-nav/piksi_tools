@@ -16,7 +16,7 @@ I got 99 callbacks but your type ain't one
 """
 
 from sbp.acquisition import SBP_MSG_ACQ_RESULT_DEP_A
-from sbp.observation import *
+from sbp.observation import SBP_MSG_EPHEMERIS_DEP_A, SBP_MSG_EPHEMERIS_DEP_B, SBP_MSG_EPHEMERIS_DEP_C, SBP_MSG_EPHEMERIS_DEP_D, SBP_MSG_OBS_DEP_A
 from sbp.tracking import SBP_MSG_TRACKING_STATE_DEP_A
 
 DEPRECATED_SBP_MESSAGES = [

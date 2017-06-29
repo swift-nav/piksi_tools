@@ -14,7 +14,7 @@ import time
 import os
 import errno
 from piksi_tools.flash import Flash
-from piksi_tools.timeout import *
+from piksi_tools.timeout import TIMEOUT_BOOT, TIMEOUT_ERASE_STM, TIMEOUT_PROGRAM_STM, TIMEOUT_WRITE_NAP, Timeout
 from piksi_tools.heartbeat import Heartbeat
 from sbp.system import SBP_MSG_HEARTBEAT
 from sbp.piksi import SBP_MSG_RESET

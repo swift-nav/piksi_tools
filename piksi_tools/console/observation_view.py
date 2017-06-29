@@ -23,7 +23,7 @@ import os
 import datetime
 import copy
 
-from sbp.observation import *
+from sbp.observation import SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C
 
 
 class SimpleAdapter(TabularAdapter):

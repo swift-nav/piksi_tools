@@ -18,9 +18,9 @@ import serial_link
 import time
 
 from numpy import mean
-from sbp.acquisition import *
-from sbp.logging import *
-from sbp.client import *
+from sbp.acquisition import MsgAcqResult, MsgAcqResultDepA, SBP_MSG_ACQ_RESULT
+from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
+from sbp.client import Framer, Handler
 
 N_RECORD = 0  # Number of results to keep in memory, 0 = no limit.
 N_PRINT = 32

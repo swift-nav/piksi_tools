@@ -27,9 +27,9 @@ import struct
 import sys
 import serial_link
 
-from sbp.bootload import *
-from sbp.logging import *
-from sbp.piksi import *
+from sbp.bootload import MsgBootloaderHandshakeDepA, MsgBootloaderHandshakeReq, MsgBootloaderHandshakeResp, MsgBootloaderJumpToApp, SBP_MSG_BOOTLOADER_HANDSHAKE_DEP_A, SBP_MSG_BOOTLOADER_HANDSHAKE_RESP
+from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
+from sbp.piksi import MsgResetDep
 from sbp.client import Handler, Framer
 
 

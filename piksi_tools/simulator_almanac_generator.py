@@ -13,7 +13,6 @@
 #   Written by Niels Joubert
 #   April 2014
 
-from almanac import *
 
 import argparse
 

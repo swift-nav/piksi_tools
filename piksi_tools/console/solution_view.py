@@ -28,7 +28,7 @@ import numpy as np
 import datetime
 import time
 
-from sbp.navigation import *
+from sbp.navigation import MsgAgeCorrections, MsgDops, MsgDopsDepA, MsgGPSTime, MsgGPSTimeDepA, MsgPosLLH, MsgPosLLHDepA, MsgUtcTime, MsgVelNED, MsgVelNEDDepA, SBP_MSG_AGE_CORRECTIONS, SBP_MSG_DOPS, SBP_MSG_DOPS_DEP_A, SBP_MSG_GPS_TIME, SBP_MSG_GPS_TIME_DEP_A, SBP_MSG_POS_LLH, SBP_MSG_POS_LLH_DEP_A, SBP_MSG_UTC_TIME, SBP_MSG_VEL_NED, SBP_MSG_VEL_NED_DEP_A
 
 
 class SimpleAdapter(TabularAdapter):

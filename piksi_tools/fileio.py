@@ -14,8 +14,8 @@ import random
 import threading
 import time
 
-from sbp.file_io import *
-from sbp.client import *
+from sbp.file_io import MsgFileioReadDirReq, MsgFileioReadDirResp, MsgFileioReadReq, MsgFileioRemove, MsgFileioWriteReq, SBP_MSG_FILEIO_READ_DIR_RESP, SBP_MSG_FILEIO_READ_RESP, SBP_MSG_FILEIO_WRITE_RESP
+from sbp.client import Framer, Handler
 from sbp.client.drivers.network_drivers import TCPDriver
 
 MAX_PAYLOAD_SIZE = 255

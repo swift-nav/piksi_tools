@@ -18,7 +18,7 @@ from intelhex import IntelHex
 from threading import Lock
 
 from itertools import groupby
-from sbp.flash import *
+from sbp.flash import MsgFlashErase, MsgFlashProgram, MsgFlashReadReq, MsgStmFlashLockSector, MsgStmFlashUnlockSector, SBP, SBP_MSG_FLASH_DONE, SBP_MSG_FLASH_READ_RESP, SBP_MSG_M25_FLASH_WRITE_STATUS
 
 ADDRS_PER_OP = 128
 
