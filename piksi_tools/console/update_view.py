@@ -9,6 +9,8 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+from __future__ import print_function
+from __future__ import absolute_import
 import os
 import sys
 from threading import Thread
@@ -27,13 +29,13 @@ from traitsui.api import (HGroup, InstanceEditor, Item, Spring, UItem, VGroup,
                           View)
 
 import piksi_tools.console.callback_prompt as prompt
-from output_stream import OutputStream
+from .output_stream import OutputStream
 from piksi_tools import __version__ as CONSOLE_VERSION
 from piksi_tools import bootload, flash
 from piksi_tools.bootload_v3 import shell_command
 from piksi_tools.console.utils import determine_path
 from piksi_tools.fileio import FileIO
-from update_downloader import INDEX_URL, UpdateDownloader
+from .update_downloader import INDEX_URL, UpdateDownloader
 
 if getattr(sys, 'frozen', False):
     # we are running in a |PyInstaller| bundle
@@ -520,7 +522,7 @@ class UpdateView(HasTraits):
         self._write(status)
 
         # Get firmware files from Swift Nav's website, save to disk, and load.
-        if self.update_dl.index[self.piksi_hw_rev].has_key('fw'):
+        if 'fw' in self.update_dl.index[self.piksi_hw_rev]:
             try:
                 self._write('Downloading Latest Multi firmware')
                 filepath = self.update_dl.download_multi_firmware(
@@ -682,7 +684,7 @@ class UpdateView(HasTraits):
                         actions=[prompt.close_button]
                     )
 
-                if self.update_dl.index[self.piksi_hw_rev].has_key('fw'):
+                if 'fw' in self.update_dl.index[self.piksi_hw_rev]:
                     fw_update_prompt.text = \
                         "New Piksi firmware available.\n\n" + \
                         "Please use the Firmware Update tab to update.\n\n" + \
@@ -704,7 +706,7 @@ class UpdateView(HasTraits):
                 self.last_call_fw_version != local_stm_version:
             fw_success_str = "Firmware successfully upgraded from %s to %s." % \
                              (self.last_call_fw_version, local_stm_version)
-            print fw_success_str
+            print(fw_success_str)
             self._write(fw_success_str)
 
         # Record firmware version reported each time this callback is called.
@@ -722,7 +724,7 @@ class UpdateView(HasTraits):
 
         # Make sure index contains all keys we are interested in.
         try:
-            if self.update_dl.index[self.piksi_hw_rev].has_key('fw'):
+            if 'fw' in self.update_dl.index[self.piksi_hw_rev]:
                 self.newest_stm_vers = self.update_dl.index[self.piksi_hw_rev][
                     'fw']['version']
             else:

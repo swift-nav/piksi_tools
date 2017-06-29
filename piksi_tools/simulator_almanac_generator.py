@@ -14,6 +14,7 @@
 #   April 2014
 
 
+from __future__ import print_function
 import argparse
 
 
@@ -69,14 +70,14 @@ if __name__ == "__main__":
     alm = Almanac()
     with open(args.file) as f:
         alm.process_yuma(f.readlines())
-        print "#include \"simulator_data.h\""
-        print "/* AUTO-GENERATED FROM simulator_almanac_generator.py */\n"
-        print "u16 simulation_week_number = 1787;\n"
-        print "double simulation_sats_pos[%d][3];\n" % len(alm.sats)
-        print "double simulation_sats_vel[%d][3];\n" % len(alm.sats)
-        print "u32 simulation_fake_carrier_bias[%d];\n" % len(alm.sats)
-        print "u8 simulation_num_almanacs = %d;\n" % len(alm.sats)
-        print "const almanac_t simulation_almanacs[%d] = {" % len(alm.sats)
+        print("#include \"simulator_data.h\"")
+        print("/* AUTO-GENERATED FROM simulator_almanac_generator.py */\n")
+        print("u16 simulation_week_number = 1787;\n")
+        print("double simulation_sats_pos[%d][3];\n" % len(alm.sats))
+        print("double simulation_sats_vel[%d][3];\n" % len(alm.sats))
+        print("u32 simulation_fake_carrier_bias[%d];\n" % len(alm.sats))
+        print("u8 simulation_num_almanacs = %d;\n" % len(alm.sats))
+        print("const almanac_t simulation_almanacs[%d] = {" % len(alm.sats))
         for s in alm.sats:
-            print "%s," % to_struct(s)
-        print "};"
+            print("%s," % to_struct(s))
+        print("};")

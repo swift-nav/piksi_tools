@@ -28,6 +28,7 @@ Requirements:
   sudo pip install sbp
 
 """
+from __future__ import print_function
 import argparse
 import json
 
@@ -75,7 +76,7 @@ def compare_gpstime(g0, g1):
 
 
 def print_emit(msg):
-    print msg.to_json()
+    print(msg.to_json())
 
 
 def zip_json_generators(base_gen, rove_gen, emit_fn):
@@ -155,8 +156,8 @@ def zip_json_files(base_log_handle, rove_log_handle, emit_fn):
     with json_logger.JSONLogIterator(base_log_handle) as base_logger:
         with json_logger.JSONLogIterator(rove_log_handle) as rove_logger:
 
-            base_gen = base_logger.next()
-            rove_gen = rove_logger.next()
+            base_gen = next(base_logger)
+            rove_gen = next(rove_logger)
 
             zip_json_generators(base_gen, rove_gen, emit_fn)
 

@@ -11,6 +11,7 @@ Requirements:
   sudo pip install sbp
 
 """
+from __future__ import print_function
 import json
 from datetime import datetime, timedelta
 from struct import unpack
@@ -303,15 +304,15 @@ def extract_sbp(filename):
                 last_m = m
             if bin_data:
                 if len(bin_data) != msg_len:
-                    print "Length of SBP message inconsitent for msg_type {0}.".format(
-                        msg_type)
-                    print "Expected Length {0}, Actual Length {1}".format(
-                        msg_len, len(bin_data))
+                    print("Length of SBP message inconsitent for msg_type {0}.".format(
+                        msg_type))
+                    print("Expected Length {0}, Actual Length {1}".format(
+                        msg_len, len(bin_data)))
                 else:
                     extracted_data.append((timestamp, msg_type, sender_id,
                                            msg_len, bin_data))
                     num_msgs += 1
-        print "extracted {0} messages".format(num_msgs)
+        print("extracted {0} messages".format(num_msgs))
         return extracted_data
 
 
@@ -323,7 +324,7 @@ def rewrite(records, outfile):
     """
     new_datafile = open(outfile, 'w')
     if not records:
-        print "No SBP log records passed to rewrite function. Exiting."
+        print("No SBP log records passed to rewrite function. Exiting.")
         return
 
     items = []
@@ -341,13 +342,13 @@ def rewrite(records, outfile):
             }
             new_datafile.write(json.dumps(m) + "\n")
         except Exception:
-            print "Exception received for message type {0}.".format(
-                _SBP_TABLE[msg_type])
+            print("Exception received for message type {0}.".format(
+                _SBP_TABLE[msg_type]))
             import traceback
-            print traceback.format_exc()
+            print(traceback.format_exc())
             i += 1
             continue
-    print "Of %d records, skipped %i." % (len(records), i)
+    print("Of %d records, skipped %i." % (len(records), i))
     return items
 
 
@@ -376,7 +377,7 @@ def main():
     outfile = args.outfile[0]
     f = extract_sbp(filename)
     rewrite(f, outfile)
-    print "JSON SBP log succesfully written to {0}.".format(outfile)
+    print("JSON SBP log succesfully written to {0}.".format(outfile))
     return 0
 
 

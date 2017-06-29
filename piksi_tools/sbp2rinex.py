@@ -10,6 +10,7 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 """Generates a RINEX 2.11 observation file from a SBP log.
 """
+from __future__ import print_function
 
 import datetime
 import os
@@ -124,7 +125,7 @@ class StoreToRINEX(object):
 
     def save(self, filename):
         if os.path.exists(filename):
-            print "Unlinking %s, which already exists!" % filename
+            print("Unlinking %s, which already exists!" % filename)
             os.unlink(filename)
         try:
             f = open(filename, mode='w')
@@ -188,7 +189,7 @@ sbp2rinex                               %s UTC PGM / RUN BY / DATE
                     last_t = t
         except:
             import traceback
-            print traceback.format_exc()
+            print(traceback.format_exc())
         finally:
             f.close()
 
@@ -200,14 +201,14 @@ def wrapper(log_datafile, filename, num_records):
     start = time.time()
     with open(log_datafile, 'r') as infile:
         with JSONLogIterator(infile) as log:
-            for msg, data in log.next():
+            for msg, data in next(log):
                 i += 1
                 if i % logging_interval == 0:
-                    print "Processed %d records! @ %.1f sec." \
-                        % (i, time.time() - start)
+                    print("Processed %d records! @ %.1f sec." \
+                        % (i, time.time() - start))
                 processor.process_message(msg)
                 if num_records is not None and i >= int(num_records):
-                    print "Processed %d records!" % i
+                    print("Processed %d records!" % i)
                     break
             processor.save(filename)
 

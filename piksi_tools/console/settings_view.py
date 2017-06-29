@@ -9,6 +9,8 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+from __future__ import print_function
+from __future__ import absolute_import
 import datetime
 import math
 import os
@@ -37,7 +39,7 @@ import piksi_tools.console.callback_prompt as prompt
 from piksi_tools.console.gui_utils import MultilineTextEditor
 from piksi_tools.console.utils import determine_path
 from piksi_tools.fileio import FileIO
-from settings_list import SettingsList
+from .settings_list import SettingsList
 
 if ETSConfig.toolkit != 'null':
     from enable.savage.trait_defs.ui.svg_button import SVGButton
@@ -341,7 +343,7 @@ class SettingsView(HasTraits):
             this_section = []
             for name, setting in sorted(
                     self.settings[sec].iteritems(),
-                    key=lambda (n, s): s.ordering):
+                    key=lambda n_s: n_s[1].ordering):
                 if not setting.expert or (self.expert and setting.expert):
                     this_section.append(setting)
             if this_section:
@@ -362,8 +364,8 @@ class SettingsView(HasTraits):
         confirmed_set = True
         settings_list = sbp_msg.setting.split("\0")
         if len(settings_list) <= 3:
-            print "Received malformed settings read response {0}".format(
-                sbp_msg)
+            print("Received malformed settings read response {0}".format(
+                sbp_msg))
             confirmed_set = False
         try:
             if self.settings[settings_list[0]][settings_list[1]].value != settings_list[2]:
@@ -392,7 +394,7 @@ class SettingsView(HasTraits):
             format_type = None
         else:
             setting_type, setting_format = format_type.split(':')
-        if not self.settings.has_key(section):
+        if section not in self.settings:
             self.settings[section] = {}
         if format_type is None:
             # Plain old setting, no format information
@@ -477,6 +479,6 @@ class SettingsView(HasTraits):
             try:
                 self._settings_read_button_fired()
             except IOError:
-                print "IOError in settings_view startup call of _settings_read_button_fired."
-                print "Verify that write permissions exist on the port."
+                print("IOError in settings_view startup call of _settings_read_button_fired.")
+                print("Verify that write permissions exist on the port.")
         self.python_console_cmds = {'settings': self}

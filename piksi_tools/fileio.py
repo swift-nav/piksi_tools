@@ -9,6 +9,8 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+from __future__ import print_function
+from __future__ import absolute_import
 import random
 import threading
 import time
@@ -20,7 +22,7 @@ from sbp.file_io import (SBP_MSG_FILEIO_READ_DIR_RESP,
                          MsgFileioReadDirReq, MsgFileioReadDirResp,
                          MsgFileioReadReq, MsgFileioRemove, MsgFileioWriteReq)
 
-import serial_link
+from . import serial_link
 
 MAX_PAYLOAD_SIZE = 255
 SBP_FILEIO_WINDOW_SIZE = 10
@@ -274,7 +276,7 @@ def print_dir_listing(files):
         List of file names in the directory.
     """
     for f in files:
-        print f
+        print(f)
 
 
 def get_args():
@@ -347,15 +349,15 @@ def main():
                 elif args.read:
                     data = f.read(args.read[0])
                     if args.hex:
-                        print hexdump(data)
+                        print(hexdump(data))
                     else:
-                        print data
+                        print(data)
                 elif args.delete:
                     f.remove(args.delete[0])
                 elif args.list is not None:
                     print_dir_listing(f.readdir(args.list[0]))
                 else:
-                    print "No command given, listing root directory:"
+                    print("No command given, listing root directory:")
                     print_dir_listing(f.readdir())
             except KeyboardInterrupt:
                 pass

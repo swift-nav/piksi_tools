@@ -9,6 +9,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+from __future__ import print_function
 import math as m
 import time
 import urllib2
@@ -176,7 +177,7 @@ class Almanac:
         if self.sats:
             dopps = map(lambda s: (s.prn,) + s.calc_vis_dopp(tow,
                                                              location, elevation_mask=0.0), self.sats)
-            dopps = filter(lambda (prn, dopp, el): (dopp != None), dopps)
+            dopps = filter(lambda prn_dopp_el: (prn_dopp_el[1] != None), dopps)
             return dopps
         else:
             return None
@@ -184,7 +185,7 @@ class Almanac:
 
 if __name__ == "__main__":
     alm = Almanac()
-    print "Downloading current almanac"
+    print("Downloading current almanac")
     alm.download_almanac()
-    print "Dopplers:"
-    print alm.get_dopps()
+    print("Dopplers:")
+    print(alm.get_dopps())

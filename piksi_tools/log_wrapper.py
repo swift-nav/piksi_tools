@@ -9,6 +9,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+from __future__ import print_function
 import json
 import sys
 
@@ -32,7 +33,7 @@ def main():
     for line in sys.stdin:
         data = json.loads(line)
         outdata = wrap_sbp_dict(data, index, timestamp)
-        print json.dumps(outdata)
+        print(json.dumps(outdata))
         index += index_increment_guess
         timestamp += time_increment_guess
 

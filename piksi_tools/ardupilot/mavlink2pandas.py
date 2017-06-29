@@ -1,9 +1,11 @@
+from __future__ import print_function
+from __future__ import absolute_import
 import datetime
 import os
 import tempfile
 
 import pandas as pd
-from mavlink_decode import extractSBP
+from .mavlink_decode import extractSBP
 from pymavlink.DFReader import DFMessage, DFReader_binary
 
 NUMLEAPSECONDS = 17
@@ -42,7 +44,7 @@ def extractMAVLINK(filename, outfile, msg_types_to_save):
             out_dict[m.get_type()] = msg_timestamp_dict
         else:
             if os.path.exists(outfile):
-                print "Unlinking %s, which already exists!" % outfile
+                print("Unlinking %s, which already exists!" % outfile)
                 os.unlink(outfile)
             f = pd.HDFStore(outfile, mode='w')
             try:
@@ -86,7 +88,7 @@ def main():
     filename = args.dataflashfile
     outfile = args.outfile[0]
     if extractMAVLINK(filename, outfile, args.types):
-        print "Mavlink log succesfully written to {0}.".format(outfile)
+        print("Mavlink log succesfully written to {0}.".format(outfile))
 
 
 if __name__ == "__main__":

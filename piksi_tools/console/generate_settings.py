@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+from __future__ import absolute_import
 import os
 import re
 import subprocess
@@ -7,7 +9,7 @@ import subprocess
 import yaml
 
 import jinja2
-from settings_list import SettingsList
+from .settings_list import SettingsList
 
 swift_nav_style_path = "../libsbp/docs"
 environment_variables_to_append = ["TEXINPUTS", "PATH"]
@@ -15,7 +17,7 @@ myenviron = os.environ
 for each in environment_variables_to_append:
     try:
         texinputs = myenviron[each]
-        print texinputs
+        print(texinputs)
         myenviron[each] = ".:" + swift_nav_style_path + ":" + texinputs
     except KeyError:
         myenviron[each] = ".:" + swift_nav_style_path

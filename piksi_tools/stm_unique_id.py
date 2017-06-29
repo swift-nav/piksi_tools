@@ -9,6 +9,8 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+from __future__ import print_function
+from __future__ import absolute_import
 import struct
 import sys
 import time
@@ -18,7 +20,7 @@ from sbp.flash import (SBP_MSG_STM_UNIQUE_ID_RESP, MsgStmUniqueIdReq,
                        MsgStmUniqueIdResp)
 from sbp.system import SBP_MSG_HEARTBEAT
 
-import serial_link
+from . import serial_link
 from piksi_tools.heartbeat import Heartbeat
 
 
@@ -114,8 +116,8 @@ def main():
         with Handler(Framer(driver.read, driver.write)) as link:
             with STMUniqueID(link) as stm_unique_id:
                 unique_id = stm_unique_id.get_id()
-            print "STM Unique ID =", "0x" + ''.join(
-                ["%02x" % (b) for b in unique_id])
+            print("STM Unique ID =", "0x" + ''.join(
+                ["%02x" % (b) for b in unique_id]))
 
 
 if __name__ == "__main__":

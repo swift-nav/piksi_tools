@@ -9,6 +9,8 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+from __future__ import print_function
+from __future__ import absolute_import
 import struct
 import time
 
@@ -25,7 +27,7 @@ from sbp.settings import (SBP_MSG_SETTINGS_READ_BY_INDEX_DONE,
                           MsgSettingsReadByIndexReq)
 from sbp.system import SBP_MSG_HEARTBEAT, MsgHeartbeat
 
-import serial_link
+from . import serial_link
 
 DIAGNOSTICS_FILENAME = "diagnostics.yaml"
 
@@ -64,10 +66,10 @@ class Diagnostics(object):
         while not self.heartbeat_received:
             time.sleep(0.1)
             if timeout is not None and time.time() > timeout:
-                print "timeout waiting for heartbeat"
+                print("timeout waiting for heartbeat")
                 return
         # Wait for the settings
-        print "received heartbeat"
+        print("received heartbeat")
         expire = time.time() + 15.0
         self.link(MsgSettingsReadByIndexReq(index=0))
         while not self.settings_received:
@@ -76,11 +78,11 @@ class Diagnostics(object):
                 expire = time.time() + 15.0
                 self.link(MsgSettingsReadByIndexReq(index=0))
             if timeout is not None and time.time() > timeout:
-                print "timeout waiting for settings"
+                print("timeout waiting for settings")
                 return
 
         # Wait for the handshake
-        print "received settings"
+        print("received settings")
         expire = time.time() + 10.0
         self.link(MsgReset(flags=0))
         while not self.handshake_received:
@@ -89,12 +91,12 @@ class Diagnostics(object):
                 expire = time.time() + 10.0
                 self.link(MsgReset(flags=0))
             if timeout is not None and time.time() > timeout:
-                print "timeout waiting for handshake"
+                print("timeout waiting for handshake")
                 return
-        print "received bootloader handshake"
+        print("received bootloader handshake")
 
     def _print_callback(self, msg, **metadata):
-        print msg.text
+        print(msg.text)
 
     def _deprecated_handshake_callback(self, sbp_msg, **metadata):
         if len(sbp_msg.payload) == 1 and struct.unpack(
@@ -123,7 +125,7 @@ class Diagnostics(object):
         else:
             section, setting, value, format_type = sbp_msg.payload[2:].split(
                 '\0')[:4]
-            if not self.diagnostics['settings'].has_key(section):
+            if section not in self.diagnostics['settings']:
                 self.diagnostics['settings'][section] = {}
             self.diagnostics['settings'][section][setting] = value
             index = struct.unpack('<H', sbp_msg.payload[:2])[0]
@@ -208,7 +210,7 @@ def main():
             with open(diagnostics_filename, 'w') as diagnostics_file:
                 yaml.dump(
                     diagnostics, diagnostics_file, default_flow_style=False)
-                print "wrote diagnostics file"
+                print("wrote diagnostics file")
 
 
 if __name__ == "__main__":

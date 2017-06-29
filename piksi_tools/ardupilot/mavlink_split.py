@@ -7,6 +7,7 @@ Requirements:
   pip install pymavlink
 
 """
+from __future__ import print_function
 from pymavlink.DFReader import DFReader_binary
 
 
@@ -39,14 +40,14 @@ def split_logs(filename, seconds2split, prefix=None, verbose=False):
         if m is None:
             with open(outfile + "." + str(part), 'w') as fd:
                 fd.write(header + log.data[starting_offset:])
-            print "split {0} into {1} segments".format(filename, part + 1)
+            print("split {0} into {1} segments".format(filename, part + 1))
             break
         elif not first:
             timediff = m._timestamp - previous_ts
             if timediff > seconds2split:
                 if verbose:
-                    print "Breaking at {0} for type{1}".format(
-                        m._timestamp, m.get_type())
+                    print("Breaking at {0} for type{1}".format(
+                        m._timestamp, m.get_type()))
                 with open(outfile + "." + str(part), 'w') as fd:
                     before_message = log.offset - len(m.binary)
                     # if we are in the first message, no need to repeat the header

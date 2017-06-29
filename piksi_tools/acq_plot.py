@@ -9,6 +9,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+from __future__ import print_function
 import math
 
 import numpy as np
@@ -32,7 +33,7 @@ d.zs = np.array(d.zs)
 
 d.zs = 500 * d.zs / np.max(d.zs)
 
-print d.zs.shape
+print(d.zs.shape)
 
 x_len, y_len = d.zs.shape
 xs = np.arange(x_min, x_max, (x_max - x_min) / x_len)

@@ -11,6 +11,8 @@
 
 # This script resets the FDTI settings to its default values
 
+from __future__ import print_function
+from __future__ import absolute_import
 import argparse
 import struct
 import sys
@@ -19,7 +21,7 @@ import time
 from sbp.client import Framer, Handler
 from sbp.settings import SBP_MSG_SETTINGS_SAVE, SBP_MSG_SETTINGS_WRITE
 
-import serial_link
+from . import serial_link
 
 
 def send_setting(link, section, name, value):
@@ -63,19 +65,19 @@ def main():
     with serial_link.get_driver(args.ftdi, port, baud) as driver:
         # Handler with context
         with Handler(Framer(driver.read, driver.write)) as link:
-            print "Resetting mask to 0xff"
+            print("Resetting mask to 0xff")
             send_setting(link, "uart_ftdi", "sbp_message_mask", "65535")
             time.sleep(0.5)
 
-            print "Resetting baudrate to 1Mbps"
+            print("Resetting baudrate to 1Mbps")
             send_setting(link, "uart_ftdi", "baudrate", "1000000")
             time.sleep(0.5)
 
-            print "Resetting mode to SBP"
+            print("Resetting mode to SBP")
             send_setting(link, "uart_ftdi", "mode", "SBP")
             time.sleep(0.5)
 
-            print "Attempting to save settings"
+            print("Attempting to save settings")
             link.send(SBP_MSG_SETTINGS_SAVE, "")
             time.sleep(0.5)
             link.send(SBP_MSG_SETTINGS_SAVE, "")
@@ -84,7 +86,7 @@ def main():
             time.sleep(0.5)
             link.send(SBP_MSG_SETTINGS_SAVE, "")
 
-            print "Sent Settings Reset message to return FTDI to defaults"
+            print("Sent Settings Reset message to return FTDI to defaults")
 
 
 if __name__ == "__main__":

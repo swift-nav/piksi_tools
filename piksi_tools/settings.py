@@ -9,6 +9,8 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+from __future__ import print_function
+from __future__ import absolute_import
 import struct
 import sys
 import time
@@ -23,7 +25,7 @@ from sbp.settings import (SBP_MSG_SETTINGS_READ_BY_INDEX_DONE,
                           MsgSettingsReadByIndexReq, MsgSettingsReadReq,
                           MsgSettingsSave, MsgSettingsWrite)
 
-import serial_link
+from . import serial_link
 
 
 class Settings(object):
@@ -53,16 +55,16 @@ class Settings(object):
         while not self.settings_list_received:
             time.sleep(0.1)
         for section in self.settings_list:
-            print '%s:' % (section)
+            print('%s:' % (section))
             for setting, value in self.settings_list[section].iteritems():
-                print '- %s = %s' % (setting, value)
+                print('- %s = %s' % (setting, value))
 
     def read(self, section, setting):
         self.setting_received = False
         self.link(MsgSettingsReadReq(setting='%s\0%s\0' % (section, setting)))
         while not self.setting_received:
             time.sleep(0.1)
-        print self.setting_value
+        print(self.setting_value)
 
     def write(self, section, setting, value):
         self.link(
@@ -76,7 +78,7 @@ class Settings(object):
         self.link(MsgReset(flags=0))
 
     def _print_callback(self, msg, **metadata):
-        print msg.text
+        print(msg.text)
 
     def _settings_callback(self, sbp_msg, **metadata):
         section, setting, value, format_type = sbp_msg.payload[2:].split(
@@ -87,7 +89,7 @@ class Settings(object):
     def _settings_list_callback(self, sbp_msg, **metadata):
         section, setting, value, format_type = sbp_msg.payload[2:].split(
             '\0')[:4]
-        if not self.settings_list.has_key(section):
+        if section not in self.settings_list:
             self.settings_list[section] = {}
         self.settings_list[section][setting] = value
         index = struct.unpack('<H', sbp_msg.payload[:2])[0]

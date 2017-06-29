@@ -13,6 +13,8 @@
 The :mod:`piksi_tools.acq_results` module contains functions related to
 monitoring acquisition.
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 import time
 
@@ -21,7 +23,7 @@ from sbp.acquisition import SBP_MSG_ACQ_RESULT, MsgAcqResult, MsgAcqResultDepA
 from sbp.client import Framer, Handler
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
 
-import serial_link
+from . import serial_link
 
 N_RECORD = 0  # Number of results to keep in memory, 0 = no limit.
 N_PRINT = 32
@@ -127,7 +129,7 @@ def main():
 
             try:
                 while True:
-                    print acq_results
+                    print(acq_results)
                     time.sleep(0.1)
             except KeyboardInterrupt:
                 pass

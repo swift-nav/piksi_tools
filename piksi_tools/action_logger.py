@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import random
 import struct
 import sys
@@ -144,8 +145,8 @@ class DropSatsState(TestState):
         if isinstance(msg, MsgTrackingState) or isinstance(
                 msg, MsgTrackingStateDepA):
             if self.debug:
-                print "currently tracking {0} sats".format(
-                    self.num_tracked_sats)
+                print("currently tracking {0} sats".format(
+                    self.num_tracked_sats))
             self.num_tracked_sats = 0
             for channel, track_state in enumerate(msg.states):
                 try:
@@ -178,7 +179,7 @@ class DropSatsState(TestState):
         """
         FLAGS = 0x02  # Drop from tracking, don't mask acquisition.
         if self.debug:
-            print "Dropping the following prns {0}".format(prns)
+            print("Dropping the following prns {0}".format(prns))
         for prn in prns:
             if self.sbpv < (0, 49):
                 # Use pre SID widening Mask Message - have to pack manually.
@@ -208,9 +209,9 @@ class DropSatsState(TestState):
             prns_to_drop = random.sample(self.channel_status_dict.values(),
                                          num_drop)
             if self.debug:
-                print("satellite drop triggered: "
+                print(("satellite drop triggered: "
                       "will drop {0} out of {1} sats").format(
-                          num_drop, self.num_tracked_sats)
+                          num_drop, self.num_tracked_sats))
             self.drop_prns(prns_to_drop)
 
     def action(self):
@@ -297,7 +298,7 @@ def main():
                                     # Wait forever until the user presses Ctrl-C
                                     time.sleep(1)
                                 else:
-                                    print "Timer expired!"
+                                    print("Timer expired!")
                                     break
                                 if not link.is_alive():
                                     sys.stderr.write("ERROR: Thread died!")

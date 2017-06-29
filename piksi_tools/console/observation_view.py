@@ -10,6 +10,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+from __future__ import print_function
 import copy
 import datetime
 import os
@@ -142,7 +143,7 @@ class ObservationView(CodeFiltered):
                 self.gps_week != wn or\
                 self.prev_obs_count + 1 != count or\
                 self.prev_obs_total != total:
-            print "We dropped a packet. Skipping this observation sequence"
+            print("We dropped a packet. Skipping this observation sequence")
             self.prev_obs_count = -1
             return
         else:
@@ -192,7 +193,7 @@ class ObservationView(CodeFiltered):
                 if self.gps_tow != self.old_tow:
                     cpdopp = (ocp - cp) / float(self.gps_tow - self.old_tow)
                 else:
-                    print "Received two complete observation sets with identical TOW"
+                    print("Received two complete observation sets with identical TOW")
                     cpdopp = 0
 
                 # Older messages had flipped sign carrier phase values

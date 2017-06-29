@@ -9,6 +9,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+from __future__ import print_function
 import os
 import pprint
 import sys
@@ -39,8 +40,8 @@ class SettingsList():
                 returnvar = thisdict.get(field, "")
             else:
                 if not self.warned_dict.get(name + group, False):
-                    print("No settings documentation entry "
-                          "for name {0} and group is {1}").format(name, group)
+                    print(("No settings documentation entry "
+                          "for name {0} and group is {1}").format(name, group))
                     self.warned_dict[name + group] = True
         if not returnvar:
             returnvar = ""
@@ -70,9 +71,9 @@ class SettingsList():
             self.list_of_dicts = temp_dict
             self.warned_dict = {}
             # inform user of success or failure
-            print "Loaded settings yaml file from path " + path_to_file
-            print "Number of settings loaded {0}".format(
-                len(self.list_of_dicts))
+            print("Loaded settings yaml file from path " + path_to_file)
+            print("Number of settings loaded {0}".format(
+                len(self.list_of_dicts)))
         except:
             import traceback
             traceback.print_exc()

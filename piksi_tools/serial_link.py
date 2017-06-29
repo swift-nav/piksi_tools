@@ -12,6 +12,7 @@
 The :mod:`piksi_tools.serial_link` module contains functions related to
 setting up and running SBP message handling.
 """
+from __future__ import print_function
 
 import os
 import sys
@@ -173,7 +174,7 @@ def get_driver(use_ftdi=False,
         for each in serial.tools.list_ports.comports():
             if port == each[0]:
                 if each[1].startswith("Gadget Serial"):
-                    print "opening a file driver"
+                    print("opening a file driver")
                     return CdcDriver(open(port, 'w+b', 0))
         return PySerialDriver(port, baud, rtscts=rtscts)
     # if finding the driver fails we should exit with a return code
@@ -199,7 +200,7 @@ def get_logger(use_log=False, filename=logfilename()):
     dirname = os.path.dirname(filename)
     if dirname:
         mkdir_p(dirname)
-    print "Starting JSON logging at %s" % filename
+    print("Starting JSON logging at %s" % filename)
     infile = open(filename, 'w')
     return JSONLogger(infile)
 
@@ -217,7 +218,7 @@ def get_append_logger(filename, tags):
     """
     if not filename:
         return NullLogger()
-    print "Append logging at %s" % filename
+    print("Append logging at %s" % filename)
     infile = open(filename, 'a')
     return JSONLogger(infile, tags)
 
@@ -231,7 +232,7 @@ def printer(sbp_msg, **metadata):
     sbp_msg: SBP
       SBP Message to print out.
     """
-    print sbp_msg.payload,
+    print(sbp_msg.payload, end=' ')
 
 
 def log_printer(sbp_msg, **metadata):
@@ -254,7 +255,7 @@ def log_printer(sbp_msg, **metadata):
         7: 'DEBUG'
     }
     m = MsgLog(sbp_msg)
-    print levels[m.level], m.text
+    print(levels[m.level], m.text)
 
 
 def swriter(link):
@@ -325,7 +326,7 @@ def run(args, link):
                 # Wait forever until the user presses Ctrl-C
                 time.sleep(1)
             else:
-                print "Timer expired!"
+                print("Timer expired!")
                 break
             if not link.is_alive():
                 sys.stderr.write("ERROR: Thread died!")

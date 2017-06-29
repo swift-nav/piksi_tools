@@ -10,6 +10,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+from __future__ import print_function
 import new
 import struct
 import sys
@@ -121,7 +122,7 @@ def ihx_ranges(ihx):
     """
 
     def first_last(x):
-        first = x.next()
+        first = next(x)
         last = first
         for last in x:
             pass
@@ -129,7 +130,7 @@ def ihx_ranges(ihx):
 
     return [
         first_last(v)
-        for k, v in groupby(enumerate(ihx.addresses()), lambda (i, x): i - x)
+        for k, v in groupby(enumerate(ihx.addresses()), lambda i_x: i_x[0] - i_x[1])
     ]
 
 
@@ -471,7 +472,7 @@ class Flash():
         ret = ord(sbp_msg.payload)
 
         if (ret != 0):
-            print "Flash operation returned error (%d)" % ret
+            print("Flash operation returned error (%d)" % ret)
 
         self.dec_n_queued_ops()
         assert self.get_n_queued_ops() >= 0, \

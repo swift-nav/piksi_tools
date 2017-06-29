@@ -21,6 +21,8 @@
 The :mod:`piksi_tools.bootload` module contains functions loading firmware
 images.
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 import random
 import sys
@@ -30,8 +32,8 @@ from sbp.client import Framer, Handler
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
 from sbp.piksi import SBP_MSG_COMMAND_RESP, MsgCommandReq, MsgReset
 
-import serial_link
-from fileio import FileIO
+from . import serial_link
+from .fileio import FileIO
 
 
 def get_args():
