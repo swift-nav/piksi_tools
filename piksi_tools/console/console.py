@@ -353,8 +353,7 @@ class SwiftConsole(HasTraits):
                             'directory_name',
                             show_label=False,
                             springy=True,
-                            tooltip=
-                            'Choose location for file logs. Default is home/SwiftNav.',
+                            tooltip='Choose location for file logs. Default is home/SwiftNav.',
                             height=-25,
                             enabled_when='not(json_logging or csv_logging)',
                             editor_args={'auto_set': True}),
@@ -364,8 +363,7 @@ class SwiftConsole(HasTraits):
                             padding=0,
                             height=8,
                             show_label=True,
-                            tooltip=
-                            'Show log levels up to and including the selected level of severity.\nThe CONSOLE log level is always visible.'
+                            tooltip='Show log levels up to and including the selected level of severity.\nThe CONSOLE log level is always visible.'
                         ), ),
                     Item(
                         'console_output',

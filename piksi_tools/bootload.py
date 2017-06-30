@@ -34,7 +34,7 @@ from sbp.client import Framer, Handler
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
 from sbp.piksi import MsgResetDep
 
-from . import serial_link
+from piksi_tools import serial_link
 
 
 class Bootloader():

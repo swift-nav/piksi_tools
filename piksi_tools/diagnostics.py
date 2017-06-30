@@ -17,7 +17,7 @@ import time
 import yaml
 from sbp.bootload import (SBP_MSG_BOOTLOADER_HANDSHAKE_DEP_A,
                           SBP_MSG_BOOTLOADER_HANDSHAKE_RESP,
-                          MsgBootloaderJumpToApp)
+                          MsgBootloaderJumpToApp, MsgBootloaderHandshakeDevice)
 from sbp.client import Framer, Handler
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
 from sbp.piksi import MsgReset

@@ -35,6 +35,20 @@ def dict_depth(d, depth=0):
     return max(dict_depth(v, depth + 1) for k, v in d.iteritems())
 
 
+header_fmt = """     2.11           OBSERVATION DATA    G (GPS)             RINEX VERSION / TYPE
+sbp2rinex                               %s UTC PGM / RUN BY / DATE
+                                                            MARKER NAME
+                                                            OBSERVER / AGENCY
+                    Piksi                                   REC # / TYPE / VERS
+                                                            ANT # / TYPE
+ %14.4f %14.4f %14.4f               APPROX POSITION XYZ
+         0.0000         0.0000         0.0000               ANTENNA: DELTA H/E/N
+     6    C1    L1    S1   C2    L2    S2                   # / TYPES OF OBSERV
+%s%13.7f     GPS         TIME OF FIRST OBS
+                                                            END OF HEADER
+"""
+
+
 class StoreToRINEX(object):
     """Stores observations as RINEX.
 
@@ -132,20 +146,9 @@ class StoreToRINEX(object):
             last_t = 0
             for t, sats in sorted(self.rover_obs.iteritems()):
                 if not header_written:
-                    header = """     2.11           OBSERVATION DATA    G (GPS)             RINEX VERSION / TYPE
-sbp2rinex                               %s UTC PGM / RUN BY / DATE
-                                                            MARKER NAME
-                                                            OBSERVER / AGENCY
-                    Piksi                                   REC # / TYPE / VERS
-                                                            ANT # / TYPE
- %14.4f %14.4f %14.4f               APPROX POSITION XYZ
-         0.0000         0.0000         0.0000               ANTENNA: DELTA H/E/N
-     6    C1    L1    S1   C2    L2    S2                   # / TYPES OF OBSERV
-%s%13.7f     GPS         TIME OF FIRST OBS
-                                                            END OF HEADER
-""" % (datetime.datetime.utcnow().strftime("%Y%m%d %H%M%S"), self.x, self.y,
-       self.z, t.strftime("  %Y    %m    %d    %H    %M"),
-       t.second + t.microsecond * 1e-6)
+                    header = header_fmt % (datetime.datetime.utcnow().strftime("%Y%m%d %H%M%S"), self.x, self.y,
+                                           self.z, t.strftime("  %Y    %m    %d    %H    %M"),
+                                           t.second + t.microsecond * 1e-6)
                     f.write(header)
                     header_written = True
 
@@ -202,8 +205,8 @@ def wrapper(log_datafile, filename, num_records):
             for msg, data in next(log):
                 i += 1
                 if i % logging_interval == 0:
-                    print("Processed %d records! @ %.1f sec." \
-                        % (i, time.time() - start))
+                    print("Processed %d records! @ %.1f sec."
+                          % (i, time.time() - start))
                 processor.process_message(msg)
                 if num_records is not None and i >= int(num_records):
                     print("Processed %d records!" % i)

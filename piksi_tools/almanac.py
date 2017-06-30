@@ -123,7 +123,7 @@ class Sat:
         doppler_shift = GPS_L1_HZ * -radial_velocity / NAV_C
 
         if (angle_to_horizon > elevation_mask *
-            (m.pi / 180)) and (self.healthy):
+                (m.pi / 180)) and (self.healthy):
             return (doppler_shift, angle_to_horizon)
         else:
             return (None, None)
@@ -164,9 +164,9 @@ class Almanac:
     def process_yuma(self, yuma):
         if yuma:
             blocks = []
-            for (n, line) in enumerate(yuma):
+            for (i, line) in enumerate(yuma):
                 if line[:3] == "ID:":
-                    blocks += [yuma[n:n + 13]]
+                    blocks += [yuma[i:i + 13]]
             self.sats = map(lambda bl: Sat(bl), blocks)
         else:
             self.sats = None

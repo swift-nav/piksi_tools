@@ -27,7 +27,6 @@ from piksi_tools.timeout import (TIMEOUT_BOOT, TIMEOUT_ERASE_STM,
 
 
 def set_app_mode(handler, verbose=False):
-    from piksi_tools.bootload import Bootloader
     """
   Set Piksi into the application firmware, regardless of whether it is
   currently in the application firmware or the bootloader. Will raise a
@@ -41,6 +40,7 @@ def set_app_mode(handler, verbose=False):
     Print more verbose output.
 
   """
+    from piksi_tools.bootload import Bootloader
 
     if verbose:
         print("Setting device into application mode")
@@ -111,6 +111,7 @@ def setup_piksi(handler, stm_fw, nap_fw, verbose=False):
       Print more verbose output.
 
     """
+    from piksi_tools.bootload import Bootloader
 
     # Wait until we receive a heartbeat or bootloader handshake so we
     # know what state Piksi is in.

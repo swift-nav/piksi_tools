@@ -46,7 +46,7 @@ class GpsTime():
                 return 0
 
     def __eq__(self, other):
-        if type(other) != type(GpsTime(1, 1)):
+        if not isinstance(other, GpsTime):
             return False
         return (self.week == other.week) and (self.TOW == other.TOW)
 

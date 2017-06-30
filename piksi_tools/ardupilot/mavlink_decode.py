@@ -65,7 +65,7 @@ Parameters
     Binary file to read
   searched_keys : tuple of bytearrays
     List of keys to search
-    
+
 Returns
 -------
   key : bytearray

@@ -2,6 +2,7 @@ from __future__ import absolute_import, print_function
 
 import datetime
 import os
+import warnings
 
 import pandas as pd
 from pymavlink.DFReader import DFReader_binary

@@ -17,6 +17,8 @@ from __future__ import print_function
 
 import argparse
 
+from .almanac import Almanac
+
 
 def to_struct(sat):
     return "{ \n\

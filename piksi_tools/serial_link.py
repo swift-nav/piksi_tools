@@ -22,7 +22,7 @@ import uuid
 import serial.tools.list_ports
 from sbp.client import Forwarder, Framer, Handler
 from sbp.client.drivers.cdc_driver import CdcDriver
-from sbp.client.drivers.network_drivers import HTTPDriver
+from sbp.client.drivers.network_drivers import HTTPDriver, TCPDriver
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.loggers.json_logger import JSONLogger
@@ -99,8 +99,7 @@ def base_cl_options(override_arg_parse=None, add_help=True):
     parser.add_argument(
         "--logfilename",
         default='',
-        help=
-        'filename to use for log. Default filename with date and timestamp is used otherwise.'
+        help='filename to use for log. Default filename with date and timestamp is used otherwise.'
     )
     parser.add_argument(
         "-a",

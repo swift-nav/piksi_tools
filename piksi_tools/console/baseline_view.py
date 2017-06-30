@@ -422,14 +422,14 @@ class BaselineView(HasTraits):
             marker='dot',
             line_width=0.0,
             marker_size=1.0)
-        pts_fixed = self.plot.plot(
+        pts_fixed = self.plot.plot(  # noqa: F841
             ('e_fixed', 'n_fixed'),
             type='scatter',
             color=color_dict[FIXED_MODE],
             marker='dot',
             line_width=0.0,
             marker_size=1.0)
-        pts_dgnss = self.plot.plot(
+        pts_dgnss = self.plot.plot(  # noqa: F841
             ('e_dgnss', 'n_dgnss'),
             type='scatter',
             color=color_dict[DGNSS_MODE],

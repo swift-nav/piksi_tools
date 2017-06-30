@@ -109,7 +109,7 @@ class IMUView(HasTraits):
         self.ylim = self.plot.value_mapper.range
         self.ylim.low = -32768
         self.ylim.high = 32767
-        #self.plot.value_range.bounds_func = lambda l, h, m, tb: (0, h * (1 + m))
+        # self.plot.value_range.bounds_func = lambda l, h, m, tb: (0, h * (1 + m))
         self.plot.value_axis.orientation = 'right'
         self.plot.value_axis.axis_line_visible = False
         self.plot.value_axis.title = 'LSB count'

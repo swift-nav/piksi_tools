@@ -153,7 +153,7 @@ class DropSatsState(TestState):
                     # MsgTrackingState
                     prn = track_state.sid.sat
                     if ((track_state.sid.constellation == 0) and
-                        (track_state.sid.band == 0)):
+                            (track_state.sid.band == 0)):
                         prn += 1
                 except AttributeError:
                     # MsgTrackingStateDepA

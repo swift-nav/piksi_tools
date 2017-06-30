@@ -81,8 +81,8 @@ def shell_command(link, cmd, timeout=None, progress_cb=None):
             progress_cb(float(elapsed_intervals) / float(timeout) * 100)
         elapsed_intervals += 1
     if len(ret.items()) == 0:
-        printf(("Shell command timeout: execution exceeded {0} "
-                "seconds with no response.").format(timeout))
+        print(("Shell command timeout: execution exceeded {0} "
+               "seconds with no response.").format(timeout))
         return -255
     return ret['code']
 

@@ -85,8 +85,7 @@ def fix_trigger_debounce(message_type, msg_tow, numofmsg, debouncetime):
     prev_trigger_tow = 0
     itt = 0
     while itt < numofmsg:
-        if (msg_tow[itt] - prev_trigger_tow
-            ) < debouncetime and message_type[itt] == "MsgExtEvent":
+        if (msg_tow[itt] - prev_trigger_tow) < debouncetime and message_type[itt] == "MsgExtEvent":
             msg_tow[itt] = 0
         elif message_type[itt] == "MsgExtEvent":
             prev_trigger_tow = msg_tow[itt]

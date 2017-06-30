@@ -16,11 +16,11 @@ import numpy as np
 import data_real4 as d
 from mayavi import mlab
 
-#x_min = -600.0
-#x_max = -400.0
+# x_min = -600.0
+# x_max = -400.0
 
-#y_min = 0.0
-#y_max = 1023.0
+# y_min = 0.0
+# y_max = 1023.0
 
 x_min = 0.0
 x_max = 1000.0
