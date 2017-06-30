@@ -30,6 +30,7 @@ install:
   - '%CMD_IN_ENV% pip install -e .'
   - cd piksi_tools\console\pyinstaller
   - pyinstaller console.spec
+  - '"%PROGRAMFILES(x86)%\NSIS\makensis" "-XOutfile dist\swift_console_windows.exe" win_installer.nsi'
 
 build: none
 
