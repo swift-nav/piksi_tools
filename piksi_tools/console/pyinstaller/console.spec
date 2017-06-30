@@ -43,7 +43,6 @@ a = Analysis(['../console.py'],
 
 resources = [
   ('settings.yaml', '../settings.yaml', 'DATA'),
-  ('RELEASE-VERSION', '../../RELEASE-VERSION', 'DATA'),
   ('README.txt', '../README.txt', 'DATA'),
   ('cacert.pem', '../cacert.pem', 'DATA'),
   ('piksi_tools/console/cacert.pem', '../cacert.pem', 'DATA'),
