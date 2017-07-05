@@ -1,5 +1,5 @@
 chaco==4.6.1
-enable==4.6.1
+enable==4.6.2
 traits==4.6.0 
 traitsui==5.1.0 
 pyface==5.1.0 
