@@ -37,6 +37,9 @@ def main():
     "Your hovercraft is full of fail, %s does not exist!" % version_filename
   version = open(version_filename, 'r+').read()
   if not d.check_diagnostics(diagnostics_filename, version):
+    msg = "Bootload fw/nap check for %s and %s failed." \
+          % (diagnostics_filename, version_filename)
+    sys.stderr.write(msg)
     sys.exit(1)
 
 if __name__ == "__main__":
