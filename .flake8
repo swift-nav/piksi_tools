@@ -24,3 +24,4 @@
 # D403: First word of the first line should be properly capitalized
 #       (false-positives)
 ignore = E501, F841
+exclude = piksi_tools/testing/gdb_chibios
