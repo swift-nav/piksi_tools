@@ -170,7 +170,7 @@ class SimpleAdapter(TabularAdapter):
   def _get_Setting_name_text(self):
     return self.item.name.replace('_', ' ')
 
-class SettingsView(HasTraits):
+class Settings(HasTraits):
   """Traits-defined console settings view.
 
   link : object
@@ -234,13 +234,16 @@ class SettingsView(HasTraits):
   )
   
   def _selected_setting_changed(self):
-    if self.selected_setting:
-      if ( self.selected_setting.name in 
-           ['surveyed_position','broadcast','surveyed_lat', 'surveyed_lon', 'surveyed_alt'] 
-           and self.lat != 0 and self.lon != 0 ):
-        self.show_auto_survey = True
-      else:
-        self.show_auto_survey = False
+    if self.selected_setting is None:
+      return
+    if self.selected_setting.name in ['surveyed_position',
+                                      'broadcast',
+                                      'surveyed_lat',
+                                      'surveyed_lon',
+                                      'surveyed_alt']:
+      self.show_auto_survey = True
+    else:
+      self.show_auto_survey = False
 
   def _expert_changed(self, info):
     try:
@@ -289,9 +292,24 @@ class SettingsView(HasTraits):
     confirm_prompt.run(block=False)
 
   def auto_survey_fn(self):
-    lat_value = str(self.lat)
-    lon_value = str(self.lon)
-    alt_value = str(self.alt)
+    lat = self.solution.latitude_list
+    lon = self.solution.longitude_list
+    alt = self.solution.altitude_list
+    lat = lat[~np.isnan(lat)]
+    lon = lon[~np.isnan(lon)]
+    alt = alt[~np.isnan(alt)]
+
+    if 0 == lat.size or 0 == lon.size or 0 == alt.size:
+      #TODO print insufficient data warning
+      return
+
+    lat = np.mean(lat)
+    lon = np.mean(lon)
+    alt = np.mean(alt)
+
+    lat_value = str(lat)
+    lon_value = str(lon)
+    alt_value = str(alt)
     self.settings['surveyed_position']['surveyed_lat'].value = lat_value 
     self.settings['surveyed_position']['surveyed_lon'].value = lon_value
     self.settings['surveyed_position']['surveyed_alt'].value = alt_value
@@ -401,13 +419,15 @@ class SettingsView(HasTraits):
 
   def __init__(self,
                link,
+               solution,
                read_finished_functions=[],
                name_of_yaml_file="settings.yaml",
                expert=False,
                gui_mode=True,
                skip=False):
-    super(SettingsView, self).__init__()
+    super(Settings, self).__init__()
     self.expert = expert
+    self.solution = solution
     self.show_auto_survey = False
     self.gui_mode = gui_mode
     self.enumindex = 0
