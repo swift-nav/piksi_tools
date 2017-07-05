@@ -8,26 +8,23 @@
 # THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
-
 """Contains the class OutputStream, a HasTraits file-like text buffer."""
 
-from traits.api import HasTraits, Str, Bool, Trait, Int
-from traitsui.api import View, UItem, TextEditor, Handler
-from traits.etsconfig.api import ETSConfig
 from pyface.api import GUI
-
+from traits.api import Bool, HasTraits, Int, Str, Trait
+from traits.etsconfig.api import ETSConfig
+from traitsui.api import Handler, TextEditor, UItem, View
 
 DEFAULT_MAX_LEN = 8000
 
 
 class _OutputStreamViewHandler(Handler):
-
     def object_text_changed(self, uiinfo):
         ui = uiinfo.ui
         if ui is None:
             return
 
-        for ed in  ui._editors:
+        for ed in ui._editors:
             if ed.name == 'text':
                 break
         else:
@@ -75,7 +72,8 @@ class OutputStream(HasTraits):
 
     def write(self, s):
         if self.paused:
-            self._paused_buffer = self._truncated_concat(self._paused_buffer, s)
+            self._paused_buffer = self._truncated_concat(
+                self._paused_buffer, s)
         else:
             self.text = self._truncated_concat(self.text, s)
 
@@ -113,8 +111,8 @@ class OutputStream(HasTraits):
     def traits_view(self):
         view = \
             View(
-                UItem('text', editor=TextEditor(multi_line=True), style='custom'),
+                UItem('text', editor=TextEditor(
+                    multi_line=True), style='custom'),
                 handler=_OutputStreamViewHandler(),
             )
         return view
-

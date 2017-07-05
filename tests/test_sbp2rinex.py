@@ -9,13 +9,11 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-import piksi_tools.sbp2rinex as s2r
-import pytest
 import os
 
+import piksi_tools.sbp2rinex as s2r
 
 
 def test_function():
-  s2r.wrapper("./tests/data/sbp2rinex_data", '/tmp/out', None)
-  assert os.path.exists('/tmp/out')
-
+    s2r.wrapper("./tests/data/sbp2rinex_data", '/tmp/out', None)
+    assert os.path.exists('/tmp/out')

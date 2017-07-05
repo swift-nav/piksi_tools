@@ -9,122 +9,124 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from traits.api import HasTraits, Event, String, Button, Instance
-from traitsui.api import View, Handler, Action, Item, TextEditor, VGroup, UItem
-from pyface.api import GUI
-from piksi_tools.console.utils import determine_path
-
+import os
+from new import instancemethod
 from threading import Thread
 from time import sleep
 
-
-auto_survey_button = Action(name = "Auto Survey", action= "set_execute_callback_true", \
-                              show_label=False)   
-
-update_button = Action(name = "Update", action = "set_execute_callback_true", \
-                             show_label=False)
-reset_button = Action(name = "Reset", action = "set_execute_callback_true", \
-                             show_label=False)
-close_button = Action(name = "Close", action = "set_execute_callback_false", \
-                             show_label=False)
-ok_button = Action(name = "Ok", action = "set_execute_callback_true", \
-                             show_label=False)
-
-from new import instancemethod
-
-import sys, os
+from pyface.api import GUI
 from pyface.image_resource import ImageResource
+from traits.api import Event, HasTraits, String
+from traitsui.api import Action, Handler, Item, TextEditor, View
+
+from piksi_tools.console.utils import determine_path
+
+auto_survey_button = Action(
+    name="Auto Survey", action="set_execute_callback_true", show_label=False)
+
+update_button = Action(
+    name="Update", action="set_execute_callback_true", show_label=False)
+reset_button = Action(
+    name="Reset", action="set_execute_callback_true", show_label=False)
+close_button = Action(
+    name="Close", action="set_execute_callback_false", show_label=False)
+ok_button = Action(
+    name="Ok", action="set_execute_callback_true", show_label=False)
+
 basedir = determine_path()
-icon = ImageResource('icon',
-         search_path=['images', os.path.join(basedir, 'images')])
+icon = ImageResource(
+    'icon', search_path=['images', os.path.join(basedir, 'images')])
 
 # Handler methods that can be associated with buttons.
+
+
 def set_execute_callback_true(self, info):
-  info.object.execute_callback = True
-  info.object.handler_executed = True
+    info.object.execute_callback = True
+    info.object.handler_executed = True
+
 
 def set_execute_callback_false(self, info):
-  info.object.execute_callback = False
-  info.object.handler_executed = True
+    info.object.execute_callback = False
+    info.object.handler_executed = True
+
 
 class CallbackHandler(Handler):
 
-  # Register action handlers from passed list.
-  def __init__(self, actions):
-    super(CallbackHandler, self).__init__()
-    for a in actions:
-      # Add instancemethod to self for Action.action.
-      handler = globals()[a.action]
-      self.__dict__[a.action] = instancemethod(handler, self, CallbackHandler)
+    # Register action handlers from passed list.
+    def __init__(self, actions):
+        super(CallbackHandler, self).__init__()
+        for a in actions:
+            # Add instancemethod to self for Action.action.
+            handler = globals()[a.action]
+            self.__dict__[a.action] = instancemethod(handler, self,
+                                                     CallbackHandler)
 
-  # X button was pressed.
-  def close(self, info, is_ok):
-    info.object.handler_executed = True
-    info.object.closed = True
-    return True
+    # X button was pressed.
+    def close(self, info, is_ok):
+        info.object.handler_executed = True
+        info.object.closed = True
+        return True
 
-  # Handles parent object's close Event being written to.
-  def object_close_changed(self, info):
-    info.object.closed = True
-    info.ui.owner.close()
+    # Handles parent object's close Event being written to.
+    def object_close_changed(self, info):
+        info.object.closed = True
+        info.ui.owner.close()
+
 
 class CallbackPrompt(HasTraits):
 
-  text = String
-  close = Event
+    text = String
+    close = Event
 
-  def __init__(self, title, actions, callback=None):
-    self.callback = callback
+    def __init__(self, title, actions, callback=None):
+        self.callback = callback
 
-    self.handler_executed = False
-    self.execute_callback = False
-    self.closed = False
-    self.close = 0
+        self.handler_executed = False
+        self.execute_callback = False
+        self.closed = False
+        self.close = 0
 
-    self.view = View(
-      Item(
-        'text',
-        style='readonly',
-        editor=TextEditor(),
-        show_label=False
-      ),
-      buttons=actions,
-      title=title,
-      handler=CallbackHandler(actions),
-      icon = icon,
-      resizable=True,
-    )
+        self.view = View(
+            Item(
+                'text',
+                style='readonly',
+                editor=TextEditor(),
+                show_label=False),
+            buttons=actions,
+            title=title,
+            handler=CallbackHandler(actions),
+            icon=icon,
+            resizable=True, )
 
-  def run(self, block=True):
-    try:
-      if self.thread.is_alive():
-        return
-    except AttributeError:
-      pass
+    def run(self, block=True):
+        try:
+            if self.thread.is_alive():
+                return
+        except AttributeError:
+            pass
 
-    self.thread = Thread(target=self._run)
-    self.thread.start()
+        self.thread = Thread(target=self._run)
+        self.thread.start()
 
-    if block:
-      self.wait()
+        if block:
+            self.wait()
 
-  def _run(self):
-    GUI.invoke_later(self.edit_traits, self.view)
-    while not self.handler_executed:
-      sleep(0.1)
+    def _run(self):
+        GUI.invoke_later(self.edit_traits, self.view)
+        while not self.handler_executed:
+            sleep(0.1)
 
-    if self.execute_callback:
-      GUI.invoke_later(self.callback)
+        if self.execute_callback:
+            GUI.invoke_later(self.callback)
 
-    if not self.closed:
-      self.close = 1
+        if not self.closed:
+            self.close = 1
 
-  def wait(self):
-    while not self.closed:
-      sleep(0.1)
+    def wait(self):
+        while not self.closed:
+            sleep(0.1)
 
-  def kill(self):
-    self.handler_executed = True
-    if not self.closed:
-      self.close = 1
-
+    def kill(self):
+        self.handler_executed = True
+        if not self.closed:
+            self.close = 1

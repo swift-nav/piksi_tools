@@ -9,17 +9,18 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-import piksi_tools.diagnostics as d
 import pytest
+
+import piksi_tools.diagnostics as d
 
 
 def test_diag_check():
-  details = 'tests/data/device_details.yaml'
-  version = 'fw: v0.17-27-ge2c1aac\nhdl: v0.13-rc0\n'
-  assert d.check_diagnostics(details, version)
-  version = 'fw: v0.17-27-deadbeef\nhdl: v0.13-rc0\n'
-  assert not d.check_diagnostics(details, version)
-  version = 'fw: v0.17-27-ge2c1aac\nhdl: v0.13-defecated\n'
-  assert not d.check_diagnostics(details, version)
-  with pytest.raises(Exception):
-    assert not d.check_diagnostics(details, None)
+    details = 'tests/data/device_details.yaml'
+    version = 'fw: v0.17-27-ge2c1aac\nhdl: v0.13-rc0\n'
+    assert d.check_diagnostics(details, version)
+    version = 'fw: v0.17-27-deadbeef\nhdl: v0.13-rc0\n'
+    assert not d.check_diagnostics(details, version)
+    version = 'fw: v0.17-27-ge2c1aac\nhdl: v0.13-defecated\n'
+    assert not d.check_diagnostics(details, version)
+    with pytest.raises(Exception):
+        assert not d.check_diagnostics(details, None)
