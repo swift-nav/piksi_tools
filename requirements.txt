@@ -11,4 +11,4 @@ pyparsing==2.2.0
 pygments==2.2.0
 requests==2.18.1
 six==1.10.0
-sbp==2.2.6
+sbp==2.2.7
