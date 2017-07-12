@@ -702,7 +702,8 @@ class SwiftConsole(HasTraits):
             settings_read_finished_functions.append(
                 self.update_view.compare_versions)
             if networking:
-                import yaml
+                from ruamel.yaml import YAML
+                yaml = YAML(typ='safe')
                 try:
                     networking_dict = yaml.load(networking)
                     networking_dict.update({'show_networking': True})

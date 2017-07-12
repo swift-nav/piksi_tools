@@ -14,7 +14,9 @@ from __future__ import absolute_import, print_function
 import struct
 import time
 
-import yaml
+from ruamel.yaml import YAML
+
+
 from sbp.bootload import (SBP_MSG_BOOTLOADER_HANDSHAKE_DEP_A,
                           SBP_MSG_BOOTLOADER_HANDSHAKE_RESP,
                           MsgBootloaderJumpToApp, MsgBootloaderHandshakeDevice)
@@ -27,6 +29,8 @@ from sbp.settings import (
 from sbp.system import SBP_MSG_HEARTBEAT, MsgHeartbeat
 
 from . import serial_link
+
+yaml = YAML(typ='safe')
 
 DIAGNOSTICS_FILENAME = "diagnostics.yaml"
 
