@@ -39,7 +39,7 @@ DEFAULT_BASE = "https://broker.skylark2.swiftnav.com"
 
 
 def logfilename():
-    return time.strftime("serial-link-%Y%m%d-%H%M%S.log.json")
+  return time.strftime("serial-link-%Y%m%d-%H%M%S.log.json")
 
 
 def get_ports():
