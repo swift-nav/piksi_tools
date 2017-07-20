@@ -35,6 +35,7 @@ matrix:
 before_install:
   - sleep 3 #give xvfb some time to start
   - rm -rf ~/home/.enthought
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/python/libexec/bin:$PATH"; fi
   - make deps 
   - pip list
 
