@@ -9,6 +9,7 @@ cache:
   directories:
   - $HOME/.cache/pip/
   - $HOME/Library/Caches/Homebrew/
+  - $HOME/Library/Caches/pip
 
 matrix:
   include:
