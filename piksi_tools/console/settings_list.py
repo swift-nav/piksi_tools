@@ -14,9 +14,11 @@ from __future__ import print_function
 import os
 import pprint
 
-import yaml
+from ruamel.yaml import YAML
 
 from piksi_tools.console.utils import determine_path
+
+yaml = YAML(typ='safe')
 
 
 class SettingsList():
