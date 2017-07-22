@@ -13,5 +13,4 @@ else
   sleep 10 
   kill -n 9  $PID
   make build_console
-  sudo python setup.py install
 fi
