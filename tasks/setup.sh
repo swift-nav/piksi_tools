@@ -145,7 +145,7 @@ function install_python_deps_osx () {
     pip install --upgrade pip
     brew tap cartr/qt4
     brew tap-pin cartr/qt4
-    brew install qt@4 shiboken@1.2
+    brew install qt@4 shiboken@1.2 qt-webkit@2.3
     brew install libftdi sip --force 2>&1 || :
     
     pip install -r ../requirements.txt
