@@ -1,7 +1,6 @@
 piksi_tools_directory=../../
 spec_file=console.spec
 pyinstaller=pyinstaller
-VERSION=$(shell cat ../../RELEASE-VERSION)
 LIBS=-lm
 
 ifneq (,$(findstring /cygdrive/,$(PATH)))
@@ -28,12 +27,16 @@ console: $(spec_file)
 	make $(UNAME)
 
 Windows:
+	export VERSION=$(shell ./dist/console/console -V 2>&1 | cut -d ' ' -f 3)
 	makensis "-XOutfile swift_console_v$(VERSION)_windows.exe" win_installer.nsi
 Cygwin:
+	export VERSION=$(shell ./dist/console/console -V 2>&1 | cut -d ' ' -f 3)
 	makensis '-XOutfile swift_console_v$(VERSION)_windows.exe' win_installer.nsi
 Darwin:
+	export VERSION=$(shell ./dist/console/console -V 2>&1 | cut -d ' ' -f 3)
 	sudo ./create-dmg-installer.sh swift_console_v$(VERSION)_osx.dmg
 tar:
+	export VERSION=$(shell ./dist/console/console -V 2>&1 | cut -d ' ' -f 3)
 	mv ./dist/console ./dist/swift_console_v$(VERSION)_$(UNAME_LOWER)
 	cd dist && tar cfvz swift_console_v$(VERSION)_$(UNAME_LOWER).tar.gz swift_console_v$(VERSION)_$(UNAME_LOWER)
 Linux:
