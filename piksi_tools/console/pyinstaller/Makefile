@@ -24,6 +24,8 @@ console: $(spec_file)
 	echo $(UNAME)
 	pyinstaller --clean --log-level=WARN --paths=$(piksi_tools_directory) --debug $(PLAT_ARGS) $(spec_file) -y
 	echo "Pyinstaller completed. Building platform installer."
+	$(eval VERSION := $(shell ./dist/console/console -V 2>&1 | cut -d ' ' -f 3))
+	echo $(VERSION)
 	make $(UNAME)
 
 Windows:
