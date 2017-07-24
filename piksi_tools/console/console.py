@@ -123,6 +123,12 @@ def get_args():
         '--help',
         action='store_true',
         help="Show usage help in a GUI popup.")
+    parser.add_argument(
+        '-V',
+        '--version',
+        action='version',
+        version='Swift Console {}'.format(CONSOLE_VERSION)
+    )
     return parser
 
 
