@@ -425,6 +425,16 @@
   Description: Disable Klobuchar ionospheric corrections
   Notes: If True, Klobuchar ionospheric corrections will not be applied.
 
+- group: solution
+  name: enable_glonass_in_pvt
+  expert: true
+  type: boolean
+  units: N/A
+  default value: 
+  enumerated possible values: True,False
+  Description: Enable GLONASS measurement processing in navigation filter
+  Notes: If set to True, GLONASS measurements are processed in the navigation filter.
+
 - group: system_info
   name: serial_number
   expert: False
@@ -762,6 +772,16 @@
   Description: Tracking elevation mask
   Notes: Satellites must be above the horizon by at least this angle before they
     will be tracked.
+
+- group: solution
+  name: glonass_measurement_std_downweight_factor
+  expert: true
+  type: float
+  units: N/A
+  default value: N/A
+  enumerated possible values:
+  Description: Down weights GLONASS measurements by a given factor in the navigation filter 
+  Notes: This parameter down weights GLONASS observations relative to GPS observations by this factor.
 
 - group: track
   name: send_trk_detailed
