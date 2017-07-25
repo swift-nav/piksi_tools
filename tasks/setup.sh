@@ -153,7 +153,7 @@ function install_python_deps_osx () {
     pip install PySide==1.2.2
     wget https://raw.githubusercontent.com/PySide/pyside-setup/1.2.2/pyside_postinstall.py
     python pyside_postinstall.py -install
-    pip install PyInstaller==3.2
+    pip install PyInstaller==3.2.1
 }
 
 
