@@ -11,6 +11,7 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 import time
+from collections import defaultdict
 
 import numpy as np
 from chaco.api import ArrayPlotData, Plot
@@ -136,8 +137,10 @@ class TrackingView(CodeFiltered):
             if (cno_array == 0).all():
                 self.CN0_dict.pop(key)
             else:
-                self.CN0_dict[key][0:-1] = cno_array[1:]
-                self.CN0_dict[key][-1] = 0
+                new_arr = np.roll(cno_array, -1)
+                new_arr[-1] = 0
+                self.CN0_dict[key] = new_arr
+
         # If the whole array is 0 we remove it
         # for each satellite, we have a (code, prn, channel) keyed dict
         # for each SID, an array of size MAX PLOT with the history of CN0's stored
@@ -147,9 +150,8 @@ class TrackingView(CodeFiltered):
             prn = s.sid.sat
             key = (s.sid.code, prn, i)
             if s.cn0 != 0:
-                if len(self.CN0_dict.get(key, [])) == 0:
-                    self.CN0_dict[key] = np.zeros(NUM_POINTS)
                 self.CN0_dict[key][-1] = s.cn0 / 4.0
+
         GUI.invoke_later(self.update_plot)
 
     def tracking_state_callback_dep_b(self, sbp_msg, **metadata):
@@ -234,7 +236,7 @@ class TrackingView(CodeFiltered):
         super(TrackingView, self).__init__()
         self.t_init = time.time()
         self.time = [x * 1 / TRK_RATE for x in range(-NUM_POINTS, 0, 1)]
-        self.CN0_dict = {}
+        self.CN0_dict = defaultdict(lambda: np.zeros(NUM_POINTS))
         self.n_channels = None
         self.plot_data = ArrayPlotData(t=[0.0])
         self.plot = Plot(self.plot_data, emphasized=True)
