@@ -215,8 +215,14 @@ class TrackingView(CodeFiltered):
                 # if channel is still active:
                 if cno_array[-1] != 0:
                     plots.append(pl)
-                    svid_label = 'FCN' if code_is_glo(int(k[0])) else 'PRN'
-                    lbl = 'Ch %02d (%s%02d (%s))' % (k[2], svid_label, k[1], code_to_str(k[0]))
+                    ch_type = 'FCN' if code_is_glo(int(k[0])) else 'PRN'
+                    lbl_fmt = 'Ch {ch:02}: {code} {ch_type}{ch_num}'
+                    lbl = lbl_fmt.format(ch=k[2],
+                                             code=code_to_str(k[0]),
+                                             ch_type=ch_type,
+                                             ch_num=k[1]
+                                             )
+                    # lbl = 'Ch %02d (%s%02d (%s))' % (k[2], svid_label, k[1], code_to_str(k[0]))
                     if code_is_glo(int(k[0])):
                         if int(k[1]) in self.glo_slot_dict:
                             lbl += ' Slot {}'.format(self.glo_slot_dict[int(k[1])])
