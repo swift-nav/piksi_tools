@@ -145,8 +145,6 @@ class TrackingView(CodeFiltered):
         # each array can be plotted against host_time, t
         for i, s in enumerate(sbp_msg.states):
             prn = s.sid.sat
-            if code_is_gps(s.sid.code):
-                prn += 1
             key = (s.sid.code, prn, i)
             if s.cn0 != 0:
                 if len(self.CN0_dict.get(key, [])) == 0:
