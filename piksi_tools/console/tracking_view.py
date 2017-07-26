@@ -30,6 +30,8 @@ from piksi_tools.console.utils import (SUPPORTED_CODES, code_is_glo,
 NUM_POINTS = 200
 TRK_RATE = 2.0
 
+GLO_FCN_OFFSET = 8
+
 # These colors should be distinguishable from eachother
 color_dict = {
     '(0, 1)': 0xe58a8a,
@@ -150,7 +152,7 @@ class TrackingView(CodeFiltered):
             if code_is_gps(s.sid.code):
                 sat = s.sid.sat
             elif code_is_glo(s.sid.code):
-                sat = s.fcn
+                sat = s.fcn - GLO_FCN_OFFSET
                 self.glo_slot_dict[sat] = s.sid.sat
 
             key = (s.sid.code, sat, i)
