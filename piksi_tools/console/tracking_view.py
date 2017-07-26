@@ -11,7 +11,7 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 import time
-from collections import defaultdict
+from collections import defaultdict, deque
 
 import numpy as np
 from chaco.api import ArrayPlotData, Plot
@@ -147,8 +147,13 @@ class TrackingView(CodeFiltered):
         # If there is no CN0 or not tracking for an epoch, 0 will be used
         # each array can be plotted against host_time, t
         for i, s in enumerate(sbp_msg.states):
-            prn = s.sid.sat
-            key = (s.sid.code, prn, i)
+            if code_is_gps(s.sid.code):
+                sat = s.sid.sat
+            elif code_is_glo(s.sid.code):
+                sat = s.fcn
+                self.glo_slot_dict[sat] = s.sid.sat
+
+            key = (s.sid.code, sat, i)
             if s.cn0 != 0:
                 self.CN0_dict[key][-1] = s.cn0 / 4.0
 
@@ -211,9 +216,11 @@ class TrackingView(CodeFiltered):
                 if cno_array[-1] != 0:
                     plots.append(pl)
                     svid_label = 'FCN' if code_is_glo(int(k[0])) else 'PRN'
-                    plot_labels.append('Ch %02d (%s%02d (%s))' %
-                                       (k[2], svid_label, k[1],
-                                        code_to_str(k[0])))
+                    lbl = 'Ch %02d (%s%02d (%s))' % (k[2], svid_label, k[1], code_to_str(k[0]))
+                    if code_is_glo(int(k[0])):
+                        if int(k[1]) in self.glo_slot_dict:
+                            lbl += ' Slot {}'.format(self.glo_slot_dict[int(k[1])])
+                    plot_labels.append(lbl)
             # Remove plot data and plots not selected
             else:
                 if key in self.plot_data.list_data():
@@ -237,6 +244,7 @@ class TrackingView(CodeFiltered):
         self.t_init = time.time()
         self.time = [x * 1 / TRK_RATE for x in range(-NUM_POINTS, 0, 1)]
         self.CN0_dict = defaultdict(lambda: np.zeros(NUM_POINTS))
+        self.glo_slot_dict = {}
         self.n_channels = None
         self.plot_data = ArrayPlotData(t=[0.0])
         self.plot = Plot(self.plot_data, emphasized=True)
