@@ -11,6 +11,7 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 import time
+from collections import defaultdict
 
 import numpy as np
 from chaco.api import ArrayPlotData, Plot
