@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import datetime
 import os
+import time
 from threading import Event, Thread
 
 from sbp.navigation import (SBP_MSG_BASELINE_NED, SBP_MSG_BASELINE_NED_DEP_A,
@@ -168,9 +169,10 @@ def call_repeatedly(interval, func, *args):
     stopped = Event()
 
     def loop():
-        while not stopped.wait(
-                interval):  # the first call is in `interval` secs
+        # https://stackoverflow.com/questions/29082268/python-time-sleep-vs-event-wait
+        while not stopped.is_set():
             func(*args)
+            time.sleep(interval)
 
     Thread(target=loop).start()
     return stopped.set
