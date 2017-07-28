@@ -675,6 +675,8 @@ class UpdateView(HasTraits):
             remote_stm_version = self.newest_stm_vers
 
             self.fw_outdated = remote_stm_version > local_stm_version
+            if local_stm_version.startswith('DEV'):
+                self.fw_outdated = False
 
             if self.fw_outdated:
                 fw_update_prompt = \
