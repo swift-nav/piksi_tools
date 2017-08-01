@@ -12,4 +12,4 @@ pygments==2.2.0
 requests==2.18.2
 six==1.10.0
 sbp==2.2.7
-ruamel.yaml==0.15.21
+ruamel.yaml==0.15.23
