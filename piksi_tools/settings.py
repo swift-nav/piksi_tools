@@ -13,6 +13,7 @@ from __future__ import absolute_import, print_function
 
 import struct
 import time
+import yaml
 
 from sbp.client import Framer, Handler
 from sbp.logging import SBP_MSG_LOG, MsgLog
@@ -46,22 +47,27 @@ class Settings(object):
                                SBP_MSG_SETTINGS_READ_BY_INDEX_DONE)
         self.link.add_callback(self._print_callback, SBP_MSG_LOG)
 
-    def read_all(self):
+    def read_all(self, to_print=False):
         self.settings_list_received = False
         self.link(MsgSettingsReadByIndexReq(index=0))
         while not self.settings_list_received:
             time.sleep(0.1)
         for section in self.settings_list:
-            print('%s:' % (section))
+            if to_print:
+                print('%s:' % section)
             for setting, value in self.settings_list[section].iteritems():
-                print('- %s = %s' % (setting, value))
+                if to_print:
+                    print('- %s = %s' % (setting, value))
+        return self.settings_list
 
-    def read(self, section, setting):
+    def read(self, section, setting, to_print=False):
         self.setting_received = False
         self.link(MsgSettingsReadReq(setting='%s\0%s\0' % (section, setting)))
         while not self.setting_received:
             time.sleep(0.1)
-        print(self.setting_value)
+        if to_print:
+            print(self.setting_value)
+        return self.setting_value
 
     def write(self, section, setting, value):
         self.link(
@@ -73,6 +79,51 @@ class Settings(object):
 
     def reset(self):
         self.link(MsgReset(flags=0))
+
+    def read_file(self, output):
+        self.settings_list_received = False
+        self.link(MsgSettingsReadByIndexReq(index=0))
+        while not self.settings_list_received:
+            time.sleep(0.1)
+        with open(output, 'w') as output_file:
+            for section in self.settings_list:
+                for setting, value in self.settings_list[section].iteritems():
+                    output_file.write(section + ':' + setting + '=' + value + '\n')
+
+    def write_file(self, output):
+        with open(output, 'r') as f:
+            file_content = f.readlines()
+
+        with open('console/settings.yaml', 'r') as y:
+            docs = yaml.load(y)
+
+        read_only = {}
+        for doc in docs:
+            read_only[doc['group'] + ':' + doc['name']] = 'Notes' in doc.keys() \
+                                                          and doc['Notes'] is not None \
+                                                          and (doc['Notes'].find("This is a read only setting") != -1
+                                                               or doc['Notes'].find("cannot be modified") != -1)
+
+        for line in file_content:
+            line = line.strip()
+            colon_index = line.find(':')
+            equal_index = line.find('=')
+            section = line[0:colon_index]
+            setting = line[colon_index + 1:equal_index]
+            value = line[equal_index + 1:]
+
+            if section + ':' + setting in read_only.keys() and not read_only[section + ':' + setting]:
+                actual_value = self.read(section, setting)
+                print("parameter {}, in file {}, actual {}".format(section + ':' + setting, value, actual_value))
+                while not actual_value == value:
+                    print("Writing parameter {}, {}".format(section + ':' + setting, value))
+                    self.write(section, setting, value)
+                    time.sleep(0.1)
+                    actual_value = self.read(section, setting)
+                    print("parameter {}, in file {}, actual {}".format(section + ':' + setting, value, actual_value))
+            else:
+                print("parameter {} not writable".format(section + ':' + setting))
+
 
     def _print_callback(self, msg, **metadata):
         print(msg.text)
@@ -138,6 +189,12 @@ def get_args():
     write.add_argument("setting", help="the setting name.")
     write.add_argument("value", help="the setting value.")
 
+    write = subparsers.add_parser('read_file', help='read the current settings file.')
+    write.add_argument("output", help="Name of the file to write in.")
+
+    write = subparsers.add_parser('write_file', help='read the current settings file.')
+    write.add_argument("filename", help="Name of the file to read from.")
+
     return parser.parse_args()
 
 
@@ -156,13 +213,17 @@ def main():
             if command == 'write':
                 settings.write(args.section, args.setting, args.value)
             elif command == 'read':
-                settings.read(args.section, args.setting)
+                settings.read(args.section, args.setting, True)
             elif command == 'all':
-                settings.read_all()
+                settings.read_all(True)
             elif command == 'save':
                 settings.save()
             elif command == 'reset':
                 settings.reset()
+            elif command == 'read_file':
+                settings.read_file(args.output)
+            elif command == 'write_file':
+                settings.write_file(args.filename)
             # Wait a few seconds for any relevant print messages
             settings.link.wait(MsgLog, 8)
 
