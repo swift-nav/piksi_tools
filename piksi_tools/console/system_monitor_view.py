@@ -174,7 +174,7 @@ class SystemMonitorView(HasTraits):
 
     def _network_callback(self, m, **metadata):
         self._network_info.append(
-            (m.interface_name, ip_bytes_to_string(m.ipv4_address.ipv4_address),
+            (m.interface_name, ip_bytes_to_string(m.ipv4_address),
              ((m.flags & (1 << 6)) != 0)))
 
     def uart_state_callback(self, m, **metadata):
