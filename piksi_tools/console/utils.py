@@ -1,7 +1,6 @@
 from __future__ import print_function
 
 import datetime
-import os
 import time
 from threading import Event, Thread
 

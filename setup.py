@@ -27,6 +27,7 @@ PLATFORMS = [
 PACKAGE_DATA = {
     'piksi_tools': [
         'console/settings.yaml',
+        'console/images',
         'console/images/fontawesome/download.svg',
         'console/images/fontawesome/exclamation-triangle.svg',
         'console/images/fontawesome/floppy-o.svg',
@@ -65,5 +66,6 @@ setup(
     package_data=PACKAGE_DATA,
     platforms=PLATFORMS,
     install_requires=INSTALL_REQUIRES,
+    include_package_data=True,
     use_2to3=False,
     zip_safe=False)

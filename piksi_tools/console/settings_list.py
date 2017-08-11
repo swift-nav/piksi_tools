@@ -11,12 +11,11 @@
 
 from __future__ import print_function
 
-import os
 import pprint
 
-from ruamel.yaml import YAML
+from pkg_resources import resource_filename, resource_stream
 
-from piksi_tools.console.utils import determine_path
+from ruamel.yaml import YAML
 
 yaml = YAML(typ='safe')
 
@@ -63,18 +62,12 @@ class SettingsList():
 
     def __init__(self, filename):
         try:
-            # check if filename exists (absolute or relative path can be given)
-            if os.path.isfile(filename):
-                path_to_file = filename
-            # if it doesn't exist, try and see if it's in the dir as the script
-            else:
-                path_to_file = os.path.join(determine_path(), filename)
-            stram = open(path_to_file, "r")
+            stram = resource_stream('piksi_tools', 'console/settings.yaml')
             temp_dict = yaml.load(stram)
             self.list_of_dicts = temp_dict
             self.warned_dict = {}
             # inform user of success or failure
-            print("Loaded settings yaml file from path " + path_to_file)
+            print("Loaded settings yaml file from path " + resource_filename('piksi_tools', 'console/settings.yaml'))
             print("Number of settings loaded {0}".format(
                 len(self.list_of_dicts)))
         except:

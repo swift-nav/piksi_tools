@@ -12,7 +12,7 @@
 from __future__ import absolute_import, print_function
 
 import os
-import sys
+from pkg_resources import resource_filename
 from threading import Thread
 from time import sleep
 from urllib2 import URLError
@@ -31,21 +31,15 @@ import piksi_tools.console.callback_prompt as prompt
 from piksi_tools import __version__ as CONSOLE_VERSION
 from piksi_tools import bootload, flash
 from piksi_tools.bootload_v3 import shell_command
-from piksi_tools.console.utils import determine_path
 from piksi_tools.fileio import FileIO
 
 from .output_stream import OutputStream
 from .update_downloader import INDEX_URL, UpdateDownloader
 
-if getattr(sys, 'frozen', False):
-    # we are running in a |PyInstaller| bundle
-    basedir = sys._MEIPASS
-    os.chdir(basedir)
-else:
-    # we are running in a normal Python environment
-    basedir = determine_path()
 icon = ImageResource(
-    'icon', search_path=['images', os.path.join(basedir, 'images')])
+    'icon',
+    search_path=[resource_filename('piksi_tools', 'console/images')]
+)
 
 HT = 8
 COLUMN_WIDTH = 100

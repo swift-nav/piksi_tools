@@ -14,6 +14,8 @@ import math
 import os
 import time
 
+from pkg_resources import resource_filename
+
 import numpy as np
 from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import PanTool, ZoomTool
@@ -35,7 +37,7 @@ from traitsui.tabular_adapter import TabularAdapter
 from piksi_tools.console.gui_utils import MultilineTextEditor, plot_square_axes
 from piksi_tools.console.utils import (
     DGNSS_MODE, EMPTY_STR, FIXED_MODE, FLOAT_MODE, SPP_MODE, call_repeatedly,
-    color_dict, datetime_2_str, determine_path, get_mode, log_time_strings,
+    color_dict, datetime_2_str, get_mode, log_time_strings,
     mode_dict)
 from piksi_tools.utils import sopen
 
@@ -86,23 +88,21 @@ class SolutionView(HasTraits):
     clear_button = SVGButton(
         label='',
         tooltip='Clear',
-        filename=os.path.join(determine_path(), 'images', 'iconic', 'x.svg'),
+        filename=resource_filename('piksi_tools', 'console/images/iconic/x.svg'),
         width=16,
         height=16)
     zoomall_button = SVGButton(
         label='',
         tooltip='Zoom All',
         toggle=True,
-        filename=os.path.join(determine_path(), 'images', 'iconic',
-                              'fullscreen.svg'),
+        filename=resource_filename('piksi_tools', 'console/images/iconic/fullscreen.svg'),
         width=16,
         height=16)
     center_button = SVGButton(
         label='',
         tooltip='Center on Solution',
         toggle=True,
-        filename=os.path.join(determine_path(), 'images', 'iconic',
-                              'target.svg'),
+        filename=resource_filename('piksi_tools', 'console/images/iconic/target.svg'),
         width=16,
         height=16)
     paused_button = SVGButton(
@@ -110,10 +110,8 @@ class SolutionView(HasTraits):
         tooltip='Pause',
         toggle_tooltip='Run',
         toggle=True,
-        filename=os.path.join(determine_path(), 'images', 'iconic',
-                              'pause.svg'),
-        toggle_filename=os.path.join(determine_path(), 'images', 'iconic',
-                                     'play.svg'),
+        filename=resource_filename('piksi_tools', 'console/images/iconic/pause.svg'),
+        toggle_filename=resource_filename('piksi_tools', 'console/images/iconic/play.svg'),
         width=16,
         height=16)
 
