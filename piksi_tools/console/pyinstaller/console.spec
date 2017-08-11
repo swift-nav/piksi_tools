@@ -2,6 +2,15 @@
 
 # Settings for PyInstaller
 
+from PyInstaller import is_linux
+from PyInstaller.depend.bindepend import findLibrary
+
+# hack to prevent segfault on ubuntu 16.04
+binaries = []
+if is_linux:
+  lol = ['libgtk-x11-2.0.so.0', 'libgio-2.0.so.0', 'libatk-1.0.so.0']
+  binaries += [(findLibrary(x), '.') for x in lol]
+
 a = Analysis(['../console.py'],
              hiddenimports = [
               'PySide.QtOpenGL',
@@ -38,6 +47,7 @@ a = Analysis(['../console.py'],
               'pyface.ui.qt4.python_editor',
               'pyface.i_python_editor',
              ],
+             binaries = binaries,
              hookspath=None,
              runtime_hooks=[])
 
