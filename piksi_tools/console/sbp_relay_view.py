@@ -27,7 +27,6 @@ from traitsui.api import (HGroup, Item, Spring, TextEditor, UItem, VGroup,
 
 from piksi_tools.console.callback_prompt import CallbackPrompt, close_button
 from piksi_tools.console.gui_utils import MultilineTextEditor
-from piksi_tools.console.utils import determine_path
 from piksi_tools.serial_link import (CHANNEL_UUID, DEFAULT_BASE, get_uuid,
                                      swriter)
 

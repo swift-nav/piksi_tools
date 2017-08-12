@@ -130,17 +130,6 @@ def get_mode(msg):
     return mode
 
 
-def determine_path():
-    """Borrowed from wxglade.py"""
-    try:
-        root = __file__
-        if os.path.islink(root):
-            root = os.path.realpath(root)
-        return os.path.dirname(os.path.abspath(root))
-    except:
-        print("There is no __file__ variable. Please contact the author.")
-
-
 def datetime_2_str(datetm):
     return (datetm.strftime('%Y-%m-%d %H:%M'), datetm.strftime('%S.%f'))
 
