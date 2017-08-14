@@ -22,20 +22,13 @@ install:
   - SET PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
   - python --version
   # Upgrade to the latest pip.
-  - '%CMD_IN_ENV% python -m pip install -U pip setuptools wheel'
+  - '%CMD_IN_ENV% python -m pip install -U pip setuptools wheel tox'
   - choco install swig
   - powershell .\\tasks\\missing-headers.ps1
-  - '%CMD_IN_ENV% pip install -r requirements.txt'
-  - '%CMD_IN_ENV% pip install -r requirements_gui.txt'
-  - '%CMD_IN_ENV% pip install pyside pyinstaller'
-  - '%CMD_IN_ENV% pip install -e .'
-  - cd piksi_tools\console\pyinstaller
-  - pyinstaller console.spec
-  - .\dist\console\console.exe -V
-  - '"%PROGRAMFILES(x86)%\NSIS\makensis" "-XOutfile dist\swift_console_windows.exe" win_installer.nsi'
+  - '%CMD_IN_ENV% python scripts\build_release.py'
 
-build: none
+build: off
 
 artifacts:
-  - path: piksi_tools\console\pyinstaller\dist
+  - path: piksi_tools\dist
     name: swift_console

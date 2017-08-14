@@ -55,8 +55,8 @@ addons:
   artifacts:
     debug: true 
     paths:
-      - $(ls ./piksi_tools/console/pyinstaller/dist/swift_console* | tr "\n" ":")
-      - ./piksi_tools/console/pyinstaller/build
+      - $(ls ./piksi_tools/dist/swift_console* | tr "\n" ":")
+      - ./piksi_tools/build
     working_dir: $TRAVIS_BUILD_DIR
     bucket: console-ci-builds
     s3_region: us-west-2
