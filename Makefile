@@ -51,7 +51,7 @@ gen_readme:
 	tail -n +2  piksi_tools/console/README.txt > tmp.txt && mv tmp.txt piksi_tools/console/README.txt
 
 build_console:
-	make build_console_$(UNAME)
+	./scripts/build_release.py
 
 build_console_posix:
 	cd $(SWIFTNAV_ROOT)/piksi_tools/console/pyinstaller; \
