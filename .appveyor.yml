@@ -17,13 +17,18 @@ cache:
   # Cache downloaded pip packages and built wheels.
   - '%LOCALAPPDATA%\pip\Cache\http'
   - '%LOCALAPPDATA%\pip\Cache\wheels'
+  # Chocolatey packages
+  - C:\ProgramData\chocolatey\bin -> appveyor.yml
+  - C:\ProgramData\chocolatey\lib -> appveyor.yml
+
 
 install:
+  - cinst swig
+  - cinst nsis
   - SET PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
   - python --version
   # Upgrade to the latest pip.
   - '%CMD_IN_ENV% python -m pip install -U pip setuptools wheel tox'
-  - choco install swig
   - powershell .\\tasks\\missing-headers.ps1
   - '%CMD_IN_ENV% python scripts\build_release.py'
 
