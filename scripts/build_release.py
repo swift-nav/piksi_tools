@@ -51,12 +51,13 @@ def build_macos():
 
 def build_win():
     out, version = build()
-    print(os.getcwd())
+    nsis = 'C:\\Program Files (x86)\\NSIS\\makensis.exe'
+
     check_call([
-        'makensis.exe',
+        nsis,
         '-XOutfile',
         'swift_console_v{}_windows.exe'.format(version),
-        'piksi_tools\console\pyinstaller\win_installer.nsi'
+        'piksi_tools/console/pyinstaller/win_installer.nsi'
     ])
 
 
