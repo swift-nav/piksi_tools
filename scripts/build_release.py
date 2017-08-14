@@ -14,7 +14,10 @@ def maybe_remove(path):
 
 def build(extra_env=None):
     if extra_env is not None:
-        extra_env = os.environ.copy().update(extra_env)
+        new_env = os.environ.copy()
+        new_env.update(extra_env)
+        extra_env = new_env
+
     check_call(['tox', '-e', 'pyinstaller'], env=extra_env)
     out_pyi = os.path.join('dist', 'console')
 
