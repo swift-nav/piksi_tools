@@ -55,7 +55,7 @@ addons:
   artifacts:
     debug: false 
     paths:
-      - $(ls ./piksi_tools/dist/swift_console* | tr "\n" ":")
+      - $(ls ./dist/swift_console* | tr "\n" ":")
       - ./build
     working_dir: $TRAVIS_BUILD_DIR
     bucket: console-ci-builds
