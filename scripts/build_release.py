@@ -12,13 +12,8 @@ def maybe_remove(path):
         shutil.rmtree(str(path))
 
 
-def build(extra_env=None):
-    if extra_env is not None:
-        new_env = os.environ.copy()
-        new_env.update(extra_env)
-        extra_env = new_env
-
-    check_call(['tox', '-e', 'pyinstaller'], env=extra_env)
+def build(env='pyinstaller'):
+    check_call(['tox', '-e', env])
     out_pyi = os.path.join('dist', 'console')
 
     exe = os.path.join(out_pyi, 'console')
@@ -43,11 +38,11 @@ def build_linux():
 
 
 def build_macos():
-    out, version = build(extra_env={'PYSIDE_VERSION': '1.2.2'})
+    out, version = build('pyinstaller-macos')
     check_call([
         'sudo',
         os.path.join('piksi_tools', 'console', 'pyinstaller',
-                     'create_dmg_installer.sh'),
+                     'create-dmg-installer.sh'),
         'swift_console_v{}_osx.dmg'.format(version)
     ])
 

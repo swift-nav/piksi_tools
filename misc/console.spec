@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-from PyInstaller import is_linux
+from PyInstaller import is_linux, is_darwin
 from PyInstaller.depend.bindepend import findLibrary
 from PyInstaller.utils.hooks import collect_data_files
 
@@ -51,3 +51,8 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                name='console')
+
+if is_darwin:
+  app = BUNDLE(coll,
+               name='Swift Console.app',
+               icon='icon.icns')
