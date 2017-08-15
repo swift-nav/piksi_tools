@@ -49,6 +49,13 @@ def build_macos():
 
 def build_win():
     out, version = build()
+    
+    # hack since PySide's qsvg4.dll does not seem to work on win7
+    shutil.copy(
+        os.path.join('misc', 'hacks', 'qsvg4.dll'),
+        os.path.join(out, 'qt4_plugins', 'imageformats')
+    )
+
     nsis = 'C:\\Program Files (x86)\\NSIS\\makensis.exe'
 
     check_call([
