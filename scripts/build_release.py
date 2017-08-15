@@ -41,7 +41,7 @@ def build_macos():
     out, version = build('pyinstaller-macos')
     check_call([
         'sudo',
-        os.path.join('piksi_tools', 'console', 'pyinstaller',
+        os.path.join('misc',
                      'create-dmg-installer.sh'),
         'swift_console_v{}_osx.dmg'.format(version)
     ])
