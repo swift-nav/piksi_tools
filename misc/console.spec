@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-from PyInstaller import is_linux, is_darwin
+from PyInstaller import is_linux, is_darwin, is_win
 from PyInstaller.depend.bindepend import findLibrary
 from PyInstaller.utils.hooks import collect_data_files
 
@@ -15,6 +15,13 @@ resources = [
   ('README.txt', 'piksi_tools/console/README.txt', 'DATA'),
   ('configure_udev_rules.sh', 'tasks/configure_udev_rules.sh', 'DATA'),
 ]
+
+if is_win:
+  icon = 'icons/swift_console.ico'
+elif is_darwin:
+  icon = 'icons/swift_console.icns'
+else:
+  icon = None
 
 # hack to prevent segfault on ubuntu 16.04
 binaries = []
@@ -39,6 +46,7 @@ exe = EXE(pyz,
           a.scripts,
           exclude_binaries=True,
           name='console',
+          icon=icon,
           debug=False,
           strip=False,
           upx=True,
