@@ -22,7 +22,7 @@ Section ""
 SetOutPath $INSTDIR
 
 ; Put a file there
-File /r dist\console\*
+File /r "..\dist\console\*.*"
 
 ; Now create shortcuts
 CreateDirectory "$SMPROGRAMS\Swift Navigation"
