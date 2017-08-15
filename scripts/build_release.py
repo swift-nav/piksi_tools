@@ -58,7 +58,7 @@ def build_win():
 
     check_call([
         nsis,
-        '-XOutfile swift_console_v{}_windows.exe'.format(version),
+        '-XOutfile ../dist/swift_console_v{}_windows.exe'.format(version),
         'misc/swift_console.nsi'
     ])
 

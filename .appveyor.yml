@@ -35,5 +35,5 @@ install:
 build: off
 
 artifacts:
-  - path: piksi_tools\dist
+  - path: dist
     name: swift_console
