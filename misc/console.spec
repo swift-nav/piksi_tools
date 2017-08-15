@@ -17,9 +17,9 @@ resources = [
 ]
 
 if is_win:
-  icon = 'icons/swift_console.ico'
+  icon = 'misc/icons/swift_console.ico'
 elif is_darwin:
-  icon = 'icons/swift_console.icns'
+  icon = 'misc/icons/swift_console.icns'
 else:
   icon = None
 
