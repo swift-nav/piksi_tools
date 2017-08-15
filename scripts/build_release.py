@@ -58,8 +58,7 @@ def build_win():
 
     check_call([
         nsis,
-        '-XOutfile',
-        'swift_console_v{}_windows.exe'.format(version),
+        '-XOutfile swift_console_v{}_windows.exe'.format(version),
         'piksi_tools/console/pyinstaller/win_installer.nsi'
     ])
 
