@@ -23,17 +23,9 @@ import warnings
 from pkg_resources import resource_filename
 from os.path import expanduser
 
-import pygments.lexers
 import sbp.client as sbpc
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.image_resource import ImageResource
-# When bundled with pyInstaller, PythonLexer can't be found. The problem is
-# pygments.lexers is doing some crazy magic to load up all of the available
-# lexers at runtime which seems to break when frozen.
-#
-# The horrible workaround is to load the PythonLexer class explicitly and then
-# manually insert it into the pygments.lexers module.
-from pygments.lexers.agile import PythonLexer
 from sbp.client.drivers.network_drivers import TCPDriver
 from sbp.ext_events import SBP_MSG_EXT_EVENT, MsgExtEvent
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
@@ -154,11 +146,6 @@ else:
 
 logging.basicConfig()
 
-pygments.lexers.PythonLexer = PythonLexer
-try:
-    import pygments.lexers.c_cpp
-except ImportError:
-    pass
 
 # These imports seem to be required to make pyinstaller work?
 # (usually traitsui would load them automatically)
