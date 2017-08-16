@@ -59,8 +59,6 @@ from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
                                        get_mode, mode_dict)
 
-warnings.simplefilter(action="ignore", category=FutureWarning)
-
 
 class ArgumentParserError(Exception):
     pass
@@ -124,33 +122,6 @@ def get_args():
     )
     return parser
 
-
-args = None
-parser = get_args()
-try:
-    args = parser.parse_args()
-    port = args.port
-    baud = args.baud
-    show_usage = args.help
-    error_str = ""
-except (ArgumentParserError, argparse.ArgumentError,
-        argparse.ArgumentTypeError) as e:
-    print(e)
-    show_usage = True
-    error_str = "ERROR: " + str(e)
-
-if args and args.toolkit[0] is not None:
-    ETSConfig.toolkit = args.toolkit[0]
-else:
-    ETSConfig.toolkit = 'qt4'
-
-logging.basicConfig()
-
-
-# These imports seem to be required to make pyinstaller work?
-# (usually traitsui would load them automatically)
-if ETSConfig.toolkit == 'qt4':
-    pass
 
 icon = ImageResource(
     'icon',
@@ -783,11 +754,6 @@ class SwiftConsole(HasTraits):
                 sys.exit(1)
 
 
-# Make sure that SIGINT (i.e. Ctrl-C from command line) actually stops the
-# application event loop (otherwise Qt swallows KeyboardInterrupt exceptions)
-signal.signal(signal.SIGINT, signal.SIG_DFL)
-
-
 class ShowUsage(HasTraits):
     usage_str = Str()
     traits_view = View(
@@ -898,89 +864,119 @@ class PortChooser(HasTraits):
             pass
 
 
-if show_usage:
-    usage_str = parser.format_help()
-    print(usage_str)
-    usage = ShowUsage(usage_str, error_str)
-    usage.configure_traits()
-    sys.exit(1)
+def main():
 
-selected_driver = None
-connection_description = ""
-if port and args.tcp:
-    # Use the TPC driver and interpret port arg as host:port
+    warnings.simplefilter(action="ignore", category=FutureWarning)
+    logging.basicConfig()
+    args = None
+    parser = get_args()
     try:
-        host, ip_port = port.split(':')
-        selected_driver = TCPDriver(host, int(ip_port))
-        connection_description = port
-    except:
-        raise Exception('Invalid host and/or port')
-        sys.exit(1)
-elif port and args.file:
-    # Use file and interpret port arg as the file
-    print("Using file '%s'" % port)
-    selected_driver = s.get_driver(args.ftdi, port, baud, args.file)
-    connection_description = os.path.split(port)[-1]
-elif not port:
-    # Use the gui to get our driver
-    port_chooser = PortChooser(baudrate=int(args.baud))
-    is_ok = port_chooser.configure_traits()
-    ip_address = port_chooser.ip_address
-    ip_port = port_chooser.ip_port
-    port = port_chooser.port
-    baud = port_chooser.baudrate
-    mode = port_chooser.mode
-    # todo, update for sfw flow control if ever enabled
-    rtscts = port_chooser.flow_control == flow_control_options_list[1]
-    if rtscts:
-        print("using flow control")
-    # if the user pressed cancel or didn't select anything
-    if not (port or (ip_address and ip_port)) or not is_ok:
-        print("No Interface selected!")
-        sys.exit(1)
+        args = parser.parse_args()
+        port = args.port
+        baud = args.baud
+        show_usage = args.help
+        error_str = ""
+    except (ArgumentParserError, argparse.ArgumentError,
+            argparse.ArgumentTypeError) as e:
+        print(e)
+        show_usage = True
+        error_str = "ERROR: " + str(e)
+
+    if args and args.toolkit[0] is not None:
+        ETSConfig.toolkit = args.toolkit[0]
     else:
-        # Use either TCP/IP or serial selected from gui
-        if mode == cnx_type_list[1]:
-            print("Using TCP/IP at address %s and port %d" % (ip_address,
-                                                              ip_port))
-            selected_driver = TCPDriver(ip_address, int(ip_port))
-            connection_description = ip_address + ":" + str(ip_port)
+        ETSConfig.toolkit = 'qt4'
+
+    # Make sure that SIGINT (i.e. Ctrl-C from command line) actually stops the
+    # application event loop (otherwise Qt swallows KeyboardInterrupt exceptions)
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    if show_usage:
+        usage_str = parser.format_help()
+        print(usage_str)
+        usage = ShowUsage(usage_str, error_str)
+        usage.configure_traits()
+        sys.exit(1)
+
+    selected_driver = None
+    connection_description = ""
+    if port and args.tcp:
+        # Use the TPC driver and interpret port arg as host:port
+        try:
+            host, ip_port = port.split(':')
+            selected_driver = TCPDriver(host, int(ip_port))
+            connection_description = port
+        except:
+            raise Exception('Invalid host and/or port')
+            sys.exit(1)
+    elif port and args.file:
+        # Use file and interpret port arg as the file
+        print("Using file '%s'" % port)
+        selected_driver = s.get_driver(args.ftdi, port, baud, args.file)
+        connection_description = os.path.split(port)[-1]
+    elif not port:
+        # Use the gui to get our driver
+        port_chooser = PortChooser(baudrate=int(args.baud))
+        is_ok = port_chooser.configure_traits()
+        ip_address = port_chooser.ip_address
+        ip_port = port_chooser.ip_port
+        port = port_chooser.port
+        baud = port_chooser.baudrate
+        mode = port_chooser.mode
+        # todo, update for sfw flow control if ever enabled
+        rtscts = port_chooser.flow_control == flow_control_options_list[1]
+        if rtscts:
+            print("using flow control")
+        # if the user pressed cancel or didn't select anything
+        if not (port or (ip_address and ip_port)) or not is_ok:
+            print("No Interface selected!")
+            sys.exit(1)
         else:
-            print("Using serial device '%s'" % port)
-            selected_driver = s.get_driver(
-                args.ftdi, port, baud, args.file, rtscts=rtscts)
-            connection_description = os.path.split(port)[-1] + " @" + str(baud)
-else:
-    # Use the port passed and assume serial connection
-    print("Using serial device '%s'" % port)
-    selected_driver = s.get_driver(
-        args.ftdi, port, baud, args.file, rtscts=args.rtscts)
-    connection_description = os.path.split(port)[-1] + " @" + str(baud)
+            # Use either TCP/IP or serial selected from gui
+            if mode == cnx_type_list[1]:
+                print("Using TCP/IP at address %s and port %d" % (ip_address,
+                                                                  ip_port))
+                selected_driver = TCPDriver(ip_address, int(ip_port))
+                connection_description = ip_address + ":" + str(ip_port)
+            else:
+                print("Using serial device '%s'" % port)
+                selected_driver = s.get_driver(
+                    args.ftdi, port, baud, args.file, rtscts=rtscts)
+                connection_description = os.path.split(port)[-1] + " @" + str(baud)
+    else:
+        # Use the port passed and assume serial connection
+        print("Using serial device '%s'" % port)
+        selected_driver = s.get_driver(
+            args.ftdi, port, baud, args.file, rtscts=args.rtscts)
+        connection_description = os.path.split(port)[-1] + " @" + str(baud)
 
-with selected_driver as driver:
-    with sbpc.Handler(
-            sbpc.Framer(driver.read, driver.write, args.verbose)) as link:
-        if args.reset:
-            link(MsgReset(flags=0))
-        log_filter = DEFAULT_LOG_LEVEL_FILTER
-        if args.initloglevel[0]:
-            log_filter = args.initloglevel[0]
-        with SwiftConsole(
-                link,
-                args.update,
-                log_filter,
-                cnx_desc=connection_description,
-                error=args.error,
-                json_logging=args.log,
-                log_dirname=args.log_dirname,
-                override_filename=args.logfilename,
-                log_console=args.log_console,
-                networking=args.networking,
-                serial_upgrade=args.serial_upgrade) as console:
-            console.configure_traits()
+    with selected_driver as driver:
+        with sbpc.Handler(
+                sbpc.Framer(driver.read, driver.write, args.verbose)) as link:
+            if args.reset:
+                link(MsgReset(flags=0))
+            log_filter = DEFAULT_LOG_LEVEL_FILTER
+            if args.initloglevel[0]:
+                log_filter = args.initloglevel[0]
+            with SwiftConsole(
+                    link,
+                    args.update,
+                    log_filter,
+                    cnx_desc=connection_description,
+                    error=args.error,
+                    json_logging=args.log,
+                    log_dirname=args.log_dirname,
+                    override_filename=args.logfilename,
+                    log_console=args.log_console,
+                    networking=args.networking,
+                    serial_upgrade=args.serial_upgrade) as console:
+                console.configure_traits()
 
-# Force exit, even if threads haven't joined
-try:
-    os._exit(0)
-except:
-    pass
+    # Force exit, even if threads haven't joined
+    try:
+        os._exit(0)
+    except:
+        pass
+
+
+if __name__ == "__main__":
+    main()
