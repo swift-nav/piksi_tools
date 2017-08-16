@@ -21,19 +21,33 @@ Section ""
 ; Set output path to the installation directory.
 SetOutPath $INSTDIR
 
-; Put a file there
-File /r "..\dist\console\*.*"
+; file_to_check_for jump_if_present [jump_otherwise]
+IfFileExists $INSTDIR\Uninstall.exe ask_to_uninstall inst
+  
+ask_to_uninstall:
+  MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
+  "There appears to be an existing installation of $Name in $INSTDIR.$\n \
+  Click `OK` to remove the previous version or `Cancel` to cancel this upgrade." \
+  IDOK silently_uninstall
+  Abort
 
-; Now create shortcuts
-CreateDirectory "$SMPROGRAMS\Swift Navigation"
-CreateShortCut "$SMPROGRAMS\Swift Navigation\Swift Console.lnk" "$INSTDIR\console.exe"
-CreateShortCut "$SMPROGRAMS\Swift Navigation\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
+silently_uninstall:
+  ExecWait '"$INSTDIR\Uninstall.exe /S"'
 
-;create desktop shortcut
-CreateShortCut "$DESKTOP\Swift Console.lnk" "$INSTDIR\console.exe" ""
+inst:
+  ; Put a file there
+  File /r "..\dist\console\*.*"
 
-; Tell the compiler to write an uninstaller and to look for a "Uninstall" section
-WriteUninstaller $INSTDIR\Uninstall.exe
+  ; Now create shortcuts
+  CreateDirectory "$SMPROGRAMS\Swift Navigation"
+  CreateShortCut "$SMPROGRAMS\Swift Navigation\Swift Console.lnk" "$INSTDIR\console.exe"
+  CreateShortCut "$SMPROGRAMS\Swift Navigation\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
+
+  ;create desktop shortcut
+  CreateShortCut "$DESKTOP\Swift Console.lnk" "$INSTDIR\console.exe" ""
+
+  ; Tell the compiler to write an uninstaller and to look for a "Uninstall" section
+  WriteUninstaller $INSTDIR\Uninstall.exe
 
 SectionEnd ; end the section
 
