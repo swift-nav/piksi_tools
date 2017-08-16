@@ -32,7 +32,14 @@ ask_to_uninstall:
   Abort
 
 silently_uninstall:
-  ExecWait '"$INSTDIR\Uninstall.exe /S"'
+  ; hack since the current uninstaller does not support silent mode
+  ; ExecWait '"$INSTDIR\Uninstall.exe /S"'
+  RMDir /r "$INSTDIR\*.*"
+
+  Delete "$DESKTOP\Swift Console.lnk"
+  Delete "$SMPROGRAMS\Swift Navigation\Swift Console.lnk"
+  Delete "$SMPROGRAMS\Swift Navigation\Uninstall.lnk"
+  RMDir "$SMPROGRAMS\Swift Navigation"
 
 inst:
   ; Put a file there
