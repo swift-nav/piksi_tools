@@ -1,7 +1,6 @@
 from __future__ import print_function
 
 import datetime
-import os
 import time
 from threading import Event, Thread
 
@@ -129,17 +128,6 @@ def get_mode(msg):
         print("called get_mode with unsupported message type: {0}".format(
             msg.msg_type))
     return mode
-
-
-def determine_path():
-    """Borrowed from wxglade.py"""
-    try:
-        root = __file__
-        if os.path.islink(root):
-            root = os.path.realpath(root)
-        return os.path.dirname(os.path.abspath(root))
-    except:
-        print("There is no __file__ variable. Please contact the author.")
 
 
 def datetime_2_str(datetm):

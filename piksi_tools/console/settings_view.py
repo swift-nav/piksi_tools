@@ -11,9 +11,10 @@
 
 from __future__ import absolute_import, print_function
 
-import os
 import threading
 import time
+
+from pkg_resources import resource_filename
 
 from pyface.api import GUI
 from sbp.piksi import MsgReset
@@ -31,7 +32,6 @@ from traitsui.tabular_adapter import TabularAdapter
 
 import piksi_tools.console.callback_prompt as prompt
 from piksi_tools.console.gui_utils import MultilineTextEditor
-from piksi_tools.console.utils import determine_path
 
 from .settings_list import SettingsList
 
@@ -213,22 +213,23 @@ class SettingsView(HasTraits):
     settings_read_button = SVGButton(
         label='Reload',
         tooltip='Reload settings from Piksi',
-        filename=os.path.join(determine_path(), 'images', 'fontawesome',
-                              'refresh.svg'),
+        filename=resource_filename(
+            'piksi_tools',
+            'console/images/fontawesome/refresh.svg'),
         width=16,
         height=20)
     settings_save_button = SVGButton(
         label='Save to Flash',
         tooltip='Save settings to Flash',
-        filename=os.path.join(determine_path(), 'images', 'fontawesome',
-                              'download.svg'),
+        filename=resource_filename('piksi_tools',
+                                   'console/images/fontawesome/download.svg'),
         width=16,
         height=20)
     factory_default_button = SVGButton(
         label='Reset to Defaults',
         tooltip='Reset to Factory Defaults',
-        filename=os.path.join(determine_path(), 'images', 'fontawesome',
-                              'exclamation-triangle.svg'),
+        filename=resource_filename('piksi_tools',
+                                   'console/images/fontawesome/exclamation-triangle.svg'),
         width=16,
         height=20)
     settings_list = List(SettingBase)
