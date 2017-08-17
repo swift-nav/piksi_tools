@@ -56,7 +56,8 @@ from piksi_tools.console.system_monitor_view import SystemMonitorView
 from piksi_tools.console.tracking_view import TrackingView
 from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
-                                       get_mode, mode_dict, resource_filename)
+                                       get_mode, mode_dict, resource_filename,
+                                       icon)
 
 
 class ArgumentParserError(Exception):
@@ -121,11 +122,6 @@ def get_args():
     )
     return parser
 
-
-icon = ImageResource(
-    'icon',
-    search_path=[resource_filename('console/images')]
-)
 
 CONSOLE_TITLE = 'Swift Console v:' + CONSOLE_VERSION
 BAUD_LIST = [57600, 115200, 230400, 921600, 1000000]
@@ -374,11 +370,8 @@ class SwiftConsole(HasTraits):
                         springy=False,
                         editor=ImageEditor(
                             allow_clipping=False,
-                            image=ImageResource(
-                                'arrows_blue.png',
-                                search_path=[
-                                    resource_filename('console/images')
-                                ]))),
+                            image=ImageResource(resource_filename('console/images/iconic/arrows_blue.png'))
+                        )),
                     Item(
                         'cnx_icon',
                         show_label=False,
@@ -390,10 +383,8 @@ class SwiftConsole(HasTraits):
                         editor=ImageEditor(
                             allow_clipping=False,
                             image=ImageResource(
-                                'arrows_grey.png',
-                                search_path=[
-                                    resource_filename('console/images')
-                                ]))),
+                                resource_filename('console/images/iconic/arrows_grey.png')
+                            ))),
                     Spring(width=4, height=-2, springy=False), ),
                 Spring(height=1, springy=False), ), ),
         icon=icon,

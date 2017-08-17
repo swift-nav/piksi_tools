@@ -21,7 +21,7 @@ from pyface.image_resource import ImageResource
 from traits.api import Event, HasTraits, String
 from traitsui.api import Action, Handler, Item, TextEditor, View
 
-from .utils import resource_filename
+from .utils import resource_filename, icon
 
 auto_survey_button = Action(
     name="Auto Survey", action="set_execute_callback_true", show_label=False)
@@ -34,12 +34,6 @@ close_button = Action(
     name="Close", action="set_execute_callback_false", show_label=False)
 ok_button = Action(
     name="Ok", action="set_execute_callback_true", show_label=False)
-
-
-icon = ImageResource(
-    'icon',
-    search_path=[resource_filename('console/images')]
-)
 
 # Handler methods that can be associated with buttons.
 

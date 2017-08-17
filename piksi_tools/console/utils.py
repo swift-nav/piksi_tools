@@ -6,6 +6,7 @@ import time
 from functools import partial
 from threading import Event, Thread
 
+from pyface.image_resource import ImageResource
 from sbp.navigation import (SBP_MSG_BASELINE_NED, SBP_MSG_BASELINE_NED_DEP_A,
                             SBP_MSG_POS_LLH, SBP_MSG_POS_LLH_DEP_A)
 
@@ -170,3 +171,4 @@ def call_repeatedly(interval, func, *args):
 
 resource_filename = partial(pkg_resources.resource_filename, 'piksi_tools')
 resource_stream = partial(pkg_resources.resource_stream, 'piksi_tools')
+icon = ImageResource(resource_filename('console/images/icon.png'))
