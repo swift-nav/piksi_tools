@@ -4,7 +4,7 @@ import os
 import shutil
 import subprocess
 import sys
-from subprocess import check_call, check_output
+from subprocess import check_call, check_output, CalledProcessError
 
 
 def maybe_remove(path):
