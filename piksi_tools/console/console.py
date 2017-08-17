@@ -10,6 +10,7 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 from __future__ import print_function
+from __future__ import absolute_import
 
 import argparse
 # Logging
@@ -58,6 +59,8 @@ from piksi_tools.console.tracking_view import TrackingView
 from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
                                        get_mode, mode_dict)
+
+from .ui.port_chooser import PortChooser
 
 
 class ArgumentParserError(Exception):
@@ -129,7 +132,7 @@ icon = ImageResource(
 )
 
 CONSOLE_TITLE = 'Swift Console v:' + CONSOLE_VERSION
-BAUD_LIST = [57600, 115200, 230400, 921600, 1000000]
+# BAUD_LIST = [57600, 115200, 230400, 921600, 1000000]
 
 
 class ConsoleHandler(Handler):
@@ -781,89 +784,6 @@ class ShowUsage(HasTraits):
 flow_control_options_list = ['None', 'Hardware RTS/CTS']
 cnx_type_list = ['Serial/USB', 'TCP/IP']
 
-
-class PortChooser(HasTraits):
-    ports = List()
-    port = Str(None)
-    mode = Enum(cnx_type_list)
-    flow_control = Enum(flow_control_options_list)
-    ip_port = Int(55555)
-    ip_address = Str('192.168.0.222')
-    choose_baud = Bool(True)
-    baudrate = Int()
-    traits_view = View(
-        VGroup(
-            Spring(height=8),
-            HGroup(
-                Spring(width=-2, springy=False),
-                Item(
-                    'mode',
-                    style='custom',
-                    editor=EnumEditor(
-                        values=cnx_type_list, cols=2, format_str='%s'),
-                    show_label=False)),
-            HGroup(
-                VGroup(
-                    Label('Serial Device:'),
-                    Item(
-                        'port',
-                        editor=EnumEditor(name='ports'),
-                        show_label=False), ),
-                VGroup(
-                    Label('Baudrate:'),
-                    Item(
-                        'baudrate',
-                        editor=EnumEditor(values=BAUD_LIST),
-                        show_label=False,
-                        visible_when='choose_baud'),
-                    Item(
-                        'baudrate',
-                        show_label=False,
-                        visible_when='not choose_baud',
-                        style='readonly'), ),
-                VGroup(
-                    Label('Flow Control:'),
-                    Item(
-                        'flow_control',
-                        editor=EnumEditor(
-                            values=flow_control_options_list, format_str='%s'),
-                        show_label=False), ),
-                visible_when="mode==\'Serial/USB\'"),
-            HGroup(
-                VGroup(
-                    Label('IP Address:'),
-                    Item(
-                        'ip_address',
-                        label="IP Address",
-                        style='simple',
-                        show_label=False,
-                        height=-24), ),
-                VGroup(
-                    Label('IP Port:'),
-                    Item(
-                        'ip_port',
-                        label="IP Port",
-                        style='simple',
-                        show_label=False,
-                        height=-24), ),
-                Spring(),
-                visible_when="mode==\'TCP/IP\'"), ),
-        buttons=['OK', 'Cancel'],
-        close_result=False,
-        icon=icon,
-        width=400,
-        title='Swift Console - Select Piksi Interface', )
-
-    def __init__(self, baudrate=None):
-        try:
-            self.ports = [p for p, _, _ in s.get_ports()]
-            if baudrate not in BAUD_LIST:
-                self.choose_baud = False
-            self.baudrate = baudrate
-        except TypeError:
-            pass
-
-
 def main():
 
     warnings.simplefilter(action="ignore", category=FutureWarning)
@@ -915,7 +835,8 @@ def main():
         connection_description = os.path.split(port)[-1]
     elif not port:
         # Use the gui to get our driver
-        port_chooser = PortChooser(baudrate=int(args.baud))
+        ports = [p for p, _, _ in s.get_ports()]
+        port_chooser = PortChooser(ports, baudrate=int(args.baud))
         is_ok = port_chooser.configure_traits()
         ip_address = port_chooser.ip_address
         ip_port = port_chooser.ip_port
