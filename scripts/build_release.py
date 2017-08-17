@@ -4,7 +4,7 @@ import os
 import shutil
 import subprocess
 import sys
-from subprocess import check_call, check_output
+from subprocess import check_call, check_output, CalledProcessError
 
 
 def maybe_remove(path):
@@ -19,8 +19,13 @@ def build(env='pyinstaller'):
     exe = os.path.join(out_pyi, 'console')
 
     # https://bugs.python.org/issue18920
-    v = check_output([str(exe), '-V'], stderr=subprocess.STDOUT)
-    v = v.strip().split()[-1]
+    v = "unknown"
+    try:
+      v = check_output([str(exe), '-V'], stderr=subprocess.STDOUT)
+      v = v.strip().split()[-1]
+    except CalledProcessError as cpe:
+      print("Output:\n" + cpe.output)
+      print("Return Code:\n" + str(cpe.returncode))
 
     return out_pyi, v
 

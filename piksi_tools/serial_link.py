@@ -25,6 +25,15 @@ from sbp.client.drivers.cdc_driver import CdcDriver
 from sbp.client.drivers.network_drivers import HTTPDriver, TCPDriver
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
+import serial
+try:
+  print(serial.__version__)
+except AttributeError:
+  try: 
+    print(serial.VERSION)
+  except:
+    pass
+
 from sbp.client.loggers.json_logger import JSONLogger
 from sbp.client.loggers.null_logger import NullLogger
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP, MsgLog
