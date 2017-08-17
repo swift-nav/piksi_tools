@@ -1,2 +1,0 @@
-/dev/serial/by-id/usb-Swift_Navigation_Piksi_v2.3.1_PK1803-if00-port0 /dev/serial/by-id/usb-Swift_Navigation_Piksi_v2.3.1_PK1802-if00-port0
-/dev/serial/by-id/usb-Swift_Navigation_Piksi_v2.3.1_PK1581-if00-port0 /dev/serial/by-id/usb-Swift_Navigation_Piksi_v2.3.1_PK1579-if00-port0
