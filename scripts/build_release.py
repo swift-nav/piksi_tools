@@ -25,7 +25,7 @@ def build(env='pyinstaller'):
       v = v.strip().split()[-1]
     except CalledProcessError as cpe:
       print("Output:\n" + cpe.output)
-      print("Return Code:\n" + cpe.returncode)
+      print("Return Code:\n" + str(cpe.returncode))
 
     return out_pyi, v
 
