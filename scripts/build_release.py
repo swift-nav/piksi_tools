@@ -19,8 +19,13 @@ def build(env='pyinstaller'):
     exe = os.path.join(out_pyi, 'console')
 
     # https://bugs.python.org/issue18920
-    v = check_output([str(exe), '-V'], stderr=subprocess.STDOUT)
-    v = v.strip().split()[-1]
+    v = "unknown"
+    try:
+      v = check_output([str(exe), '-V'], stderr=subprocess.STDOUT)
+      v = v.strip().split()[-1]
+    except CalledProcessError as cpe:
+      print("Output:\n" + cpe.output)
+      print("Return Code\n": cpe.returncode)
 
     return out_pyi, v
 
