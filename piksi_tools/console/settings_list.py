@@ -10,12 +10,12 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 from __future__ import print_function
+from __future__ import absolute_import
 
 import pprint
-
-from pkg_resources import resource_filename, resource_stream
-
 from ruamel.yaml import YAML
+
+from .utils import resource_filename, resource_stream
 
 yaml = YAML(typ='safe')
 
@@ -62,12 +62,12 @@ class SettingsList():
 
     def __init__(self, filename):
         try:
-            stram = resource_stream('piksi_tools', 'console/settings.yaml')
+            stram = resource_stream('console/settings.yaml')
             temp_dict = yaml.load(stram)
             self.list_of_dicts = temp_dict
             self.warned_dict = {}
             # inform user of success or failure
-            print("Loaded settings yaml file from path " + resource_filename('piksi_tools', 'console/settings.yaml'))
+            print("Loaded settings yaml file from path " + resource_filename('console/settings.yaml'))
             print("Number of settings loaded {0}".format(
                 len(self.list_of_dicts)))
         except:

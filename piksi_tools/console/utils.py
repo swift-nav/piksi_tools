@@ -1,7 +1,9 @@
 from __future__ import print_function
 
 import datetime
+import pkg_resources
 import time
+from functools import partial
 from threading import Event, Thread
 
 from sbp.navigation import (SBP_MSG_BASELINE_NED, SBP_MSG_BASELINE_NED_DEP_A,
@@ -164,3 +166,7 @@ def call_repeatedly(interval, func, *args):
 
     Thread(target=loop).start()
     return stopped.set
+
+
+resource_filename = partial(pkg_resources.resource_filename, 'piksi_tools')
+resource_stream = partial(pkg_resources.resource_stream, 'piksi_tools')
