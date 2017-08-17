@@ -3,16 +3,13 @@ from pyface.image_resource import ImageResource
 from traits.api import Bool, Enum, HasTraits, Int, List, Str
 from traitsui.api import EnumEditor, HGroup, Item, Label, Spring, VGroup, View
 
+from ..utils import icon
+
 flow_control_options_list = ['None', 'Hardware RTS/CTS']
 cnx_type_list = ['Serial/USB', 'TCP/IP']
 
 BAUD_LIST = [57600, 115200, 230400, 921600, 1000000]
 
-
-icon = ImageResource(
-    'icon1',
-    search_path=[resource_filename('piksi_tools', 'console/images')]
-)
 
 class PortChooser(HasTraits):
     ports = List()

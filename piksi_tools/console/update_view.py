@@ -34,12 +34,7 @@ from piksi_tools.fileio import FileIO
 
 from .output_stream import OutputStream
 from .update_downloader import INDEX_URL, UpdateDownloader
-from .utils import resource_filename
-
-icon = ImageResource(
-    'icon',
-    search_path=[resource_filename('console/images')]
-)
+from .utils import resource_filename, icon
 
 HT = 8
 COLUMN_WIDTH = 100
