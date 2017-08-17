@@ -426,14 +426,24 @@
   Notes: If True, Klobuchar ionospheric corrections will not be applied.
 
 - group: solution
-  name: enable_glonass_in_pvt
+  name: enable_glonass_in_spp
   expert: true
   type: boolean
   units: N/A
   default value:
   enumerated possible values: True,False
-  Description: Enable GLONASS measurement processing in navigation filter
-  Notes: If set to True, GLONASS measurements are processed in the navigation filter.
+  Description: Enable GLONASS measurement processing in single point navigation filter.
+  Notes: If set to True, GLONASS measurements are processed in the single point navigation filter.
+
+- group: solution
+  name: enable_glonass_in_rtk
+  expert: true
+  type: boolean
+  units: N/A
+  default value:
+  enumerated possible values: True,False
+  Description: Enable GLONASS measurement processing in RTK navigation filter
+  Notes: If set to True, GLONASS measurements are processed in the RTK navigation filter.
 
 - group: system_info
   name: serial_number
