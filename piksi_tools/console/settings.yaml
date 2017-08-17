@@ -393,10 +393,10 @@
   default value: False
   enumerated possible values: True,False
   Description: |
-    Enables SBP heading output. 
-    Heading is calculated from base station to rover and represents 
+    Enables SBP heading output.
+    Heading is calculated from base station to rover and represents
     the inverse tangent of the north and east components of the baseline
-  Notes: | 
+  Notes: |
     No smoothing or additional processing is provided to improve heading output.
     The heading feature requires the following additional settings
         Time Matched Mode
@@ -411,7 +411,7 @@
   default value: 0.0
   enumerated possible values: N/A
   Description: Rotate the heading output
-  Notes: | 
+  Notes: |
     Adds an offset to the heading output to rotate the heading vector to align the
     baseline heading with a desired 0 heading. Valid values are -180.0 to 180.0 degrees
 
@@ -430,7 +430,7 @@
   expert: true
   type: boolean
   units: N/A
-  default value: 
+  default value:
   enumerated possible values: True,False
   Description: Enable GLONASS measurement processing in navigation filter
   Notes: If set to True, GLONASS measurements are processed in the navigation filter.
@@ -633,10 +633,10 @@
   Description: Communication protocol for USB0
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
-    
-    "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages. 
-    
-    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1002, 1004, 1005, and 1006 RTCMv3.1 messages and will not transmit or receive any other messages. 
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1002, 1004, 1005, and 1006 RTCMv3.1 messages and will not transmit or receive any other messages.
 
 - group: uart1
   name: baudrate
@@ -651,11 +651,11 @@
 - group: uart1
   name: flow_control
   expert: false
-  type: boolean 
+  type: boolean
   units: NA
   default value: False
   enumerated possible values:
-  Description: Enable hardware flow control (RTS/CTS) 
+  Description: Enable hardware flow control (RTS/CTS)
   Notes:
 
 - group: uart1
@@ -668,10 +668,10 @@
   Description: Communication protocol for UART 1
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
-    
-    "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages. 
-    
-    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1001, 1002, 1003, 1004, 1005, 1006 and 1007 RTCMv3.1 messages and will not transmit or receive any other messages. 
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1001, 1002, 1003, 1004, 1005, 1006 and 1007 RTCMv3.1 messages and will not transmit or receive any other messages.
 
 - group: uart1
   name: enabled_sbp_messages
@@ -701,11 +701,11 @@
 - group: uart0
   name: flow_control
   expert: false
-  type: boolean 
+  type: boolean
   units: NA
   default value: False
   enumerated possible values:
-  Description: Enable hardware flow control (RTS/CTS) 
+  Description: Enable hardware flow control (RTS/CTS)
   Notes:
 
 - group: uart0
@@ -718,10 +718,10 @@
   Description: Communication protocol for UART0
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
-    
-    "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages. 
-    
-    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1001, 1002, 1003, 1004, 1005, 1006 and 1007 RTCMv3.1 messages and will not transmit or receive any other messages. 
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1001, 1002, 1003, 1004, 1005, 1006 and 1007 RTCMv3.1 messages and will not transmit or receive any other messages.
 
 - group: uart0
   name: enabled_sbp_messages
@@ -738,7 +738,7 @@
     3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For uart1,
     the default value is optimal for logging and communication with the console.
 
-- group: ext_events
+- group: ext_events_0
   name: edge_trigger
   expert: false
   type: enum
@@ -752,7 +752,7 @@
     reporting the event, including a timestamp accurate to better than
     a microsecond.
 
-- group: ext_events
+- group: ext_events_0
   name: sensitivity
   expert: false
   type: integer
@@ -760,6 +760,54 @@
   default value: 0
   enumerated possible values:
   Description: Minimum time between events (0 = disabled)
+  Notes: Any event that is triggered within the sensitivity window after the previous event will be ignored and no MSG_EXT_EVENT will be generated.
+
+- group: ext_events_1
+  name: edge_trigger
+  expert: false
+  type: enum
+  units: N/A
+  default value: None
+  enumerated possible values: None,Rising,Falling,Both
+  Description: Duro only. Select edges to trigger timestamped event capture
+  Notes: You can use this to record the exact time that some external
+    event in your system occurred, e.g. camera shutter time.  Upon
+    detecting the event, Piksi will generate a MSG_EXT_EVENT message
+    reporting the event, including a timestamp accurate to better than
+    a microsecond.
+
+- group: ext_events_1
+  name: sensitivity
+  expert: false
+  type: integer
+  units: us (microseconds)
+  default value: 0
+  enumerated possible values:
+  Description: Duro only. Minimum time between events (0 = disabled)
+  Notes: Any event that is triggered within the sensitivity window after the previous event will be ignored and no MSG_EXT_EVENT will be generated.
+
+- group: ext_events_2
+  name: edge_trigger
+  expert: false
+  type: enum
+  units: N/A
+  default value: None
+  enumerated possible values: None,Rising,Falling,Both
+  Description: Duro only. Select edges to trigger timestamped event capture
+  Notes: You can use this to record the exact time that some external
+    event in your system occurred, e.g. camera shutter time.  Upon
+    detecting the event, Piksi will generate a MSG_EXT_EVENT message
+    reporting the event, including a timestamp accurate to better than
+    a microsecond.
+
+- group: ext_events_2
+  name: sensitivity
+  expert: false
+  type: integer
+  units: us (microseconds)
+  default value: 0
+  enumerated possible values:
+  Description: Duro only. Minimum time between events (0 = disabled)
   Notes: Any event that is triggered within the sensitivity window after the previous event will be ignored and no MSG_EXT_EVENT will be generated.
 
 - group: track
@@ -780,7 +828,7 @@
   units: N/A
   default value: N/A
   enumerated possible values:
-  Description: Down weights GLONASS measurements by a given factor in the navigation filter 
+  Description: Down weights GLONASS measurements by a given factor in the navigation filter
   Notes: This parameter down weights GLONASS observations relative to GPS observations by this factor.
 
 - group: track
@@ -1115,13 +1163,13 @@
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
   enumerated possible values: SBP,NMEA,RTCM3 IN
-  Description: Communication protocol for tcp server 0 (port 55555) 
+  Description: Communication protocol for tcp server 0 (port 55555)
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
-    
-    "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages. 
-    
-    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1001, 1002, 1003, 1004, 1005, 1006 and 1007 RTCMv3.1 messages and will not transmit or receive any other messages. 
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1001, 1002, 1003, 1004, 1005, 1006 and 1007 RTCMv3.1 messages and will not transmit or receive any other messages.
 
 - group: tcp_server0
   name: enabled_sbp_messages
@@ -1145,13 +1193,13 @@
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
   enumerated possible values: SBP,NMEA,RTCM3 IN
-  Description: Communication protocol for tcp server 1 (port 55556) 
+  Description: Communication protocol for tcp server 1 (port 55556)
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
-    
-    "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages. 
-    
-    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1001, 1002, 1003, 1004, 1005, 1006 and 1007 RTCMv3.1 messages and will not transmit or receive any other messages. 
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1001, 1002, 1003, 1004, 1005, 1006 and 1007 RTCMv3.1 messages and will not transmit or receive any other messages.
 
 - group: tcp_server1
   name: enabled_sbp_messages
@@ -1319,13 +1367,13 @@
   units: N/A
 
 - group: standalone_logging
-  name: file_duration 
+  name: file_duration
   expert: false
   type: int
   default value: '10'
-  Description: Duration of each logfile 
+  Description: Duration of each logfile
   units: minutes
-  Notes: Sets the number of minutes to output to each standalone log file before opening the next one. 
+  Notes: Sets the number of minutes to output to each standalone log file before opening the next one.
          If this setting is changed while logging is enabled, it will go into effect immediately which will close the current file if its length exceeds the new duration.
 
 - group: standalone_logging
@@ -1335,17 +1383,17 @@
   default value: '95'
   Description: Maximum storage device usage
   units: percent
-  Notes: Sets a limit on how full the storage device can be before logging is stopped. If the drive is more than this percent full, no new log files will be created and a warning will be logged every 30 seconds. 
+  Notes: Sets a limit on how full the storage device can be before logging is stopped. If the drive is more than this percent full, no new log files will be created and a warning will be logged every 30 seconds.
          If this setting is changed while logging is enabled, it will go into effect on the next file that’s created.
 
 - group: standalone_logging
   name: output_directory
   expert: false
-  type: string 
+  type: string
   default value: '/media/sda1/'
-  Description: Standalone logging path 
+  Description: Standalone logging path
   units: N/A
-  Notes: Sets the paths in which to write logs. A warning will be logged every 30 seconds if this path is invalid or unavailable. The system will not create a folder that does not exist. 
+  Notes: Sets the paths in which to write logs. A warning will be logged every 30 seconds if this path is invalid or unavailable. The system will not create a folder that does not exist.
          If this setting is changed while logging is enabled, it will go into effect on the next file that’s created.
 
 - group: standalone_logging
@@ -1355,6 +1403,6 @@
   default value: 'False'
   Description: Standalone logging enabled
   units: N/A
-  Notes: Setting this to true triggers the logger to start trying to write logs to the output_directory. 
-         Setting this to false will immediately close the current file and stop logging. 
+  Notes: Setting this to true triggers the logger to start trying to write logs to the output_directory.
+         Setting this to false will immediately close the current file and stop logging.
          Reenabling logging will increment the session counter which is reflected in the log file names (see USB Logging File Output section).
