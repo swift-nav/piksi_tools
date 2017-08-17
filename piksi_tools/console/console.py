@@ -20,7 +20,6 @@ import sys
 import time
 # Shut chaco up for now
 import warnings
-from pkg_resources import resource_filename
 from os.path import expanduser
 
 import sbp.client as sbpc
@@ -57,7 +56,7 @@ from piksi_tools.console.system_monitor_view import SystemMonitorView
 from piksi_tools.console.tracking_view import TrackingView
 from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
-                                       get_mode, mode_dict)
+                                       get_mode, mode_dict, resource_filename)
 
 
 class ArgumentParserError(Exception):
@@ -125,7 +124,7 @@ def get_args():
 
 icon = ImageResource(
     'icon',
-    search_path=[resource_filename('piksi_tools', 'console/images')]
+    search_path=[resource_filename('console/images')]
 )
 
 CONSOLE_TITLE = 'Swift Console v:' + CONSOLE_VERSION
@@ -211,10 +210,8 @@ class SwiftConsole(HasTraits):
         label='CSV log',
         tooltip='start CSV logging',
         toggle_tooltip='stop CSV logging',
-        filename=resource_filename('piksi_tools',
-                                   'console/images/iconic/pause.svg'),
-        toggle_filename=resource_filename('piksi_tools',
-                                          'console/images/iconic/play.svg'),
+        filename=resource_filename('console/images/iconic/pause.svg'),
+        toggle_filename=resource_filename('console/images/iconic/play.svg'),
         orientation='vertical',
         width=2,
         height=2, )
@@ -223,10 +220,8 @@ class SwiftConsole(HasTraits):
         label='JSON log',
         tooltip='start JSON logging',
         toggle_tooltip='stop JSON logging',
-        filename=resource_filename('piksi_tools',
-                                   'console/images/iconic/pause.svg'),
-        toggle_filename=resource_filename('piksi_tools',
-                                          'console/images/iconic/play.svg'),
+        filename=resource_filename('console/images/iconic/pause.svg'),
+        toggle_filename=resource_filename('console/images/iconic/play.svg'),
         orientation='vertical',
         width=2,
         height=2, )
@@ -235,16 +230,14 @@ class SwiftConsole(HasTraits):
         tooltip='Pause console update',
         toggle_tooltip='Resume console update',
         toggle=True,
-        filename=resource_filename('piksi_tools',
-                                   'console/images/iconic/pause.svg'),
-        toggle_filename=resource_filename('piksi_tools',
-                                          'console/images/iconic/play.svg'),
+        filename=resource_filename('console/images/iconic/pause.svg'),
+        toggle_filename=resource_filename('console/images/iconic/play.svg'),
         width=8,
         height=8)
     clear_button = SVGButton(
         label='',
         tooltip='Clear console buffer',
-        filename=resource_filename('piksi_tools', 'console/images/iconic/x.svg'),
+        filename=resource_filename('console/images/iconic/x.svg'),
         width=8,
         height=8)
 
@@ -384,8 +377,7 @@ class SwiftConsole(HasTraits):
                             image=ImageResource(
                                 'arrows_blue.png',
                                 search_path=[
-                                    resource_filename('piksi_tools',
-                                                      'console/images')
+                                    resource_filename('console/images')
                                 ]))),
                     Item(
                         'cnx_icon',
@@ -400,8 +392,7 @@ class SwiftConsole(HasTraits):
                             image=ImageResource(
                                 'arrows_grey.png',
                                 search_path=[
-                                    resource_filename('piksi_tools',
-                                                      'console/images')
+                                    resource_filename('console/images')
                                 ]))),
                     Spring(width=4, height=-2, springy=False), ),
                 Spring(height=1, springy=False), ), ),

@@ -12,7 +12,6 @@
 from __future__ import absolute_import, print_function
 
 import os
-from pkg_resources import resource_filename
 from threading import Thread
 from time import sleep
 from urllib2 import URLError
@@ -35,10 +34,11 @@ from piksi_tools.fileio import FileIO
 
 from .output_stream import OutputStream
 from .update_downloader import INDEX_URL, UpdateDownloader
+from .utils import resource_filename
 
 icon = ImageResource(
     'icon',
-    search_path=[resource_filename('piksi_tools', 'console/images')]
+    search_path=[resource_filename('console/images')]
 )
 
 HT = 8
