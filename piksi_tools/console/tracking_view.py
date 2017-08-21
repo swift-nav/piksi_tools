@@ -247,16 +247,9 @@ class TrackingView(CodeFiltered):
         self.plot.legend.plots = plots
 
     def _legend_visible_changed(self):
-        if self.plot:
-            if not self.legend_visible:
-                self.plot.legend.visible = False
-            else:
-                self.plot.legend.visible = True
-            self.plot.legend.tools.append(
-                LegendTool(self.plot.legend, drag_button="right"))
+        self.plot.legend.visible = self.legend_visible
 
     def __init__(self, link):
-        super(TrackingView, self).__init__()
         self.t_init = time.time()
         self.time = deque([x * 1 / TRK_RATE for x in range(-NUM_POINTS, 0, 1)],
                           maxlen=NUM_POINTS)
@@ -292,3 +285,5 @@ class TrackingView(CodeFiltered):
         self.link.add_callback(self.tracking_state_callback_dep_b,
                                SBP_MSG_TRACKING_STATE_DEP_B)
         self.python_console_cmds = {'track': self}
+
+        super(TrackingView, self).__init__()
