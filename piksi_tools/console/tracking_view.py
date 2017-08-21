@@ -103,12 +103,15 @@ color_dict = {
 
 
 def get_color(key):
-    color = 0xff0000
-    try:
-        key = str((key[0], key[1] % 32))
-        color = color_dict.get(key, 0xff0000)
-    except:
-        pass
+    code, sat, ch = key
+
+    # reuse palatte for glo signals
+    if code_is_glo(code):
+        code -= 3
+        sat += GLO_FCN_OFFSET
+
+    key = str((code, sat % 32))
+    color = color_dict.get(key, 0xff0000)
     return color
 
 
