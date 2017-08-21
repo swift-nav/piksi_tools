@@ -11,7 +11,7 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 import time
-from collections import defaultdict
+from collections import defaultdict, deque
 
 import numpy as np
 from chaco.api import ArrayPlotData, Plot
@@ -131,8 +131,7 @@ class TrackingView(CodeFiltered):
 
     def tracking_state_callback(self, sbp_msg, **metadata):
         t = time.time() - self.t_init
-        self.time[0:-1] = self.time[1:]
-        self.time[-1] = t
+        self.time.append(t)
         # first we loop over all the SIDs / channel keys we have stored and set 0 in for CN0
         for key, cno_array in self.CN0_dict.items():
             # p
@@ -163,8 +162,7 @@ class TrackingView(CodeFiltered):
 
     def tracking_state_callback_dep_b(self, sbp_msg, **metadata):
         t = time.time() - self.t_init
-        self.time[0:-1] = self.time[1:]
-        self.time[-1] = t
+        self.time.append(t)
         # first we loop over all the SIDs / channel keys we have stored and set 0 in for CN0
         for key, cno_array in self.CN0_dict.items():
             # p
@@ -250,7 +248,8 @@ class TrackingView(CodeFiltered):
     def __init__(self, link):
         super(TrackingView, self).__init__()
         self.t_init = time.time()
-        self.time = [x * 1 / TRK_RATE for x in range(-NUM_POINTS, 0, 1)]
+        self.time = deque([x * 1 / TRK_RATE for x in range(-NUM_POINTS, 0, 1)],
+                          maxlen=NUM_POINTS)
         self.CN0_dict = defaultdict(lambda: np.zeros(NUM_POINTS))
         self.glo_slot_dict = {}
         self.n_channels = None
