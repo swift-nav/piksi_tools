@@ -12,6 +12,7 @@
 
 import time
 from collections import defaultdict, deque
+from functools import partial
 
 import numpy as np
 from chaco.api import ArrayPlotData, Plot
@@ -132,21 +133,15 @@ class TrackingView(CodeFiltered):
     def tracking_state_callback(self, sbp_msg, **metadata):
         t = time.time() - self.t_init
         self.time.append(t)
-        # first we loop over all the SIDs / channel keys we have stored and set 0 in for CN0
-        for key, cno_array in self.CN0_dict.items():
-            # p
-            if (cno_array == 0).all():
-                self.CN0_dict.pop(key)
-            else:
-                new_arr = np.roll(cno_array, -1)
-                new_arr[-1] = 0
-                self.CN0_dict[key] = new_arr
 
-        # If the whole array is 0 we remove it
+
         # for each satellite, we have a (code, prn, channel) keyed dict
         # for each SID, an array of size MAX PLOT with the history of CN0's stored
         # If there is no CN0 or not tracking for an epoch, 0 will be used
         # each array can be plotted against host_time, t
+
+        # append new tracking data
+        new = set()
         for i, s in enumerate(sbp_msg.states):
             if code_is_gps(s.sid.code):
                 sat = s.sid.sat
@@ -155,8 +150,17 @@ class TrackingView(CodeFiltered):
                 self.glo_slot_dict[sat] = s.sid.sat
 
             key = (s.sid.code, sat, i)
-            if s.cn0 != 0:
-                self.CN0_dict[key][-1] = s.cn0 / 4.0
+            new.add(key)
+            self.CN0_dict[key].append(s.cn0 / 4.0)
+
+        # For existing satellites which were not updated in the current step
+        # If the whole array is 0 we remove it
+        # Else, we set the current CN0 as 0
+        for k in (self.CN0_dict.viewkeys() - new):
+            if all(v == 0 for v in self.CN0_dict[k]):
+                self.CN0_dict.pop(k)
+            else:
+                self.CN0_dict[k].append(0)
 
         GUI.invoke_later(self.update_plot)
 
@@ -250,7 +254,8 @@ class TrackingView(CodeFiltered):
         self.t_init = time.time()
         self.time = deque([x * 1 / TRK_RATE for x in range(-NUM_POINTS, 0, 1)],
                           maxlen=NUM_POINTS)
-        self.CN0_dict = defaultdict(lambda: np.zeros(NUM_POINTS))
+        self.CN0_dict = defaultdict(partial(deque, [0]*NUM_POINTS,
+                                            maxlen=NUM_POINTS))
         self.glo_slot_dict = {}
         self.n_channels = None
         self.plot_data = ArrayPlotData(t=[0.0])
