@@ -2,7 +2,7 @@
 
 import os
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 CLASSIFIERS = [
     'Intended Audience :: Developers',
@@ -15,8 +15,6 @@ CLASSIFIERS = [
     'Topic :: Software Development :: Libraries :: Python Modules',
     'Programming Language :: Python :: 2.7',
 ]
-
-PACKAGES = ['piksi_tools', 'piksi_tools.console', 'piksi_tools.ardupilot']
 
 PLATFORMS = [
     'linux',
@@ -62,7 +60,7 @@ setup(
     author_email='dev@swiftnav.com',
     url='https://github.com/swift-nav/piksi_tools',
     classifiers=CLASSIFIERS,
-    packages=PACKAGES,
+    packages=find_packages(),
     package_data=PACKAGE_DATA,
     platforms=PLATFORMS,
     install_requires=INSTALL_REQUIRES,
