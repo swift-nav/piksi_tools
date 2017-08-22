@@ -57,10 +57,10 @@ from piksi_tools.console.system_monitor_view import SystemMonitorView
 from piksi_tools.console.tracking_view import TrackingView
 from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
-                                       get_mode, mode_dict)
+                                       get_mode, mode_dict, resource_filename,
+                                       icon)
 
-from .ui.port_chooser import PortChooser
-from .utils import resource_filename, icon
+from piksi_tools.console.ui.port_chooser import PortChooser
 
 
 class ArgumentParserError(Exception):
