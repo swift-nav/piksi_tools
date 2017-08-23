@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import glob
 import os
 import shutil
 import subprocess
@@ -55,12 +56,13 @@ def build_macos():
 
 def build_win():
     out, version = build()
-    
-    # hack since PySide's qsvg4.dll does not seem to work on win7
-    shutil.copy(
-        os.path.join('misc', 'hacks', 'qsvg4.dll'),
-        os.path.join(out, 'qt4_plugins', 'imageformats')
-    )
+
+    # workaround for https://github.com/pyinstaller/pyinstaller/issues/1793
+    srcs = ['msvcp90.dll', 'msvcr90.dll', 'msvcm90.dll', 'Microsoft.VC90.CRT.manifest']
+    dst_dirs = glob.glob(os.path.join(out, 'qt4_plugins', '*/'))
+    for dst in dst_dirs:
+        for src in srcs:
+            shutil.copy(os.path.join(out, src), dst)
 
     nsis = 'C:\\Program Files (x86)\\NSIS\\makensis.exe'
 
