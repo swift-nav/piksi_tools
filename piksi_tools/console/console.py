@@ -608,7 +608,7 @@ class SwiftConsole(HasTraits):
         # Start swallowing sys.stdout and sys.stderr
         self.console_output = OutputList(
             tfile=log_console, outdir=self.directory_name)
-        sys.stdout = self.console_output
+        # sys.stdout = self.console_output
         self.console_output.write("Console: " + CONSOLE_VERSION +
                                   " starting...")
         if not error:
