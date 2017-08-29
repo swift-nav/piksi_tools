@@ -106,7 +106,7 @@ class ObservationView(CodeFiltered):
         self._obs_table_list = [
             ('{} ({})'.format(svid[0], code_to_str(svid[1])), ) + obs
             for svid, obs in sorted(self.obs.items())
-            if getattr(self, 'show_{}'.format(svid[1]))
+            if getattr(self, 'show_{}'.format(svid[1]), True)
         ]
 
         for code in SUPPORTED_CODES:
