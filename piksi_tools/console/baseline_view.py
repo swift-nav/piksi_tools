@@ -243,7 +243,7 @@ class BaselineView(HasTraits):
             if self.log_file is None:
                 self.log_file = sopen(filepath, 'w')
                 self.log_file.write(
-                    'pc_time,gps_time,tow(msec),north(meters),east(meters),down(meters),h_accuracy(meters),v_accuracy(meters),'
+                    'pc_time,gps_time,tow(sec),north(meters),east(meters),down(meters),h_accuracy(meters),v_accuracy(meters),'
                     'distance(meters),num_sats,flags,num_hypothesis\n')
             log_str_gps = ''
             if tgps != '' and secgps != 0:

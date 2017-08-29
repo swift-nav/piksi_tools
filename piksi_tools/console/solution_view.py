@@ -255,7 +255,7 @@ class SolutionView(HasTraits):
             if self.log_file is None:
                 self.log_file = sopen(filepath_p, 'w')
                 self.log_file.write(
-                    "pc_time,gps_time,tow(msec),latitude(degrees),longitude(degrees),altitude(meters),"
+                    "pc_time,gps_time,tow(sec),latitude(degrees),longitude(degrees),altitude(meters),"
                     "h_accuracy(meters),v_accuracy(meters),n_sats,flags\n")
             log_str_gps = ""
             if tgps != "" and secgps != 0:
@@ -447,7 +447,7 @@ class SolutionView(HasTraits):
             if self.vel_log_file is None:
                 self.vel_log_file = sopen(filepath_v, 'w')
                 self.vel_log_file.write(
-                    'pc_time,gps_time,tow,north(m/s),east(m/s),down(m/s),speed(m/s),flags,num_signals\n'
+                    'pc_time,gps_time,tow(sec),north(m/s),east(m/s),down(m/s),speed(m/s),flags,num_signals\n'
                 )
             log_str_gps = ''
             if tgps != "" and secgps != 0:
