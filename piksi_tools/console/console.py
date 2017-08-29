@@ -808,7 +808,6 @@ class ShowUsage(HasTraits):
         else:
             self.usage_str = "<pre>" + usage + "</pre>"
 
-
 # If using a device connected to an actual port, then invoke the
 # regular console dialog for port selection
 
@@ -817,8 +816,8 @@ cnx_type_list = ['Serial/USB', 'TCP/IP']
 
 
 class PortChooser(HasTraits):
-    ports = List()
     port = Str(None)
+    ports = List()
     mode = Enum(cnx_type_list)
     flow_control = Enum(flow_control_options_list)
     ip_port = Int(55555)
@@ -888,14 +887,27 @@ class PortChooser(HasTraits):
         width=400,
         title='Swift Console - Select Piksi Interface', )
 
-    def __init__(self, baudrate=None):
+    def refresh_ports(self):
+        """
+        This method refreshes the port list
+        """
         try:
-            self.ports = [p for p, _, _ in s.get_ports()]
-            if baudrate not in BAUD_LIST:
-                self.choose_baud = False
-            self.baudrate = baudrate
+          self.ports = [p for p, _, _ in s.get_ports()]
         except TypeError:
             pass
+
+    def __init__(self, baudrate=None):
+        self.refresh_ports()
+        # As default value, use the first city in the list:
+        try:
+            self.port = self.ports[0]
+        except IndexError:
+            pass
+        if baudrate not in BAUD_LIST:
+            self.choose_baud = False
+        self.baudrate = baudrate
+        self.update_ports = call_repeatedly(0.5, self.refresh_ports)
+
 
 
 if show_usage:
