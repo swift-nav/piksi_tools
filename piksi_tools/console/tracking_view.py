@@ -102,13 +102,30 @@ color_dict = {
 
 
 def get_color(key):
-    color = 0xff0000
-    try:
-        key = str((key[0], key[1] % 32))
-        color = color_dict.get(key, 0xff0000)
-    except:
-        pass
+    code, sat, ch = key
+
+    # reuse palatte for glo signals
+    if code_is_glo(code):
+        code -= 3
+        sat += GLO_FCN_OFFSET
+
+    key = str((code, sat % 32))
+    color = color_dict.get(key, 0xff0000)
     return color
+
+
+def get_label(key, extra):
+    code, sat, ch = key
+    lbl = 'Ch {ch:02d}: {code} '.format(ch=ch, code=code_to_str(code))
+
+    if code_is_gps(code):
+        lbl += 'PRN {sat:02d}'.format(sat=sat)
+    elif code_is_glo(code):
+        lbl += 'FCN {sat:0=+3d}'.format(sat=sat)
+        if sat in extra:
+            lbl += ' Slot: {slot:02d}'.format(slot=extra[sat])
+
+    return lbl
 
 
 class TrackingView(CodeFiltered):
@@ -217,18 +234,7 @@ class TrackingView(CodeFiltered):
                 # if channel is still active:
                 if cno_array[-1] != 0:
                     plots.append(pl)
-                    ch_type = 'FCN' if code_is_glo(int(k[0])) else 'PRN'
-                    lbl_fmt = 'Ch {ch:02}: {code} {ch_type}{ch_num}'
-                    lbl = lbl_fmt.format(
-                        ch=k[2],
-                        code=code_to_str(k[0]),
-                        ch_type=ch_type,
-                        ch_num=k[1]
-                    )
-                    if code_is_glo(int(k[0])):
-                        if int(k[1]) in self.glo_slot_dict:
-                            lbl += ' Slot {}'.format(self.glo_slot_dict[int(k[1])])
-                    plot_labels.append(lbl)
+                    plot_labels.append(get_label(k, self.glo_slot_dict))
             # Remove plot data and plots not selected
             else:
                 if key in self.plot_data.list_data():
@@ -272,7 +278,7 @@ class TrackingView(CodeFiltered):
         self.plot.legend.visible = True
         self.plot.legend.align = 'll'
         self.plot.legend.line_spacing = 1
-        self.plot.legend.font = 'modern 8'
+        self.plot.legend.font = 'monospace 8'
         self.plot.legend.draw_layer = 'overlay'
         self.plot.legend.tools.append(
             LegendTool(self.plot.legend, drag_button="right"))
