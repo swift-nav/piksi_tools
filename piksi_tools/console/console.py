@@ -307,11 +307,6 @@ class SwiftConsole(HasTraits):
                         'spectrum_analyzer_view',
                         label='Spectrum Analyzer',
                         style='custom'),
-                    Item(
-                        'python_console_env',
-                        style='custom',
-                        label='Python Console',
-                        editor=ShellEditor()),
                     label='Advanced',
                     show_labels=False),
                 show_labels=False),
