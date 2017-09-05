@@ -36,7 +36,7 @@ from traits.api import (Bool, Dict, Directory, Enum, HasTraits, Instance, Int,
 # Toolkit
 from traits.etsconfig.api import ETSConfig
 from traitsui.api import (EnumEditor, Handler, HGroup, HTMLEditor, ImageEditor,
-                          InstanceEditor, Item, Label, ShellEditor, Spring,
+                          InstanceEditor, Item, Label, Spring,
                           Tabbed, UItem, VGroup, View, VSplit)
 
 import piksi_tools.serial_link as s
@@ -751,9 +751,9 @@ class ShowUsage(HasTraits):
         else:
             self.usage_str = "<pre>" + usage + "</pre>"
 
+
 # If using a device connected to an actual port, then invoke the
 # regular console dialog for port selection
-
 flow_control_options_list = ['None', 'Hardware RTS/CTS']
 cnx_type_list = ['Serial/USB', 'TCP/IP']
 
@@ -835,7 +835,7 @@ class PortChooser(HasTraits):
         This method refreshes the port list
         """
         try:
-          self.ports = [p for p, _, _ in s.get_ports()]
+            self.ports = [p for p, _, _ in s.get_ports()]
         except TypeError:
             pass
 
@@ -850,7 +850,6 @@ class PortChooser(HasTraits):
             self.choose_baud = False
         self.baudrate = baudrate
         self.update_ports = call_repeatedly(0.5, self.refresh_ports)
-
 
 
 def main():

@@ -17,11 +17,10 @@ from threading import Thread
 from time import sleep
 
 from pyface.api import GUI
-from pyface.image_resource import ImageResource
 from traits.api import Event, HasTraits, String
 from traitsui.api import Action, Handler, Item, TextEditor, View
 
-from .utils import resource_filename, icon
+from .utils import icon
 
 auto_survey_button = Action(
     name="Auto Survey", action="set_execute_callback_true", show_label=False)
