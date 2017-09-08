@@ -74,7 +74,8 @@ function all_dependencies_debian () {
          python-qt4-dev \
          python-sip \
          python-qt4-gl \
-         python-software-properties
+         python-software-properties \
+         libgtk2.0-0
     pip install --upgrade pip
     pip install -r ../requirements.txt
     pip install -r ../requirements_gui.txt
