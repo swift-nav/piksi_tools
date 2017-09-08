@@ -849,7 +849,6 @@ class PortChooser(HasTraits):
         if baudrate not in BAUD_LIST:
             self.choose_baud = False
         self.baudrate = baudrate
-        self.update_ports = call_repeatedly(0.5, self.refresh_ports)
 
 
 def main():
