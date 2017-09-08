@@ -9,8 +9,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-
-from pkg_resources import resource_filename
+from __future__ import absolute_import
 
 from sbp.piksi import (SBP_MSG_NETWORK_STATE_RESP, SBP_MSG_THREAD_STATE,
                        SBP_MSG_UART_STATE, SBP_MSG_UART_STATE_DEPA,
@@ -21,6 +20,7 @@ from traits.etsconfig.api import ETSConfig
 from traitsui.api import HGroup, Item, TabularEditor, VGroup, View
 from traitsui.tabular_adapter import TabularAdapter
 
+from .utils import resource_filename
 
 if ETSConfig.toolkit != 'null':
     from enable.savage.trait_defs.ui.svg_button import SVGButton
@@ -59,8 +59,7 @@ class SystemMonitorView(HasTraits):
     piksi_reset_button = SVGButton(
         label='Reset Piksi',
         tooltip='Reset Piksi',
-        filename=resource_filename('piksi_tools',
-                                   'console/images/fontawesome/power27.svg'),
+        filename=resource_filename('console/images/fontawesome/power27.svg'),
         width=16,
         height=16,
         aligment='center')
@@ -68,8 +67,7 @@ class SystemMonitorView(HasTraits):
     network_refresh_button = SVGButton(
         label='Refresh Network Status',
         tooltip='Refresh Network Status',
-        filename=resource_filename('piksi_tools',
-                                   'console/images/fontawesome/refresh.svg'),
+        filename=resource_filename('console/images/fontawesome/refresh.svg'),
         width=16,
         height=16,
         aligment='center')

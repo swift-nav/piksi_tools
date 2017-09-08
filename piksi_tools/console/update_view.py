@@ -12,7 +12,6 @@
 from __future__ import absolute_import, print_function
 
 import os
-from pkg_resources import resource_filename
 from threading import Thread
 from time import sleep
 from urllib2 import URLError
@@ -20,7 +19,6 @@ from urllib2 import URLError
 from intelhex import HexRecordError, IntelHex
 from pkg_resources import parse_version as pkparse_version
 from pyface.api import GUI, OK, FileDialog, ProgressDialog
-from pyface.image_resource import ImageResource
 from sbp.bootload import MsgBootloaderJumpToApp
 from sbp.logging import SBP_MSG_LOG
 from sbp.piksi import MsgReset
@@ -35,11 +33,6 @@ from piksi_tools.fileio import FileIO
 
 from .output_stream import OutputStream
 from .update_downloader import INDEX_URL, UpdateDownloader
-
-icon = ImageResource(
-    'icon',
-    search_path=[resource_filename('piksi_tools', 'console/images')]
-)
 
 HT = 8
 COLUMN_WIDTH = 100

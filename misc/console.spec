@@ -63,4 +63,4 @@ coll = COLLECT(exe,
 if is_darwin:
   app = BUNDLE(coll,
                name='Swift Console.app',
-               icon='icon.icns')
+               icon=icon)
