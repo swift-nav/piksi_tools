@@ -31,7 +31,7 @@ if is_linux:
 
 
 a = Analysis(['../piksi_tools/console/console.py'],
-             binaries=[],
+             binaries=binaries,
              datas=datas,
              hiddenimports=[],
              hookspath=['misc/pyi-hooks'],
