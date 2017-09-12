@@ -8,8 +8,6 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-import sys
-
 import numpy as np
 from traits.api import Bool, HasTraits
 from traitsui.api import HGroup, Item, Spring, TextEditor
@@ -65,7 +63,7 @@ def plot_square_axes(plot, xnames, ynames):
             plot.value_range.high_setting = maxy + padding
     except:
         import traceback
-        sys.__stderr__.write(traceback.format_exc() + '\n')
+        traceback.print_exc()
 
 
 class CodeFiltered(HasTraits):
