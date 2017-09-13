@@ -34,6 +34,8 @@ from piksi_tools.console.gui_utils import MultilineTextEditor
 from .settings_list import SettingsList
 from .utils import resource_filename
 
+SETTINGS_REVERT_TIMEOUT = 5
+
 if ETSConfig.toolkit != 'null':
     from enable.savage.trait_defs.ui.svg_button import SVGButton
 else:
@@ -124,7 +126,7 @@ class Setting(SettingBase):
                 self.value = self.value.encode('ascii', 'replace')
             if not self.revert_in_progress:
                 self.timed_revert_thread = threading.Thread(
-                    target=self.revert_after_delay, args=(1, name, old, new))
+                    target=self.revert_after_delay, args=(SETTINGS_REVERT_TIMEOUT, name, old, new))
                 self.settings.set(self.section, self.name, self.value)
                 self.timed_revert_thread.start()
             self.revert_in_progress = False
