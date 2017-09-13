@@ -17,7 +17,7 @@ from enable.api import ComponentEditor
 from pyface.api import GUI
 from sbp.piksi import SBP_MSG_SPECAN, MsgSpecan
 from traits.api import Dict, HasTraits, Instance, Str
-from traitsui.api import CheckListEditor, Item, View
+from traitsui.api import EnumEditor, Item, View, HGroup, Spring
 
 # How many points are in each FFT?
 NUM_POINTS = 512
@@ -62,16 +62,27 @@ class SpectrumAnalyzerView(HasTraits):
     plot = Instance(Plot)
     plot_data = Instance(ArrayPlotData)
     which_plot = Str("Channel 1")
+    hint = Str("Enable with setting in \"System Monitor\" group.")
     traits_view = View(
         Item(
             'plot',
             editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8)),
             show_label=False),
-        Item(
-            name='which_plot',
-            show_label=False,
-            editor=CheckListEditor(
-                values=["Channel 1", "Channel 2", "Channel 3", "Channel 4"])))
+        HGroup(
+            Spring(width=20, springy=False),
+            Item(
+                '',
+                label='Channel Selection:',
+                emphasized=True),
+            Item(
+                name='which_plot',
+                show_label=False,
+                tooltip='Select the RF Channel for which to display Spectrum Analyzer',
+                editor=EnumEditor(
+                    values=["Channel 1", "Channel 2", "Channel 3", "Channel 4"])),
+            Spring(width=20, springy=True),
+            Item('hint', show_label=False, style='readonly', style_sheet='*{font-style:italic}'),
+            Spring(width=20, springy=True)))
 
     def parse_payload(self, raw_payload):
         """
@@ -222,6 +233,7 @@ class SpectrumAnalyzerView(HasTraits):
         self.plot.title_color = [0, 0, 0.43]
 
         self.plot.value_axis.orientation = 'right'
+        self.plot.value_axis.title_spacing = 30
         self.plot.value_axis.title = 'Amplitude (dB)'
 
         self.plot.index_axis.title = 'Frequency (MHz)'
