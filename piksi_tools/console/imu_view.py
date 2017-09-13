@@ -51,13 +51,16 @@ class IMUView(HasTraits):
             Item(
                 'plot',
                 editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8)),
-                show_label=False, ),
+                show_label=False),
             HGroup(
-                Item('imu_temp', format_str='%.2f C'),
-                Item('imu_conf', format_str='0x%02X'),
-                Item('rms_acc_x', format_str='%.2f g'),
-                Item('rms_acc_y', format_str='%.2f g'),
-                Item('rms_acc_z', format_str='%.2f g'), ), ))
+                Item('imu_temp',  format_str='%.2f C', height=-16, width=4),
+                Item('imu_conf',  format_str='0x%02X', height=-16, width=4),
+                Item('rms_acc_x', format_str='%.2f g', height=-16, width=4),
+                Item('rms_acc_y', format_str='%.2f g', height=-16, width=4),
+                Item('rms_acc_z', format_str='%.2f g', height=-16, width=4),
+            ),
+        )
+    )
 
     def imu_set_data(self):
         self.plot_data.set_data('acc_x', self.acc[:, 0])
