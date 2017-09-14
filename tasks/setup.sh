@@ -144,6 +144,8 @@ function install_python_deps_osx () {
       brew install python --framework --with-brewed-openssl 2>&1 || :
     fi
     pip install --upgrade pip
+    brew tap-unpin cartr/qt4 | true # If brew tap-pin is run twice, it errors.
+    brew untap cartr/qt4 | true     # If brew tap is run twice, it errors.
     brew tap cartr/qt4
     brew tap-pin cartr/qt4
     brew install qt@4 shiboken@1.2 qt-webkit@2.3
