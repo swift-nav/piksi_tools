@@ -14,31 +14,15 @@ utilities (firmware bootloader, serial port data logging, etc.).
 Setup
 -----
 
-Note on ``virtualenv`` and ``conda``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-If want to use a `virtualenv <http://docs.python-guide.org/en/latest/dev/virtualenvs/>`__ while developing the console, you should activate it before running the install scripts, as they will ``pip install`` requirements.
+It is advised to install `piksi_tools` inside a virtualenv to avoid modifying global system state.
 
-The unittests do not work with the ``conda`` package manager because ``tox`` uses ``virtualenv``, which is not compatible with ``conda``.
+To install the dependencies for the basic tools: `pip install -r requirements.txt`
 
-Scripts
-~~~~~~~
-Install all dependencies (including console libraries)::
+To install the dependencies for the console GUI, first run `make deps` to install the systemwide deps and then `pip install -r requirements_gui.txt pyside` for the python deps.
 
-  $ make deps
+Finally, `pip install -e .` to set up a dev install in the local dev environment.
 
-Install dependencies (without console libraries)::
-
-  $ make serial_deps
-
-Install from repo::
-
-  $ sudo python setup.py install
-
-Install package from pypi::
-
-  $ sudo pip install piksi_tools
-
-On OS X, you may need to add ``export PYTHONPATH=/usr/local/lib/python2.7/site-packages:$PYTHONPATH`` to your ``~/.bash_profile`` in order to use libraries installed via ``brew``.
+To run the installed console from the current env, use `python -m piksi_tools.console.console`
 
 
 Usage Examples
