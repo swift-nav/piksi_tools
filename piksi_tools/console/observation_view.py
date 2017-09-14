@@ -103,6 +103,7 @@ class ObservationView(CodeFiltered):
                 show_border=True))
 
     def update_obs(self):
+        self.obs_count = len(self.obs)
         self._obs_table_list = [
             ('{} ({})'.format(svid[0], code_to_str(svid[1])), ) + obs
             for svid, obs in sorted(self.obs.items())
