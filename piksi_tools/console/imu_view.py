@@ -53,8 +53,8 @@ class IMUView(HasTraits):
                 editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8)),
                 show_label=False),
             HGroup(
-                Item('imu_temp',  format_str='%.2f C', height=-16, width=4),
-                Item('imu_conf',  format_str='0x%02X', height=-16, width=4),
+                Item('imu_temp', format_str='%.2f C', height=-16, width=4),
+                Item('imu_conf', format_str='0x%02X', height=-16, width=4),
                 Item('rms_acc_x', format_str='%.2f g', height=-16, width=4),
                 Item('rms_acc_y', format_str='%.2f g', height=-16, width=4),
                 Item('rms_acc_z', format_str='%.2f g', height=-16, width=4),
@@ -72,7 +72,7 @@ class IMUView(HasTraits):
 
     def imu_aux_callback(self, sbp_msg, **metadata):
         if sbp_msg.imu_type == 0:
-            self.imu_temp = 23 + sbp_msg.temp / 2.**9
+            self.imu_temp = 23 + sbp_msg.temp / 2. ** 9
             self.imu_conf = sbp_msg.imu_conf
         else:
             print("IMU type %d not known" % sbp_msg.imu_type)
@@ -85,7 +85,7 @@ class IMUView(HasTraits):
 
         if self.imu_conf is not None:
             acc_range = self.imu_conf & 0xF
-            sf = 2.**(acc_range + 1) / 2.**15
+            sf = 2. ** (acc_range + 1) / 2. ** 15
             self.rms_acc_x = sf * np.sqrt(np.mean(np.square(self.acc[:, 0])))
             self.rms_acc_y = sf * np.sqrt(np.mean(np.square(self.acc[:, 1])))
             self.rms_acc_z = sf * np.sqrt(np.mean(np.square(self.acc[:, 2])))
