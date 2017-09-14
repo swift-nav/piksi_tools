@@ -94,7 +94,7 @@
   expert: false
   type: integer
   units: bytes
-  default value: '102'
+  default value: '255'
   enumerated possible values:
   Description: Determines the maximum message length for raw observation sbp messages
   Notes: This parameter is useful for tuning observation messages for compatibility
@@ -270,7 +270,7 @@
   expert: false
   type: integer
   units: Hz
-  default value: '10'
+  default value: '1'
   enumerated possible values:
   Description: The frequency at which a position solution is computed
   Notes:
@@ -290,7 +290,7 @@
   expert: false
   type: integer
   units: N/A
-  default value: '10'
+  default value: '2'
   enumerated possible values:
   Description: Integer divisor of solution frequency for which the observations will
     be output
@@ -380,7 +380,7 @@
   expert: true
   type: boolean
   units:
-  default value: False
+  default value: 'False'
   enumerated possible values: True,False
   Description: Receiver Autonomous Integrity Monitoring
   Notes: If True, RAIM checks will not be performed.
@@ -390,7 +390,7 @@
   expert: False
   type: boolean
   units:  N/A
-  default value: False
+  default value: 'False'
   enumerated possible values: True,False
   Description: |
     Enables SBP heading output.
@@ -420,7 +420,7 @@
   expert: true
   type: boolean
   units: N/A
-  default value: False
+  default value: 'False'
   enumerated possible values: True,False
   Description: Disable Klobuchar ionospheric corrections
   Notes: If True, Klobuchar ionospheric corrections will not be applied.
@@ -430,7 +430,7 @@
   expert: true
   type: boolean
   units: N/A
-  default value:
+  default value: 'True'
   enumerated possible values: True,False
   Description: Enable GLONASS measurement processing in single point navigation filter.
   Notes: If set to True, GLONASS measurements are processed in the single point navigation filter.
@@ -440,7 +440,7 @@
   expert: true
   type: boolean
   units: N/A
-  default value:
+  default value: 'True'
   enumerated possible values: True,False
   Description: Enable GLONASS measurement processing in RTK navigation filter
   Notes: If set to True, GLONASS measurements are processed in the RTK navigation filter.
@@ -592,7 +592,7 @@
   expert: true
   type: string
   units: N/A
-  default value: '24'
+  default value: '40'
   enumerated possible values:
   Description: Number of channels in SwiftNap FPGA
   Notes: This is a read only setting.
@@ -738,7 +738,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '68,72,73,74,65535'
+  default value: '72,74,65535'
   Description: Configure which messages should be sent on the port
   Notes: The enabled sbp messages settings is a list of message types
     and rate divisors that will be sent out of the interface. If left blank, all
@@ -767,7 +767,7 @@
   expert: false
   type: integer
   units: us (microseconds)
-  default value: 0
+  default value: '0'
   enumerated possible values:
   Description: Minimum time between events (0 = disabled)
   Notes: Any event that is triggered within the sensitivity window after the previous event will be ignored and no MSG_EXT_EVENT will be generated.
@@ -791,7 +791,7 @@
   expert: false
   type: integer
   units: us (microseconds)
-  default value: 0
+  default value: '0'
   enumerated possible values:
   Description: Duro only. Minimum time between events (0 = disabled)
   Notes: Any event that is triggered within the sensitivity window after the previous event will be ignored and no MSG_EXT_EVENT will be generated.
@@ -815,7 +815,7 @@
   expert: false
   type: integer
   units: us (microseconds)
-  default value: 0
+  default value: '0'
   enumerated possible values:
   Description: Duro only. Minimum time between events (0 = disabled)
   Notes: Any event that is triggered within the sensitivity window after the previous event will be ignored and no MSG_EXT_EVENT will be generated.
@@ -1278,21 +1278,21 @@
   name: erase_almanac
   expert: true
   type: boolean
-  default value: 'True'
+  default value: 'False'
   Description: Erase stored almanacs during boot
 
 - group: ndb
   name: erase_almanac_wn
   expert: true
   type: boolean
-  default value: 'True'
+  default value: 'False'
   Description: Erase stored almanac week numbers during boot
 
 - group: ndb
   name: erase_iono
   expert: true
   type: boolean
-  default value: 'True'
+  default value: 'False'
   Description: Erase stored ionospheric parameters during boot
 
 - group: ndb
@@ -1306,14 +1306,14 @@
   name: erase_l2c_capb
   expert: true
   type: boolean
-  default value: 'True'
+  default value: 'False'
   Description: Erase stored L2C capability mask during boot
 
 - group: ndb
   name: erase_utc_params
   expert: true
   type: boolean
-  default value: 'True'
+  default value: 'False'
   Description: Erase stored UTC offset parameters during boot
 
 - group: ndb
