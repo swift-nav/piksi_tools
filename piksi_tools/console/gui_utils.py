@@ -8,8 +8,6 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-import sys
-
 import numpy as np
 from traits.api import Bool, HasTraits
 from traitsui.api import HGroup, Item, Spring, TextEditor
@@ -32,21 +30,22 @@ def plot_square_axes(plot, xnames, ynames):
         if type(xnames) is str:
             xs = plot.data.get_data(xnames)
             ys = plot.data.get_data(ynames)
-            minx = min(xs)
-            maxx = max(xs)
-            miny = min(ys)
-            maxy = max(ys)
         else:
-            concatx = np.concatenate(
+            xs = np.concatenate(
                 [plot.data.get_data(xname) for xname in xnames])
-            concaty = np.concatenate(
+            ys = np.concatenate(
                 [plot.data.get_data(yname) for yname in ynames])
-            minx = min(concatx)
-            maxx = max(concatx)
-            miny = min(concaty)
-            maxy = max(concaty)
+
+        if 0 in (len(xs), len(ys)):
+            return
+
+        minx = min(xs)
+        maxx = max(xs)
+        miny = min(ys)
+        maxy = max(ys)
         rangex = maxx - minx
         rangey = maxy - miny
+
         try:
             aspect = float(plot.width) / plot.height
         except:
@@ -65,7 +64,7 @@ def plot_square_axes(plot, xnames, ynames):
             plot.value_range.high_setting = maxy + padding
     except:
         import traceback
-        sys.__stderr__.write(traceback.format_exc() + '\n')
+        traceback.print_exc()
 
 
 class CodeFiltered(HasTraits):
