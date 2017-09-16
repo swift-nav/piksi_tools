@@ -426,24 +426,14 @@
   Notes: If True, Klobuchar ionospheric corrections will not be applied.
 
 - group: solution
-  name: enable_glonass_in_spp
-  expert: true
+  name: glonass_navigation_enabled
+  expert: false
   type: boolean
   units: N/A
   default value: 'True'
   enumerated possible values: True,False
-  Description: Enable GLONASS measurement processing in single point navigation filter.
-  Notes: If set to True, GLONASS measurements are processed in the single point navigation filter.
-
-- group: solution
-  name: enable_glonass_in_rtk
-  expert: true
-  type: boolean
-  units: N/A
-  default value: 'True'
-  enumerated possible values: True,False
-  Description: Enable GLONASS measurement processing in RTK navigation filter
-  Notes: If set to True, GLONASS measurements are processed in the RTK navigation filter.
+  Description: Enable GLONASS measurement processing in the navigation filter
+  Notes: If set to True, GLONASS measurements are processed in the navigation filter for SPP and RTK.
 
 - group: system_info
   name: serial_number
@@ -494,7 +484,17 @@
   default value: N/A
   enumerated possible values:
   Description: hardware revision for Piksi
-  Notes: This is a read only setting.
+  Notes: This is a read only setting that refers to the product family of the hardware.
+
+- group: system_info
+  name: hw_version
+  expert: True
+  type: string
+  units: N/A
+  default value: N/A
+  enumerated possible values:
+  Description: Hardware version number
+  Notes: This is a read only setting that corresponds to the version number printed on the oem module hardware version sticker.
 
 - group: system_info
   name: firmware_build_id
@@ -613,8 +613,8 @@
   type: boolean
   units: N/A
   default value: false
-  enumerated possible values:
-  Description: enable spectrum analyzer
+  enumerated possible values: true,false
+  Description: Enable spectrum analyzer
   Notes: This setting enables the on-device spectrum analyzer and associated SBP output.
     The spectrum analyzer is available from the "Advanced" tab of the console.
 
@@ -870,6 +870,17 @@
   Description: Output raw I/Q correlations
   Notes: Bitmask of channel IDs (not PRNs)
 
+- group: track
+  name: max_pll_integration_time_ms
+  expert: true
+  type: integer
+  units: N/A
+  default value: '20'
+  enumerated possible values:
+  Description: Controls maximum possible integration time for a measurement
+  Notes: This can be used to configure the sensitivity and dynamic tracking modes permitted to be used by receiver.
+     Lower values provide lower sensitivity and noisier phase measurements but better performance in dynamic conditions.
+
 - group: cn0_est
   name: alpha
   expert: true
@@ -936,6 +947,30 @@
   type: float
   Description: cross correlation time
 
+- group: glo_l1ca_track
+  name: show_unconfirmed
+  expert: true
+  type: boolean
+  Description: Show unconfirmed tracking channels in tracking state
+
+- group: glo_l1ca_track
+  name: xcorr_cof
+  expert: true
+  type: float
+  Description: cross correlation coefficient
+
+- group: glo_l1ca_track
+  name: xcorr_delta
+  expert: true
+  type: float
+  Description: cross correlation delta
+
+- group: glo_l1ca_track
+  name: xcorr_time
+  expert: true
+  type: float
+  Description: cross correlation time
+
 - group: l2cm_track
   name: xcorr_cof
   expert: true
@@ -983,6 +1018,30 @@
   expert: true
   type: bool
   Description: Show unconfirmed tracking channels in tracking state
+
+- group: glo_l2ca_track
+  name: show_unconfirmed
+  expert: true
+  type: boolean
+  Description: Show unconfirmed tracking channels in tracking state
+
+- group: glo_l2ca_track
+  name: xcorr_cof
+  expert: true
+  type: float
+  Description: cross correlation coefficient
+
+- group: glo_l2ca_track
+  name: xcorr_delta
+  expert: true
+  type: float
+  Description: cross correlation delta
+
+- group: glo_l2ca_track
+  name: xcorr_time
+  expert: true
+  type: float
+  Description: cross correlation time
 
 - group: nmea
   name: gpgsv_msg_rate
@@ -1131,6 +1190,16 @@
   Notes:
 
 - group: acquisition
+  name: glonass_acquisition_enabled
+  expert: false
+  type: boolean
+  units: N/A
+  default value: 'False'
+  enumerated possible values: true,false
+  Description: Enable the GLONASS acquisition and raw measurements
+  Notes: This is a precondition for navigation with GLONASS.
+
+- group: acquisition
   name: almanacs_enabled
   expert: true
   type: boolean
@@ -1176,6 +1245,21 @@
   default value: '192.168.0.1'
   Description: The default gateway for the IP config
   Notes: The configured gateway in XXX.XXX.XXX.XXX format.
+
+- group: cell_modem
+  name: modem_type
+  expert: true
+  type: enum
+  enumerated possible values: GSM,CDMA
+  default value: 'GSM'
+  Description: The type of cell modem in use.
+
+- group: cell_modem
+  name: debug
+  expert: true
+  type: boolean
+  default value: false
+  Description: Additional debug messages for cell modem
 
 - group: tcp_server0
   name: mode
