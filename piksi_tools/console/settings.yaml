@@ -6,7 +6,7 @@
   type: boolean
   units:
   default value: 'False'
-  enumerated possible values: true,false
+  enumerated possible values: True,False
   Description: Broadcast surveyed base station position
   Notes: This flag ultimately determines whether the SBP message with identifier
     MSG_BASE_POS_ECEF will be calculated and sent.  Logically, setting this attribute to
@@ -112,7 +112,7 @@
   type: boolean
   units: N/A
   default value: 'False'
-  enumerated possible values: true,false
+  enumerated possible values: True,False
   Description: Toggles the Piksi internal simulator on and off
   Notes: The Piksi simulator will provide simulated outputs of a
     stationary base station and the Local Piksi moving in a circle around the
@@ -250,7 +250,7 @@
   expert: true
   type: boolean
   units: N/A
-  default value: False
+  default value: 'False'
   enumerated possible values: True,False
   Description: Enable Skylark client
   Notes: If True, Skyark client will be used.
@@ -426,24 +426,14 @@
   Notes: If True, Klobuchar ionospheric corrections will not be applied.
 
 - group: solution
-  name: enable_glonass_in_spp
-  expert: true
+  name: glonass_navigation_enabled
+  expert: false
   type: boolean
   units: N/A
   default value: 'True'
   enumerated possible values: True,False
-  Description: Enable GLONASS measurement processing in single point navigation filter.
-  Notes: If set to True, GLONASS measurements are processed in the single point navigation filter.
-
-- group: solution
-  name: enable_glonass_in_rtk
-  expert: true
-  type: boolean
-  units: N/A
-  default value: 'True'
-  enumerated possible values: True,False
-  Description: Enable GLONASS measurement processing in RTK navigation filter
-  Notes: If set to True, GLONASS measurements are processed in the RTK navigation filter.
+  Description: Enable GLONASS measurement processing in the navigation filter
+  Notes: If set to True, GLONASS measurements are processed in the navigation filter for SPP and RTK.
 
 - group: system_info
   name: serial_number
@@ -494,7 +484,17 @@
   default value: N/A
   enumerated possible values:
   Description: hardware revision for Piksi
-  Notes: This is a read only setting.
+  Notes: This is a read only setting that refers to the product family of the hardware.
+
+- group: system_info
+  name: hw_version
+  expert: True
+  type: string
+  units: N/A
+  default value: N/A
+  enumerated possible values:
+  Description: Hardware version number
+  Notes: This is a read only setting that corresponds to the version number printed on the oem module hardware version sticker.
 
 - group: system_info
   name: firmware_build_id
@@ -608,12 +608,23 @@
   Notes:
 
 - group: system_monitor
+  name: spectrum_analyzer
+  expert: false
+  type: boolean
+  units: N/A
+  default value: false
+  enumerated possible values: True,False
+  Description: Enable spectrum analyzer
+  Notes: This setting enables the on-device spectrum analyzer and associated SBP output.
+    The spectrum analyzer is available from the "Advanced" tab of the console.
+
+- group: system_monitor
   name: watchdog
   expert: true
   type: boolean
   units: N/A
   default value: 'True'
-  enumerated possible values: true,false
+  enumerated possible values: True,False
   Description: Enable hardware watchdog timer to reset the Piksi if it locks up for
     any reason
   Notes: You must reset the Piksi for changes to this setting to take effect.
@@ -663,7 +674,7 @@
   expert: false
   type: boolean
   units: NA
-  default value: False
+  default value: 'False'
   enumerated possible values:
   Description: Enable hardware flow control (RTS/CTS)
   Notes:
@@ -713,7 +724,7 @@
   expert: false
   type: boolean
   units: NA
-  default value: False
+  default value: 'False'
   enumerated possible values:
   Description: Enable hardware flow control (RTS/CTS)
   Notes:
@@ -859,6 +870,17 @@
   Description: Output raw I/Q correlations
   Notes: Bitmask of channel IDs (not PRNs)
 
+- group: track
+  name: max_pll_integration_time_ms
+  expert: true
+  type: integer
+  units: N/A
+  default value: '20'
+  enumerated possible values:
+  Description: Controls maximum possible integration time for a measurement
+  Notes: This can be used to configure the sensitivity and dynamic tracking modes permitted to be used by receiver.
+     Lower values provide lower sensitivity and noisier phase measurements but better performance in dynamic conditions.
+
 - group: cn0_est
   name: alpha
   expert: true
@@ -925,6 +947,30 @@
   type: float
   Description: cross correlation time
 
+- group: glo_l1ca_track
+  name: show_unconfirmed
+  expert: true
+  type: boolean
+  Description: Show unconfirmed tracking channels in tracking state
+
+- group: glo_l1ca_track
+  name: xcorr_cof
+  expert: true
+  type: float
+  Description: cross correlation coefficient
+
+- group: glo_l1ca_track
+  name: xcorr_delta
+  expert: true
+  type: float
+  Description: cross correlation delta
+
+- group: glo_l1ca_track
+  name: xcorr_time
+  expert: true
+  type: float
+  Description: cross correlation time
+
 - group: l2cm_track
   name: xcorr_cof
   expert: true
@@ -972,6 +1018,30 @@
   expert: true
   type: bool
   Description: Show unconfirmed tracking channels in tracking state
+
+- group: glo_l2ca_track
+  name: show_unconfirmed
+  expert: true
+  type: boolean
+  Description: Show unconfirmed tracking channels in tracking state
+
+- group: glo_l2ca_track
+  name: xcorr_cof
+  expert: true
+  type: float
+  Description: cross correlation coefficient
+
+- group: glo_l2ca_track
+  name: xcorr_delta
+  expert: true
+  type: float
+  Description: cross correlation delta
+
+- group: glo_l2ca_track
+  name: xcorr_time
+  expert: true
+  type: float
+  Description: cross correlation time
 
 - group: nmea
   name: gpgsv_msg_rate
@@ -1052,7 +1122,7 @@
   expert: true
   type: boolean
   units: N/A
-  default value: False
+  default value: 'False'
   enumerated possible values: True,False
   Description: Enable NTRIP client
   Notes: If True, NTRIP client will be used.
@@ -1115,9 +1185,19 @@
   type: boolean
   units: N/A
   default value: 'False'
-  enumerated possible values: true,false
+  enumerated possible values: True,False
   Description: Enable the SBAS constellation
   Notes:
+
+- group: acquisition
+  name: glonass_acquisition_enabled
+  expert: false
+  type: boolean
+  units: N/A
+  default value: 'False'
+  enumerated possible values: True,False
+  Description: Enable the GLONASS acquisition and raw measurements
+  Notes: This is a precondition for navigation with GLONASS.
 
 - group: acquisition
   name: almanacs_enabled
@@ -1125,7 +1205,7 @@
   type: boolean
   units: N/A
   default value: 'False'
-  enumerated possible values: true,false
+  enumerated possible values: True,False
   Description: Enable the almanac-based acquisition
   Notes:
 
@@ -1166,6 +1246,21 @@
   Description: The default gateway for the IP config
   Notes: The configured gateway in XXX.XXX.XXX.XXX format.
 
+- group: cell_modem
+  name: modem_type
+  expert: true
+  type: enum
+  enumerated possible values: GSM,CDMA
+  default value: 'GSM'
+  Description: The type of cell modem in use.
+
+- group: cell_modem
+  name: debug
+  expert: true
+  type: boolean
+  default value: false
+  Description: Additional debug messages for cell modem
+
 - group: tcp_server0
   name: mode
   expert: false
@@ -1179,7 +1274,8 @@
 
     "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
 
-    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1001, 1002, 1003, 1004, 1005, 1006 and 1007 RTCMv3.1 messages and will not transmit or receive any other messages.
+    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1002, 1004, 1005, 1006, 1010, and 1012 RTCMv3.1 messages and will not transmit or receive any other messages.
+
 
 - group: tcp_server0
   name: enabled_sbp_messages
@@ -1195,6 +1291,15 @@
     a divisor can be specified after the / character for each id.  For example, an entry of
     3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For Ethernet,
     the default value is optimal for logging and communication with the console.
+
+- group: tcp_server0
+  name: port
+  expert: false
+  type: integer
+  units: N/A
+  default value: '55555'
+  Description: TCP/IP port for tcp server 0
+  Notes:
 
 - group: tcp_server1
   name: mode
@@ -1209,7 +1314,7 @@
 
     "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
 
-    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1001, 1002, 1003, 1004, 1005, 1006 and 1007 RTCMv3.1 messages and will not transmit or receive any other messages.
+    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1002, 1004, 1005, 1006, 1010, and 1012 RTCMv3.1 messages and will not transmit or receive any other messages.
 
 - group: tcp_server1
   name: enabled_sbp_messages
@@ -1225,6 +1330,95 @@
     a divisor can be specified after the / character for each id.  For example, an entry of
     3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For Ethernet,
     the default value is optimal for logging and communication with the console.
+
+- group: tcp_server1
+  name: port
+  expert: false
+  type: integer
+  units: N/A
+  default value: '55556'
+  Description: TCP/IP port for tcp server 1
+  Notes:
+
+- group: tcp_client0
+  name: mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'SBP (Swift Binary Protocol)'
+  enumerated possible values: SBP,NMEA,RTCM3 IN
+  Description: Communication protocol for tcp client 0
+  Notes: |
+    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1002, 1004, 1005, 1006, 1010, and 1012 RTCMv3.1 messages and will not transmit or receive any other messages.
+
+- group: tcp_client0
+  name: enabled_sbp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: 'blank - all messages are enabled'
+  Description: Configure which messages should be sent on the port
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided.  Optionally,
+    a divisor can be specified after the / character for each id.  For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For Ethernet,
+    the default value is optimal for logging and communication with the console.
+
+- group: tcp_client0
+  name: address
+  expert: false
+  type: string
+  units: N/A
+  default value: ''
+  Description: TCP/IP address for tcp client 0.
+  Notes: The address setting is defined according to the convention "hostname:port".
+     For example, it should match the format 192.168.0.222:55555 or xxxxx.net:2101 .
+
+- group: tcp_client1
+  name: mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'SBP (Swift Binary Protocol)'
+  enumerated possible values: SBP,NMEA,RTCM3 IN
+  Description: Communication protocol for tcp client 1
+  Notes: |
+    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1002, 1004, 1005, 1006, 1010, and 1012 RTCMv3.1 messages and will not transmit or receive any other messages.
+
+- group: tcp_client1
+  name: enabled_sbp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: 'blank - all messages are enabled'
+  Description: Configure which messages should be sent on the port
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided.  Optionally,
+    a divisor can be specified after the / character for each id.  For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For Ethernet,
+    the default value is optimal for logging and communication with the console.
+
+- group: tcp_client1
+  name: address
+  expert: false
+  type: string
+  units: N/A
+  default value: ''
+  Description: TCP/IP address for tcp client 1
+  Notes: The address setting is defined according to the convention "hostname:port".
+     For example, it should match the format 192.168.0.222:55555 or xxxxx.net:2101 .
 
 - group: imu
   name: imu_raw_output
