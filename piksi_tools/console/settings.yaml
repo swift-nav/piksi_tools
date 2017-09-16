@@ -250,7 +250,7 @@
   expert: true
   type: boolean
   units: N/A
-  default value: False
+  default value: 'False'
   enumerated possible values: True,False
   Description: Enable Skylark client
   Notes: If True, Skyark client will be used.
@@ -674,7 +674,7 @@
   expert: false
   type: boolean
   units: NA
-  default value: False
+  default value: 'False'
   enumerated possible values:
   Description: Enable hardware flow control (RTS/CTS)
   Notes:
@@ -724,7 +724,7 @@
   expert: false
   type: boolean
   units: NA
-  default value: False
+  default value: 'False'
   enumerated possible values:
   Description: Enable hardware flow control (RTS/CTS)
   Notes:
@@ -1122,7 +1122,7 @@
   expert: true
   type: boolean
   units: N/A
-  default value: False
+  default value: 'False'
   enumerated possible values: True,False
   Description: Enable NTRIP client
   Notes: If True, NTRIP client will be used.
