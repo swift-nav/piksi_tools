@@ -1038,13 +1038,13 @@
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
-  name: gpgsa_msg_rate
+  name: gsa_msg_rate
   expert: false
   type: integer
   units: Solution Periods
   default value: '10'
   enumerated possible values:
-  Description: Number of ticks between GPGSA NMEA messages being sent
+  Description: Number of Solution Periods between GSA NMEA messages being sent
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: ntrip
