@@ -6,7 +6,7 @@
   type: boolean
   units:
   default value: 'False'
-  enumerated possible values: true,false
+  enumerated possible values: True,False
   Description: Broadcast surveyed base station position
   Notes: This flag ultimately determines whether the SBP message with identifier
     MSG_BASE_POS_ECEF will be calculated and sent.  Logically, setting this attribute to
@@ -112,7 +112,7 @@
   type: boolean
   units: N/A
   default value: 'False'
-  enumerated possible values: true,false
+  enumerated possible values: True,False
   Description: Toggles the Piksi internal simulator on and off
   Notes: The Piksi simulator will provide simulated outputs of a
     stationary base station and the Local Piksi moving in a circle around the
@@ -613,7 +613,7 @@
   type: boolean
   units: N/A
   default value: false
-  enumerated possible values: true,false
+  enumerated possible values: True,False
   Description: Enable spectrum analyzer
   Notes: This setting enables the on-device spectrum analyzer and associated SBP output.
     The spectrum analyzer is available from the "Advanced" tab of the console.
@@ -624,7 +624,7 @@
   type: boolean
   units: N/A
   default value: 'True'
-  enumerated possible values: true,false
+  enumerated possible values: True,False
   Description: Enable hardware watchdog timer to reset the Piksi if it locks up for
     any reason
   Notes: You must reset the Piksi for changes to this setting to take effect.
@@ -1185,7 +1185,7 @@
   type: boolean
   units: N/A
   default value: 'False'
-  enumerated possible values: true,false
+  enumerated possible values: True,False
   Description: Enable the SBAS constellation
   Notes:
 
@@ -1195,7 +1195,7 @@
   type: boolean
   units: N/A
   default value: 'False'
-  enumerated possible values: true,false
+  enumerated possible values: True,False
   Description: Enable the GLONASS acquisition and raw measurements
   Notes: This is a precondition for navigation with GLONASS.
 
@@ -1205,7 +1205,7 @@
   type: boolean
   units: N/A
   default value: 'False'
-  enumerated possible values: true,false
+  enumerated possible values: True,False
   Description: Enable the almanac-based acquisition
   Notes:
 
