@@ -608,6 +608,17 @@
   Notes:
 
 - group: system_monitor
+  name: spectrum_analyzer
+  expert: false
+  type: boolean
+  units: N/A
+  default value: false
+  enumerated possible values:
+  Description: enable spectrum analyzer
+  Notes: This setting enables the on-device spectrum analyzer and associated SBP output.
+    The spectrum analyzer is available from the "Advanced" tab of the console.
+
+- group: system_monitor
   name: watchdog
   expert: true
   type: boolean
@@ -1179,7 +1190,8 @@
 
     "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
 
-    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1001, 1002, 1003, 1004, 1005, 1006 and 1007 RTCMv3.1 messages and will not transmit or receive any other messages.
+    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1002, 1004, 1005, 1006, 1010, and 1012 RTCMv3.1 messages and will not transmit or receive any other messages.
+
 
 - group: tcp_server0
   name: enabled_sbp_messages
@@ -1196,6 +1208,15 @@
     3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For Ethernet,
     the default value is optimal for logging and communication with the console.
 
+- group: tcp_server0
+  name: port
+  expert: false
+  type: integer
+  units: N/A
+  default value: '55555'
+  Description: TCP/IP port for tcp server 0
+  Notes:
+
 - group: tcp_server1
   name: mode
   expert: false
@@ -1209,7 +1230,7 @@
 
     "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
 
-    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1001, 1002, 1003, 1004, 1005, 1006 and 1007 RTCMv3.1 messages and will not transmit or receive any other messages.
+    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1002, 1004, 1005, 1006, 1010, and 1012 RTCMv3.1 messages and will not transmit or receive any other messages.
 
 - group: tcp_server1
   name: enabled_sbp_messages
@@ -1225,6 +1246,95 @@
     a divisor can be specified after the / character for each id.  For example, an entry of
     3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For Ethernet,
     the default value is optimal for logging and communication with the console.
+
+- group: tcp_server1
+  name: port
+  expert: false
+  type: integer
+  units: N/A
+  default value: '55556'
+  Description: TCP/IP port for tcp server 1
+  Notes:
+
+- group: tcp_client0
+  name: mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'SBP (Swift Binary Protocol)'
+  enumerated possible values: SBP,NMEA,RTCM3 IN
+  Description: Communication protocol for tcp client 0
+  Notes: |
+    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1002, 1004, 1005, 1006, 1010, and 1012 RTCMv3.1 messages and will not transmit or receive any other messages.
+
+- group: tcp_client0
+  name: enabled_sbp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: 'blank - all messages are enabled'
+  Description: Configure which messages should be sent on the port
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided.  Optionally,
+    a divisor can be specified after the / character for each id.  For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For Ethernet,
+    the default value is optimal for logging and communication with the console.
+
+- group: tcp_client0
+  name: address
+  expert: false
+  type: string
+  units: N/A
+  default value: ''
+  Description: TCP/IP address for tcp client 0.
+  Notes: The address setting is defined according to the convention "hostname:port".
+     For example, it should match the format 192.168.0.222:55555 or xxxxx.net:2101 .
+
+- group: tcp_client1
+  name: mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'SBP (Swift Binary Protocol)'
+  enumerated possible values: SBP,NMEA,RTCM3 IN
+  Description: Communication protocol for tcp client 1
+  Notes: |
+    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1002, 1004, 1005, 1006, 1010, and 1012 RTCMv3.1 messages and will not transmit or receive any other messages.
+
+- group: tcp_client1
+  name: enabled_sbp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: 'blank - all messages are enabled'
+  Description: Configure which messages should be sent on the port
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided.  Optionally,
+    a divisor can be specified after the / character for each id.  For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For Ethernet,
+    the default value is optimal for logging and communication with the console.
+
+- group: tcp_client1
+  name: address
+  expert: false
+  type: string
+  units: N/A
+  default value: ''
+  Description: TCP/IP address for tcp client 1
+  Notes: The address setting is defined according to the convention "hostname:port".
+     For example, it should match the format 192.168.0.222:55555 or xxxxx.net:2101 .
 
 - group: imu
   name: imu_raw_output
