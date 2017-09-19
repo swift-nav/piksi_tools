@@ -426,7 +426,7 @@
   Notes: If True, Klobuchar ionospheric corrections will not be applied.
 
 - group: solution
-  name: glonass_navigation_enabled
+  name: enabled_glonass
   expert: false
   type: boolean
   units: N/A
@@ -434,7 +434,7 @@
   enumerated possible values: True,False
   Description: Enable GLONASS measurement processing in the navigation filter
   Notes: If set to True, GLONASS measurements are processed in the navigation filter for SPP and RTK.
-
+  
 - group: system_info
   name: serial_number
   expert: False
@@ -1116,6 +1116,16 @@
   enumerated possible values:
   Description: Number of Solution Periods between GSA NMEA messages being sent
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
+
+- group: nmea
+  name: gpgsa_msg_rate
+  expert: false
+  type: integer
+  units: Solution Period
+  default value: '10'
+  enumerated possible values:
+  Description: Number of Solution Periods between GPGSA NMEA messages being sent
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message.
 
 - group: ntrip
   name: enable
