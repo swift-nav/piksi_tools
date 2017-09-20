@@ -170,7 +170,7 @@ def get_driver(use_ftdi=False,
     # HACK - if we are on OSX and the device appears to be a CDC device, open as a binary file
         for each in serial.tools.list_ports.comports():
             if port == each[0]:
-                if each[1].startswith("Gadget Serial"):
+                if each[1].startswith("Gadget Serial") or each[1].startswith("Piksi"):
                     print("opening a file driver")
                     return CdcDriver(open(port, 'w+b', 0))
         return PySerialDriver(port, baud, rtscts=rtscts)
