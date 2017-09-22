@@ -174,7 +174,10 @@ class TrackingView(CodeFiltered):
 
             key = (s.sid.code, sat, i)
             if s.cn0 != 0:
-                self.CN0_dict[key][-1] = s.cn0 / 4.0
+                cn0 = s.cn0 / 4.0
+                if code_to_str(s.sid.code) == 'L2CX':
+                    cn0 += 3
+                self.CN0_dict[key][-1] = cn0
 
         GUI.invoke_later(self.update_plot)
 
