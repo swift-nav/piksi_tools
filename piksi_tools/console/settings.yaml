@@ -785,7 +785,7 @@
 
 - group: ext_events_1
   name: edge_trigger
-  expert: false
+  expert: true
   type: enum
   units: N/A
   default value: None
@@ -799,7 +799,7 @@
 
 - group: ext_events_1
   name: sensitivity
-  expert: false
+  expert: true
   type: integer
   units: us (microseconds)
   default value: '0'
@@ -809,7 +809,7 @@
 
 - group: ext_events_2
   name: edge_trigger
-  expert: false
+  expert: true
   type: enum
   units: N/A
   default value: None
@@ -823,7 +823,7 @@
 
 - group: ext_events_2
   name: sensitivity
-  expert: false
+  expert: true
   type: integer
   units: us (microseconds)
   default value: '0'
