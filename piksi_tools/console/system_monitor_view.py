@@ -158,10 +158,11 @@ class SystemMonitorView(HasTraits):
             self.threads = []
 
     def thread_state_callback(self, sbp_msg, **metadata):
-        if sbp_msg.name == '':
-            sbp_msg.name = '(no name)'
-        sbp_msg.cpu /= 10.
-        self.threads.append((sbp_msg.name, sbp_msg))
+        m = copy.deepcopy(sbp_msg)
+        if m.name == '':
+            m.name = '(no name)'
+        m.cpu /= 10.
+        self.threads.append((m.name, m))
 
     def _piksi_reset_button_fired(self):
         self.link(MsgReset(flags=0))
