@@ -136,6 +136,18 @@ function install_swig_osx () {
     brew link --overwrite --force swig@2
 }
 
+function find_osx_pip() {
+  # Prefer pip over pip2, as this will be configured to point to the correct
+  #   Python version in a virtualenv
+  if which pip &>/dev/null; then
+    if ! pip --version | grep -q "python 2.7"; then
+      echo 'log_error "Python 2.7 is required (pip --version reported something else)"; exit 1'
+    fi
+  elif which pip2 &>/dev/null; then
+    echo 'function pip() { pip2 $*; }'
+  fi
+}
+
 function install_python_deps_osx () {
     # Uses brew to install system-wide dependencies and pip to install
     # python dependencies.
@@ -143,14 +155,14 @@ function install_python_deps_osx () {
     if [[ ! -x /usr/local/bin/python ]]; then 
       brew install python --framework --with-brewed-openssl 2>&1 || :
     fi
+    eval `find_osx_pip`
     pip install --upgrade pip
-    brew tap-unpin cartr/qt4 | true # If brew tap-pin is run twice, it errors.
-    brew untap cartr/qt4 | true     # If brew tap is run twice, it errors.
+    brew tap-unpin cartr/qt4 || : # If brew tap-pin is run twice, it errors.
+    brew untap cartr/qt4 || : # If brew tap is run twice, it errors.
     brew tap cartr/qt4
     brew tap-pin cartr/qt4
     brew install qt@4 shiboken@1.2 qt-webkit@2.3
     brew install libftdi sip --force 2>&1 || :
-    
     pip install -r ../requirements.txt
     pip install -r ../requirements_gui.txt
     pip install PySide==1.2.2
