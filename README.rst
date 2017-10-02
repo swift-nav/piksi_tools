@@ -14,22 +14,19 @@ utilities (firmware bootloader, serial port data logging, etc.).
 Setup
 -----
 
-It is advised to install `piksi_tools` inside a virtualenv to avoid modifying global system state.
+It is advised to install ``piksi_tools`` inside a virtualenv to avoid modifying global system state.
 
-To install the dependencies for the basic tools: `pip install -r requirements.txt`
+To install the dependencies for the basic tools: ``pip install -r requirements.txt``
 
-To install the dependencies for the console GUI, first run `make deps` to install the systemwide deps and then `pip install -r requirements_gui.txt pyside` for the python deps.
+To install the dependencies for the console GUI, first run ``make deps`` to install the systemwide deps and then ``pip install -r requirements_gui.txt pyside`` for the python deps.
 
-Finally, `pip install -e .` to set up a dev install in the local dev environment.
+Finally, ``pip install -e .`` to set up a dev install in the local dev environment.
 
-To run the installed console from the current env, use `python -m piksi_tools.console.console`
+To run the installed console from the current env, use ``python -m piksi_tools.console.console``
 
 
 Usage Examples
 --------------
-
-Bootloader example
-~~~~~~~~~~~~~~~~~~
 
 Console example
 ~~~~~~~~~~~~~~~
