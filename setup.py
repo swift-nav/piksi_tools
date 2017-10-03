@@ -65,7 +65,7 @@ setup(
     packages=PACKAGES,
     package_data=PACKAGE_DATA,
     platforms=PLATFORMS,
-    install_requires=INSTALL_REQUIRES,
+    #install_requires=INSTALL_REQUIRES,
     include_package_data=True,
     use_2to3=False,
     zip_safe=False)
