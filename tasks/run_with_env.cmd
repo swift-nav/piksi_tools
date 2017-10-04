@@ -75,6 +75,7 @@ IF %PYTHON_ARCH% == 64 (
         "%WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Setup\WindowsSdkVer.exe" -q -version:%WINDOWS_SDK_VERSION%
         "%WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Bin\SetEnv.cmd" /x64 /release
         ECHO Executing: %COMMAND_TO_RUN%
+        SET TOX_TESTENV_PASSENV=DISTUTILS_USE_SDK MSSdk INCLUDE LIB
         call %COMMAND_TO_RUN% || EXIT 1
     ) ELSE (
         ECHO Using default MSVC build environment for 64 bit architecture
