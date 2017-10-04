@@ -1,12 +1,15 @@
 # chaco 4.6.1 and enable 4.6.2 have a regression which make the solution plot look weird.
 # chaco==4.6.1
 # enable==4.6.2
-https://github.com/enthought/enable/archive/aa33701123bb2f6e4d12b0192285d8732500a0dd.zip
-https://github.com/enthought/chaco/archive/d7e9b5aa4a12fd7343e49c0c6de63b9996b8470e.zip
+https://github.com/enthought/enable/archive/606e69a.zip
+https://github.com/enthought/chaco/archive/7c61319.zip
+https://github.com/enthought/pyface/archive/1e1ba48.zip
+https://github.com/enthought/traitsui/archive/2193cf9.zip
+https://github.com/enthought/traits/archive/a7a8318.zip
 
-traits==4.6.0 
-traitsui==5.1.0 
-pyface==5.1.0 
+#traits==4.6.0 
+#traitsui==5.1.0 
+# pyface==5.1.0 
 wsgiref==0.1.2 
 #pyside==1.2.2 
 #sip (required but installed through apt / brew)
