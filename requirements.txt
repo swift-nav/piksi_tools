@@ -11,5 +11,6 @@ pyparsing==2.2.0
 pygments==2.2.0
 requests==2.18.4
 six==1.10.0
-sbp==2.2.14
+# sbp==2.2.14
+-e git+https://github.com/swift-nav/libsbp@jck/doublebuf#egg=sbp&subdirectory=python
 ruamel.yaml==0.15.31
