@@ -3,13 +3,13 @@
 # enable==4.6.2
 https://github.com/enthought/enable/archive/606e69a.zip
 https://github.com/enthought/chaco/archive/7c61319.zip
-https://github.com/enthought/pyface/archive/1e1ba48.zip
-https://github.com/enthought/traitsui/archive/2193cf9.zip
-https://github.com/enthought/traits/archive/a7a8318.zip
+#https://github.com/enthought/pyface/archive/1e1ba48.zip
+#https://github.com/enthought/traitsui/archive/2193cf9.zip
+#https://github.com/enthought/traits/archive/a7a8318.zip
 
-#traits==4.6.0 
-#traitsui==5.1.0 
-# pyface==5.1.0 
+traits==4.6.0 
+traitsui==5.1.0 
+pyface==5.1.0 
 wsgiref==0.1.2 
 #pyside==1.2.2 
 #sip (required but installed through apt / brew)
