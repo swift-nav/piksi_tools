@@ -699,7 +699,9 @@
   expert: false
   type: string
   units: N/A
-  default value: '1025,520,522,524,526,23,29,257,65282,65,72,74,2304,80,528,134,136,163,165,166,167,171,181,185,187,188,2305,258,259,65280,65535'
+  default value: '1025,520,522,524,526,23,29,257,65282,65,72,74,
+                  2304,80,528,134,136,163,165,166,167,171,181,
+                  185,187,188,2305,258,259,65280,65535'
   Description: Configure which messages should be sent on the port
   Notes: The enabled sbp messages settings is a list of message types
     and rate divisors that will be sent out of the interface. If left blank, all
