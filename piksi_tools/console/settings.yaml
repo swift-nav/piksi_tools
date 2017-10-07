@@ -441,6 +441,7 @@
   type: integer
   units: N/A
   default value: N/A
+  readonly: True
   enumerated possible values:
   Description: The serial number of the Piksi receiver
   Notes: This number should match the number on the barcode on the board and cannot be modified.
@@ -451,6 +452,7 @@
   type: string
   units: N/A
   default value: N/A
+  readonly: True
   enumerated possible values:
   Description: The MAC address of the Piksi
   Notes: This is a read only setting.
@@ -461,6 +463,7 @@
   type: string
   units: N/A
   default value: N/A
+  readonly: True
   enumerated possible values:
   Description: The UUID of the Piksi
   Notes: The UUID is a universally unique identifier for this Piksi.
@@ -472,6 +475,7 @@
   type: string
   units: N/A
   default value: N/A
+  readonly: True
   enumerated possible values:
   Description: Indicates the firmware version for the Local Piksi
   Notes: The git hash is removed from this version identifier. This is a read only setting.
@@ -482,6 +486,7 @@
   type: string
   units: N/A
   default value: N/A
+  readonly: True
   enumerated possible values:
   Description: hardware revision for Piksi
   Notes: This is a read only setting that refers to the product family of the hardware.
@@ -492,6 +497,7 @@
   type: string
   units: N/A
   default value: N/A
+  readonly: True
   enumerated possible values:
   Description: Hardware version number
   Notes: This is a read only setting that corresponds to the version number printed on the oem module hardware version sticker.
@@ -502,6 +508,7 @@
   type: string
   units: N/A
   default value: N/A
+  readonly: True
   enumerated possible values:
   Description: Full build id for firmware version
   Notes: For user generated images, this will appear
@@ -513,6 +520,7 @@
   type: string
   units: N/A
   default value: N/A
+  readonly: True
   enumerated possible values:
   Description: firmware build date
   Notes: This is a read only setting.
@@ -523,6 +531,7 @@
   type: string
   units: N/A
   default value: N/A
+  readonly: True
   enumerated possible values:
   Description: build id for loader (uboot)
   Notes: This is a read only setting
@@ -533,6 +542,7 @@
   type: string
   units: N/A
   default value: N/A
+  readonly: True
   enumerated possible values:
   Description: build date for boot loader (uboot)
   Notes: This is a read only setting.
@@ -543,6 +553,7 @@
   type: string
   units: N/A
   default value: N/A
+  readonly: True
   enumerated possible values:
   Description: build id for SwiftNap FPGA bitstream
   Notes: This is a read only setting.
@@ -553,6 +564,7 @@
   type: string
   units: N/A
   default value: N/A
+  readonly: True
   enumerated possible values:
   Description: build date for SwiftNap FPGA bitstream
   Notes: This is a read only setting.
@@ -563,6 +575,7 @@
   type: string
   units: N/A
   default value: N/A
+  readonly: True
   enumerated possible values:
   Description: build id for real-time GNSS firmware (piksi_firmware)
   Notes: This is a read only setting.
@@ -573,6 +586,7 @@
   type: string
   units: N/A
   default value: N/A
+  readonly: True
   enumerated possible values:
   Description: build date for real-time GNSS firmware (piksi_firmware)
   Notes: This is a read only setting.
@@ -583,6 +597,7 @@
   type: string
   units: N/A
   default value: N/A
+  readonly: True
   enumerated possible values:
   Description: The SBP sender ID for any messages sent by the device
   Notes: ID value is equal to the lower 16 bits of the UUID. This is a read only setting.
@@ -593,6 +608,7 @@
   type: string
   units: N/A
   default value: '40'
+  readonly: True
   enumerated possible values:
   Description: Number of channels in SwiftNap FPGA
   Notes: This is a read only setting.
