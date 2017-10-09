@@ -68,7 +68,12 @@ class Setting(SettingBase):
             Item('full_name', label='Name', style='readonly'),
             Item('value', editor=TextEditor(auto_set=False, enter_set=True)),
             Item('units', style='readonly'),
-            Item('default_value', style='readonly'),
+            UItem('default_value',
+                  style='readonly',
+                  height=-1,
+                  editor=MultilineTextEditor(TextEditor(multi_line=True)),
+                  show_label=True,
+                  resizable=True),
             UItem(
                 'description',
                 style='readonly',
@@ -138,7 +143,11 @@ class EnumSetting(Setting):
         VGroup(
             Item('full_name', label='Name', style='readonly'),
             Item('value', editor=EnumEditor(name='values')),
-            Item('default_value', style='readonly'),
+            UItem('default_value',
+                  style='readonly',
+                  editor=MultilineTextEditor(TextEditor(multi_line=True)),
+                  show_label=True,
+                  resizable=True),
             UItem(
                 'description',
                 style='readonly',
