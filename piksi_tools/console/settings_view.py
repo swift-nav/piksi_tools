@@ -60,11 +60,7 @@ class TimedDelayStoppableThread(threading.Thread):
         return self._stop_event.is_set()
 
     def run(self):
-        start_time = time.time()
-        elapsed_time = time.time() - start_time
-        while elapsed_time < self._delay and not self.stopped():
-            time.sleep(0.2)
-            elapsed_time = time.time() - start_time
+        time.sleep(self._delay)
         if not self.stopped():
             self._target(*self._args)
 
