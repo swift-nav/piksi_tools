@@ -417,7 +417,8 @@ class SettingsView(HasTraits):
                     confirmed_set = False
             if confirmed_set:
                 # If we verify the new values matches our expectation, we cancel the revert thread
-                self.settings[settings_list[0]][settings_list[1]].timed_revert_thread.stop()
+                if self.settings[settings_list[0]][settings_list[1]].timed_revert_thread:
+                    self.settings[settings_list[0]][settings_list[1]].timed_revert_thread.stop()
                 self.settings[settings_list[0]][settings_list[1]].confirmed_set = True
         except KeyError:
             return
