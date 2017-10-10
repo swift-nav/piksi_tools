@@ -42,6 +42,29 @@ else:
     SVGButton = dict
 
 
+class TimedDelayStoppableThread(threading.Thread):
+    """Thread class with a stop() method. The thread itself has to check
+    regularly for the stopped() condition."""
+
+    def __init__(self, delay, target, args):
+        super(TimedDelayStoppableThread, self).__init__()
+        self._stop_event = threading.Event()
+        self._delay = delay
+        self._target = target
+        self._args = args
+
+    def stop(self):
+        self._stop_event.set()
+
+    def stopped(self):
+        return self._stop_event.is_set()
+
+    def run(self):
+        time.sleep(self._delay)
+        if not self.stopped():
+            self._target(*self._args)
+
+
 class SettingBase(HasTraits):
     name = Str()
     description = Str()
@@ -62,11 +85,15 @@ class SettingBase(HasTraits):
 class Setting(SettingBase):
     full_name = Str()
     section = Str()
-
+    confirmed_set = Bool(True)
+    readonly = Bool(False)
     traits_view = View(
         VGroup(
             Item('full_name', label='Name', style='readonly'),
-            Item('value', editor=TextEditor(auto_set=False, enter_set=True)),
+            Item('value', editor=TextEditor(auto_set=False, enter_set=True),
+                 visible_when='confirmed_set and not readonly'),
+            Item('value', style='readonly',
+                 visible_when='not confirmed_set or readonly'),
             Item('units', style='readonly'),
             UItem('default_value',
                   style='readonly',
@@ -105,36 +132,43 @@ class Setting(SettingBase):
         self.notes = settings.settings_yaml.get_field(section, name, 'Notes')
         self.default_value = settings.settings_yaml.get_field(
             section, name, 'default value')
+        readonly = settings.settings_yaml.get_field(section, name, 'readonly')
+        # get_field returns empty string if field missing, so I need this check to assign bool to traits bool
+        if readonly:
+            self.readonly = True
         self.revert_in_progress = False
-        self.confirmed_set = False
+        self.timed_revert_thread = None
+        self.confirmed_set = True
 
-    def revert_after_delay(self, delay, name, old, new, popop=True):
-        '''Revert setting to old value after delay in seconds has elapsed'''
-        time.sleep(delay)
-        if not self.confirmed_set:
-            self.revert_in_progress = True
-            self.value = old
-            invalid_setting_prompt = prompt.CallbackPrompt(
-                title="Settings Write Error",
-                actions=[prompt.close_button], )
-            invalid_setting_prompt.text = \
-                ("\n   Unable to confirm that {0} was set to {1}.\n"
-                 "   Ensure the range and formatting of the entry are correct.\n"
-                 "   Ensure that the new setting value did not interrupt console communication.").format(self.name, new)
-            invalid_setting_prompt.run()
-
-        self.confirmed_set = False
+    def revert_to_prior_value(self, name, old, new):
+        '''Revert setting to old value in the case we can't confirm new value'''
+        self.revert_in_progress = True
+        self.value = old
+        self.revert_in_progress = False
+        self.confirmed_set = True
+        invalid_setting_prompt = prompt.CallbackPrompt(
+            title="Settings Write Error",
+            actions=[prompt.close_button], )
+        invalid_setting_prompt.text = \
+            ("\n   Unable to confirm that {0} was set to {1}.\n"
+             "   Ensure the range and formatting of the entry are correct.\n"
+             "   Ensure that the new setting value did not interrupt console communication.").format(self.name, new)
+        invalid_setting_prompt.run()
 
     def _value_changed(self, name, old, new):
+        '''When a user changes a value, kick off a timed revert thread to revert it in GUI if no confirmation
+           that the change was successful is received. '''
         if (old != new and old is not Undefined and new is not Undefined):
             if type(self.value) == unicode:
                 self.value = self.value.encode('ascii', 'replace')
+            # Revert_in_progress is a guard to prevent this from running when the revert function changes the value
             if not self.revert_in_progress:
-                self.timed_revert_thread = threading.Thread(
-                    target=self.revert_after_delay, args=(SETTINGS_REVERT_TIMEOUT, name, old, new))
+                self.confirmed_set = False
+                self.timed_revert_thread = TimedDelayStoppableThread(SETTINGS_REVERT_TIMEOUT,
+                                                                     target=self.revert_to_prior_value,
+                                                                     args=(name, old, new))
                 self.settings.set(self.section, self.name, self.value)
                 self.timed_revert_thread.start()
-            self.revert_in_progress = False
 
 
 class EnumSetting(Setting):
@@ -142,7 +176,10 @@ class EnumSetting(Setting):
     traits_view = View(
         VGroup(
             Item('full_name', label='Name', style='readonly'),
-            Item('value', editor=EnumEditor(name='values')),
+            Item('value', editor=EnumEditor(name='values'),
+                 visible_when='confirmed_set and not readonly'),
+            Item('value', style='readonly',
+                 visible_when='not confirmed_set or readonly'),
             UItem('default_value',
                   style='readonly',
                   editor=MultilineTextEditor(TextEditor(multi_line=True)),
@@ -272,8 +309,8 @@ class SettingsView(HasTraits):
     def _selected_setting_changed(self):
         if self.selected_setting:
             if (self.selected_setting.name in [
-                    'surveyed_position', 'broadcast', 'surveyed_lat',
-                    'surveyed_lon', 'surveyed_alt'
+                'surveyed_position', 'broadcast', 'surveyed_lat',
+                'surveyed_lon', 'surveyed_alt'
             ] and self.lat != 0 and self.lon != 0):
                 self.show_auto_survey = True
             else:
@@ -299,7 +336,7 @@ class SettingsView(HasTraits):
             actions=[prompt.close_button, prompt.reset_button],
             callback=self.reset_factory_defaults)
         confirm_prompt.text = "This will erase all settings and then reset the device.\n" \
-            + "Are you sure you want to reset to factory defaults?"
+                              + "Are you sure you want to reset to factory defaults?"
         confirm_prompt.run(block=False)
 
     def reset_factory_defaults(self):
@@ -312,15 +349,15 @@ class SettingsView(HasTraits):
             actions=[prompt.close_button, prompt.auto_survey_button],
             callback=self.auto_survey_fn)
         confirm_prompt.text = "\n" \
-            + "This will set the Surveyed Position section to the \n" \
-            + "mean position of the last 1000 position solutions.\n \n" \
-            + "The fields that will be auto-populated are: \n" \
-            + "Surveyed Lat \n" \
-            + "Surveyed Lon \n" \
-            + "Surveyed Alt \n \n" \
-            + "The surveyed position will be an approximate value. \n" \
-            + "This may affect the relative accuracy of Piksi. \n \n" \
-            + "Are you sure you want to auto-populate the Surveyed Position section?"
+                              + "This will set the Surveyed Position section to the \n" \
+                              + "mean position of the last 1000 position solutions.\n \n" \
+                              + "The fields that will be auto-populated are: \n" \
+                              + "Surveyed Lat \n" \
+                              + "Surveyed Lon \n" \
+                              + "Surveyed Alt \n \n" \
+                              + "The surveyed position will be an approximate value. \n" \
+                              + "This may affect the relative accuracy of Piksi. \n \n" \
+                              + "Are you sure you want to auto-populate the Surveyed Position section?"
         confirm_prompt.run(block=False)
 
     def auto_survey_fn(self):
@@ -368,17 +405,17 @@ class SettingsView(HasTraits):
             if self.settings[settings_list[0]][settings_list[1]].value != settings_list[2]:
                 try:
                     float_val = float(self.settings[settings_list[0]][
-                        settings_list[1]].value)
+                                      settings_list[1]].value)
                     float_val2 = float(settings_list[2])
                     if abs(float_val - float_val2) > 0.000001:
                         confirmed_set = False
                 except ValueError:
                     confirmed_set = False
-            if not confirmed_set:
-                pass
-                # We pass if the new value doesn't match current console value.  It would be nice to update it, but that may cause side effects.
-            self.settings[settings_list[0]][settings_list[
-                1]].confirmed_set = confirmed_set
+            if confirmed_set:
+                # If we verify the new values matches our expectation, we cancel the revert thread
+                if self.settings[settings_list[0]][settings_list[1]].timed_revert_thread:
+                    self.settings[settings_list[0]][settings_list[1]].timed_revert_thread.stop()
+                self.settings[settings_list[0]][settings_list[1]].confirmed_set = True
         except KeyError:
             return
 
