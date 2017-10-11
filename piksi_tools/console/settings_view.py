@@ -325,7 +325,9 @@ class SettingsView(HasTraits):
     def _settings_read_button_fired(self):
         self.enumindex = 0
         self.ordering_counter = 0
+        self._starttime = time.time()
         self.link(MsgSettingsReadByIndexReq(index=self.enumindex))
+        print('settings write', self._starttime - time.time())
 
     def _settings_save_button_fired(self):
         self.link(MsgSettingsSave())
@@ -420,6 +422,8 @@ class SettingsView(HasTraits):
             return
 
     def settings_read_by_index_callback(self, sbp_msg, **metadata):
+        if self.enumindex == 0:
+            print(time.time() - self._starttime)
         section, setting, value, format_type = sbp_msg.payload[2:].split(
             '\0')[:4]
         self.ordering_counter += 1
