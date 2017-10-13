@@ -144,7 +144,7 @@ class ConsoleHandler(Handler):
         """
         if info.initialized:
             info.ui.title = info.object.dev_id + \
-                "(" + info.object.device_serial + ") " + CONSOLE_TITLE
+                            "(" + info.object.device_serial + ") " + CONSOLE_TITLE
 
 
 class SwiftConsole(HasTraits):
@@ -767,12 +767,12 @@ class PortChooser(HasTraits):
     ip_address = Str('192.168.0.222')
     choose_baud = Bool(True)
     baudrate = Int()
-    refresh_ports_button   = SVGButton(label='',
-                                       tooltip='Refresh Port List',
-                                       filename=resource_filename('console/images/fontawesome/refresh_blue.svg'),
-                                       allow_clipping=False,
-                                       width_padding=4,height_padding=4
-                                       )
+    refresh_ports_button = SVGButton(label='',
+                                     tooltip='Refresh Port List',
+                                     filename=resource_filename('console/images/fontawesome/refresh_blue.svg'),
+                                     allow_clipping=False,
+                                     width_padding=4, height_padding=4
+                                     )
 
     traits_view = View(
         VGroup(
@@ -789,9 +789,9 @@ class PortChooser(HasTraits):
                 VGroup(
                     Label('Serial Device:'),
                     HGroup(
-                        Item('port', editor=EnumEditor(name='ports'), show_label=False, springy=True), 
+                        Item('port', editor=EnumEditor(name='ports'), show_label=False, springy=True),
                         Item('refresh_ports_button', show_label=False, padding=0, height=-20, width=-20),
-                     ),
+                    ),
                 ),
                 VGroup(
                     Label('Baudrate:'),
@@ -863,7 +863,6 @@ class PortChooser(HasTraits):
 
 
 def main():
-
     warnings.simplefilter(action="ignore", category=FutureWarning)
     logging.basicConfig()
     args = None
