@@ -284,11 +284,6 @@ class SbpRelayView(HasTraits):
                HGroup(
                    VGroup(
                        Item(
-                           'running',
-                           show_label=True,
-                           style='readonly',
-                           visible_when='running'),
-                       Item(
                            'msg_enum',
                            label="Messages to broadcast",
                            style='custom',
