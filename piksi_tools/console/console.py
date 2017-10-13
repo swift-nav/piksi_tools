@@ -767,6 +767,13 @@ class PortChooser(HasTraits):
     ip_address = Str('192.168.0.222')
     choose_baud = Bool(True)
     baudrate = Int()
+    refresh_ports_button   = SVGButton(label='',
+                                       tooltip='Refresh Port List',
+                                       filename=resource_filename('console/images/fontawesome/refresh_blue.svg'),
+                                       allow_clipping=False,
+                                       width_padding=4,height_padding=4
+                                       )
+
     traits_view = View(
         VGroup(
             Spring(height=8),
@@ -781,10 +788,11 @@ class PortChooser(HasTraits):
             HGroup(
                 VGroup(
                     Label('Serial Device:'),
-                    Item(
-                        'port',
-                        editor=EnumEditor(name='ports'),
-                        show_label=False), ),
+                    HGroup(
+                        Item('port', editor=EnumEditor(name='ports'), show_label=False, springy=True), 
+                        Item('refresh_ports_button', show_label=False, padding=0, height=-20, width=-20),
+                     ),
+                ),
                 VGroup(
                     Label('Baudrate:'),
                     Item(
@@ -827,7 +835,7 @@ class PortChooser(HasTraits):
         buttons=['OK', 'Cancel'],
         close_result=False,
         icon=icon,
-        width=400,
+        width=460,
         title='Swift Console - Select Piksi Interface', )
 
     def refresh_ports(self):
@@ -838,6 +846,9 @@ class PortChooser(HasTraits):
             self.ports = [p for p, _, _ in s.get_ports()]
         except TypeError:
             pass
+
+    def _refresh_ports_button_fired(self):
+        self.refresh_ports()
 
     def __init__(self, baudrate=None):
         self.refresh_ports()
