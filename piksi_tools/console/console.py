@@ -825,6 +825,7 @@ class PortChooser(HasTraits):
                 Spring(),
                 visible_when="mode==\'TCP/IP\'"), ),
         buttons=['OK', 'Cancel'],
+        default_button='OK',
         close_result=False,
         icon=icon,
         width=400,
@@ -852,7 +853,6 @@ class PortChooser(HasTraits):
 
 
 def main():
-
     warnings.simplefilter(action="ignore", category=FutureWarning)
     logging.basicConfig()
     args = None
