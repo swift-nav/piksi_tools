@@ -144,7 +144,7 @@ class ConsoleHandler(Handler):
         """
         if info.initialized:
             info.ui.title = info.object.dev_id + \
-                            "(" + info.object.device_serial + ") " + CONSOLE_TITLE
+                "(" + info.object.device_serial + ") " + CONSOLE_TITLE
 
 
 class SwiftConsole(HasTraits):
