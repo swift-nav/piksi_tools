@@ -6,6 +6,7 @@
   type: boolean
   units:
   default value: 'False'
+  readonly: false
   enumerated possible values: True,False
   Description: Broadcast surveyed base station position
   Notes: This flag ultimately determines whether the SBP message with identifier
@@ -22,6 +23,7 @@
   type: Double
   units: degrees
   default value: '0'
+  readonly: false
   enumerated possible values:
   Description: "Surveyed latitude of the Piksi's antenna"
   Notes: This setting represents the latitude of the local Piksi's antenna, expressed
@@ -40,6 +42,7 @@
   type: Double
   units: degrees
   default value: '0'
+  readonly: false
   enumerated possible values:
   Description: "Surveyed longitude of the Piksi's antenna"
   Notes: This setting represents the longitude of the local Piksi's antenna, expressed
@@ -58,6 +61,7 @@
   type: Double
   units: meters
   default value: '0'
+  readonly: false
   enumerated possible values:
   Description: "Surveyed altitude of the Piksi's antenna"
   Notes: This setting represents the altitude of the Piksi's antenna above the
@@ -73,6 +77,7 @@
   type: enum
   units: N/A
   default value: 'Primary'
+  readonly: false
   enumerated possible values: Primary,Secondary
   Description: Determines which antenna to use
   Notes: This setting selects the antenna input that should be used by the Piksi.
@@ -85,6 +90,7 @@
   type: bool
   units: N/A
   default value: 'True'
+  readonly: false
   Description: Enable/Disable 4.85V antenna bias
   Notes: Most active antennas require an antenna bias in order to power
     the amplifier in the antenna.
@@ -95,6 +101,7 @@
   type: integer
   units: bytes
   default value: '255'
+  readonly: false
   enumerated possible values:
   Description: Determines the maximum message length for raw observation sbp messages
   Notes: This parameter is useful for tuning observation messages for compatibility
@@ -112,6 +119,7 @@
   type: boolean
   units: N/A
   default value: 'False'
+  readonly: false
   enumerated possible values: True,False
   Description: Toggles the Piksi internal simulator on and off
   Notes: The Piksi simulator will provide simulated outputs of a
@@ -126,6 +134,7 @@
   type: double
   units: meters
   default value: '-2706098.845'
+  readonly: false
   enumerated possible values:
   Description: Simulated base station position
   Notes: Earth Centered Earth Fixed (ECEF) x position of the simulated base station.
@@ -136,6 +145,7 @@
   type: double
   units: meters
   default value: '-4261216.475'
+  readonly: false
   enumerated possible values:
   Description: Simulated base station position
   Notes: Earth Centered Earth Fixed (ECEF) y position of the simulated base station.
@@ -146,6 +156,7 @@
   type: double
   units: meters
   default value: '3885597.912'
+  readonly: false
   enumerated possible values:
   Description: Simulated base station position
   Notes: Earth Centered Earth Fixed (ECEF) z position of the simulated base station.
@@ -156,6 +167,7 @@
   type: double
   units: m/s
   default value: '4'
+  readonly: false
   enumerated possible values:
   Description: Simulated tangential speed of Piksi
   Notes:
@@ -166,6 +178,7 @@
   type: double
   units: meters
   default value: '100'
+  readonly: false
   enumerated possible values:
   Description: Radius of the circle around which the simulated Piksi will move
   Notes:
@@ -176,6 +189,7 @@
   type: double
   units: meters^2
   default value: '1.5'
+  readonly: false
   enumerated possible values:
   Description: Standard deviation of simulated single point position
   Notes:
@@ -186,6 +200,7 @@
   type: double
   units: meters^2/s^2
   default value: '0.15'
+  readonly: false
   enumerated possible values:
   Description: Standard deviation of noise addition to simulated tangential speed
   Notes:
@@ -196,6 +211,7 @@
   type: double
   units: dBm-Hz
   default value: '0.3'
+  readonly: false
   enumerated possible values:
   Description: Standard deviation of noise added to the simulated signal to noise
     ratio
@@ -207,6 +223,7 @@
   type: double
   units: meters
   default value: '4'
+  readonly: false
   enumerated possible values:
   Description: Standard deviation of noise added to the simulated pseudo range
   Notes:
@@ -217,6 +234,7 @@
   type: double
   units: cycles
   default value: '0.03'
+  readonly: false
   enumerated possible values:
   Description: Standard deviation of noise added to the simulated carrier phase
   Notes:
@@ -227,6 +245,7 @@
   type: integer
   units: N/A
   default value: '9'
+  readonly: false
   enumerated possible values:
   Description: The number of satellites for the simulator
   Notes:
@@ -237,6 +256,7 @@
   type: packed bitfield
   units: N/A
   default value: 15 (decimal), 0xF (hexadecimal)
+  readonly: false
   enumerated possible values:
   Description: Determines the types of position outputs for the simulator
   Notes: |
@@ -251,6 +271,7 @@
   type: boolean
   units: N/A
   default value: 'False'
+  readonly: false
   enumerated possible values: True,False
   Description: Enable Skylark client
   Notes: If True, Skyark client will be used.
@@ -261,6 +282,7 @@
   type: string
   units: N/A
   default value: N/A
+  readonly: false
   enumerated possible values:
   Description: Skylark URL to use
   Notes: URL to use with Skylark client. Skylark must be enabled to use this setting.
@@ -271,6 +293,7 @@
   type: integer
   units: Hz
   default value: '1'
+  readonly: false
   enumerated possible values:
   Description: The frequency at which a position solution is computed
   Notes:
@@ -281,6 +304,7 @@
   type: float
   units: seconds
   default value: '30'
+  readonly: false
   enumerated possible values:
   Description: The maximum age of corrections for which an RTK solution will be generated
   Notes:
@@ -291,6 +315,7 @@
   type: integer
   units: N/A
   default value: '2'
+  readonly: false
   enumerated possible values:
   Description: Integer divisor of solution frequency for which the observations will
     be output
@@ -308,6 +333,7 @@
   type: enum
   units: N/A
   default value: 'Low Latency'
+  readonly: false
   enumerated possible values: Low Latency, Time Matched, No DGNSS
   Description: Selects the type of RTK solution to output
   Notes: A "Low Latency" solution uses an internal model of anticipated satellite observations
@@ -324,6 +350,7 @@
   type: enum
   units: N/A
   default value: 'Fixed'
+  readonly: false
   enumerated possible values: Fixed,Float
   Description: Determines the type of carrier phase ambiguity resolution that the Piksi will attempt to achieve
   Notes: If "fixed", the Piksi will output a integer fixed ambiguity estimate.  If
@@ -337,6 +364,7 @@
   type: double
   units: meters
   default value: '0'
+  readonly: false
   enumerated possible values:
   Description: Determines the baseline vector for the "init known baseline" feature
   Notes: This sets the number of meters that the rover is North from the
@@ -348,6 +376,7 @@
   type: double
   units: meters
   default value: '0'
+  readonly: false
   enumerated possible values:
   Description: Determines the baseline vector for the "init known baseline" feature
   Notes: This sets the number of meters that the rover is East from the
@@ -359,6 +388,7 @@
   type: double
   units: meters
   default value: '0'
+  readonly: false
   enumerated possible values:
   Description: Determines the baseline vector for the "init known baseline" feature
   Notes: This sets the number of meters that the rover is Down from the
@@ -370,6 +400,7 @@
   type: float
   units: degrees
   default value: '10'
+  readonly: false
   enumerated possible values:
   Description: SPP / RTK solution elevation mask
   Notes: Satellites must be above the horizon by at least this angle before they
@@ -381,6 +412,7 @@
   type: boolean
   units:
   default value: 'False'
+  readonly: false
   enumerated possible values: True,False
   Description: Receiver Autonomous Integrity Monitoring
   Notes: If True, RAIM checks will not be performed.
@@ -391,6 +423,7 @@
   type: boolean
   units:  N/A
   default value: 'False'
+  readonly: false
   enumerated possible values: True,False
   Description: |
     Enables SBP heading output.
@@ -409,6 +442,7 @@
   type: double
   units:  degrees
   default value: 0.0
+  readonly: false
   enumerated possible values: N/A
   Description: Rotate the heading output
   Notes: |
@@ -421,6 +455,7 @@
   type: boolean
   units: N/A
   default value: 'False'
+  readonly: false
   enumerated possible values: True,False
   Description: Disable Klobuchar ionospheric corrections
   Notes: If True, Klobuchar ionospheric corrections will not be applied.
@@ -431,6 +466,7 @@
   type: boolean
   units: N/A
   default value: 'True'
+  readonly: false
   enumerated possible values: True,False
   Description: Enable GLONASS measurement processing in the navigation filter
   Notes: If set to True, GLONASS measurements are processed in the navigation filter for SPP and RTK.
@@ -619,6 +655,7 @@
   type: integer
   units: ms
   default value: '1000'
+  readonly: false
   enumerated possible values:
   Description: Period for sending the SBP_HEARTBEAT messages
   Notes:
@@ -629,6 +666,7 @@
   type: boolean
   units: N/A
   default value: false
+  readonly: false
   enumerated possible values: True,False
   Description: Enable spectrum analyzer
   Notes: This setting enables the on-device spectrum analyzer and associated SBP output.
@@ -640,6 +678,7 @@
   type: boolean
   units: N/A
   default value: 'True'
+  readonly: false
   enumerated possible values: True,False
   Description: Enable hardware watchdog timer to reset the Piksi if it locks up for
     any reason
@@ -651,6 +690,7 @@
   type: string
   units: N/A
   default value: 'blank - all messages are enabled'
+  readonly: false
   Description: Configure which messages should be sent on the port
   Notes: The enabled sbp messages settings is a list of message types
     and rate divisors that will be sent out of the interface. If left blank, all
@@ -666,6 +706,7 @@
   type: enum
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
+  readonly: false
   enumerated possible values: SBP,NMEA,RTCM3 IN
   Description: Communication protocol for USB0
   Notes: |
@@ -681,6 +722,7 @@
   type: integer
   units: bps
   default value: '115200'
+  readonly: false
   enumerated possible values:
   Description: The Baud rate for the UART 1
   Notes:
@@ -691,6 +733,7 @@
   type: boolean
   units: NA
   default value: 'False'
+  readonly: false
   enumerated possible values:
   Description: Enable hardware flow control (RTS/CTS)
   Notes:
@@ -701,6 +744,7 @@
   type: enum
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
+  readonly: false
   enumerated possible values: SBP,NMEA OUT,RTCM3v3.1 IN
   Description: Communication protocol for UART 1
   Notes: |
@@ -718,6 +762,7 @@
   default value: '1025,520,522,524,526,23,29,257,65282,65,72,74,
                   2304,80,528,134,136,163,165,166,167,171,181,
                   185,187,188,2305,258,259,65280,65535'
+  readonly: false
   Description: Configure which messages should be sent on the port
   Notes: The enabled sbp messages settings is a list of message types
     and rate divisors that will be sent out of the interface. If left blank, all
@@ -733,6 +778,7 @@
   type: integer
   units: bps
   default value: '115200'
+  readonly: false
   enumerated possible values:
   Description: The Baud rate for the UART 0
   Notes:
@@ -743,6 +789,7 @@
   type: boolean
   units: NA
   default value: 'False'
+  readonly: false
   enumerated possible values:
   Description: Enable hardware flow control (RTS/CTS)
   Notes:
@@ -753,6 +800,7 @@
   type: enum
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
+  readonly: false
   enumerated possible values: SBP,NMEA OUT,RTCM3v3.1 IN
   Description: Communication protocol for UART0
   Notes: |
@@ -768,6 +816,7 @@
   type: string
   units: N/A
   default value: '72,74,65535'
+  readonly: false
   Description: Configure which messages should be sent on the port
   Notes: The enabled sbp messages settings is a list of message types
     and rate divisors that will be sent out of the interface. If left blank, all
@@ -783,6 +832,7 @@
   type: enum
   units: N/A
   default value: None
+  readonly: false
   enumerated possible values: None,Rising,Falling,Both
   Description: Select edges to trigger timestamped event capture
   Notes: You can use this to record the exact time that some external
@@ -797,6 +847,7 @@
   type: integer
   units: us (microseconds)
   default value: '0'
+  readonly: false
   enumerated possible values:
   Description: Minimum time between events (0 = disabled)
   Notes: Any event that is triggered within the sensitivity window after the previous event will be ignored and no MSG_EXT_EVENT will be generated.
@@ -807,6 +858,7 @@
   type: enum
   units: N/A
   default value: None
+  readonly: false
   enumerated possible values: None,Rising,Falling,Both
   Description: Duro only. Select edges to trigger timestamped event capture
   Notes: You can use this to record the exact time that some external
@@ -821,6 +873,7 @@
   type: integer
   units: us (microseconds)
   default value: '0'
+  readonly: false
   enumerated possible values:
   Description: Duro only. Minimum time between events (0 = disabled)
   Notes: Any event that is triggered within the sensitivity window after the previous event will be ignored and no MSG_EXT_EVENT will be generated.
@@ -831,6 +884,7 @@
   type: enum
   units: N/A
   default value: None
+  readonly: false
   enumerated possible values: None,Rising,Falling,Both
   Description: Duro only. Select edges to trigger timestamped event capture
   Notes: You can use this to record the exact time that some external
@@ -845,6 +899,7 @@
   type: integer
   units: us (microseconds)
   default value: '0'
+  readonly: false
   enumerated possible values:
   Description: Duro only. Minimum time between events (0 = disabled)
   Notes: Any event that is triggered within the sensitivity window after the previous event will be ignored and no MSG_EXT_EVENT will be generated.
@@ -855,6 +910,7 @@
   type: float
   units: degrees
   default value: '0'
+  readonly: false
   enumerated possible values:
   Description: Tracking elevation mask
   Notes: Satellites must be above the horizon by at least this angle before they
@@ -866,6 +922,7 @@
   type: float
   units: N/A
   default value: N/A
+  readonly: false
   enumerated possible values:
   Description: Down weights GLONASS measurements by a given factor in the navigation filter
   Notes: This parameter down weights GLONASS observations relative to GPS observations by this factor.
@@ -875,6 +932,7 @@
   expert: true
   type: boolean
   default value: false
+  readonly: false
   Description: send detailed tracking state message
   Notes:
 
@@ -884,6 +942,7 @@
   type: integer
   units: N/A
   default value: 0
+  readonly: false
   enumerated possible values:
   Description: Output raw I/Q correlations
   Notes: Bitmask of channel IDs (not PRNs)
@@ -894,6 +953,7 @@
   type: integer
   units: N/A
   default value: '20'
+  readonly: false
   enumerated possible values:
   Description: Controls maximum possible integration time for a measurement
   Notes: This can be used to configure the sensitivity and dynamic tracking modes permitted to be used by receiver.
@@ -903,163 +963,191 @@
   name: alpha
   expert: true
   Description: cn0 estimation parameter
+  readonly: false
 
 - group: cn0_est
   name: nbw
   expert: true
   Description: cn0 estimation parameter
+  readonly: false
 
 - group: cn0_est
   name: scale
   expert: true
   Description: cn0 estimation parameter
+  readonly: false
 
 - group: cn0_est
   name: cn0 shift
   expert: true
   Description: cn0 estimation parameter
+  readonly: false
 
 - group: cn0_est
   name: cn0_shift
   expert: true
   Description: cn0 estimation parameter
+  readonly: false
 
 - group: cn0_est
   name: cutoff
   expert: true
   Description: cn0 cutoff
+  readonly: false
 
 - group: cn0_est
   name: pri2sec_threshold
   type: float
   expert: true
   Description: Cn0 threshold to transition to 2nd stage tracking
+  readonly: false
 
 - group: cn0_est
   name: sec2pri_threshold
   type: float
   expert: true
   Description: Cn0 threshold to transition to out of 2nd stage tracking
+  readonly: false
 
 - group: l1ca_track
   name: show_unconfirmed
   expert: true
   type: boolean
   Description: Show unconfirmed tracking channels in tracking state
+  readonly: false
 
 - group: l1ca_track
   name: xcorr_cof
   expert: true
   type: float
   Description: cross correlation coefficient
+  readonly: false
 
 - group: l1ca_track
   name: xcorr_delta
   expert: true
   type: float
   Description: cross correlation delta
+  readonly: false
 
 - group: l1ca_track
   name: xcorr_time
   expert: true
   type: float
   Description: cross correlation time
+  readonly: false
 
 - group: glo_l1ca_track
   name: show_unconfirmed
   expert: true
   type: boolean
   Description: Show unconfirmed tracking channels in tracking state
+  readonly: false
 
 - group: glo_l1ca_track
   name: xcorr_cof
   expert: true
   type: float
   Description: cross correlation coefficient
+  readonly: false
 
 - group: glo_l1ca_track
   name: xcorr_delta
   expert: true
   type: float
   Description: cross correlation delta
+  readonly: false
 
 - group: glo_l1ca_track
   name: xcorr_time
   expert: true
   type: float
   Description: cross correlation time
+  readonly: false
 
 - group: l2cm_track
   name: xcorr_cof
   expert: true
   type: float
   Description: cross correlation coefficient
+  readonly: false
 
 - group: l2cm_track
   name: xcorr_delta
   expert: true
   type: float
   Description: cross correlation delta
+  readonly: false
 
 - group: l2cm_track
   name: xcorr_time
   expert: true
   type: float
   Description: cross correlation time
+  readonly: false
 
 - group: l2cm_track
   name: show_unconfirmed
   expert: true
   type: bool
   Description: Show unconfirmed tracking channels in tracking state
+  readonly: false
 
 - group: l2cl_track
   name: xcorr_cof
   expert: true
   type: float
   Description: cross correlation coefficient
+  readonly: false
 
 - group: l2cl_track
   name: xcorr_delta
   expert: true
   type: float
   Description: cross correlation delta
+  readonly: false
 
 - group: l2cl_track
   name: xcorr_time
   expert: true
   type: float
   Description: cross correlation time
+  readonly: false
 
 - group: l2cl_track
   name: show_unconfirmed
   expert: true
   type: bool
   Description: Show unconfirmed tracking channels in tracking state
+  readonly: false
 
 - group: glo_l2ca_track
   name: show_unconfirmed
   expert: true
   type: boolean
   Description: Show unconfirmed tracking channels in tracking state
+  readonly: false
 
 - group: glo_l2ca_track
   name: xcorr_cof
   expert: true
   type: float
   Description: cross correlation coefficient
+  readonly: false
 
 - group: glo_l2ca_track
   name: xcorr_delta
   expert: true
   type: float
   Description: cross correlation delta
+  readonly: false
 
 - group: glo_l2ca_track
   name: xcorr_time
   expert: true
   type: float
   Description: cross correlation time
+  readonly: false
 
 - group: nmea
   name: gpgsv_msg_rate
@@ -1067,6 +1155,7 @@
   type: integer
   units: Solution Period
   default value: '10'
+  readonly: false
   Description: Number of Solution Periods between GPGSV NMEA messages being sent
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
@@ -1076,6 +1165,7 @@
   type: integer
   units: Solution Period
   default value: '1'
+  readonly: false
   Description: Number of Solution Periods between GPGGA NMEA messages being sent
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
@@ -1085,6 +1175,7 @@
   type: integer
   units: Solution Period
   default value: '1'
+  readonly: false
   Description: Number of Solution Periods between GPHDT NMEA messages being sent
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
@@ -1094,6 +1185,7 @@
   type: integer
   units: Solution Period
   default value: '10'
+  readonly: false
   Description: Number of Solution Periods between GPRMC NMEA messages being sent
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
@@ -1103,6 +1195,7 @@
   type: integer
   units: Solution Period
   default value: '1'
+  readonly: false
   Description: Number of Solution Periods between GPVTG NMEA messages being sent
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
@@ -1112,6 +1205,7 @@
   type: integer
   units: Solution Period
   default value: '10'
+  readonly: false
   Description: Number of Solution Periods between GPGLL NMEA messages being sent
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
@@ -1121,6 +1215,7 @@
   type: integer
   units: Solution Period
   default value: '10'
+  readonly: false
   enumerated possible values:
   Description: Number of Solution Periods between GPZDA NMEA messages being sent
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
@@ -1131,6 +1226,7 @@
   type: integer
   units: Solution Periods
   default value: '10'
+  readonly: false
   enumerated possible values:
   Description: Number of Solution Periods between GSA NMEA messages being sent
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
@@ -1141,6 +1237,7 @@
   type: integer
   units: Solution Period
   default value: '10'
+  readonly: false
   enumerated possible values:
   Description: Number of Solution Periods between GPGSA NMEA messages being sent
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message.
@@ -1151,6 +1248,7 @@
   type: boolean
   units: N/A
   default value: 'False'
+  readonly: false
   enumerated possible values: True,False
   Description: Enable NTRIP client
   Notes: If True, NTRIP client will be used.
@@ -1161,6 +1259,7 @@
   type: string
   units: N/A
   default value: N/A
+  readonly: false
   enumerated possible values:
   Description: NTRIP URL to use
   Notes: URL to use with NTRIP client. NTRIP must be enabled to use this setting.
@@ -1173,6 +1272,7 @@
   type: integer
   units: us (microseconds)
   default value: '200000'
+  readonly: false
   enumerated possible values:
   Description: Number of microseconds the PPS will remain active (allowed range from 1 to 999999 us)
   Notes:
@@ -1183,6 +1283,7 @@
   type: integer
   units: Logic Level
   default value: '1'
+  readonly: false
   enumerated possible values: 0, 1
   Description: Logic level on output pin when the PPS is active
   Notes:
@@ -1193,6 +1294,7 @@
   type: integer
   units: us (microseconds)
   default value: '0'
+  readonly: false
   enumerated possible values:
   Description: Offset in microseconds between GPS time and the PPS
   Notes:
@@ -1203,6 +1305,7 @@
   type: double
   units: Hz
   default value: '1.0'
+  readonly: false
   enumerated possible values:
   Description: Generate a pulse with the given frequency (maximum = 20 Hz)
   Notes:
@@ -1213,6 +1316,7 @@
   type: boolean
   units: N/A
   default value: 'False'
+  readonly: false
   enumerated possible values: True,False
   Description: Enable the SBAS constellation
   Notes:
@@ -1223,6 +1327,7 @@
   type: boolean
   units: N/A
   default value: 'False'
+  readonly: false
   enumerated possible values: True,False
   Description: Enable the GLONASS acquisition and raw measurements
   Notes: This is a precondition for navigation with GLONASS.
@@ -1233,6 +1338,7 @@
   type: boolean
   units: N/A
   default value: 'False'
+  readonly: false
   enumerated possible values: True,False
   Description: Enable the almanac-based acquisition
   Notes:
@@ -1244,6 +1350,7 @@
   enumerated possible values: Static,DHCP
   units: N/A
   default value: 'Static'
+  readonly: false
   Description: Ethernet configuration mode
   Notes: If DHCP is chosen the IP address will be assigned automatically. The DHCP assigned IP address cannot be viewed under the Settings tab, instead use the Advanced Tab and click on 'Refresh Network Status'.
 
@@ -1253,6 +1360,7 @@
   type: string
   units: N/A
   default value: '192.168.0.222'
+  readonly: false
   Description: The static IP address
   Notes: The configured IP address in XXX.XXX.XXX.XXX format.
 
@@ -1262,6 +1370,7 @@
   type: string
   units: N/A
   default value: '255.255.255.0'
+  readonly: false
   Description: The netmask for the IP config
   Notes: The configured netmask in XXX.XXX.XXX.XXX format.
 
@@ -1271,6 +1380,7 @@
   type: string
   units: N/A
   default value: '192.168.0.1'
+  readonly: false
   Description: The default gateway for the IP config
   Notes: The configured gateway in XXX.XXX.XXX.XXX format.
 
@@ -1280,6 +1390,7 @@
   type: enum
   enumerated possible values: GSM,CDMA
   default value: 'GSM'
+  readonly: false
   Description: The type of cell modem in use.
 
 - group: cell_modem
@@ -1287,6 +1398,7 @@
   expert: true
   type: boolean
   default value: false
+  readonly: false
   Description: Additional debug messages for cell modem
 
 - group: tcp_server0
@@ -1295,6 +1407,7 @@
   type: enum
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
+  readonly: false
   enumerated possible values: SBP,NMEA,RTCM3 IN
   Description: Communication protocol for tcp server 0 (port 55555)
   Notes: |
@@ -1311,6 +1424,7 @@
   type: string
   units: N/A
   default value: 'blank - all messages are enabled'
+  readonly: false
   Description: Configure which messages should be sent on the port
   Notes: The enabled sbp messages settings is a list of message types
     and rate divisors that will be sent out of the interface. If left blank, all
@@ -1326,6 +1440,7 @@
   type: integer
   units: N/A
   default value: '55555'
+  readonly: false
   Description: TCP/IP port for tcp server 0
   Notes:
 
@@ -1335,6 +1450,7 @@
   type: enum
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
+  readonly: false
   enumerated possible values: SBP,NMEA,RTCM3 IN
   Description: Communication protocol for tcp server 1 (port 55556)
   Notes: |
@@ -1350,6 +1466,7 @@
   type: string
   units: N/A
   default value: 'blank - all messages are enabled'
+  readonly: false
   Description: Configure which messages should be sent on the port
   Notes: The enabled sbp messages settings is a list of message types
     and rate divisors that will be sent out of the interface. If left blank, all
@@ -1365,6 +1482,7 @@
   type: integer
   units: N/A
   default value: '55556'
+  readonly: false
   Description: TCP/IP port for tcp server 1
   Notes:
 
@@ -1374,6 +1492,7 @@
   type: enum
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
+  readonly: false
   enumerated possible values: SBP,NMEA,RTCM3 IN
   Description: Communication protocol for tcp client 0
   Notes: |
@@ -1389,6 +1508,7 @@
   type: string
   units: N/A
   default value: 'blank - all messages are enabled'
+  readonly: false
   Description: Configure which messages should be sent on the port
   Notes: The enabled sbp messages settings is a list of message types
     and rate divisors that will be sent out of the interface. If left blank, all
@@ -1404,6 +1524,7 @@
   type: string
   units: N/A
   default value: ''
+  readonly: false
   Description: TCP/IP address for tcp client 0.
   Notes: The address setting is defined according to the convention "hostname:port".
      For example, it should match the format 192.168.0.222:55555 or xxxxx.net:2101 .
@@ -1414,6 +1535,7 @@
   type: enum
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
+  readonly: false
   enumerated possible values: SBP,NMEA,RTCM3 IN
   Description: Communication protocol for tcp client 1
   Notes: |
@@ -1429,6 +1551,7 @@
   type: string
   units: N/A
   default value: 'blank - all messages are enabled'
+  readonly: false
   Description: Configure which messages should be sent on the port
   Notes: The enabled sbp messages settings is a list of message types
     and rate divisors that will be sent out of the interface. If left blank, all
@@ -1444,6 +1567,7 @@
   type: string
   units: N/A
   default value: ''
+  readonly: false
   Description: TCP/IP address for tcp client 1
   Notes: The address setting is defined according to the convention "hostname:port".
      For example, it should match the format 192.168.0.222:55555 or xxxxx.net:2101 .
@@ -1453,6 +1577,7 @@
   expert: false
   type: boolean
   default value: 'False'
+  readonly: false
   Description: Enable/Disable IMU raw data output from onboard Bosch BMI160 IMU
   Notes:  The IMU raw data can be seen in the Advanced Tab of the Swift Console
 
@@ -1461,6 +1586,7 @@
   expert: false
   type: enum
   default value: '50'
+  readonly: false
   enumerated possible values: 25,50,100,200
   units: Hz
   Description: The data rate (in Hz) for IMU raw output
@@ -1472,6 +1598,7 @@
   expert: false
   type: enum
   default value: '8'
+  readonly: false
   enumerated possible values: 2,4,8,16
   units: g
   Description: The approximate range of accelerations that can be measured
@@ -1483,6 +1610,7 @@
   expert: false
   type: enum
   default value: '1000'
+  readonly: false
   enumerated possible values: 125,250,500,1000,2000
   units: deg/s
   Description: The approximate range of angular rate that can be measured
@@ -1494,6 +1622,7 @@
   expert: true
   type: boolean
   default value: 'True'
+  readonly: false
   Description: Erase stored ephmerides during boot
 
 - group: ndb
@@ -1501,6 +1630,7 @@
   expert: true
   type: boolean
   default value: 'False'
+  readonly: false
   Description: Erase stored almanacs during boot
 
 - group: ndb
@@ -1508,6 +1638,7 @@
   expert: true
   type: boolean
   default value: 'False'
+  readonly: false
   Description: Erase stored almanac week numbers during boot
 
 - group: ndb
@@ -1515,6 +1646,7 @@
   expert: true
   type: boolean
   default value: 'False'
+  readonly: false
   Description: Erase stored ionospheric parameters during boot
 
 - group: ndb
@@ -1522,6 +1654,7 @@
   expert: true
   type: boolean
   default value: 'True'
+  readonly: false
   Description: Erase stored last fix information during boot
 
 - group: ndb
@@ -1529,6 +1662,7 @@
   expert: true
   type: boolean
   default value: 'False'
+  readonly: false
   Description: Erase stored L2C capability mask during boot
 
 - group: ndb
@@ -1536,6 +1670,7 @@
   expert: true
   type: boolean
   default value: 'False'
+  readonly: false
   Description: Erase stored UTC offset parameters during boot
 
 - group: ndb
@@ -1543,6 +1678,7 @@
   expert: true
   type: int
   default value: '1800'
+  readonly: false
   units: seconds
   Description: Update period for navigation database last good fix
 
@@ -1551,6 +1687,7 @@
   expert: true
   type: int
   default value: '10000'
+  readonly: false
   units: meters
   Description: Change in position required to update last good fix
 
@@ -1559,6 +1696,7 @@
   expert: true
   type: int
   default value: '6'
+  readonly: false
   units: days
   Description: Number of days for which Almanac is valid
 
@@ -1567,6 +1705,7 @@
   expert: true
   type: int
   default value: '100'
+  readonly: false
   units: meters
 
 - group: ndb
@@ -1574,6 +1713,7 @@
   expert: true
   type: int
   default value: '5000'
+  readonly: false
   units: meters
 
 - group: cell_modem
@@ -1581,6 +1721,7 @@
   expert: true
   type: boolean
   default value: 'False'
+  readonly: false
   units: N/A
 
 - group: cell_modem
@@ -1588,6 +1729,7 @@
   expert: true
   type: string
   default value: 'ttyACM0'
+  readonly: false
   units: N/A
 
 - group: cell_modem
@@ -1595,6 +1737,7 @@
   expert: true
   type: string
   default value: INTERNET
+  readonly: false
   Description: Access point name (provided by cell carrier)
   units: N/A
 
@@ -1603,6 +1746,7 @@
   expert: false
   type: int
   default value: '10'
+  readonly: false
   Description: Duration of each logfile
   units: minutes
   Notes: Sets the number of minutes to output to each standalone log file before opening the next one.
@@ -1613,6 +1757,7 @@
   expert: false
   type: int
   default value: '95'
+  readonly: false
   Description: Maximum storage device usage
   units: percent
   Notes: Sets a limit on how full the storage device can be before logging is stopped. If the drive is more than this percent full, no new log files will be created and a warning will be logged every 30 seconds.
@@ -1623,6 +1768,7 @@
   expert: false
   type: string
   default value: '/media/sda1/'
+  readonly: false
   Description: Standalone logging path
   units: N/A
   Notes: Sets the paths in which to write logs. A warning will be logged every 30 seconds if this path is invalid or unavailable. The system will not create a folder that does not exist.
@@ -1633,6 +1779,7 @@
   type: boolean
   expert: false
   default value: 'False'
+  readonly: false
   Description: Standalone logging enabled
   units: N/A
   Notes: Setting this to true triggers the logger to start trying to write logs to the output_directory.
