@@ -18,6 +18,7 @@ import os
 import signal
 import sys
 import time
+import errno
 # Shut chaco up for now
 import warnings
 from os.path import expanduser
@@ -513,17 +514,27 @@ class SwiftConsole(HasTraits):
             filename = time.strftime("swift-gnss-%Y%m%d-%H%M%S.sbp.json")
             filename = os.path.normpath(
                 os.path.join(self.directory_name, filename))
-        self.logger = s.get_logger(True, filename)
-        self.forwarder = sbpc.Forwarder(self.link, self.logger)
-        self.forwarder.start()
+        try:
+            self.logger = s.get_logger(True, filename)
+            self.forwarder = sbpc.Forwarder(self.link, self.logger)
+            self.forwarder.start()
+        except IOError as exc:
+          if exc.errno == errno.EACCES:
+              print(
+                  "Unable to start JSON logging:"
+                   "permission denied for file {0}".format(filename))
         if self.settings_view:
             self.settings_view._settings_read_button_fired()
 
     def _stop_json_logging(self):
-        fwd = self.forwarder
-        fwd.stop()
-        self.logger.flush()
-        self.logger.close()
+        if self.forwarder:
+            self.forwarder.stop()
+        if self.logger:
+            try:
+                self.logger.flush()
+                self.logger.close()
+            except ValueError:
+                pass
 
     def _json_logging_button_action(self):
         if self.first_json_press and self.json_logging:
