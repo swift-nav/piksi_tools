@@ -190,6 +190,10 @@ def mkdir_p(path):
     except OSError as exc:  # Python >2.5
         if exc.errno == errno.EEXIST and os.path.isdir(path):
             pass
+        # seems to be raised while calling os.makedirs on the root of a writable
+        # directory
+        elif getattr(exc, 'winerror', None) == 5:
+            pass
         else:
             raise
 
