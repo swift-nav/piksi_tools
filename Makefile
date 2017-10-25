@@ -72,3 +72,11 @@ build_console_Windows:
 	cd $(SWIFTNAV_ROOT);
 	@echo
 	@echo "Finished! Please check $(SWIFTNAV_ROOT)/piksi_tools/console/pyinstaller."
+
+
+release:
+	$(call announce-begin,"Run release boilerplate")
+	github_changelog_generator --no-author \
+				   -t $(CHANGELOG_GITHUB_TOKEN)$ \
+				   -o DRAFT_CHANGELOG.md \
+				   swift-nav/piksi_tools
