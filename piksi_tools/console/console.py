@@ -903,7 +903,7 @@ def main():
             host, ip_port = port.split(':')
             selected_driver = TCPDriver(host, int(ip_port))
             connection_description = port
-        except:
+        except ValueError:
             raise Exception('Invalid host and/or port')
             sys.exit(1)
     elif port and args.file:

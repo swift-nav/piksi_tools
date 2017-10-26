@@ -362,7 +362,7 @@ def main(args):
         try:
             host, port = port.split(':')
             driver = TCPDriver(host, int(port))
-        except:
+        except ValueError:
             raise Exception('Invalid host and/or port')
     else:
         driver = get_driver(
