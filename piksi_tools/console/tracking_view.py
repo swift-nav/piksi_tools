@@ -25,7 +25,7 @@ from traitsui.api import HGroup, Item, Spring, VGroup, View
 from piksi_tools.acq_results import SNR_THRESHOLD
 from piksi_tools.console.gui_utils import CodeFiltered
 from piksi_tools.console.utils import (SUPPORTED_CODES, code_is_glo,
-                                       code_is_gps, code_to_str)
+                                       code_is_gps, code_to_str, SBAS_L1CA, B1, B2)
 
 NUM_POINTS = 200
 TRK_RATE = 2.0
@@ -108,7 +108,11 @@ def get_color(key):
     if code_is_glo(code):
         code -= 3
         sat += GLO_FCN_OFFSET
-
+    if code == SBAS_L1CA:
+        code = 1
+        sat -= 120
+    if code in [B1, B2]:
+        code -= 12
     key = str((code, sat % 32))
     color = color_dict.get(key, 0xff0000)
     return color
@@ -118,13 +122,12 @@ def get_label(key, extra):
     code, sat, ch = key
     lbl = 'Ch {ch:02d}: {code} '.format(ch=ch, code=code_to_str(code))
 
-    if code_is_gps(code):
+    if code_is_gps(code) or code in [B1, B2, SBAS_L1CA]:
         lbl += 'PRN {sat:02d}'.format(sat=sat)
     elif code_is_glo(code):
         lbl += 'FCN {sat:0=+3d}'.format(sat=sat)
         if sat in extra:
             lbl += ' Slot: {slot:02d}'.format(slot=extra[sat])
-
     return lbl
 
 
@@ -166,12 +169,11 @@ class TrackingView(CodeFiltered):
         # If there is no CN0 or not tracking for an epoch, 0 will be used
         # each array can be plotted against host_time, t
         for i, s in enumerate(sbp_msg.states):
-            if code_is_gps(s.sid.code):
-                sat = s.sid.sat
-            elif code_is_glo(s.sid.code):
+            if code_is_glo(s.sid.code):
                 sat = s.fcn - GLO_FCN_OFFSET
                 self.glo_slot_dict[sat] = s.sid.sat
-
+            else:
+                sat = s.sid.sat
             key = (s.sid.code, sat, i)
             if s.cn0 != 0:
                 self.CN0_dict[key][-1] = s.cn0 / 4.0
