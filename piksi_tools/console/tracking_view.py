@@ -106,7 +106,7 @@ def get_label(key, extra):
         lbl += 'S{sat:3d}'.format(sat=sat)
     elif code_is_bds2(code):
         lbl += 'C{sat:02d}'.format(sat=sat)
-    elif code_is_sbas(code):
+    elif code_is_qzss(code):
         lbl += 'J{sat:3d}'.format(sat=sat)
     else:
         lbl += 'G{sat:02d}'.format(sat=sat)
