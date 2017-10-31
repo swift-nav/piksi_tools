@@ -1,5 +1,5 @@
 #!/bin/bash
-current_user="$USER"
+current_user=$(who | awk '{print $1}')
 echo "Creating new udev rule 99-piksi.rules with the following lines"
 sudo tee /etc/udev/rules.d/99-piksi.rules <<EOF
 ATTRS{idProduct}=="6014", ATTRS{idVendor}=="0403", MODE="666", GROUP="dialout"
