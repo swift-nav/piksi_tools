@@ -27,7 +27,10 @@ class SettingsReport():
             pass
 
 def dict_values_to_strings(d):
-    ''' Convert dict values to strings. Handle nesting. Meant for Traits'''
+    '''
+    Convert dict values to strings. Handle nesting. Meant to convert Traits
+    objects.
+    '''
     converted = {}
     for k,v in d.iteritems():
         # We assume the key is a string. If not, fail.
