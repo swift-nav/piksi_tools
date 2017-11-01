@@ -53,6 +53,7 @@ from piksi_tools.console.settings_view import SettingsView
 from piksi_tools.console.solution_view import SolutionView
 from piksi_tools.console.spectrum_analyzer_view import SpectrumAnalyzerView
 from piksi_tools.console.system_monitor_view import SystemMonitorView
+from piksi_tools.console.settings_report import SettingsReport
 from piksi_tools.console.tracking_view import TrackingView
 from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
@@ -600,7 +601,7 @@ class SwiftConsole(HasTraits):
         # Start swallowing sys.stdout and sys.stderr
         self.console_output = OutputList(
             tfile=log_console, outdir=self.directory_name)
-        sys.stdout = self.console_output
+#        sys.stdout = self.console_output
         self.console_output.write("Console: " + CONSOLE_VERSION +
                                   " starting...")
         if not error:
@@ -700,6 +701,8 @@ class SwiftConsole(HasTraits):
                 settings_read_finished_functions,
                 skip=skip_settings)
             self.update_view.settings = self.settings_view.settings
+            self.settings_report = SettingsReport(self.settings_view.settings)
+            settings_read_finished_functions.append(self.settings_report.report_settings)
             self.python_console_env = {
                 'send_message': self.link,
                 'link': self.link,
