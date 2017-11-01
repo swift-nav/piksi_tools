@@ -55,7 +55,7 @@ def post_data(uuid, data):
         return
 
     data_post = uuid, data
-    r = requests.post('https://w096929iy3.execute-api.us-east-1.amazonaws.com/prof/catchConsole',
+    r = requests.post('https://catchconsole.swiftnav.com/prof/catchConsole',
                        headers={'content-type': 'application/json', 'x-amz-docs-region': 'us-east-1'},
                        data=json.dumps(data_post))
 
