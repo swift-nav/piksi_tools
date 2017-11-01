@@ -20,10 +20,8 @@ class SettingsReport():
 
     def report_settings(self):
         try:
-            print("reporting settings")
             post_data(str(self._settings['system_info']['uuid']),
                       dict_values_to_strings(self._settings))
-            print("reported settings")
         except:
             print("report settings: failed to report settings")
             pass
@@ -56,5 +54,5 @@ def post_data(uuid, data):
                        data=json.dumps((uuid, data)))
 
     if r.status_code != requests.codes.ok:
-        print("post data: failed to post data")
+        print("post data: failed to post data, code:", r.status_code)
 
