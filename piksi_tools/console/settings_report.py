@@ -21,7 +21,7 @@ class SettingsReport():
     def report_settings(self):
         try:
             post_data(str(self._settings['system_info']['uuid']),
-                      dict_values_to_strings(self._settings))
+                      json.dumps(dict_values_to_strings(self._settings)))
         except:
             print("report settings: failed to report settings")
             pass
@@ -37,6 +37,9 @@ def dict_values_to_strings(d):
             converted[k] = dict_values_to_strings(v)
         else:
             converted[k] = str(v)
+        # Empty string has to be specially handled otherwise we get 502.
+        if converted[k] == "":
+            converted[k] = None
     return converted
 
 def post_data(uuid, data):
@@ -44,14 +47,17 @@ def post_data(uuid, data):
     if not isinstance(uuid, str):
         print("post data: uuid is not a string")
         return
-    # Check data is a dict.
-    if not isinstance(data, dict):
-        print("post data: data is not a dict")
+    # Check data is json.
+    try:
+        json.loads(data)
+    except:
+        print("post data: data is not valid json")
         return
 
+    data_post = uuid, data
     r = requests.post('https://w096929iy3.execute-api.us-east-1.amazonaws.com/prof/catchConsole',
                        headers={'content-type': 'application/json', 'x-amz-docs-region': 'us-east-1'},
-                       data=json.dumps((uuid, data)))
+                       data=json.dumps(data_post))
 
     if r.status_code != requests.codes.ok:
         print("post data: failed to post data, code:", r.status_code)
