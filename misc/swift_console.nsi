@@ -26,7 +26,7 @@ IfFileExists $INSTDIR\Uninstall.exe ask_to_uninstall inst
   
 ask_to_uninstall:
   MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
-  "There appears to be an existing installation of $Name in $INSTDIR.$\n \
+  "There appears to be an existing installation of Swift Console in $INSTDIR.$\n \
   Click `OK` to remove the previous version or `Cancel` to cancel this upgrade." \
   IDOK silently_uninstall
   Abort
