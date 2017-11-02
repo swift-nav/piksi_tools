@@ -22,7 +22,7 @@ class SettingsReport():
         try:
             post_data(str(self._settings['system_info']['uuid']),
                       json.dumps(dict_values_to_strings(self._settings)))
-        except:
+        except Exception:
             print("report settings: failed to report settings")
             pass
 
@@ -53,7 +53,7 @@ def post_data(uuid, data):
     # Check data is json.
     try:
         json.loads(data)
-    except:
+    except Exception:
         print("post data: data is not valid json")
         return
 
