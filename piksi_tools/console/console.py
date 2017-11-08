@@ -45,6 +45,7 @@ from piksi_tools.console.baseline_view import BaselineView
 from piksi_tools.console.callback_prompt import CallbackPrompt, ok_button
 from piksi_tools.console.deprecated import DeprecatedMessageHandler
 from piksi_tools.console.imu_view import IMUView
+from piksi_tools.console.mag_view import MagView
 from piksi_tools.console.observation_view import ObservationView
 from piksi_tools.console.output_list import (
     DEFAULT_LOG_LEVEL_FILTER, SYSLOG_LEVELS, OutputList, str_to_log_level)
@@ -177,6 +178,7 @@ class SwiftConsole(HasTraits):
     settings_view = Instance(SettingsView)
     update_view = Instance(UpdateView)
     imu_view = Instance(IMUView)
+    mag_view = Instance(MagView)
     spectrum_analyzer_view = Instance(SpectrumAnalyzerView)
     log_level_filter = Enum(list(SYSLOG_LEVELS.itervalues()))
     """"
@@ -258,6 +260,7 @@ class SwiftConsole(HasTraits):
                         style='custom',
                         label='System Monitor'),
                     Item('imu_view', style='custom', label='IMU'),
+                    Item('mag_view', style='custom', label='Magnetometer'),
                     Item(
                         'networking_view',
                         label='Networking',
@@ -642,6 +645,7 @@ class SwiftConsole(HasTraits):
                 prompt=update,
                 serial_upgrade=serial_upgrade)
             self.imu_view = IMUView(self.link)
+            self.mag_view = MagView(self.link)
             self.spectrum_analyzer_view = SpectrumAnalyzerView(self.link)
             settings_read_finished_functions.append(
                 self.update_view.compare_versions)
@@ -719,6 +723,7 @@ class SwiftConsole(HasTraits):
             self.python_console_env.update(
                 self.update_view.python_console_cmds)
             self.python_console_env.update(self.imu_view.python_console_cmds)
+            self.python_console_env.update(self.mag_view.python_console_cmds)
             self.python_console_env.update(
                 self.settings_view.python_console_cmds)
             self.python_console_env.update(
