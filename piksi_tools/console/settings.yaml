@@ -292,7 +292,7 @@
   expert: false
   type: integer
   units: Hz
-  default value: '1'
+  default value: '10'
   readonly: false
   enumerated possible values:
   Description: The frequency at which a position solution is computed
@@ -441,7 +441,7 @@
   expert: False
   type: double
   units:  degrees
-  default value: 0.0
+  default value: '0.0'
   readonly: false
   enumerated possible values: N/A
   Description: Rotate the heading output
@@ -665,7 +665,7 @@
   expert: false
   type: boolean
   units: N/A
-  default value: false
+  default value: 'False'
   readonly: false
   enumerated possible values: True,False
   Description: Enable spectrum analyzer
@@ -730,11 +730,11 @@
 - group: uart1
   name: flow_control
   expert: false
-  type: boolean
+  type: enum
   units: NA
-  default value: 'False'
+  default value: 'None'
   readonly: false
-  enumerated possible values:
+  enumerated possible values: None,RTS/CTS
   Description: Enable hardware flow control (RTS/CTS)
   Notes:
 
@@ -759,9 +759,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '1025,520,522,524,526,23,29,257,65282,65,72,74,
-                  2304,80,528,134,136,163,165,166,167,171,181,
-                  185,187,188,2305,258,259,65280,65535'
+  default value: 'blank - all messages are enabled'
   readonly: false
   Description: Configure which messages should be sent on the port
   Notes: The enabled sbp messages settings is a list of message types
@@ -788,9 +786,9 @@
   expert: false
   type: boolean
   units: NA
-  default value: 'False'
+  default value: 'None'
   readonly: false
-  enumerated possible values:
+  enumerated possible values: None,RTS/CTS
   Description: Enable hardware flow control (RTS/CTS)
   Notes:
 
@@ -921,7 +919,7 @@
   expert: true
   type: float
   units: N/A
-  default value: N/A
+  default value: '4.0'
   readonly: false
   enumerated possible values:
   Description: Down weights GLONASS measurements by a given factor in the navigation filter
@@ -1326,7 +1324,7 @@
   expert: false
   type: boolean
   units: N/A
-  default value: 'False'
+  default value: 'True'
   readonly: false
   enumerated possible values: True,False
   Description: Enable the GLONASS acquisition and raw measurements
@@ -1397,7 +1395,7 @@
   name: debug
   expert: true
   type: boolean
-  default value: false
+  default value: 'False'
   readonly: false
   Description: Additional debug messages for cell modem
 
@@ -1491,7 +1489,7 @@
   expert: false
   type: enum
   units: N/A
-  default value: 'SBP (Swift Binary Protocol)'
+  default value: 'Disabled'
   readonly: false
   enumerated possible values: SBP,NMEA,RTCM3 IN
   Description: Communication protocol for tcp client 0
@@ -1534,7 +1532,7 @@
   expert: false
   type: enum
   units: N/A
-  default value: 'SBP (Swift Binary Protocol)'
+  default value: 'Disabled'
   readonly: false
   enumerated possible values: SBP,NMEA,RTCM3 IN
   Description: Communication protocol for tcp client 1
