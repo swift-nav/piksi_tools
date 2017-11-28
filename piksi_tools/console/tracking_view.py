@@ -39,43 +39,43 @@ GLO_FCN_OFFSET = 8
 
 # These colors should be distinguishable from eachother
 color_dict = {
-    '(0, 1)':  0x0000ff,
-    '(0, 2)':  0x00ff00,
-    '(0, 3)':  0xff0000,
-    '(0, 4)':  0x000035,
-    '(0, 5)':  0xff00b0,
-    '(0, 6)':  0x004f00,
-    '(0, 7)':  0xffd300,
-    '(0, 8)':  0x009eff,
-    '(0, 9)':  0x9e4f46,
-    '(0, 10)': 0x35ffb9,
-    '(0, 11)': 0x7235b9,
-    '(0, 12)': 0x127b84,
-    '(0, 13)': 0xffb0ff,
-    '(0, 14)': 0x7bb91a,
-    '(0, 15)': 0xd37200,
-    '(0, 16)': 0xc1b06a,
-    '(0, 17)': 0xe500ff,
-    '(0, 18)': 0x231a00,
-    '(0, 19)': 0xed0958,
-    '(0, 20)': 0x7b0058,
-    '(0, 21)': 0x4ff6ff,
-    '(0, 22)': 0x7b6a95,
-    '(0, 23)': 0x58a772,
-    '(0, 24)': 0x6a4f00,
-    '(0, 25)': 0xdcff00,
-    '(0, 26)': 0x9e0000,
-    '(0, 27)': 0xffb0b0,
-    '(0, 28)': 0xcaff9e,
-    '(0, 29)': 0x00469e,
-    '(0, 30)': 0xed72ff,
-    '(0, 31)': 0x95caf6,
-    '(0, 32)': 0xed6a9e,
-    '(0, 33)': 0x6aff72,
-    '(0, 34)': 0x847b6a,
-    '(0, 35)': 0xff7b61,
-    '(0, 36)': 0x2372ff,
-    '(0, 37)': 0x3e001a
+    '(0, 1)': 0xe58a8a,
+    '(0, 2)': 0x664949,
+    '(0, 3)': 0x590c00,
+    '(0, 4)': 0xcc4631,
+    '(0, 5)': 0xe56c1c,
+    '(0, 6)': 0x4c2a12,
+    '(0, 7)': 0x996325,
+    '(0, 8)': 0xf2b774,
+    '(0, 9)': 0xffaa00,
+    '(0, 10)': 0xccb993,
+    '(0, 11)': 0x997a00,
+    '(0, 12)': 0x4c4700,
+    '(0, 13)': 0xd0d94e,
+    '(0, 14)': 0xaaff00,
+    '(0, 15)': 0x4ea614,
+    '(0, 16)': 0x123306,
+    '(0, 17)': 0x18660c,
+    '(0, 18)': 0x6e9974,
+    '(0, 19)': 0x8ae6a2,
+    '(0, 20)': 0x00ff66,
+    '(0, 21)': 0x57f2e8,
+    '(0, 22)': 0x1f7980,
+    '(0, 23)': 0x263e40,
+    '(0, 24)': 0x004d73,
+    '(0, 25)': 0x37abe6,
+    '(0, 26)': 0x7790a6,
+    '(0, 27)': 0x144ea6,
+    '(0, 28)': 0x263040,
+    '(0, 29)': 0x152859,
+    '(0, 30)': 0x1d39f2,
+    '(0, 31)': 0x828ed9,
+    '(0, 32)': 0x000073,
+    '(0, 33)': 0x000066,
+    '(0, 34)': 0x8c7aff,
+    '(0, 35)': 0x1b0033,
+    '(0, 36)': 0xd900ca,
+    '(0, 37)': 0x730e6c,
 }
 
 
@@ -89,6 +89,8 @@ def get_color(key):
         sat -= 120
     elif code_is_qzss(code):
         sat -= 193
+    if sat > 37:
+        sat = sat % 37
     key = str((0, sat))
     color = color_dict.get(key, 0xff0000)
     return color
@@ -160,7 +162,10 @@ class TrackingView(CodeFiltered):
             key = (s.sid.code, sat, i)
             if s.cn0 != 0:
                 self.CN0_dict[key][-1] = s.cn0 / 4.0
-
+            received_code_list = getattr(self, "received_codes", [])
+            if s.sid.code not in received_code_list:
+                received_code_list.append(s.sid.code)
+                self.received_codes = received_code_list
         GUI.invoke_later(self.update_plot)
 
     def tracking_state_callback_dep_b(self, sbp_msg, **metadata):
@@ -175,11 +180,11 @@ class TrackingView(CodeFiltered):
             else:
                 self.CN0_dict[key][0:-1] = cno_array[1:]
                 self.CN0_dict[key][-1] = 0
-            # If the whole array is 0 we remove it
-            # for each satellite, we have a (code, prn, channel) keyed dict
-            # for each SID, an array of size MAX PLOT with the history of CN0's stored
-            # If there is no CN0 or not tracking for an epoch, 0 will be used
-            # each array can be plotted against host_time, t
+                # If the whole array is 0 we remove it
+                # for each satellite, we have a (code, prn, channel) keyed dict
+                # for each SID, an array of size MAX PLOT with the history of CN0's stored
+                # If there is no CN0 or not tracking for an epoch, 0 will be used
+                # each array can be plotted against host_time, t
         for i, s in enumerate(sbp_msg.states):
             prn = s.sid.sat
             if code_is_gps(s.sid.code):
@@ -189,6 +194,10 @@ class TrackingView(CodeFiltered):
                 if len(self.CN0_dict.get(key, [])) == 0:
                     self.CN0_dict[key] = np.zeros(NUM_POINTS)
                 self.CN0_dict[key][-1] = s.cn0
+            received_code_list = getattr(self, "received_codes", [])
+            if s.sid.code not in received_code_list:
+                received_code_list.append(s.sid.code)
+                self.received_codes = received_code_list
         GUI.invoke_later(self.update_plot)
 
     def update_plot(self):
@@ -208,8 +217,9 @@ class TrackingView(CodeFiltered):
             if int(k[0]) not in SUPPORTED_CODES:
                 continue
             key = str(k)
-            # set plot data and create plot for any selected for display
-            if (getattr(self, 'show_{}'.format(int(k[0])))):
+
+            # set plot data and create plot for any selected for display, default to showing anything unknown
+            if (getattr(self, 'show_{}'.format(int(k[0])), True)):
                 self.plot_data.set_data(key, cno_array)
                 if key not in self.plot.plots.keys():
                     pl = self.plot.plot(
