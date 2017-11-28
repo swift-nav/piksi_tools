@@ -160,7 +160,8 @@ class TrackingView(CodeFiltered):
             key = (s.sid.code, sat, i)
             if s.cn0 != 0:
                 self.CN0_dict[key][-1] = s.cn0 / 4.0
-
+            if getattr(self, "received_{}".format(s.sid.code), True) == False:
+                setattr(self, "received_{}".format(s.sid.code), True)
         GUI.invoke_later(self.update_plot)
 
     def tracking_state_callback_dep_b(self, sbp_msg, **metadata):
@@ -208,8 +209,9 @@ class TrackingView(CodeFiltered):
             if int(k[0]) not in SUPPORTED_CODES:
                 continue
             key = str(k)
-            # set plot data and create plot for any selected for display
-            if (getattr(self, 'show_{}'.format(int(k[0])))):
+                
+            # set plot data and create plot for any selected for display, default to showing anything unknown
+            if (getattr(self, 'show_{}'.format(int(k[0]))), True):
                 self.plot_data.set_data(key, cno_array)
                 if key not in self.plot.plots.keys():
                     pl = self.plot.plot(
