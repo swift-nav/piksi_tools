@@ -1,5 +1,20 @@
 # Change Log
 
+## [v1.3.0](https://github.com/swift-nav/piksi_tools/tree/v1.3.0)
+
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.2.3...v1.3.0)
+
+**Merged pull requests:**
+
+- Update default values [\#675](https://github.com/swift-nav/piksi_tools/pull/675)
+- updated sbp requirement [\#674](https://github.com/swift-nav/piksi_tools/pull/674)
+- update\_view: prevent message about fw upgrade success if device SN ch… [\#672](https://github.com/swift-nav/piksi_tools/pull/672)
+- Fix bug in MSI script where '$name'  was shown to user [\#671](https://github.com/swift-nav/piksi_tools/pull/671)
+- get actual user when in config script as sudo [\#669](https://github.com/swift-nav/piksi_tools/pull/669)
+- Added tab for magnetometer measurements [\#668](https://github.com/swift-nav/piksi_tools/pull/668)
+- New sig support [\#667](https://github.com/swift-nav/piksi_tools/pull/667)
+- Changelog generator [\#666](https://github.com/swift-nav/piksi_tools/pull/666)
+
 ## [v1.2.3](https://github.com/swift-nav/piksi_tools/tree/v1.2.3) (2017-10-25)
 [Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.2.2...v1.2.3)
 
