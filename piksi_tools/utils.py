@@ -26,6 +26,13 @@ from piksi_tools.timeout import (TIMEOUT_BOOT, TIMEOUT_ERASE_STM,
                                  Timeout)
 
 
+try:
+  import WindowsError
+  WinError = WindowsError
+except:
+  WinError = None
+
+
 def set_app_mode(handler, verbose=False):
     """
   Set Piksi into the application firmware, regardless of whether it is
@@ -187,15 +194,18 @@ def wrap_sbp_dict(data_dict, timestamp):
 def mkdir_p(path):
     try:
         os.makedirs(path)
-    except OSError as exc:  # Python >2.5
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
+    except (OSError, WinError) as exc:  # Python >2.5
+        if (exc.errno == errno.EEXIST or exc.errno == errno.EISDIR) and os.path.isdir(path):
             pass
         # seems to be raised while calling os.makedirs on the root of a writable
         # directory
         elif getattr(exc, 'winerror', None) == 5:
             pass
         else:
-            raise
+            print(exc.errno)
+            print(errno.EEXIST)
+            print(os.path.isdir(path))
+            pass
 
 
 def sopen(path, mode):
