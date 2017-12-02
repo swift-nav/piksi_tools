@@ -68,7 +68,7 @@ def build_win():
 
     check_call([
         nsis,
-        '-XOutfile ../dist/swift_console_v{}_windows.exe'.format(version),
+        '-XOutfile ../pyinstall_dist/swift_console_v{}_windows.exe'.format(version),
         'misc/swift_console.nsi'
     ])
 
@@ -81,7 +81,7 @@ def main():
         build_macos()
     elif plat.startswith('win'):
         build_win()
-
+    os.rename("./dist", "./pyinstall_dist")
 
 if __name__ == '__main__':
     main()

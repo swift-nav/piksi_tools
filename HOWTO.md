@@ -45,7 +45,7 @@ PYTHONPATH=. piksi_tools/console/console.py
 make build_console
 ```
 
-The console installer (`.dmg` or `.exe`) should now be in `dist/`.
+The console installer (`.dmg` or `.exe`) should now be in `pyinstall_dist/`.
 
 To test the console installer, install it from the generated installer
 and test in OSX and Windows:

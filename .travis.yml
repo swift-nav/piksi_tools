@@ -55,7 +55,7 @@ addons:
   artifacts:
     debug: false 
     paths:
-      - $(ls ./dist/swift_console* | tr "\n" ":")
+      - $(ls ./pyinstall_dist/swift_console* | tr "\n" ":")
       - ./build
     working_dir: $TRAVIS_BUILD_DIR
     bucket: console-ci-builds

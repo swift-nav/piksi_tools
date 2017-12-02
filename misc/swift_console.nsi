@@ -43,7 +43,7 @@ silently_uninstall:
 
 inst:
   ; Put a file there
-  File /r "..\dist\console\*.*"
+  File /r "..\pyinstall_dist\console\*.*"
 
   ; Now create shortcuts
   CreateDirectory "$SMPROGRAMS\Swift Navigation"
