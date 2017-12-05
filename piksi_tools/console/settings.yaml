@@ -97,7 +97,7 @@
 
 - group: sbp
   name: obs_msg_max_size
-  expert: false
+  expert: true
   type: integer
   units: bytes
   default value: '255'
@@ -651,7 +651,7 @@
 
 - group: system_monitor
   name: heartbeat_period_milliseconds
-  expert: false
+  expert: true 
   type: integer
   units: ms
   default value: '1000'
@@ -662,7 +662,7 @@
 
 - group: system_monitor
   name: spectrum_analyzer
-  expert: false
+  expert: true
   type: boolean
   units: N/A
   default value: 'False'
@@ -1242,7 +1242,7 @@
 
 - group: ntrip
   name: enable
-  expert: true
+  expert: false
   type: boolean
   units: N/A
   default value: 'False'
@@ -1253,7 +1253,7 @@
 
 - group: ntrip
   name: url
-  expert: true
+  expert: false
   type: string
   units: N/A
   default value: N/A
@@ -1325,6 +1325,39 @@
   readonly: false
   enumerated possible values: True,False
   Description: Enable the SBAS constellation
+  Notes:
+
+- group: acquisition
+  name: sbas_acquisition_enabled
+  expert: true
+  type: boolean
+  units: N/A
+  default value: 'False'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Enable the SBAS constellation
+  Notes:
+
+- group: acquisition
+  name: bds2_acquisition_enabled
+  expert: true
+  type: boolean
+  units: N/A
+  default value: 'False'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Enable the bds2 constellation
+  Notes:
+
+- group: acquisition
+  name: qzss_acquisition_enabled
+  expert: true
+  type: boolean
+  units: N/A
+  default value: 'False'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Enable the qzss constellation
   Notes:
 
 - group: acquisition
