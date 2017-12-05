@@ -1328,6 +1328,39 @@
   Notes:
 
 - group: acquisition
+  name: sbas_acquisition_enabled
+  expert: true
+  type: boolean
+  units: N/A
+  default value: 'False'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Enable the SBAS constellation
+  Notes:
+
+- group: acquisition
+  name: bds2_acquisition_enabled
+  expert: true
+  type: boolean
+  units: N/A
+  default value: 'False'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Enable the bds2 constellation
+  Notes:
+
+- group: acquisition
+  name: qzss_acquisition_enabled
+  expert: true
+  type: boolean
+  units: N/A
+  default value: 'False'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Enable the qzss constellation
+  Notes:
+
+- group: acquisition
   name: glonass_acquisition_enabled
   expert: false
   type: boolean
