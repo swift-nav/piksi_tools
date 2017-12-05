@@ -1264,6 +1264,14 @@
     URLs should be HTTP URLs with optional credentials, a port, and a mountpoint
     path such as username:password@example.com:2101/BAZ_RTCM3 or example.com:2101/BAZ_RTCM3.
 
+- group: ntrip
+  name: debug
+  expert: true
+  type: boolean
+  default value: 'False'
+  readonly: false
+  Description: Additional debug messages for NTRIP (sent to /var/log/messages)
+
 - group: pps
   name: width
   expert: false
