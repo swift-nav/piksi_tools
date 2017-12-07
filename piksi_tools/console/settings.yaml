@@ -1035,112 +1035,84 @@
   Description: cross correlation time
   readonly: false
 
-- group: glo_l1ca_track
+- group: glo_l1of_track
   name: show_unconfirmed
   expert: true
   type: boolean
   Description: Show unconfirmed tracking channels in tracking state
   readonly: false
 
-- group: glo_l1ca_track
+- group: glo_l1of_track
   name: xcorr_cof
   expert: true
   type: float
   Description: cross correlation coefficient
   readonly: false
 
-- group: glo_l1ca_track
+- group: glo_l1of_track
   name: xcorr_delta
   expert: true
   type: float
   Description: cross correlation delta
   readonly: false
 
-- group: glo_l1ca_track
+- group: glo_l1of_track
   name: xcorr_time
   expert: true
   type: float
   Description: cross correlation time
   readonly: false
 
-- group: l2cm_track
+- group: l2c_track
   name: xcorr_cof
   expert: true
   type: float
   Description: cross correlation coefficient
   readonly: false
 
-- group: l2cm_track
+- group: l2c_track
   name: xcorr_delta
   expert: true
   type: float
   Description: cross correlation delta
   readonly: false
 
-- group: l2cm_track
+- group: l2c_track
   name: xcorr_time
   expert: true
   type: float
   Description: cross correlation time
   readonly: false
 
-- group: l2cm_track
+- group: l2c_track
   name: show_unconfirmed
   expert: true
   type: bool
   Description: Show unconfirmed tracking channels in tracking state
   readonly: false
 
-- group: l2cl_track
-  name: xcorr_cof
-  expert: true
-  type: float
-  Description: cross correlation coefficient
-  readonly: false
-
-- group: l2cl_track
-  name: xcorr_delta
-  expert: true
-  type: float
-  Description: cross correlation delta
-  readonly: false
-
-- group: l2cl_track
-  name: xcorr_time
-  expert: true
-  type: float
-  Description: cross correlation time
-  readonly: false
-
-- group: l2cl_track
-  name: show_unconfirmed
-  expert: true
-  type: bool
-  Description: Show unconfirmed tracking channels in tracking state
-  readonly: false
-
-- group: glo_l2ca_track
+- group: glo_l2of_track
   name: show_unconfirmed
   expert: true
   type: boolean
   Description: Show unconfirmed tracking channels in tracking state
   readonly: false
 
-- group: glo_l2ca_track
+- group: glo_l2of_track
   name: xcorr_cof
   expert: true
   type: float
   Description: cross correlation coefficient
   readonly: false
 
-- group: glo_l2ca_track
+- group: glo_l2of_track
   name: xcorr_delta
   expert: true
   type: float
   Description: cross correlation delta
   readonly: false
 
-- group: glo_l2ca_track
+- group: glo_l2of_track
   name: xcorr_time
   expert: true
   type: float
