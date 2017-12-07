@@ -684,6 +684,177 @@
     any reason
   Notes: You must reset the Piksi for changes to this setting to take effect.
 
+- group: udp_client0
+  name: mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'Disabled'
+  readonly: false
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
+  Description: Communication protocol for UDP client 0
+  Notes: |
+    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1002, 1004, 1005, 1006, 1010, and 1012 RTCMv3.1 messages and will not transmit or receive any other messages.
+
+- group: udp_client0
+  name: enabled_sbp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: 'blank - all messages are enabled'
+  readonly: false
+  Description: Configure which messages should be sent on the port
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided.  Optionally,
+    a divisor can be specified after the / character for each id.  For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For Ethernet,
+    the default value is optimal for logging and communication with the console.
+
+- group: udp_client0
+  name: address
+  expert: false
+  type: string
+  units: N/A
+  default value: ''
+  readonly: false
+  Description: IP address for UDP client 0.
+  Notes: The address setting is defined according to the convention "hostname:port".
+     For example, it should match the format 192.168.0.222:55555 or xxxxx.net:2101 .
+
+- group: udp_client1
+  name: mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'Disabled'
+  readonly: false
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
+  Description: Communication protocol for UDP client 1
+  Notes: |
+    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1002, 1004, 1005, 1006, 1010, and 1012 RTCMv3.1 messages and will not transmit or receive any other messages.
+
+- group: udp_client1
+  name: enabled_sbp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: 'blank - all messages are enabled'
+  readonly: false
+  Description: Configure which messages should be sent on the port
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided.  Optionally,
+    a divisor can be specified after the / character for each id.  For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For Ethernet,
+    the default value is optimal for logging and communication with the console.
+
+- group: udp_client1
+  name: address
+  expert: false
+  type: string
+  units: N/A
+  default value: ''
+  readonly: false
+  Description: IP address for UDP client 1.
+  Notes: The address setting is defined according to the convention "hostname:port".
+     For example, it should match the format 192.168.0.222:55555 or xxxxx.net:2101 .
+
+- group: udp_server0
+  name: mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'SBP (Swift Binary Protocol)'
+  readonly: false
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
+  Description: Communication protocol for UDP server 0 (port 55555)
+  Notes: |
+    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1002, 1004, 1005, 1006, 1010, and 1012 RTCMv3.1 messages and will not transmit or receive any other messages.
+
+- group: udp_server0
+  name: enabled_sbp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: 'blank - all messages are enabled'
+  readonly: false
+  Description: Configure which messages should be sent on the port
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided.  Optionally,
+    a divisor can be specified after the / character for each id.  For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For Ethernet,
+    the default value is optimal for logging and communication with the console.
+
+- group: udp_server0
+  name: port
+  expert: false
+  type: integer
+  units: N/A
+  default value: '55555'
+  readonly: false
+  Description: Port for UDP server 0
+  Notes:
+
+- group: udp_server1
+  name: mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'SBP (Swift Binary Protocol)'
+  readonly: false
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
+  Description: Communication protocol for UDP server 1 (port 55555)
+  Notes: |
+    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3.1 IN" configures the interface to receive RTK corrections in RTCM format. The interface will receive 1002, 1004, 1005, 1006, 1010, and 1012 RTCMv3.1 messages and will not transmit or receive any other messages.
+
+- group: udp_server1
+  name: enabled_sbp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: 'blank - all messages are enabled'
+  readonly: false
+  Description: Configure which messages should be sent on the port
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided.  Optionally,
+    a divisor can be specified after the / character for each id.  For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For Ethernet,
+    the default value is optimal for logging and communication with the console.
+
+- group: udp_server1
+  name: port
+  expert: false
+  type: integer
+  units: N/A
+  default value: '55555'
+  readonly: false
+  Description: Port for UDP server 1
+  Notes:
+
+
 - group: usb0
   name: enabled_sbp_messages
   expert: false
@@ -707,7 +878,7 @@
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
   readonly: false
-  enumerated possible values: SBP,NMEA,RTCM3 IN
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
   Description: Communication protocol for USB0
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
@@ -745,7 +916,7 @@
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCM3v3.1 IN
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
   Description: Communication protocol for UART 1
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
@@ -799,7 +970,7 @@
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCM3v3.1 IN
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
   Description: Communication protocol for UART0
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
@@ -1419,8 +1590,8 @@
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
   readonly: false
-  enumerated possible values: SBP,NMEA,RTCM3 IN
-  Description: Communication protocol for tcp server 0 (port 55555)
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
+  Description: Communication protocol for TCP server 0 (port 55555)
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
 
@@ -1452,7 +1623,7 @@
   units: N/A
   default value: '55555'
   readonly: false
-  Description: TCP/IP port for tcp server 0
+  Description: Port for TCP server 0
   Notes:
 
 - group: tcp_server1
@@ -1462,8 +1633,8 @@
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
   readonly: false
-  enumerated possible values: SBP,NMEA,RTCM3 IN
-  Description: Communication protocol for tcp server 1 (port 55556)
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
+  Description: Communication protocol for TCP server 1 (port 55556)
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
 
@@ -1494,7 +1665,7 @@
   units: N/A
   default value: '55556'
   readonly: false
-  Description: TCP/IP port for tcp server 1
+  Description: Port for TCP server 1
   Notes:
 
 - group: tcp_client0
@@ -1504,8 +1675,8 @@
   units: N/A
   default value: 'Disabled'
   readonly: false
-  enumerated possible values: SBP,NMEA,RTCM3 IN
-  Description: Communication protocol for tcp client 0
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
+  Description: Communication protocol for TCP client 0
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
 
@@ -1536,7 +1707,7 @@
   units: N/A
   default value: ''
   readonly: false
-  Description: TCP/IP address for tcp client 0.
+  Description: IP address and port for TCP client 0 to connect to.
   Notes: The address setting is defined according to the convention "hostname:port".
      For example, it should match the format 192.168.0.222:55555 or xxxxx.net:2101 .
 
@@ -1547,8 +1718,8 @@
   units: N/A
   default value: 'Disabled'
   readonly: false
-  enumerated possible values: SBP,NMEA,RTCM3 IN
-  Description: Communication protocol for tcp client 1
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
+  Description: Communication protocol for TCP client 1
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
 
@@ -1579,7 +1750,7 @@
   units: N/A
   default value: ''
   readonly: false
-  Description: TCP/IP address for tcp client 1
+  Description: IP address and port for TCP client 1 to connect to.
   Notes: The address setting is defined according to the convention "hostname:port".
      For example, it should match the format 192.168.0.222:55555 or xxxxx.net:2101 .
 
