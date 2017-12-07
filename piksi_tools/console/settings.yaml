@@ -778,7 +778,7 @@
   default value: 'SBP (Swift Binary Protocol)'
   readonly: false
   enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
-  Description: Communication protocol for UDP server 0 (port 55557)
+  Description: Communication protocol for UDP server 0
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
 
@@ -820,7 +820,7 @@
   default value: 'SBP (Swift Binary Protocol)'
   readonly: false
   enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
-  Description: Communication protocol for UDP server 1 (port 55558)
+  Description: Communication protocol for UDP server 1
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
 
@@ -1591,7 +1591,7 @@
   default value: 'SBP (Swift Binary Protocol)'
   readonly: false
   enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
-  Description: Communication protocol for TCP server 0 (port 55555)
+  Description: Communication protocol for TCP server 0
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
 
@@ -1634,7 +1634,7 @@
   default value: 'SBP (Swift Binary Protocol)'
   readonly: false
   enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
-  Description: Communication protocol for TCP server 1 (port 55556)
+  Description: Communication protocol for TCP server 1
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
 
