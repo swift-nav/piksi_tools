@@ -132,7 +132,7 @@ class FirmwareFileDialog(HasTraits):
             try:
                 sectors = flash.sectors_used(ihx_addrs,
                                              flash.stm_addr_sector_map)
-            except:
+            except: # noqa
                 self.clear('Error: HEX File contains restricted address ' +
                            '(NAP Firmware File Chosen?)')
 
@@ -144,7 +144,7 @@ class FirmwareFileDialog(HasTraits):
         try:
             self.blob = open(filepath, 'rb').read()
             self.status = os.path.split(filepath)[1]
-        except:
+        except: # noqa
             self.clear('Error: Failed to read binary file')
 
     def _choose_fw_fired(self):
@@ -613,7 +613,7 @@ class UpdateView(HasTraits):
                 'firmware_version'].value
             local_serial_number = self.settings['system_info'][
                 'serial_number'].value
-        except:
+        except: # noqa
             pass
         # Check if console is out of date and notify user if so.
         if self.prompt:
@@ -694,8 +694,9 @@ class UpdateView(HasTraits):
 
         # Check if firmware successfully upgraded and notify user if so.
         if self.last_call_fw_version is not None and \
-                self.last_call_fw_version != local_stm_version and (self.last_call_sn 
-                is None or local_serial_number is None or self.last_call_sn == local_serial_number):
+                self.last_call_fw_version != local_stm_version and \
+                (self.last_call_sn is None or local_serial_number is None or
+                    self.last_call_sn == local_serial_number):
             fw_success_str = "Firmware successfully upgraded from %s to %s." % \
                              (self.last_call_fw_version, local_stm_version)
             print(fw_success_str)
@@ -704,7 +705,6 @@ class UpdateView(HasTraits):
         # Record firmware version reported each time this callback is called.
         self.last_call_fw_version = local_stm_version
         self.last_call_sn = local_serial_number
-
 
     def _get_latest_version_info(self):
         """ Get latest firmware / console version from website. """

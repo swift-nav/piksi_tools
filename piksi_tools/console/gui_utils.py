@@ -48,7 +48,7 @@ def plot_square_axes(plot, xnames, ynames):
 
         try:
             aspect = float(plot.width) / plot.height
-        except:
+        except: # noqa
             aspect = 1
         if aspect * rangey > rangex:
             padding = (aspect * rangey - rangex) / 2
@@ -62,7 +62,7 @@ def plot_square_axes(plot, xnames, ynames):
             plot.index_range.high_setting = maxx
             plot.value_range.low_setting = miny - padding
             plot.value_range.high_setting = maxy + padding
-    except:
+    except: # noqa
         import traceback
         traceback.print_exc()
 
@@ -73,13 +73,17 @@ class CodeFiltered(HasTraits):
     used to select which of the supported SV codes are selected. You can
     add this feature to your class through class inheritance.
     '''
+
     # Add boolean variables for each supported code.
     for code in SUPPORTED_CODES:
-        vars()['show_{}'.format(code)] = Bool(True)
-        vars()['received_{}'.format(code)] = Bool(False)
+        vars()['show_{}'.format(code)] = Bool()
 
     def __init__(self):
         super(CodeFiltered, self).__init__()
+
+        # True as default value for each code.
+        for code in SUPPORTED_CODES:
+            setattr(self, 'show_{}'.format(code), True)
 
     @staticmethod
     def get_filter_group():
@@ -93,7 +97,6 @@ class CodeFiltered(HasTraits):
             hgroup.content.append(
                 Item(
                     'show_{}'.format(code),
-                    label="{}:".format(code_to_str(code)),
-                    visible_when="received_{}==True".format(code)))
+                    label="{}:".format(code_to_str(code))))
 
         return hgroup

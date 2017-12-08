@@ -78,7 +78,7 @@ class SelectiveRepeater(object):
             for seq in self.window.keys():
                 try:
                     msg, sent_time, tries = self.window[seq]
-                except:
+                except: # noqa
                     continue
                 if tnow - sent_time > SBP_FILEIO_TIMEOUT:
                     if tries >= 3:
@@ -332,7 +332,7 @@ def main():
         try:
             host, port = port.split(':')
             selected_driver = TCPDriver(host, int(port))
-        except:
+        except: # noqa
             raise Exception('Invalid host and/or port')
     else:
         selected_driver = serial_link.get_driver(args.ftdi, port, baud)

@@ -124,7 +124,7 @@ class HttpWatchdogThread(threading.Thread):
         if self.stopped_callback:
             try:
                 self.stopped_callback()
-            except:
+            except: # noqa
                 print(
                     "Error stopping HttpWatchdogThread: User supplied callback has unhandeled exception"
                 )
@@ -468,7 +468,7 @@ class SbpRelayView(HasTraits):
                            self.http_watchdog_thread.get_init_time(),
                            self.http_watchdog_thread.get_connect_time()))
             self.connected_rover = False
-        except:
+        except: # noqa
             self.connected_rover = False
             import traceback
             print(traceback.format_exc())
@@ -494,7 +494,7 @@ class SbpRelayView(HasTraits):
                 verbose=self.verbose)
             self.connected_rover = True
             self.http_watchdog_thread.start()
-        except:
+        except: # noqa
             if isinstance(self.http_watchdog_thread, threading.Thread) \
                and self.http_watchdog_thread.stopped():
                 self.http_watchdog_thread.stop()
@@ -512,7 +512,7 @@ class SbpRelayView(HasTraits):
         try:
             self.func = UdpLogger(self.ip_ad, self.port)
             self.link.add_callback(self.func, self.msgs)
-        except:
+        except: # noqa
             import traceback
             print(traceback.format_exc())
 
@@ -527,6 +527,6 @@ class SbpRelayView(HasTraits):
             self.func.__exit__()
             self.func = None
             self.running = False
-        except:
+        except: # noqa
             import traceback
             print(traceback.format_exc())

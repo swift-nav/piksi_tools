@@ -17,8 +17,8 @@ from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
 from sbp.mag import SBP_MSG_MAG_RAW
-from traits.api import Dict, Float, HasTraits, Instance, Int
-from traitsui.api import HGroup, Item, VGroup, View
+from traits.api import Dict, HasTraits, Instance
+from traitsui.api import Item, VGroup, View
 
 from piksi_tools.console.utils import call_repeatedly
 

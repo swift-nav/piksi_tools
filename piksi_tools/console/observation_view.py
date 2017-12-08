@@ -150,8 +150,6 @@ class ObservationView(CodeFiltered):
         # Save this packet
         # See sbp_piksi.h for format
         for o in sbp_msg.obs:
-            if getattr(self, "received_{}".format(o.sid.code), True) == False:
-                setattr(self, "received_{}".format(o.sid.code), True)
             # Handle all the message specific stuff
             prn = o.sid.sat
             flags = 0
@@ -180,7 +178,7 @@ class ObservationView(CodeFiltered):
 
             try:
                 ocp = self.old_cp[prn]
-            except:
+            except: # noqa
                 ocp = 0
 
             cp = float(o.L.i) + float(o.L.f) / (1 << 8)
