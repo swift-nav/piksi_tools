@@ -48,7 +48,7 @@ def plot_square_axes(plot, xnames, ynames):
 
         try:
             aspect = float(plot.width) / plot.height
-        except:
+        except: # noqa
             aspect = 1
         if aspect * rangey > rangex:
             padding = (aspect * rangey - rangex) / 2
@@ -62,7 +62,7 @@ def plot_square_axes(plot, xnames, ynames):
             plot.index_range.high_setting = maxx
             plot.value_range.low_setting = miny - padding
             plot.value_range.high_setting = maxy + padding
-    except:
+    except: # noqa
         import traceback
         traceback.print_exc()
 

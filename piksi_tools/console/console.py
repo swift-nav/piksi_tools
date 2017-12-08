@@ -729,7 +729,7 @@ class SwiftConsole(HasTraits):
             self.python_console_env.update(
                 self.spectrum_analyzer_view.python_console_cmds)
 
-        except:
+        except: # noqa
             import traceback
             traceback.print_exc()
             if self.error:
@@ -908,7 +908,7 @@ def main():
             host, ip_port = port.split(':')
             selected_driver = TCPDriver(host, int(ip_port))
             connection_description = port
-        except:
+        except: # noqa
             raise Exception('Invalid host and/or port')
             sys.exit(1)
     elif port and args.file:
@@ -977,7 +977,7 @@ def main():
     # Force exit, even if threads haven't joined
     try:
         os._exit(0)
-    except:
+    except: # noqa
         pass
 
 

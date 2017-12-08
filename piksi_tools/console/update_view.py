@@ -132,7 +132,7 @@ class FirmwareFileDialog(HasTraits):
             try:
                 sectors = flash.sectors_used(ihx_addrs,
                                              flash.stm_addr_sector_map)
-            except:
+            except: # noqa
                 self.clear('Error: HEX File contains restricted address ' +
                            '(NAP Firmware File Chosen?)')
 
@@ -144,7 +144,7 @@ class FirmwareFileDialog(HasTraits):
         try:
             self.blob = open(filepath, 'rb').read()
             self.status = os.path.split(filepath)[1]
-        except:
+        except: # noqa
             self.clear('Error: Failed to read binary file')
 
     def _choose_fw_fired(self):
@@ -613,7 +613,7 @@ class UpdateView(HasTraits):
                 'firmware_version'].value
             local_serial_number = self.settings['system_info'][
                 'serial_number'].value
-        except:
+        except: # noqa
             pass
         # Check if console is out of date and notify user if so.
         if self.prompt:

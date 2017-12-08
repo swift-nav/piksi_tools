@@ -178,7 +178,7 @@ class ObservationView(CodeFiltered):
 
             try:
                 ocp = self.old_cp[prn]
-            except:
+            except: # noqa
                 ocp = 0
 
             cp = float(o.L.i) + float(o.L.f) / (1 << 8)

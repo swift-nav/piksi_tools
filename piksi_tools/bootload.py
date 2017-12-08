@@ -260,7 +260,7 @@ def main():
 
                         print("Bootloader jumping to application")
                         piksi_bootloader.jump_to_app()
-                except:
+                except: # noqa
                     import traceback
                     traceback.print_exc()
 
