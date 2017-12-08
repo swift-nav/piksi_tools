@@ -1799,6 +1799,25 @@
   Notes: When 125 is chosen, it means the gyro is scaled to measure
     about +/- 125 deg/s of angular rate. Refer to the IMU datasheet for detailed information.
 
+- group: imu
+  name: mag_raw_output
+  expert: false
+  type: boolean
+  default value: 'False'
+  readonly: false
+  Description: Enable/Disable raw data output from onboard Bosch BMM150 Magnetometer.
+  Notes:  The magnetometer raw data can be seen in the Advanced Tab of the Swift Console.
+
+- group: imu
+  name: mag_rate
+  expert: false
+  type: enum
+  default value: '12.5'
+  readonly: false
+  enumerated possible values: 6.25,12.5,25
+  units: Hz
+  Description: The data rate (in Hz) for magnetometer raw output.
+
 - group: ndb
   name: erase_ephemeris
   expert: true
