@@ -706,7 +706,6 @@ class UpdateView(HasTraits):
         self.last_call_fw_version = local_stm_version
         self.last_call_sn = local_serial_number
 
-
     def _get_latest_version_info(self):
         """ Get latest firmware / console version from website. """
         try:
