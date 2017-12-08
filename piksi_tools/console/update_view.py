@@ -694,8 +694,9 @@ class UpdateView(HasTraits):
 
         # Check if firmware successfully upgraded and notify user if so.
         if self.last_call_fw_version is not None and \
-                self.last_call_fw_version != local_stm_version and (self.last_call_sn 
-                is None or local_serial_number is None or self.last_call_sn == local_serial_number):
+                self.last_call_fw_version != local_stm_version and (self.last_call_sn
+                        is None or local_serial_number is None or \
+                                self.last_call_sn == local_serial_number):
             fw_success_str = "Firmware successfully upgraded from %s to %s." % \
                              (self.last_call_fw_version, local_stm_version)
             print(fw_success_str)
