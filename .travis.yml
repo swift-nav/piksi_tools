@@ -16,7 +16,7 @@ matrix:
    - os: linux
      language: python
    - os: osx
-     osx_image: xcode9.1
+     osx_image: xcode9
      language: generic
    - os: osx
      osx_image: Xcode 8.3.3
