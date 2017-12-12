@@ -205,7 +205,7 @@ class BaselineView(HasTraits):
         if headingMsg.flags & 0x7 != 0:
             self.heading = headingMsg.heading * 1e-3
         else:
-            self.heading = None
+            self.heading = "---"
 
     def baseline_callback(self, sbp_msg, **metadata):
         soln = MsgBaselineNEDDepA(sbp_msg)
@@ -488,7 +488,7 @@ class BaselineView(HasTraits):
         self.week = None
         self.utc_time = None
         self.age_corrections = None
-        self.heading = None
+        self.heading = "---"
         self.nsec = 0
 
         self.link = link
