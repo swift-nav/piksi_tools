@@ -107,9 +107,9 @@ def get_args():
         help="key value pairs to pass to sbp_relay_view initializer for network"
     )
     parser.add_argument(
-        '--serial-upgrade',
+        '--sbp-upgrade',
         action='store_true',
-        help="Allow software upgrade over serial.")
+        help="Allow software upgrade over sbp.")
     parser.add_argument(
         '-h',
         '--help',
@@ -270,6 +270,11 @@ class SwiftConsole(HasTraits):
                         'spectrum_analyzer_view',
                         label='Spectrum Analyzer',
                         style='custom'),
+                    Item(
+                        'python_console_env',
+                        style='custom',
+                        label='Python Console',
+                        editor=ShellEditor()),
                     label='Advanced',
                     show_labels=False),
                 show_labels=False),
@@ -579,7 +584,7 @@ class SwiftConsole(HasTraits):
                  override_filename=None,
                  log_console=False,
                  networking=None,
-                 serial_upgrade=False):
+                 sbp_upgrade=False):
         self.error = error
         self.cnx_desc = cnx_desc
         self.dev_id = cnx_desc
@@ -643,7 +648,7 @@ class SwiftConsole(HasTraits):
                 self.link,
                 download_dir=swift_path,
                 prompt=update,
-                serial_upgrade=serial_upgrade)
+                sbp_upgrade=sbp_upgrade)
             self.imu_view = IMUView(self.link)
             self.mag_view = MagView(self.link)
             self.spectrum_analyzer_view = SpectrumAnalyzerView(self.link)
@@ -971,7 +976,7 @@ def main():
                     override_filename=args.logfilename,
                     log_console=args.log_console,
                     networking=args.networking,
-                    serial_upgrade=args.serial_upgrade) as console:
+                    sbp_upgrade=args.sbp_upgrade) as console:
                 console.configure_traits()
 
     # Force exit, even if threads haven't joined

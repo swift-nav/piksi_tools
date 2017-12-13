@@ -227,7 +227,7 @@ class UpdateView(HasTraits):
     update_stm_en = Bool(False)
     update_nap_en = Bool(False)
     update_en = Bool(False)
-    serial_upgrade = Bool(False)
+    sbp_upgrade = Bool(False)
     upgrade_steps = String("Firmware upgrade steps:")
 
     download_firmware = Button(label='Download Latest Firmware')
@@ -271,14 +271,14 @@ class UpdateView(HasTraits):
                         show_label=True,
                         label="Local File",
                         enabled_when='download_fw_en',
-                        visible_when='serial_upgrade',
+                        visible_when='sbp_upgrade',
                         editor_args={'enabled': False}),
                     HGroup(
                         Item(
                             'update_stm_firmware',
                             show_label=False,
                             enabled_when='update_stm_en',
-                            visible_when='serial_upgrade'),
+                            visible_when='sbp_upgrade'),
                         Item(
                             'erase_stm',
                             label='Erase STM flash\n(recommended)',
@@ -310,7 +310,7 @@ class UpdateView(HasTraits):
                             'update_nap_firmware',
                             show_label=False,
                             enabled_when='update_nap_en',
-                            visible_when='serial_upgrade'),
+                            visible_when='sbp_upgrade'),
                         Item(width=50, label="                  ")),
                     show_border=True,
                     label="NAP Version",
@@ -336,7 +336,7 @@ class UpdateView(HasTraits):
             VGroup(
                 UItem(
                     'upgrade_steps',
-                    visible_when='not serial_upgrade',
+                    visible_when='not sbp_upgrade',
                     style='readonly'),
                 Item(
                     'stream',
@@ -349,7 +349,7 @@ class UpdateView(HasTraits):
                  link,
                  download_dir=None,
                  prompt=True,
-                 serial_upgrade=False):
+                 sbp_upgrade=False):
         """
         Traits tab with UI for updating Piksi firmware.
 
@@ -376,9 +376,9 @@ class UpdateView(HasTraits):
         self.nap_fw = FirmwareFileDialog('M25')
         self.nap_fw.on_trait_change(self._manage_enables, 'status')
         self.stream = OutputStream()
-        self.serial_upgrade = serial_upgrade
+        self.sbp_upgrade = sbp_upgrade
         self.last_call_fw_version = None
-        if not self.serial_upgrade:
+        if not self.sbp_upgrade:
             self._write(
                 "1. Insert the USB flash drive provided with your Piki Multi into "
                 "your computer.  Select the flash drive root directory as the "
@@ -593,7 +593,7 @@ class UpdateView(HasTraits):
         self.is_v2 = self.piksi_hw_rev.startswith('piksi_v2')
         if self.is_v2:
             self.stm_fw.set_flash_type('STM')
-            self.serial_upgrade = True
+            self.sbp_upgrade = True
         else:
             self.stm_fw.set_flash_type('bin')
 

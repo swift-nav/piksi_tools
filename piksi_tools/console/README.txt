@@ -2,8 +2,8 @@ usage: console.py [-p PORT] [-b BAUD] [--rtscts] [-v] [-f] [-l] [-r]
                   [-o LOG_DIRNAME] [--logfilename LOGFILENAME]
                   [-a APPEND_LOG_FILENAME] [--file] [-d TAGS] [-t]
                   [-i INITLOGLEVEL] [-u] [--toolkit TOOLKIT] [--error]
-                  [--log-console] [--networking [NETWORKING]]
-                  [--serial-upgrade] [-h] [-V]
+                  [--log-console] [--networking [NETWORKING]] [--sbp-upgrade]
+                  [-h] [-V]
 
 Swift Console
 
@@ -37,7 +37,7 @@ optional arguments:
   --networking [NETWORKING]
                         key value pairs to pass to sbp_relay_view initializer
                         for network
-  --serial-upgrade      Allow software upgrade over serial.
+  --sbp-upgrade         Allow software upgrade over serial.
   -h, --help            Show usage help in a GUI popup.
   -V, --version         show program's version number and exit
 
