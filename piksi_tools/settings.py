@@ -30,7 +30,6 @@ from . import serial_link
 MAX_RETRIES = 10
 DEFAULT_READ_TIMEOUT_SECS = 0.5
 
-
 class Settings(object):
     """
     Settings
@@ -38,7 +37,7 @@ class Settings(object):
     The :class:`Settings` class retrieves and sends settings.
     """
 
-    def __init__(self, link, retries=MAX_RETRIES):
+    def __init__(self, link, retries=MAX_RETRIES, timeout=DEFAULT_READ_TIMEOUT_SECS):
         self.link = link
         self.settings_list = OrderedDict()
         self.settings_list_received = False
@@ -52,12 +51,13 @@ class Settings(object):
                                SBP_MSG_SETTINGS_READ_BY_INDEX_DONE)
         self.link.add_callback(self._print_callback, [SBP_MSG_LOG])
         self.retries = retries
+        self.timeout = timeout
 
     def read_all(self, verbose=False):
         self.settings_list_received = False
         self.link(MsgSettingsReadByIndexReq(index=0))
         while not self.settings_list_received:
-            time.sleep(DEFAULT_READ_TIMEOUT_SECS)
+            time.sleep(self.timeout)
         for section in self.settings_list:
             if verbose:
                 print('%s:' % section)
@@ -79,7 +79,7 @@ class Settings(object):
             if verbose:
                 print("Attempting to read:section={}|setting={}".format(section, setting))
             self.link(MsgSettingsReadReq(setting='%s\0%s\0' % (section, setting)))
-            time.sleep(DEFAULT_READ_TIMEOUT_SECS)
+            time.sleep(self.timeout)
             response = self.read_response_wait_dict[(section, setting)]
             attempts += 1
         response = self.read_response_wait_dict[(section, setting)]
@@ -88,7 +88,8 @@ class Settings(object):
                 print("Successfully read:section={}|setting={}value={}".format(section, setting, response))
             return (0, response)
         elif response == False:  # never received read resp callback
-            print("Settings read failed after {} attempts:section={}|setting={}".format(self.retries, section, setting))
+            print("Settings read failed after {} attempts:section={}|setting={}".format(self.retries, section, setting),
+                  file=sys.stderr)
             return (-1, None)
 
     def write(self, section, setting, value, verbose=False):
@@ -98,30 +99,11 @@ class Settings(object):
         If return code is -1, we ere not able to read teh setting
         if return code is -2, we could not verify that our write was successful and the setting could be read-only
         """
-        actual_value = None
-        attempts = 0
-        while (actual_value != value or attempts == 0):
-            if verbose:
-                print("Attempting to write:section={}|setting={}|value={}".format(section, setting, value))
-            self.link(MsgSettingsWrite(setting='%s\0%s\0%s\0' % (section, setting, value)))
-            (read_return, actual_value) = self.read(section, setting, verbose)
-            if (read_return != 0):
-                print(
-                    "Unable to confirm write of setting. "
-                    "Setting may not exist:"
-                    "section={}|setting={}|value={}".format(section, setting, value))
-                return -1
-            attempts += 1
-            if attempts == self.retries:
-                print("Settings write failed after {} attempts:"
-                      "section={}|setting={}|value={}".format(self.retries, section, setting, value))
-                print("Settings may be read-only or attempted value invalid")
-                return -2
-        else:
-            if verbose:
-                print("Successfully set:section={}|setting={}|value={}".format(section, setting, value))
-            return 0
 
+        if verbose:
+            print("Attempting to write:section={}|setting={}|value={}".format(section, setting, value))
+        self.link(MsgSettingsWrite(setting='%s\0%s\0%s\0' % (section, setting, value)))
+        return self._confirm_write(section, setting, value, verbose)
 
     def save(self):
         self.link(MsgSettingsSave())
@@ -131,7 +113,8 @@ class Settings(object):
 
     def read_to_file(self, output, verbose=False):
         settings_list = self.read_all(verbose=verbose)
-        parser = configparser.ConfigParser()
+        parser = configparser.RawConfigParser()
+        parser.optionxform = str
         parser.read_dict(settings_list)
         with open(output, "w") as f:
             parser.write(f)
@@ -167,6 +150,45 @@ class Settings(object):
     def _settings_done_callback(self, sbp_msg, **metadata):
         self.settings_list_received = True
 
+    def _confirm_write(self, section, setting, value, verbose=False):
+        # Right now we explicetly do a settings.read to confirm new value
+        # In future we will just wait for settings_write_response
+        attempts = 0
+        while (attempts < self.retries):
+            attempts += 1
+            (read_return, actual_value) = self.read(section, setting, verbose)
+            if read_return == 0:
+                if value != actual_value: # value doesn't match, but could be a rounding issue
+                    try:
+                        float_val = float(actual_value)
+                        float_actual_val = float(value)
+                        if abs(float_val - float_actual_val) > 0.000001: # value doesn't match, try again
+                            continue
+                        else: # value matches after allowing imprecision
+                            if verbose:
+                                print("Successfully set:section={}|setting={}|value={}".format(section, setting, value))
+                            return 0
+                    except TypeError:
+                        continue
+                else: # value matches
+                    if verbose:
+                        print("Successfully set:section={}|setting={}|value={}".format(section, setting, value))
+                    return 0
+            else: # unable to succefully read
+                print(
+                    "Unable to confirm write of setting. "
+                    "Setting may not exist:"
+                    "section={}|setting={}|value={}".format(section, setting, value),
+                    file=sys.stderr)
+                return -1
+
+            print("Settings write failed after {} attempts:"
+                  "section={}|setting={}|value={}".format(self.retries, section, setting, value),
+                  file=sys.stderr)
+            print("Setting may be read-only or attempted value invalid.", file=sys.stderr)
+            return -2
+
+
 
 def get_args():
     """
@@ -198,6 +220,11 @@ def get_args():
         default=[serial_link.SERIAL_BAUD],
         nargs=1,
         help="specify the baud rate to use.")
+    parser.add_argument(
+        "-t",
+        "--timeout",
+        default=DEFAULT_READ_TIMEOUT_SECS,
+        help="specify the timeout for settings reads.")
     parser.add_argument(
         '-v',
         '--verbose',
@@ -273,7 +300,7 @@ def main():
     if return_code == 0:
         sys.exit(0)
     else:
-        settings.link.wait(MsgLog, 8)
+        settings.link.wait(MsgLog, float(args.timeout))
         sys.exit(return_code)
 
 if __name__ == "__main__":
