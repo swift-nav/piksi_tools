@@ -33,7 +33,6 @@ Example:
         $ python -m piksi_tools.settings  -p /dev/ttyUSB0 -s write_from_file config.ini
 
 Todo:
-    * Update for setting_write_resp plan implemented
     * Harmonize and/or re-use logic here for settings_view in console
 """
 
@@ -49,7 +48,8 @@ from sbp.logging import SBP_MSG_LOG
 from sbp.piksi import MsgReset
 from sbp.settings import (
     SBP_MSG_SETTINGS_READ_BY_INDEX_DONE, SBP_MSG_SETTINGS_READ_BY_INDEX_RESP,
-    SBP_MSG_SETTINGS_READ_RESP, MsgSettingsReadByIndexReq, MsgSettingsReadReq,
+    SBP_MSG_SETTINGS_READ_RESP, SBP_MSG_SETTINGS_WRITE_RESP,
+    MsgSettingsReadByIndexReq, MsgSettingsReadReq,
     MsgSettingsSave, MsgSettingsWrite)
 
 from . import serial_link
@@ -170,9 +170,23 @@ class Settings(object):
             if verbose:
                 print("Attempting to write:section={}|setting={}|value={}".format(section, setting, value))
             attempts += 1
+            reply = {'status': 0}
+            def cb(msg, **metadata):
+                reply['status'] = msg.status
+            self.link.add_callback(cb, SBP_MSG_SETTINGS_WRITE_RESP)
             self.link(MsgSettingsWrite(setting='%s\0%s\0%s\0' % (section, setting, value)))
             if self._confirm_write(section, setting, value, verbose=verbose, retries=confirm_retries):
+                self.link.remove_callback(cb, SBP_MSG_SETTINGS_WRITE_RESP)
                 return
+            if reply['status'] == 1:
+                raise RuntimeError("Unable to write setting \"{}\" in section \"{}\" "
+                                   "with value \"{}\": Setting value rejected.".format(setting, section,
+                                                                                       value))
+            elif reply['status'] == 2:
+                raise RuntimeError("Unable to write setting \"{}\" in section \"{}\"."
+                                   "Setting does not exist.".format(setting, section))
+            elif reply['status'] > 0:
+                raise RuntimeError("Unknown setting write status response")
             else:
                 continue
 
@@ -180,6 +194,7 @@ class Settings(object):
                            "with value \"{}\" after {} attempts. Setting "
                            "may be read-only or the value could be out of bounds.".format(setting, section,
                                                                                           value, write_retries))
+        self.link.remove_callback(cb, SBP_MSG_SETTINGS_WRITE_RESP)
         return
 
     def save(self):
