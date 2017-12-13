@@ -12,7 +12,7 @@
 """
 
 This module provides a commandline interface for sending and receiving settings
-from Swift Navigation devices.  In order for the relative import of serial_link to work \
+from Swift Navigation devices.  In order for the relative import of serial_link to work
 it is recommended that the script is installed and run as a module.
 
 Example:
@@ -114,16 +114,15 @@ class Settings(object):
     """Read one setting from device
 
     Notes:
-        If return_code (first part of return tuple)
-         is anything other than 0, the setting_value (second
-         part of return tuple) is invalid
+        If the return_code (first part of return tuple) is anything other than 0
+         the setting_value (second part of return tuple) is invalid.
     Args:
         section(str): string of section name
         setting(str): string of setting name
         verbose(bool): Echo settings to sdout
 
     Returns:
-       tuple of (return_value, setting_value)
+       tuple of (return_code, setting_value)
 
     """
     self.read_response_wait_dict[(section, setting)] = False
