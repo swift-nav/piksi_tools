@@ -107,10 +107,6 @@ def get_args():
         help="key value pairs to pass to sbp_relay_view initializer for network"
     )
     parser.add_argument(
-        '--serial-upgrade',
-        action='store_true',
-        help="Allow software upgrade over serial.")
-    parser.add_argument(
         '-h',
         '--help',
         action='store_true',
@@ -579,9 +575,10 @@ class SwiftConsole(HasTraits):
                  override_filename=None,
                  log_console=False,
                  networking=None,
-                 serial_upgrade=False):
+                 connection_info=None):
         self.error = error
         self.cnx_desc = cnx_desc
+        self.connection_info = connection_info
         self.dev_id = cnx_desc
         self.num_sats = 0
         self.mode = ''
@@ -643,7 +640,7 @@ class SwiftConsole(HasTraits):
                 self.link,
                 download_dir=swift_path,
                 prompt=update,
-                serial_upgrade=serial_upgrade)
+                connection_info=self.connection_info)
             self.imu_view = IMUView(self.link)
             self.mag_view = MagView(self.link)
             self.spectrum_analyzer_view = SpectrumAnalyzerView(self.link)
@@ -873,6 +870,7 @@ def main():
     logging.basicConfig()
     args = None
     parser = get_args()
+    cnx_info = {}
     try:
         args = parser.parse_args()
         port = args.port
@@ -938,9 +936,11 @@ def main():
             if mode == cnx_type_list[1]:
                 print("Using TCP/IP at address %s and port %d" % (ip_address,
                                                                   ip_port))
+                cnx_info['mode'] = cnx_type_list[1]
                 selected_driver = TCPDriver(ip_address, int(ip_port))
                 connection_description = ip_address + ":" + str(ip_port)
             else:
+                cnx_info['mode'] = cnx_type_list[0]
                 print("Using serial device '%s'" % port)
                 selected_driver = s.get_driver(
                     args.ftdi, port, baud, args.file, rtscts=rtscts)
@@ -971,7 +971,8 @@ def main():
                     override_filename=args.logfilename,
                     log_console=args.log_console,
                     networking=args.networking,
-                    serial_upgrade=args.serial_upgrade) as console:
+                    connection_info=cnx_info) as console:
+
                 console.configure_traits()
 
     # Force exit, even if threads haven't joined

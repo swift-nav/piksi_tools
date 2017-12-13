@@ -24,7 +24,8 @@ from .utils import icon
 
 auto_survey_button = Action(
     name="Auto Survey", action="set_execute_callback_true", show_label=False)
-
+continue_via_serial_button = Action(
+    name="Continue via Serial...", action="set_execute_callback_true", show_label=False)
 update_button = Action(
     name="Update", action="set_execute_callback_true", show_label=False)
 reset_button = Action(
