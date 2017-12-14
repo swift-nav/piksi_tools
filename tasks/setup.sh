@@ -118,6 +118,7 @@ function homebrew_install () {
 }
 
 function bootstrap_osx () {
+    sw_vers
     log_info "Checking base OS X development tools..."
     # Download and install Homebrew
     if [[ ! -x /usr/local/bin/brew ]]; then
