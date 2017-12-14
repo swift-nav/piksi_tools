@@ -100,9 +100,9 @@ class Settings(object):
         self.link(MsgSettingsReadByIndexReq(index=0))
         attempts = 0
         while not self.settings_list_received:
-            time.sleep(10 * self.timeout)
+            time.sleep(self.timeout)
             attempts += 1
-            if attempts > self.retries:
+            if attempts > 10: #wait 10 timeout periods for settings before trying again
                 attempts = 0
                 self.link(MsgSettingsReadByIndexReq(index=0))
 
@@ -194,9 +194,7 @@ class Settings(object):
         for section, settings in parser.items():
             for setting, value in settings.items():
                 return_code = self.write(section, setting, value, verbose)
-                if (return_code != 0):
-                    return return_code
-        return 0
+        return 
 
     def _print_callback(self, msg, **metadata):
         print(msg.text)
