@@ -98,8 +98,14 @@ class Settings(object):
         """
         self.settings_list_received = False
         self.link(MsgSettingsReadByIndexReq(index=0))
+        attempts = 0
         while not self.settings_list_received:
-            time.sleep(self.timeout)
+            time.sleep(10 * self.timeout)
+            attempts += 1
+            if attempts > self.retries:
+                attempts = 0
+                self.link(MsgSettingsReadByIndexReq(index=0))
+
         for section in self.settings_list:
             if verbose:
                 print('%s:' % section)
@@ -109,146 +115,129 @@ class Settings(object):
         return self.settings_list
 
     def read(self, section, setting, verbose=False):
-        def read_all(self, verbose=False):
 
-    """Read one setting from device
+        """Read one setting from device
 
-    Notes:
-        If the return_code (first part of return tuple) is anything other than 0
-         the setting_value (second part of return tuple) is invalid.
-    Args:
-        section(str): string of section name
-        setting(str): string of setting name
-        verbose(bool): Echo settings to sdout
+        Args:
+            section(str): string of section name
+            setting(str): string of setting name
+            verbose(bool): Echo settings to sdout
+        Raises:
+             RunTimeError: if we were not able to read setting. It may not exist.
+        Returns:
+             value of the requested setting as a string
 
-    Returns:
-       tuple of (return_code, setting_value)
-
-    """
-    self.read_response_wait_dict[(section, setting)] = False
-    attempts = 0
-    response = False
-    while response == False and attempts < self.retries:
-        if verbose:
-            print("Attempting to read:section={}|setting={}".format(section, setting))
-        self.link(MsgSettingsReadReq(setting='%s\0%s\0' % (section, setting)))
-        time.sleep(self.timeout)
+        """
+        self.read_response_wait_dict[(section, setting)] = False
+        attempts = 0
+        response = False
+        while response == False and attempts < self.retries:
+            if verbose:
+                print("Attempting to read:section={}|setting={}".format(section, setting))
+            self.link(MsgSettingsReadReq(setting='%s\0%s\0' % (section, setting)))
+            time.sleep(self.timeout)
+            response = self.read_response_wait_dict[(section, setting)]
+            attempts += 1
         response = self.read_response_wait_dict[(section, setting)]
-        attempts += 1
-    response = self.read_response_wait_dict[(section, setting)]
-    if response != False:
+        if response != False:
+            if verbose:
+                print("Successfully read setting \"{}\" in section \"{}\" with value \"{}\"".format(setting, section,
+                                                                                                    response))
+            return response
+        else:  # never received read resp callback
+            raise RuntimeError, ("Unable to read setting \"{}\" in section \"{}\" after {} attempts. "
+                                 "Setting may not exist.".format(section, setting, self.retries))
+
+    def write(self, section, setting, value, verbose=False):
+        """Write setting by name and confirm set
+
+        Notes: Caller does not raise an exception, but RuntimeError may be raised when write unsuccessful
+
+        Args:
+            section(str): string of section name
+            setting(str): string of setting name
+            value(str): value to set
+            verbose(bool): Echo settings to sdout
+
+        Returns:
+            None
+
+        """
+
         if verbose:
-            print("Successfully read:section={}|setting={}value={}".format(section, setting, response))
-        return (0, response)
-    elif response == False:  # never received read resp callback
-        print("Settings read failed after {} attempts:section={}|setting={}".format(self.retries, section, setting),
-              file=sys.stderr)
-        return (-1, None)
+            print("Attempting to write:section={}|setting={}|value={}".format(section, setting, value))
+        self.link(MsgSettingsWrite(setting='%s\0%s\0%s\0' % (section, setting, value)))
+        self._confirm_write(section, setting, value, verbose)
 
+    def save(self):
+        """Save settings to flash"""
+        self.link(MsgSettingsSave())
 
-def write(self, section, setting, value, verbose=False):
-    """Write setting by name and confirm set
+    def reset(self):
+        """Reset to default settings and reset device"""
+        self.link(MsgReset(flags=1))
 
-    Args:
-        section(str): string of section name
-        setting(str): string of setting name
-        value(str): value to set
-        verbose(bool): Echo settings to sdout
+    def read_to_file(self, output, verbose=False):
+        """Read settings to output ini file."""
+        settings_list = self.read_all(verbose=verbose)
+        parser = configparser.RawConfigParser()
+        parser.optionxform = str
+        parser.read_dict(settings_list)
+        with open(output, "w") as f:
+            parser.write(f)
 
-    returns:
-        -1 if we were not able to read the setting (may not exist)
-        -2 if we could not verify that our write was successful and/or the setting could be read-only
+    def write_from_file(self, output, verbose=False):
+        """Write settings to device from ini file."""
+        parser = configparser.ConfigParser()
+        with open(output, 'r') as f:
+            parser.read_file(f)
+        for section, settings in parser.items():
+            for setting, value in settings.items():
+                return_code = self.write(section, setting, value, verbose)
+                if (return_code != 0):
+                    return return_code
+        return 0
 
-    """
+    def _print_callback(self, msg, **metadata):
+        print(msg.text)
 
-    if verbose:
-        print("Attempting to write:section={}|setting={}|value={}".format(section, setting, value))
-    self.link(MsgSettingsWrite(setting='%s\0%s\0%s\0' % (section, setting, value)))
-    return self._confirm_write(section, setting, value, verbose)
+    def _settings_callback(self, sbp_msg, **metadata):
+        section, setting, value, format_type = sbp_msg.payload.split(
+            '\0')[:4]
+        self.read_response_wait_dict[(section, setting)] = value
 
+    def _settings_list_callback(self, sbp_msg, **metadata):
+        section, setting, value, format_type = sbp_msg.payload[2:].split(
+            '\0')[:4]
+        if section not in self.settings_list:
+            self.settings_list[section] = {}
+        self.settings_list[section][setting] = value
+        index = struct.unpack('<H', sbp_msg.payload[:2])[0]
+        self.link(MsgSettingsReadByIndexReq(index=index + 1))
 
-def save(self):
-    """Save settings to flash"""
-    self.link(MsgSettingsSave())
+    def _settings_done_callback(self, sbp_msg, **metadata):
+        self.settings_list_received = True
 
+    def _confirm_write(self, section, setting, value, verbose=False):
+        """Confirm that a setting has been written to the value provided
 
-def reset(self):
-    """Reset to default settings and reset device"""
-    self.link(MsgReset(flags=1))
+        Notes:
+            Right now we explicitly do a settings.read to confirm new value
+            In future we will just wait for settings_write_response
+            TODO update to wait for settings_write_resp
 
-
-def read_to_file(self, output, verbose=False):
-    """Read settings to output ini file."""
-    settings_list = self.read_all(verbose=verbose)
-    parser = configparser.RawConfigParser()
-    parser.optionxform = str
-    parser.read_dict(settings_list)
-    with open(output, "w") as f:
-        parser.write(f)
-
-
-def write_from_file(self, output, verbose=False):
-    """Write settings to device from ini file."""
-    parser = configparser.ConfigParser()
-    with open(output, 'r') as f:
-        parser.read_file(f)
-    for section, settings in parser.items():
-        for setting, value in settings.items():
-            return_code = self.write(section, setting, value, verbose)
-            if (return_code != 0):
-                return return_code
-    return 0
-
-
-def _print_callback(self, msg, **metadata):
-    print(msg.text)
-
-
-def _settings_callback(self, sbp_msg, **metadata):
-    section, setting, value, format_type = sbp_msg.payload.split(
-        '\0')[:4]
-    self.read_response_wait_dict[(section, setting)] = value
-
-
-def _settings_list_callback(self, sbp_msg, **metadata):
-    section, setting, value, format_type = sbp_msg.payload[2:].split(
-        '\0')[:4]
-    if section not in self.settings_list:
-        self.settings_list[section] = {}
-    self.settings_list[section][setting] = value
-    index = struct.unpack('<H', sbp_msg.payload[:2])[0]
-    self.link(MsgSettingsReadByIndexReq(index=index + 1))
-
-
-def _settings_done_callback(self, sbp_msg, **metadata):
-    self.settings_list_received = True
-
-
-def _confirm_write(self, section, setting, value, verbose=False):
-    """Confirm that a setting has been written to the value provided
-
-    Notes:
-        Right now we explictely do a settings.read to confirm new value
-        In future we will just wait for settings_write_response
-        TODO update to wait for settings_write_resp
-
-    Args:
-        section(str): string of section name
-        setting(str): string of setting name
-        value(str): value to set
-        verbose(bool): Echo settings to stdout
-
-    Returns:
-        0 if confirmation is successful
-       -1 if the setting could not be read from device (setting may not exist)
-       -2 if the setting could be read but value was not set
-
-    """
-    attempts = 0
-    while (attempts < self.retries):
-        attempts += 1
-        (read_return, actual_value) = self.read(section, setting, verbose)
-        if read_return == 0:
+        Args:
+            section(str): string of section name
+            setting(str): string of setting name
+            value(str): value to set
+            verbose(bool): Echo settings to stdout
+        Raises:
+            RunTimeError: if we were not able to read or write the setting. It may not exist or could be read only.
+        """
+        attempts = 0
+        while (attempts < self.retries):
+            attempts += 1
+            actual_value = self.read(section, setting, verbose)
             if value != actual_value:  # value doesn't match, but could be a rounding issue
                 try:
                     float_val = float(actual_value)
@@ -258,26 +247,19 @@ def _confirm_write(self, section, setting, value, verbose=False):
                     else:  # value matches after allowing imprecision
                         if verbose:
                             print("Successfully set:section={}|setting={}|value={}".format(section, setting, value))
-                        return 0
-                except TypeError:
+                        return
+                except (TypeError, ValueError):
                     continue
             else:  # value matches
                 if verbose:
                     print("Successfully set:section={}|setting={}|value={}".format(section, setting, value))
-                return 0
-        else:  # unable to successfully read
-            print(
-                "Unable to confirm write of setting. "
-                "Setting may not exist:"
-                "section={}|setting={}|value={}".format(section, setting, value),
-                file=sys.stderr)
-            return -1
+                return
 
-        print("Settings write failed after {} attempts:"
-              "section={}|setting={}|value={}".format(self.retries, section, setting, value),
-              file=sys.stderr)
-        print("Setting may be read-only or attempted value invalid.", file=sys.stderr)
-        return -2
+                # If we get here the value has never matched
+        raise RuntimeError, ("Unable to write setting \"{}\" in section \"{}\" "
+                             "with value \"{}\" after {} attempts. Setting "
+                             "may be read-only or the value could be out of bounds.".format(setting, section,
+                                                                                            value, self.retries))
 
 
 def get_args():
@@ -288,11 +270,9 @@ def get_args():
     parser = argparse.ArgumentParser(description='Piksi Settings Tool',
                                      formatter_class=argparse.RawDescriptionHelpFormatter,
                                      epilog=("Returns:\n"
-                                             "  0 upon success\n"
-                                             " -1 if settings read unsuccessful\n"
-                                             " -2 if settings write unsuccessful\n"
-                                             "  1 general error\n"
-                                             "  2 improper usage"))
+                                             "  0: Upon success\n"
+                                             "  1: Runtime error or invalid settings request.\n"
+                                             "  2: Improper usage"))
     parser.add_argument(
         "-f",
         "--ftdi",
@@ -368,11 +348,9 @@ def main():
         with Handler(Framer(driver.read, driver.write)) as link:
             settings = Settings(link)
             if command == 'write':
-                return_code = settings.write(args.section, args.setting, args.value, verbose=args.verbose)
+                settings.write(args.section, args.setting, args.value, verbose=args.verbose)
             elif command == 'read':
-                (return_code, value) = settings.read(args.section, args.setting, args.verbose)
-                if return_code == 0:
-                    print(value)
+                print(settings.read(args.section, args.setting, args.verbose))
             elif command == 'all':
                 settings.read_all(True)
             elif command == 'save':
@@ -382,17 +360,11 @@ def main():
             elif command == 'read_to_file':
                 settings.read_to_file(args.output, args.verbose)
             elif command == 'write_from_file':
-                return_code = settings.write_from_file(args.filename, args.verbose)
+                settings.write_from_file(args.filename, args.verbose)
             # If saving was requested, we have done a write command, and the write was requested, we save
-            if command.startswith("write") and args.save_after_write and return_code == 0:
+            if command.startswith("write") and args.save_after_write:
                 print("Saving Settings to Flash.")
                 settings.save()
-                # Wait a few seconds for any relevant print messages
-    if return_code == 0:
-        sys.exit(0)
-    else:
-        settings.link.wait(MsgLog, float(args.timeout))
-        sys.exit(return_code)
 
 
 if __name__ == "__main__":
