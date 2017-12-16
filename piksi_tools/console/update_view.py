@@ -227,16 +227,15 @@ class UpdateView(HasTraits):
     update_stm_en = Bool(False)
     update_nap_en = Bool(False)
     update_en = Bool(False)
-    serial_upgrade = Bool(False)
-    upgrade_steps = String("Firmware upgrade steps:")
+    upgrade_steps = String("Firmware upgrade status:")
 
     download_firmware = Button(label='Download Latest Firmware')
-    download_directory = Directory(
-        "  Please choose a directory for downloaded firmware files...")
+    download_directory_default = "  Please choose a directory for downloaded firmware files..."
+    download_directory = Directory(download_directory_default)
     download_stm = Button(label='Download', height=HT)
     download_nap = Button(label='Download', height=HT)
     downloading = Bool(False)
-    download_fw_en = Bool(True)
+    download_fw_en = Bool(False)
 
     stm_fw = Instance(FirmwareFileDialog)
     nap_fw = Instance(FirmwareFileDialog)
@@ -271,14 +270,12 @@ class UpdateView(HasTraits):
                         show_label=True,
                         label="Local File",
                         enabled_when='download_fw_en',
-                        visible_when='serial_upgrade',
                         editor_args={'enabled': False}),
                     HGroup(
                         Item(
                             'update_stm_firmware',
                             show_label=False,
-                            enabled_when='update_stm_en',
-                            visible_when='serial_upgrade'),
+                            enabled_when='update_stm_en'),
                         Item(
                             'erase_stm',
                             label='Erase STM flash\n(recommended)',
@@ -309,8 +306,7 @@ class UpdateView(HasTraits):
                         Item(
                             'update_nap_firmware',
                             show_label=False,
-                            enabled_when='update_nap_en',
-                            visible_when='serial_upgrade'),
+                            enabled_when='update_nap_en'),
                         Item(width=50, label="                  ")),
                     show_border=True,
                     label="NAP Version",
@@ -327,7 +323,7 @@ class UpdateView(HasTraits):
                         editor_args={'enabled': False}),
                     label="Swift Console Version",
                     show_border=True), ),
-            UItem('download_directory', enabled_when='download_fw_en'),
+            UItem('download_directory'),
             UItem('download_firmware', enabled_when='download_fw_en'),
             UItem(
                 'update_full_firmware',
@@ -336,7 +332,7 @@ class UpdateView(HasTraits):
             VGroup(
                 UItem(
                     'upgrade_steps',
-                    visible_when='not serial_upgrade',
+                    visible_when='not sbp_upgrade',
                     style='readonly'),
                 Item(
                     'stream',
@@ -349,7 +345,7 @@ class UpdateView(HasTraits):
                  link,
                  download_dir=None,
                  prompt=True,
-                 serial_upgrade=False):
+                 connection_info=None):
         """
         Traits tab with UI for updating Piksi firmware.
 
@@ -361,6 +357,7 @@ class UpdateView(HasTraits):
           Prompt user to update console/firmware if out of date.
         """
         self.link = link
+        self.connection_info = connection_info
         self.settings = {}
         self.prompt = prompt
         self.python_console_cmds = {'update': self}
@@ -376,26 +373,7 @@ class UpdateView(HasTraits):
         self.nap_fw = FirmwareFileDialog('M25')
         self.nap_fw.on_trait_change(self._manage_enables, 'status')
         self.stream = OutputStream()
-        self.serial_upgrade = serial_upgrade
         self.last_call_fw_version = None
-        if not self.serial_upgrade:
-            self._write(
-                "1. Insert the USB flash drive provided with your Piki Multi into "
-                "your computer.  Select the flash drive root directory as the "
-                "firmware download destination using the \"Please "
-                "choose a directory for downloaded firmware files\" directory "
-                "chooser above.  Press the \"Download Latest Firmware\" button.  "
-                "This will download the latest Piksi Multi firmware file onto the "
-                "USB flashdrive.\n"
-                "2. Eject the drive from your computer and plug it "
-                "into the Piksi Multi evaluation board.\n"
-                "3. Reset your Piksi Multi and it will upgrade to the version "
-                "on the USB flash drive. This should take less than 5 minutes.\n"
-                "4. When the upgrade completes you will be prompted to remove the "
-                "USB flash drive and reset your Piksi Multi.\n"
-                "5. Verify that the firmware version has upgraded via inspection "
-                "of the Current Firmware Version box on the Firmware Update Tab "
-                "of the Swift Console.\n")
 
     def _manage_enables(self):
         """ Manages whether traits widgets are enabled in the UI or not. """
@@ -406,7 +384,6 @@ class UpdateView(HasTraits):
             self.download_fw_en = False
             self.erase_en = False
         else:
-            self.download_fw_en = True
             self.erase_en = True
             if self.stm_fw.ihx is not None or self.stm_fw.blob is not None:
                 self.update_stm_en = True
@@ -420,10 +397,13 @@ class UpdateView(HasTraits):
                 self.update_en = False
             if self.nap_fw.ihx is not None and self.stm_fw.ihx is not None:
                 self.update_en = True
+            if self.download_directory != self.download_directory_default:
+                self.download_fw_en = True
 
     def _download_directory_changed(self):
         if self.update_dl:
             self.update_dl.set_root_path(self.download_directory)
+        self._manage_enables()
 
     def _updating_changed(self):
         """ Handles self.updating trait being changed. """
@@ -452,6 +432,37 @@ class UpdateView(HasTraits):
         Handle update_stm_firmware button. Starts thread so as not to block the GUI
         thread.
         """
+
+        if self.connection_info['mode'] != 'TCP/IP':
+            self._write(
+                "\n\n\n"
+                "-----------------------------------------------\n"
+                "USB Firmware Upgrade Procedure\n"
+                "-----------------------------------------------\n"
+                "\n"
+                "1.\tInsert the USB flash drive provided with your Piksi Multi into your computer."
+                "\n\tSelect the flash drive root directory as the firmware download destination using the directory chooser above."
+                "\n\tPress the \"Download Latest Firmware\" button. This will download the latest Piksi Multi firmware file onto the USB flashdrive.\n"
+                "2.\tEject the drive from your computer and plug it into the USB Host port of the Piksi Multi evaluation board.\n"
+                "3.\tReset your Piksi Multi and it will upgrade to the version on the USB flash drive. This should take less than 5 minutes.\n"
+                "4.\tWhen the upgrade completes you will be prompted to remove the USB flash drive and reset your Piksi Multi.\n"
+                "5.\tVerify that the firmware version has upgraded via inspection of the Current Firmware Version box"
+                "\n\ton the Firmware Update Tab of the Swift Console.\n")
+
+            confirm_prompt = prompt.CallbackPrompt(
+                title="Update device over serial connection?",
+                actions=[prompt.close_button, prompt.continue_via_serial_button],
+                callback=self._update_stm_firmware_fn)
+            confirm_prompt.text = "\n" \
+                                  + "If the device you are upgrading has an accessible USB port, \n" \
+                                  + "it is recommended to follow the USB upgrade procedure. \n" \
+                                  + "\n" \
+                                  + "Are you sure you want to continue upgrading over serial?"
+            confirm_prompt.run(block=False)
+        else:
+            self._update_stm_firmware_fn()
+
+    def _update_stm_firmware_fn(self):
         try:
             if self._firmware_update_thread.is_alive():
                 return
@@ -461,6 +472,8 @@ class UpdateView(HasTraits):
         self._firmware_update_thread = Thread(
             target=self.manage_firmware_updates, args=("STM", ))
         self._firmware_update_thread.start()
+
+
 
     def _update_nap_firmware_fired(self):
         """
@@ -593,7 +606,6 @@ class UpdateView(HasTraits):
         self.is_v2 = self.piksi_hw_rev.startswith('piksi_v2')
         if self.is_v2:
             self.stm_fw.set_flash_type('STM')
-            self.serial_upgrade = True
         else:
             self.stm_fw.set_flash_type('bin')
 
