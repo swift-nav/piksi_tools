@@ -51,6 +51,7 @@ def parse_version(version):
         "dirty",
         "", ))
 
+
 class FirmwareFileDialog(HasTraits):
 
     file_wildcard = String("Intel HEX File (*.hex)|*.hex|All files|*")
