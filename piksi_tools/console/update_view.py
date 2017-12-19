@@ -473,8 +473,6 @@ class UpdateView(HasTraits):
             target=self.manage_firmware_updates, args=("STM", ))
         self._firmware_update_thread.start()
 
-
-
     def _update_nap_firmware_fired(self):
         """
         Handle update_nap_firmware button. Starts thread so as not to block the GUI
