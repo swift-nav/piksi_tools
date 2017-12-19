@@ -42,11 +42,10 @@ from __future__ import absolute_import, print_function
 import struct
 import time
 import configparser
-import sys
 from collections import OrderedDict
 
 from sbp.client import Framer, Handler
-from sbp.logging import SBP_MSG_LOG, MsgLog
+from sbp.logging import SBP_MSG_LOG
 from sbp.piksi import MsgReset
 from sbp.settings import (
     SBP_MSG_SETTINGS_READ_BY_INDEX_DONE, SBP_MSG_SETTINGS_READ_BY_INDEX_RESP,
@@ -55,8 +54,10 @@ from sbp.settings import (
 
 from . import serial_link
 
-MAX_RETRIES = 10
-DEFAULT_READ_TIMEOUT_SECS = 0.5
+DEFAULT_READ_RETRIES = 5
+DEFAULT_CONFIRM_RETRIES = 2
+DEFAULT_WRITE_RETRIES = 5
+DEFAULT_TIMEOUT_SECS = 0.5
 
 
 class Settings(object):
@@ -66,12 +67,11 @@ class Settings(object):
     The :class:`Settings` class retrieves and sends settings.
     """
 
-    def __init__(self, link, retries=MAX_RETRIES, timeout=DEFAULT_READ_TIMEOUT_SECS):
+    def __init__(self, link, timeout=DEFAULT_TIMEOUT_SECS):
         self.link = link
         self.settings_list = OrderedDict()
         self.settings_list_received = False  # switch to indicate all settings have been read
         self.read_response_wait_dict = {}  # signaling dictionary for settings reads and timeouts
-        self.retries = retries  # how many times to try reading / writing a setting?
         self.timeout = timeout  # how long to wait for response from device?
 
         # Add necessary callbacks for settings IO
@@ -102,7 +102,7 @@ class Settings(object):
         while not self.settings_list_received:
             time.sleep(self.timeout)
             attempts += 1
-            if attempts > 10: #wait 10 timeout periods for settings before trying again
+            if attempts > 10:  # wait 10 timeout periods for settings before trying again
                 attempts = 0
                 self.link(MsgSettingsReadByIndexReq(index=0))
 
@@ -114,7 +114,7 @@ class Settings(object):
                     print('- %s = %s' % (setting, value))
         return self.settings_list
 
-    def read(self, section, setting, verbose=False):
+    def read(self, section, setting, retries=DEFAULT_READ_RETRIES, verbose=False):
 
         """Read one setting from device
 
@@ -131,7 +131,7 @@ class Settings(object):
         self.read_response_wait_dict[(section, setting)] = False
         attempts = 0
         response = False
-        while response == False and attempts < self.retries:
+        while response is False and attempts < retries:
             if verbose:
                 print("Attempting to read:section={}|setting={}".format(section, setting))
             self.link(MsgSettingsReadReq(setting='%s\0%s\0' % (section, setting)))
@@ -139,16 +139,17 @@ class Settings(object):
             response = self.read_response_wait_dict[(section, setting)]
             attempts += 1
         response = self.read_response_wait_dict[(section, setting)]
-        if response != False:
+        if response is not False:
             if verbose:
                 print("Successfully read setting \"{}\" in section \"{}\" with value \"{}\"".format(setting, section,
                                                                                                     response))
             return response
         else:  # never received read resp callback
-            raise RuntimeError, ("Unable to read setting \"{}\" in section \"{}\" after {} attempts. "
-                                 "Setting may not exist.".format(section, setting, self.retries))
+            raise RuntimeError(("Unable to read setting \"{}\" in section \"{}\" after {} attempts. "
+                                "Setting may not exist.".format(setting, section, retries)))
 
-    def write(self, section, setting, value, verbose=False):
+    def write(self, section, setting, value, write_retries=DEFAULT_WRITE_RETRIES,
+              confirm_retries=DEFAULT_CONFIRM_RETRIES, verbose=False):
         """Write setting by name and confirm set
 
         Notes: Caller does not raise an exception, but RuntimeError may be raised when write unsuccessful
@@ -164,10 +165,20 @@ class Settings(object):
 
         """
 
-        if verbose:
-            print("Attempting to write:section={}|setting={}|value={}".format(section, setting, value))
-        self.link(MsgSettingsWrite(setting='%s\0%s\0%s\0' % (section, setting, value)))
-        self._confirm_write(section, setting, value, verbose)
+        attempts = 0
+        while (attempts < write_retries):
+            if verbose:
+                print("Attempting to write:section={}|setting={}|value={}".format(section, setting, value))
+            attempts += 1
+            self.link(MsgSettingsWrite(setting='%s\0%s\0%s\0' % (section, setting, value)))
+            if self._confirm_write(section, setting, value, verbose=verbose, retries=confirm_retries):
+               return
+            else:
+               continue
+        raise RuntimeError("Unable to write setting \"{}\" in section \"{}\" "
+                           "with value \"{}\" after {} attempts. Setting "
+                           "may be read-only or the value could be out of bounds.".format(setting, section,
+                                                                                          value, write_retries)))
 
     def save(self):
         """Save settings to flash"""
@@ -193,7 +204,7 @@ class Settings(object):
             parser.read_file(f)
         for section, settings in parser.items():
             for setting, value in settings.items():
-                return_code = self.write(section, setting, value, verbose)
+                return_code = self.write(section, setting, value, verbose=verbose)
         return 
 
     def _print_callback(self, msg, **metadata):
@@ -216,7 +227,8 @@ class Settings(object):
     def _settings_done_callback(self, sbp_msg, **metadata):
         self.settings_list_received = True
 
-    def _confirm_write(self, section, setting, value, verbose=False):
+    def _confirm_write(self, section, setting, value, retries, verbose=False):
+
         """Confirm that a setting has been written to the value provided
 
         Notes:
@@ -230,12 +242,15 @@ class Settings(object):
             value(str): value to set
             verbose(bool): Echo settings to stdout
         Raises:
-            RunTimeError: if we were not able to read or write the setting. It may not exist or could be read only.
+            RunTimeError: if we were not able to read the setting. It may not exist or could be read only.
+        Returns:
+            True if settings read succesful
+            False if otherwise
         """
         attempts = 0
-        while (attempts < self.retries):
+        while (attempts < retries):
             attempts += 1
-            actual_value = self.read(section, setting, verbose)
+            actual_value = self.read(section, setting, verbose=verbose, retries=DEFAULT_READ_RETRIES)
             if value != actual_value:  # value doesn't match, but could be a rounding issue
                 try:
                     float_val = float(actual_value)
@@ -245,19 +260,16 @@ class Settings(object):
                     else:  # value matches after allowing imprecision
                         if verbose:
                             print("Successfully set:section={}|setting={}|value={}".format(section, setting, value))
-                        return
+                        return True
                 except (TypeError, ValueError):
                     continue
             else:  # value matches
                 if verbose:
                     print("Successfully set:section={}|setting={}|value={}".format(section, setting, value))
-                return
+                return True
 
                 # If we get here the value has never matched
-        raise RuntimeError, ("Unable to write setting \"{}\" in section \"{}\" "
-                             "with value \"{}\" after {} attempts. Setting "
-                             "may be read-only or the value could be out of bounds.".format(setting, section,
-                                                                                            value, self.retries))
+        return False
 
 
 def get_args():
@@ -291,7 +303,7 @@ def get_args():
     parser.add_argument(
         "-t",
         "--timeout",
-        default=DEFAULT_READ_TIMEOUT_SECS,
+        default=DEFAULT_TIMEOUT_SECS,
         help="specify the timeout for settings reads.")
     parser.add_argument(
         '-v',
@@ -348,17 +360,17 @@ def main():
             if command == 'write':
                 settings.write(args.section, args.setting, args.value, verbose=args.verbose)
             elif command == 'read':
-                print(settings.read(args.section, args.setting, args.verbose))
+                print(settings.read(args.section, args.setting, verbose=args.verbose))
             elif command == 'all':
-                settings.read_all(True)
+                settings.read_all(verbose=True)
             elif command == 'save':
                 settings.save()
             elif command == 'reset':
                 settings.reset()
             elif command == 'read_to_file':
-                settings.read_to_file(args.output, args.verbose)
+                settings.read_to_file(args.output, verbose=args.verbose)
             elif command == 'write_from_file':
-                settings.write_from_file(args.filename, args.verbose)
+                settings.write_from_file(args.filename, verbose=args.verbose)
             # If saving was requested, we have done a write command, and the write was requested, we save
             if command.startswith("write") and args.save_after_write:
                 print("Saving Settings to Flash.")
