@@ -51,7 +51,6 @@ def parse_version(version):
         "dirty",
         "", ))
 
-
 class FirmwareFileDialog(HasTraits):
 
     file_wildcard = String("Intel HEX File (*.hex)|*.hex|All files|*")
@@ -472,8 +471,6 @@ class UpdateView(HasTraits):
         self._firmware_update_thread = Thread(
             target=self.manage_firmware_updates, args=("STM", ))
         self._firmware_update_thread.start()
-
-
 
     def _update_nap_firmware_fired(self):
         """
