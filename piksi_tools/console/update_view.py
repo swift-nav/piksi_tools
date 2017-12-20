@@ -215,6 +215,7 @@ class UpdateView(HasTraits):
     newest_nap_vers = String('Downloading Latest Firmware info...')
     local_console_vers = String('v' + CONSOLE_VERSION)
     newest_console_vers = String('Downloading Latest Console info...')
+    download_directory_label = String('Firmware Download Directory:')
 
     erase_stm = Bool(True)
     erase_en = Bool(True)
@@ -230,7 +231,7 @@ class UpdateView(HasTraits):
     upgrade_steps = String("Firmware upgrade status:")
 
     download_firmware = Button(label='Download Latest Firmware')
-    download_directory_default = "  Please choose a directory for downloaded firmware files..."
+    download_directory_default = ""
     download_directory = Directory(download_directory_default)
     download_stm = Button(label='Download', height=HT)
     download_nap = Button(label='Download', height=HT)
@@ -268,9 +269,7 @@ class UpdateView(HasTraits):
                         'stm_fw',
                         style='custom',
                         show_label=True,
-                        label="Local File",
-                        enabled_when='download_fw_en',
-                        editor_args={'enabled': False}),
+                        label="Local File"),
                     HGroup(
                         Item(
                             'update_stm_firmware',
@@ -323,8 +322,11 @@ class UpdateView(HasTraits):
                         editor_args={'enabled': False}),
                     label="Swift Console Version",
                     show_border=True), ),
-            UItem('download_directory'),
-            UItem('download_firmware', enabled_when='download_fw_en'),
+            VGroup(
+                UItem('download_directory'),
+                UItem('download_firmware', enabled_when='download_fw_en'),
+                label="Firmware Download Directory",
+                show_border=True),
             UItem(
                 'update_full_firmware',
                 enabled_when='update_en',
@@ -442,9 +444,11 @@ class UpdateView(HasTraits):
                 "\n"
                 "1.\tInsert the USB flash drive provided with your Piksi Multi into your computer."
                 "\n\tSelect the flash drive root directory as the firmware download destination using the directory chooser above."
-                "\n\tPress the \"Download Latest Firmware\" button. This will download the latest Piksi Multi firmware file onto the USB flashdrive.\n"
+                "\n\tPress the \"Download Latest Firmware\" button. This will download the latest Piksi Multi firmware file onto\n"
+                "\n\tthe USB flashdrive.\n"
                 "2.\tEject the drive from your computer and plug it into the USB Host port of the Piksi Multi evaluation board.\n"
-                "3.\tReset your Piksi Multi and it will upgrade to the version on the USB flash drive. This should take less than 5 minutes.\n"
+                "3.\tReset your Piksi Multi and it will upgrade to the version on the USB flash drive.\n"
+                "\n\tThis should take less than 5 minutes.\n"
                 "4.\tWhen the upgrade completes you will be prompted to remove the USB flash drive and reset your Piksi Multi.\n"
                 "5.\tVerify that the firmware version has upgraded via inspection of the Current Firmware Version box"
                 "\n\ton the Firmware Update Tab of the Swift Console.\n")
@@ -454,10 +458,12 @@ class UpdateView(HasTraits):
                 actions=[prompt.close_button, prompt.continue_via_serial_button],
                 callback=self._update_stm_firmware_fn)
             confirm_prompt.text = "\n" \
-                                  + "If the device you are upgrading has an accessible USB port, \n" \
-                                  + "it is recommended to follow the USB upgrade procedure. \n" \
+                                  + "    Upgrading your device via UART / RS232 may take up to 30 minutes.     \n" \
+                                  + "    \n" \
+                                  + "    If the device you are upgrading has an accessible USB port,     \n" \
+                                  + "    it is recommended to follow the USB upgrade procedure.    \n" \
                                   + "\n" \
-                                  + "Are you sure you want to continue upgrading over serial?"
+                                  + "    Are you sure you want to continue upgrading over serial?"
             confirm_prompt.run(block=False)
         else:
             self._update_stm_firmware_fn()
