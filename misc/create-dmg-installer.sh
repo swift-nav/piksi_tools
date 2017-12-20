@@ -112,6 +112,7 @@ echo "============================================="
 #cp -a "$RES"/background.png "$TMP_TEMPLATE"/.background
 
 mkdir -p "$TMP_TEMPLATE"
+echo "As of version 1.3 of the Swift Console, MacOS versions prior to Sierra are no longer supported. We apologize for any inconvenience." > $TMP_TEMPLATE/COMPATIBLE\ WITH\ MACOS\ 10.12\ AND\ NEWER.txt
 cp -a "$RES"/VolumeIcon.icns "$TMP_TEMPLATE"/.VolumeIcon.icns
 
 #cp -a "$RES"/DS_Store "$TMP_TEMPLATE"/.DS_Store
