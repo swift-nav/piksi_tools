@@ -120,7 +120,7 @@ def get_args():
     return parser
 
 
-CONSOLE_TITLE = 'Swift Console v:' + CONSOLE_VERSION
+CONSOLE_TITLE = 'Swift Console v' + CONSOLE_VERSION
 BAUD_LIST = [57600, 115200, 230400, 921600, 1000000]
 
 
@@ -141,7 +141,7 @@ class ConsoleHandler(Handler):
         """
         if info.initialized:
             info.ui.title = info.object.dev_id + \
-                "(" + info.object.device_serial + ") " + CONSOLE_TITLE
+                            "(" + info.object.device_serial + ") " + CONSOLE_TITLE
 
 
 class SwiftConsole(HasTraits):
@@ -726,7 +726,7 @@ class SwiftConsole(HasTraits):
             self.python_console_env.update(
                 self.spectrum_analyzer_view.python_console_cmds)
 
-        except: # noqa
+        except:  # noqa
             import traceback
             traceback.print_exc()
             if self.error:
@@ -839,7 +839,8 @@ class PortChooser(HasTraits):
         close_result=False,
         icon=icon,
         width=460,
-        title='Swift Console - Select Piksi Interface', )
+        title='Swift Console v{0} - Select Interface'.format(CONSOLE_VERSION)
+    )
 
     def refresh_ports(self):
         """
@@ -906,7 +907,7 @@ def main():
             host, ip_port = port.split(':')
             selected_driver = TCPDriver(host, int(ip_port))
             connection_description = port
-        except: # noqa
+        except:  # noqa
             raise Exception('Invalid host and/or port')
             sys.exit(1)
     elif port and args.file:
@@ -978,7 +979,7 @@ def main():
     # Force exit, even if threads haven't joined
     try:
         os._exit(0)
-    except: # noqa
+    except:  # noqa
         pass
 
 
