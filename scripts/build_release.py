@@ -50,7 +50,7 @@ def build_macos():
         'sudo',
         os.path.join('misc',
                      'create-dmg-installer.sh'),
-        'swift_console_v{}_osx.dmg'.format(version)
+        'swift_console_v{}_macos.dmg'.format(version)
     ])
 
 
