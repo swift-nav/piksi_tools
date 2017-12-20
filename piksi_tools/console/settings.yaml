@@ -11,9 +11,9 @@
   Description: Broadcast surveyed base station position.
   Notes: This flag ultimately determines whether the SBP message with identifier
     MSG_BASE_POS_ECEF will be calculated and sent.  Logically, setting this attribute to
-    "true" sets the Local Piksi as a base station and configures the unit to send
-    its surveyed position coordinates to the other Piksi(s) with which the base
-    station is communicating.  If "true", the remote Piksi that receives the
+    "true" sets the Local receiver as a base station and configures the unit to send
+    its surveyed position coordinates to the other receiver(s) with which the base
+    station is communicating.  If "true", the remote receiver that receives the
     surveyed position will calculate and communicate a pseudo absolute
     RTK position based upon the received position.
 
@@ -25,16 +25,16 @@
   default value: '0'
   readonly: false
   enumerated possible values:
-  Description: Surveyed latitude of the Piksi's antenna.
-  Notes: This setting represents the latitude of the local Piksi's antenna, expressed
+  Description: Surveyed latitude of the antenna.
+  Notes: This setting represents the latitude of the local receiver's antenna, expressed
     in decimal degrees relative to the equator (north = positive, south = negative).
     If surveyed position "broadcast" is set to "true", the coordinate will be
-    communicated to remote Piksis for use in calculating their pseudo-absolute
+    communicated to remote receivers for use in calculating their pseudo-absolute
     RTK position. The value should be as accurate as possible and should have
     precision to at least 7 digits following the decimal point. For reference,
     1e-7 degrees of latitude is about 1.1 cm on the surface of the earth. Any
     errors in the surveyed position will directly affect the pseudo-absolute
-    RTK position measurement reported by the remote Piksi.
+    RTK position measurement reported by the remote receiver.
 
 - group: surveyed_position
   name: surveyed_lon
@@ -44,16 +44,16 @@
   default value: '0'
   readonly: false
   enumerated possible values:
-  Description: Surveyed longitude of the Piksi's antenna.
-  Notes: This setting represents the longitude of the local Piksi's antenna, expressed
+  Description: Surveyed longitude of the antenna.
+  Notes: This setting represents the longitude of the local receiver's antenna, expressed
     in decimal degrees relative to the Prime Meridian (east = positive, west = negative).
     If surveyed position "broadcast" is set to "true", the coordinate will be
-    communicated to remote Piksis for use in calculating their pseudo-absolute
+    communicated to remote receivers for use in calculating their pseudo-absolute
     RTK position. The value should be as accurate as possible and should have
     precision to at least 7 digits following the decimal point. For reference,
     1e-7 degrees of longitude at 35 degree latitude is about 1 cm.  Any
     errors in the surveyed position will directly affect the pseudo-absolute
-    RTK position measurement reported by the remote Piksi.
+    RTK position measurement reported by the remote receiver.
 
 - group: surveyed_position
   name: surveyed_alt
@@ -63,10 +63,10 @@
   default value: '0'
   readonly: false
   enumerated possible values:
-  Description: Surveyed altitude of the Piksi's antenna.
-  Notes: This setting represents the altitude of the Piksi's antenna above the
+  Description: Surveyed altitude of the antenna.
+  Notes: This setting represents the altitude of the receiver's antenna above the
     WGS84 ellipsoid, in meters. If surveyed position "broadcast" is set to "true",
-    this coordinate will be communicated to remote Piksis for use in calculating
+    this coordinate will be communicated to remote receivers for use in calculating
     their pseudo-absolute position. This value should be precise to 1 cm. Any
     errors in the surveyed position will directly affect the pseudo-absolute
     RTK position measurement reported by the Rover.
@@ -80,9 +80,9 @@
   readonly: false
   enumerated possible values: Primary,Secondary
   Description: Determines which antenna to use.
-  Notes: This setting selects the antenna input that should be used by the Piksi.
-    Most Piksi Multi boards ship with only a "Primary" antenna connector, so this should
-    always be set to "Primary."
+  Notes: This setting selects the antenna input that should be used by the receiver.
+    Piksi Multi boards and Duro units ship with only a "Primary" antenna connector,
+    so this should always be set to "Primary."
 
 - group: frontend
   name: antenna_bias
@@ -108,9 +108,9 @@
     with radio modems.  Some serial modems will internally split serial packets for
     their protocol and this parameter allows the size of the message to be reduced
     as to prevent the modem from sending multiple packets. If the parameter exceeds
-    255 bytes (the maximum size of an SBP message), the Piksi firmware will ignore
+    255 bytes (the maximum size of an SBP message), the receiver firmware will ignore
     the parameter and use 255 bytes.  If the parameter is set smaller than the size
-    of one observation, the Piksi firmware will ignore the parameter and use the size
+    of one observation, the firmware will ignore the parameter and use the size
     of one observation as the maximum message size.
 
 - group: simulator
@@ -121,9 +121,9 @@
   default value: 'False'
   readonly: false
   enumerated possible values: True,False
-  Description: Toggles the Piksi internal simulator on and off.
-  Notes: The Piksi simulator will provide simulated outputs of a
-    stationary base station and the Local Piksi moving in a circle around the
+  Description: Toggles the receiver internal simulator on and off.
+  Notes: The simulator will provide simulated outputs of a
+    stationary base station and the Local receiver moving in a circle around the
     base station. The simulator is intended to aid in system integration by
     providing realistic looking outputs but does not faithfully simulate every
     aspect of device operation.
@@ -169,7 +169,7 @@
   default value: '4'
   readonly: false
   enumerated possible values:
-  Description: Simulated tangential speed of Piksi.
+  Description: Simulated tangential speed of the receiver.
   Notes:
 
 - group: simulator
@@ -180,7 +180,7 @@
   default value: '100'
   readonly: false
   enumerated possible values:
-  Description: Radius of the circle around which the simulated Piksi will move.
+  Description: Radius of the circle around which the simulated receiver will move.
   Notes:
 
 - group: simulator
@@ -321,11 +321,8 @@
     be output.
   Notes: For instance, if the solution frequency (soln_freq) is 10 Hz, and the output_every_n_obs
     setting is 10, it means that the observation output will occur at a rate
-    of 1 Hz.  Since the observations are the information used by the Piksi receiving
-    corrections from the connected Piksi, this determines the rate of information
-    sharing for RTK solution output. This parameter is designed to tune the rate at
-    which correction information is passed from one Piksi to the other as to efficiently
-    use radio modem bandwidth and fit with user applications.
+    of 1 Hz. This parameter is designed to tune the rate at which correction information is passed 
+    from one receiver to the other as to efficiently use radio modem bandwidth and fit with user applications.
 
 - group: solution
   name: dgnss_solution_mode
@@ -339,10 +336,10 @@
   Notes: A "Low Latency" solution uses an internal model of anticipated satellite observations
     to provide RTK output with minimal latency but slightly reduced accuracy. "Low Latency" mode
     assumes that the base station is stationary. For applications where accuracy is desired over timeliness
-    or when both Piksi's are moving, "Time Matched" mode can be chosen. This
+    or when both receivers are moving, "Time Matched" mode should be chosen. This
     means that the RTK output will require a corresponding set of correction observations
     for each timestamp. When "No DGNSS" is chosen, no differential output will be
-    attempted by Piksi.
+    attempted by the receiver.
 
 - group: solution
   name: dgnss_filter
@@ -352,11 +349,11 @@
   default value: 'Fixed'
   readonly: false
   enumerated possible values: Fixed,Float
-  Description: Determines the type of carrier phase ambiguity resolution that the Piksi will attempt to achieve.
-  Notes: If "fixed", the Piksi will output a integer fixed ambiguity estimate.  If
+  Description: Determines the type of carrier phase ambiguity resolution that the receiver will attempt to achieve.
+  Notes: If "fixed", the receiver will output a integer fixed ambiguity estimate.  If
     no fixed solution is available, it will revert to the float solution.  If "float",
     the device will only output the float ambiguity estimate.
-    This settings is not used by Piksi Multi.
+    This settings is not used by Piksi Multi and Duro.
 
 - group: solution
   name: known_baseline_n
@@ -479,7 +476,7 @@
   default value: N/A
   readonly: True
   enumerated possible values:
-  Description: The serial number of the Piksi receiver.
+  Description: The serial number of the receiver.
   Notes: This number should match the number on the barcode on the board and cannot be modified.
 
 - group: system_info
@@ -490,7 +487,7 @@
   default value: N/A
   readonly: True
   enumerated possible values:
-  Description: The MAC address of the Piksi.
+  Description: The MAC address of the receiver.
   Notes: This is a read only setting.
 
 - group: system_info
@@ -501,8 +498,8 @@
   default value: N/A
   readonly: True
   enumerated possible values:
-  Description: The UUID of the Piksi.
-  Notes: The UUID is a universally unique identifier for this Piksi.
+  Description: The UUID of the receiver.
+  Notes: The UUID is a Universally Unique IDentifier for this receiver.
     The lower 16 bits of the UUID are used for the SBP Sender ID. This is a read only setting.
 
 - group: system_info
@@ -513,7 +510,7 @@
   default value: N/A
   readonly: True
   enumerated possible values:
-  Description: Indicates the firmware version for the Local Piksi.
+  Description: Firmware version of the receiver.
   Notes: The git hash is removed from this version identifier. This is a read only setting.
 
 - group: system_info
@@ -524,7 +521,7 @@
   default value: N/A
   readonly: True
   enumerated possible values:
-  Description: Hardware revision for Piksi.
+  Description: Hardware revision of the receiver.
   Notes: This is a read only setting that refers to the product family of the hardware.
 
 - group: system_info
@@ -680,9 +677,9 @@
   default value: 'True'
   readonly: false
   enumerated possible values: True,False
-  Description: Enable hardware watchdog timer to reset the Piksi if it locks up for.
+  Description: Enable hardware watchdog timer to reset the receiver if it locks up for.
     any reason
-  Notes: You must reset the Piksi for changes to this setting to take effect.
+  Notes: You must reset the receiver for this change to take effect.
 
 - group: udp_client0
   name: mode
@@ -930,7 +927,7 @@
   expert: false
   type: string
   units: N/A
-  default value: 'blank - all messages are enabled'
+  default value: '23,29,65,72,74,80,117,134,136,144,163,165,166,167,171,181,185,187,188,257,258,259,520,522,524,526,527,528,1025,2304,2305,2306,65280,65282,65535'
   readonly: false
   Description: Configure which messages should be sent on the port.
   Notes: The enabled sbp messages settings is a list of message types
@@ -1006,7 +1003,7 @@
   Description: Select edges to trigger timestamped event capture.
   Notes: You can use this to record the exact time that some external
     event in your system occurred, e.g. camera shutter time.  Upon
-    detecting the event, Piksi will generate a MSG_EXT_EVENT message
+    detecting the event, receiver will generate a MSG_EXT_EVENT message
     reporting the event, including a timestamp accurate to better than
     a microsecond.
 
@@ -1032,7 +1029,7 @@
   Description: Duro only. Select edges to trigger timestamped event capture.
   Notes: You can use this to record the exact time that some external
     event in your system occurred, e.g. camera shutter time.  Upon
-    detecting the event, Piksi will generate a MSG_EXT_EVENT message
+    detecting the event, receiver will generate a MSG_EXT_EVENT message
     reporting the event, including a timestamp accurate to better than
     a microsecond.
 
@@ -1058,7 +1055,7 @@
   Description: Duro only. Select edges to trigger timestamped event capture.
   Notes: You can use this to record the exact time that some external
     event in your system occurred, e.g. camera shutter time.  Upon
-    detecting the event, Piksi will generate a MSG_EXT_EVENT message
+    detecting the event, receiver will generate a MSG_EXT_EVENT message
     reporting the event, including a timestamp accurate to better than
     a microsecond.
 
@@ -1297,7 +1294,7 @@
   units: Solution Period
   default value: '10'
   readonly: false
-  Description: Number of Solution Periods between GPGSV NMEA messages being sent.
+  Description: Number of Solution Periods between GSV NMEA messages being sent.
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
@@ -1307,7 +1304,7 @@
   units: Solution Period
   default value: '1'
   readonly: false
-  Description: Number of Solution Periods between GPGGA NMEA messages being sent.
+  Description: Number of Solution Periods between GGA NMEA messages being sent.
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
@@ -1317,7 +1314,7 @@
   units: Solution Period
   default value: '1'
   readonly: false
-  Description: Number of Solution Periods between GPHDT NMEA messages being sent.
+  Description: Number of Solution Periods between HDT NMEA messages being sent.
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
@@ -1327,7 +1324,7 @@
   units: Solution Period
   default value: '10'
   readonly: false
-  Description: Number of Solution Periods between GPRMC NMEA messages being sent.
+  Description: Number of Solution Periods between RMC NMEA messages being sent.
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
@@ -1337,7 +1334,7 @@
   units: Solution Period
   default value: '1'
   readonly: false
-  Description: Number of Solution Periods between GPVTG NMEA messages being sent.
+  Description: Number of Solution Periods between VTG NMEA messages being sent.
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
@@ -1347,7 +1344,7 @@
   units: Solution Period
   default value: '10'
   readonly: false
-  Description: Number of Solution Periods between GPGLL NMEA messages being sent.
+  Description: Number of Solution Periods between GLL NMEA messages being sent.
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
@@ -1358,7 +1355,7 @@
   default value: '10'
   readonly: false
   enumerated possible values:
-  Description: Number of Solution Periods between GPZDA NMEA messages being sent.
+  Description: Number of Solution Periods between ZDA NMEA messages being sent.
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
 
 - group: nmea
@@ -1380,7 +1377,7 @@
   default value: '10'
   readonly: false
   enumerated possible values:
-  Description: Number of Solution Periods between GPGSA NMEA messages being sent.
+  Description: Number of Solution Periods between GSA NMEA messages being sent.
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message.
 
 - group: ntrip
@@ -1500,7 +1497,7 @@
   default value: 'False'
   readonly: false
   enumerated possible values: True,False
-  Description: Enable the qzss constellation.
+  Description: Enable the QZSS constellation.
   Notes:
 
 - group: acquisition
@@ -1773,7 +1770,7 @@
   units: Hz
   Description: The data rate (in Hz) for IMU raw output.
   Notes: It is recommended to use Ethernet or USB for IMU data output
-    for data rates over 25 Hz
+    for data rates over 25 Hz.
 
 - group: imu
   name: acc_range
