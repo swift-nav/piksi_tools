@@ -140,8 +140,8 @@ class ConsoleHandler(Handler):
         the `device_serial` variable in the underlying class.
         """
         if info.initialized:
-            info.ui.title = info.object.dev_id + \
-                            "(" + info.object.device_serial + ") " + CONSOLE_TITLE
+            info.ui.title = (info.object.dev_id +
+                             "(" + info.object.device_serial + ") " + CONSOLE_TITLE)
 
 
 class SwiftConsole(HasTraits):
