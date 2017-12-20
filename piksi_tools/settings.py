@@ -172,13 +172,15 @@ class Settings(object):
             attempts += 1
             self.link(MsgSettingsWrite(setting='%s\0%s\0%s\0' % (section, setting, value)))
             if self._confirm_write(section, setting, value, verbose=verbose, retries=confirm_retries):
-               return
+                return
             else:
-               continue
+                continue
+
         raise RuntimeError("Unable to write setting \"{}\" in section \"{}\" "
                            "with value \"{}\" after {} attempts. Setting "
                            "may be read-only or the value could be out of bounds.".format(setting, section,
-                                                                                          value, write_retries)))
+                                                                                          value, write_retries))
+        return
 
     def save(self):
         """Save settings to flash"""
@@ -205,7 +207,7 @@ class Settings(object):
         for section, settings in parser.items():
             for setting, value in settings.items():
                 return_code = self.write(section, setting, value, verbose=verbose)
-        return 
+        return
 
     def _print_callback(self, msg, **metadata):
         print(msg.text)
