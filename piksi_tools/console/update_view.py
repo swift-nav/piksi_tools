@@ -12,6 +12,8 @@
 from __future__ import absolute_import, print_function
 
 import os
+import errno
+
 from threading import Thread
 from time import sleep
 from urllib2 import URLError
@@ -376,6 +378,7 @@ class UpdateView(HasTraits):
         self.nap_fw.on_trait_change(self._manage_enables, 'status')
         self.stream = OutputStream()
         self.last_call_fw_version = None
+        self.download_directory = download_dir
 
     def _manage_enables(self):
         """ Manages whether traits widgets are enabled in the UI or not. """
@@ -514,7 +517,7 @@ class UpdateView(HasTraits):
         self._write('')
 
         # Check that we received the index file from the website.
-        if self.update_dl is None:
+        if self.update_dl is None or self.update_dl.index is None:
             self._write("Error: Can't download firmware files")
             return
 
@@ -537,14 +540,25 @@ class UpdateView(HasTraits):
                 self._write(
                     "Error downloading firmware: index file not downloaded yet"
                 )
-            except IOError:
+            except RuntimeError as e:
                 self.nap_fw.clear(
-                    "IOError: unable to write to path %s. "
-                    "Verify that the path exists and is writable." %
+                    "RuntimeError: unable to write to path %s. "
+                    "Verify that the path exists." %
                     self.download_directory)
                 self._write("IOError: unable to write to path %s. "
-                            "Verify that the path exists and is writable." %
+                            "Verify that the path exists." %
                             self.download_directory)
+            except IOError as e:
+                if e.errno == errno.EACCES or e.errno == errno.EPERM:
+                  self.nap_fw.clear(
+                      "IOError: unable to write to path %s. "
+                      "Verify that the path is writable." %
+                      self.download_directory)
+                  self._write("IOError: unable to write to path %s. "
+                              "Verify that the path is writable." %
+                              self.download_directory)
+                else:
+                    raise(e)
             except KeyError:
                 self.nap_fw.clear("Error downloading firmware")
                 self._write(

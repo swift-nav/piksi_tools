@@ -28,7 +28,7 @@ class UpdateDownloader:
           self.root_dir = ''
           f.close()
         except requests.ConnectionError as ce:
-          self.index = {}
+          self.index = None
 
     def set_root_path(self, path):
         self.root_dir = path
@@ -62,7 +62,8 @@ class UpdateDownloader:
 
     def _download_file_from_url(self, url):
         if not os.path.isdir(self.root_dir):
-            raise IOError("Path to download file to does not exist")
+            raise RuntimeError("Path to download file to does not exist.")
+            return
         
         filename = os.path.split(urlparse(url).path)[1]
         filename = os.path.join(self.root_dir, filename)
