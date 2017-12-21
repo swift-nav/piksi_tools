@@ -12,6 +12,8 @@
 from __future__ import absolute_import, print_function
 
 import os
+import errno
+
 from threading import Thread
 from time import sleep
 from urllib2 import URLError
@@ -53,7 +55,6 @@ def parse_version(version):
 
 
 class FirmwareFileDialog(HasTraits):
-
     file_wildcard = String("Intel HEX File (*.hex)|*.hex|All files|*")
 
     status = String('Please choose a file')
@@ -132,7 +133,7 @@ class FirmwareFileDialog(HasTraits):
             try:
                 sectors = flash.sectors_used(ihx_addrs,
                                              flash.stm_addr_sector_map)
-            except: # noqa
+            except:  # noqa
                 self.clear('Error: HEX File contains restricted address ' +
                            '(NAP Firmware File Chosen?)')
 
@@ -144,7 +145,7 @@ class FirmwareFileDialog(HasTraits):
         try:
             self.blob = open(filepath, 'rb').read()
             self.status = os.path.split(filepath)[1]
-        except: # noqa
+        except:  # noqa
             self.clear('Error: Failed to read binary file')
 
     def _choose_fw_fired(self):
@@ -376,6 +377,7 @@ class UpdateView(HasTraits):
         self.nap_fw.on_trait_change(self._manage_enables, 'status')
         self.stream = OutputStream()
         self.last_call_fw_version = None
+        self.download_directory = download_dir
 
     def _manage_enables(self):
         """ Manages whether traits widgets are enabled in the UI or not. """
@@ -476,7 +478,7 @@ class UpdateView(HasTraits):
             pass
 
         self._firmware_update_thread = Thread(
-            target=self.manage_firmware_updates, args=("STM", ))
+            target=self.manage_firmware_updates, args=("STM",))
         self._firmware_update_thread.start()
 
     def _update_nap_firmware_fired(self):
@@ -491,7 +493,7 @@ class UpdateView(HasTraits):
             pass
 
         self._firmware_update_thread = Thread(
-            target=self.manage_firmware_updates, args=("M25", ))
+            target=self.manage_firmware_updates, args=("M25",))
         self._firmware_update_thread.start()
 
     def _update_full_firmware_fired(self):
@@ -506,7 +508,7 @@ class UpdateView(HasTraits):
             pass
 
         self._firmware_update_thread = Thread(
-            target=self.manage_firmware_updates, args=("ALL", ))
+            target=self.manage_firmware_updates, args=("ALL",))
         self._firmware_update_thread.start()
 
     def _download_firmware(self):
@@ -514,7 +516,7 @@ class UpdateView(HasTraits):
         self._write('')
 
         # Check that we received the index file from the website.
-        if self.update_dl is None:
+        if self.update_dl is None or self.update_dl.index is None:
             self._write("Error: Can't download firmware files")
             return
 
@@ -537,14 +539,25 @@ class UpdateView(HasTraits):
                 self._write(
                     "Error downloading firmware: index file not downloaded yet"
                 )
-            except IOError:
+            except RuntimeError as e:
                 self.nap_fw.clear(
-                    "IOError: unable to write to path %s. "
-                    "Verify that the path exists and is writable." %
+                    "RuntimeError: unable to write to path %s. "
+                    "Verify that the path exists." %
                     self.download_directory)
                 self._write("IOError: unable to write to path %s. "
-                            "Verify that the path exists and is writable." %
+                            "Verify that the path exists." %
                             self.download_directory)
+            except IOError as e:
+                if e.errno == errno.EACCES or e.errno == errno.EPERM:
+                    self.nap_fw.clear(
+                        "IOError: unable to write to path %s. "
+                        "Verify that the path is writable." %
+                        self.download_directory)
+                    self._write("IOError: unable to write to path %s. "
+                                "Verify that the path is writable." %
+                                self.download_directory)
+                else:
+                    raise (e)
             except KeyError:
                 self.nap_fw.clear("Error downloading firmware")
                 self._write(
@@ -596,11 +609,8 @@ class UpdateView(HasTraits):
         """
         # Check that settings received from Piksi contain FW versions.
         try:
-            self.piksi_hw_rev = \
-                HW_REV_LOOKUP[self.settings['system_info']
-                              ['hw_revision'].value]
-            self.piksi_stm_vers = \
-                self.settings['system_info']['firmware_version'].value
+            self.piksi_hw_rev = HW_REV_LOOKUP[self.settings['system_info']['hw_revision'].value]
+            self.piksi_stm_vers = self.settings['system_info']['firmware_version'].value
         except KeyError:
             self._write(
                 "\nError: Settings received from Piksi don't contain firmware version keys. Please contact Swift Navigation.\n"
@@ -629,7 +639,7 @@ class UpdateView(HasTraits):
                 'firmware_version'].value
             local_serial_number = self.settings['system_info'][
                 'serial_number'].value
-        except: # noqa
+        except:  # noqa
             pass
         # Check if console is out of date and notify user if so.
         if self.prompt:
@@ -709,10 +719,8 @@ class UpdateView(HasTraits):
                 fw_update_prompt.run()
 
         # Check if firmware successfully upgraded and notify user if so.
-        if self.last_call_fw_version is not None and \
-                self.last_call_fw_version != local_stm_version and \
-                (self.last_call_sn is None or local_serial_number is None or
-                    self.last_call_sn == local_serial_number):
+        if ((self.last_call_fw_version is not None and self.last_call_fw_version != local_stm_version) and
+                (self.last_call_sn is None or local_serial_number is None or self.last_call_sn == local_serial_number)):
             fw_success_str = "Firmware successfully upgraded from %s to %s." % \
                              (self.last_call_fw_version, local_stm_version)
             print(fw_success_str)

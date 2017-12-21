@@ -10,8 +10,7 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 import os
-from json import load as jsonload
-from urllib2 import URLError, urlopen
+import requests
 from urlparse import urlparse
 
 from piksi_tools.utils import sopen
@@ -21,10 +20,14 @@ INDEX_URL = 'http://downloads.swiftnav.com/index.json'
 
 class UpdateDownloader:
     def __init__(self, root_dir=''):
-        f = urlopen(INDEX_URL)
-        self.index = jsonload(f)
-        self.root_dir = ''
-        f.close()
+        try:
+            f = requests.get(INDEX_URL)
+            self.index = f.json()
+            f.raise_for_status()
+            self.root_dir = ''
+            f.close()
+        except requests.ConnectionError as ce:
+            self.index = None
 
     def set_root_path(self, path):
         self.root_dir = path
@@ -36,10 +39,6 @@ class UpdateDownloader:
         except KeyError:
             raise KeyError(
                 "Error downloading firmware: URL not present in index")
-        except URLError:
-            raise URLError(
-                "Error: Failed to download latest STM firmware from Swift Navigation's website"
-            )
         return filepath
 
     def download_nap_firmware(self, hwrev):
@@ -49,10 +48,6 @@ class UpdateDownloader:
         except KeyError:
             raise KeyError(
                 "Error downloading firmware: URL not present in index")
-        except URLError:
-            raise URLError(
-                "Error: Failed to download latest NAP firmware from Swift Navigation's website"
-            )
         return filepath
 
     def download_multi_firmware(self, hwrev):
@@ -62,24 +57,18 @@ class UpdateDownloader:
         except KeyError:
             raise KeyError(
                 "Error downloading firmware: URL not present in index")
-        except URLError:
-            raise URLError(
-                "Error: Failed to download latest Multi firmware from Swift Navigation's website"
-            )
         return filepath
 
     def _download_file_from_url(self, url):
         if not os.path.isdir(self.root_dir):
-            raise IOError("Path to download file to does not exist")
+            raise RuntimeError("Path to download file to does not exist.")
+            return
 
-        url = url.encode('ascii')
-        urlpath = urlparse(url).path
         filename = os.path.split(urlparse(url).path)[1]
         filename = os.path.join(self.root_dir, filename)
-        url_file = urlopen(url)
-        blob = url_file.read()
+        requests_response = requests.get(url)
+        requests_response.raise_for_status()
+        blob = requests_response.content
         with sopen(filename, 'wb') as f:
             f.write(blob)
-        url_file.close()
-
         return os.path.abspath(filename)
