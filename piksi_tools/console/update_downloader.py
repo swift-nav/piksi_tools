@@ -10,7 +10,6 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 import os
-from json import load as jsonload
 import requests
 from urlparse import urlparse
 
@@ -22,13 +21,13 @@ INDEX_URL = 'http://downloads.swiftnav.com/index.json'
 class UpdateDownloader:
     def __init__(self, root_dir=''):
         try:
-          f = requests.get(INDEX_URL)
-          self.index = f.json()
-          f.raise_for_status()
-          self.root_dir = ''
-          f.close()
+            f = requests.get(INDEX_URL)
+            self.index = f.json()
+            f.raise_for_status()
+            self.root_dir = ''
+            f.close()
         except requests.ConnectionError as ce:
-          self.index = None
+            self.index = None
 
     def set_root_path(self, path):
         self.root_dir = path
@@ -64,7 +63,7 @@ class UpdateDownloader:
         if not os.path.isdir(self.root_dir):
             raise RuntimeError("Path to download file to does not exist.")
             return
-        
+
         filename = os.path.split(urlparse(url).path)[1]
         filename = os.path.join(self.root_dir, filename)
         requests_response = requests.get(url)
