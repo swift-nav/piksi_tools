@@ -15,7 +15,7 @@ import numpy as np
 from chaco.api import ArrayPlotData, Plot
 from enable.api import ComponentEditor
 from pyface.api import GUI
-from sbp.piksi import SBP_MSG_SPECAN, SBP_MSG_SPECAN_DEP, MsgSpecan
+from sbp.piksi import SBP_MSG_SPECAN, SBP_MSG_SPECAN_DEP
 from traits.api import Dict, HasTraits, Instance, Str
 from traitsui.api import EnumEditor, Item, View, HGroup, Spring
 
@@ -159,7 +159,7 @@ class SpectrumAnalyzerView(HasTraits):
         '''
         # Need to figure out which user_msg_tag means it's an FFT message
         # for now assume that all SBP_MSG_USER_DATA is relevant
-       
+
         fft = sbp_msg
         frequencies = self.get_frequencies(fft.freq_ref, fft.freq_step,
                                            len(fft.amplitude_value))
