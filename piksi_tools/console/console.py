@@ -586,7 +586,6 @@ class SwiftConsole(HasTraits):
         # if we have passed a logfile, we set our directory to it
         override_filename = override_filename
 
-
         if log_dirname:
             self.directory_name = log_dirname
             if override_filename:
