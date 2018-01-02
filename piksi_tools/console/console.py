@@ -20,7 +20,6 @@ import sys
 import time
 # Shut chaco up for now
 import warnings
-from os.path import expanduser
 
 import sbp.client as sbpc
 from enable.savage.trait_defs.ui.svg_button import SVGButton
@@ -58,7 +57,7 @@ from piksi_tools.console.tracking_view import TrackingView
 from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
                                        get_mode, mode_dict, resource_filename,
-                                       icon)
+                                       icon, swift_path)
 
 
 class ArgumentParserError(Exception):
@@ -586,8 +585,7 @@ class SwiftConsole(HasTraits):
         self.latency = '--'
         # if we have passed a logfile, we set our directory to it
         override_filename = override_filename
-        home = expanduser("~")
-        swift_path = os.path.normpath(os.path.join(home, 'SwiftNav'))
+
 
         if log_dirname:
             self.directory_name = log_dirname

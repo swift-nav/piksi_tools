@@ -3,6 +3,8 @@ from __future__ import print_function
 import datetime
 import pkg_resources
 import time
+import os
+
 from functools import partial
 from threading import Event, Thread
 
@@ -172,3 +174,5 @@ def call_repeatedly(interval, func, *args):
 resource_filename = partial(pkg_resources.resource_filename, 'piksi_tools')
 resource_stream = partial(pkg_resources.resource_stream, 'piksi_tools')
 icon = ImageResource(resource_filename('console/images/icon.png'))
+
+swift_path = os.path.normpath(os.path.join(os.path.expanduser("~"), 'SwiftNav'))
