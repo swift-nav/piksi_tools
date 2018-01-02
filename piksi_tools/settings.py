@@ -202,6 +202,7 @@ class Settings(object):
     def write_from_file(self, output, verbose=False):
         """Write settings to device from ini file."""
         parser = configparser.ConfigParser()
+        parser.optionxform = str
         with open(output, 'r') as f:
             parser.read_file(f)
         for section, settings in parser.items():
