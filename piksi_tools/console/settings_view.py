@@ -13,6 +13,8 @@ from __future__ import absolute_import, print_function
 
 import threading
 import time
+import copy
+import configparser
 
 from pyface.api import GUI
 from sbp.piksi import MsgReset
@@ -27,9 +29,10 @@ from traits.etsconfig.api import ETSConfig
 from traitsui.api import (EnumEditor, HGroup, HSplit, Item, TabularEditor,
                           TextEditor, UItem, VGroup, View)
 from traitsui.tabular_adapter import TabularAdapter
-
 import piksi_tools.console.callback_prompt as prompt
 from piksi_tools.console.gui_utils import MultilineTextEditor
+from piksi_tools.console.utils import swift_path
+from pyface.api import FileDialog, OK
 
 from .settings_list import SettingsList
 from .utils import resource_filename
@@ -62,7 +65,11 @@ class TimedDelayStoppableThread(threading.Thread):
     def run(self):
         time.sleep(self._delay)
         if not self.stopped():
-            self._target(*self._args)
+            # Allow passing a dict as a discrete argument to the target
+            if not isinstance(self._args, dict):
+                self._target(*self._args)
+            else:
+                self._target(self._args)
 
 
 class SettingBase(HasTraits):
@@ -139,13 +146,17 @@ class Setting(SettingBase):
         self.revert_in_progress = False
         self.timed_revert_thread = None
         self.confirmed_set = True
+        # flag on each setting to indicate a write failure if the revert thread has run on the setting
+        self.write_failure = False
 
     def revert_to_prior_value(self, name, old, new):
         '''Revert setting to old value in the case we can't confirm new value'''
         self.revert_in_progress = True
         self.value = old
         self.revert_in_progress = False
+        # reset confirmed_set to make sure setting is editable again
         self.confirmed_set = True
+        self.write_failure = True
         invalid_setting_prompt = prompt.CallbackPrompt(
             title="Settings Write Error",
             actions=[prompt.close_button], )
@@ -222,8 +233,7 @@ class SimpleAdapter(TabularAdapter):
     SectionHeading_font = Font('14 bold')
     SectionHeading_name_text = Property
     Setting_name_text = Property
-    name_width = Float(.7)
-    value_width = Float(.3)
+    name_width = Float(175)
 
     def _get_SectionHeading_name_text(self):
         return self.item.name.replace('_', ' ')
@@ -258,15 +268,26 @@ class SettingsView(HasTraits):
         width=16,
         height=20)
     settings_read_button = SVGButton(
-        label='Reload',
         tooltip='Reload settings from Piksi',
         filename=resource_filename('console/images/fontawesome/refresh.svg'),
+        allow_clipping=False,
+        width_padding=4, height_padding=4)
+    settings_save_button = SVGButton(
+        label='Save to Device',
+        tooltip='Save settings to persistent storage on device.',
+        filename=resource_filename('console/images/fontawesome/floppy-o.svg'),
         width=16,
         height=20)
-    settings_save_button = SVGButton(
-        label='Save to Flash',
-        tooltip='Save settings to Flash',
+    settings_export_to_file_button = SVGButton(
+        label='Export to File',
+        tooltip='Export settings from device to a file on this PC.',
         filename=resource_filename('console/images/fontawesome/download.svg'),
+        width=16,
+        height=20)
+    settings_import_from_file_button = SVGButton(
+        label='Import from File',
+        tooltip='Import settings to device from a file on this PC.',
+        filename=resource_filename('console/images/fontawesome/upload.svg'),
         width=16,
         height=20)
     factory_default_button = SVGButton(
@@ -291,20 +312,27 @@ class SettingsView(HasTraits):
                 show_label=False, ),
             VGroup(
                 HGroup(
-                    Item('settings_read_button', show_label=False),
                     Item('settings_save_button', show_label=False),
+                    Item('settings_export_to_file_button', show_label=False),
+                    Item('settings_import_from_file_button', show_label=False),
                     Item('factory_default_button', show_label=False),
                     Item(
                         'auto_survey',
                         show_label=False,
-                        visible_when='show_auto_survey'), ),
+                        visible_when='show_auto_survey'),
+                ),
                 HGroup(
+                    Item('settings_read_button', label="Refresh settings from device",
+                         padding=0, height=-20, width=-20),
                     Item(
                         'expert',
                         label="Show Advanced Settings",
-                        show_label=True)),
-                Item('selected_setting', style='custom', show_label=False), ),
-        ))
+                        show_label=True),
+                ),
+                Item('selected_setting', style='custom', show_label=False),
+            ),
+        )
+    )
 
     def _selected_setting_changed(self):
         if self.selected_setting:
@@ -343,6 +371,92 @@ class SettingsView(HasTraits):
         # Reset the Piksi, with flag set to restore default settings
         self.link(MsgReset(flags=1))
 
+    def _settings_export_to_file_button_fired(self):
+        """Exports current gui settings to INI file. Prompts user for file name and location.
+        Should handle all expected error cases.  Defaults to file "config.ini" in the swift_path
+        """
+        # Prompt user for location and name of file
+        file = FileDialog(action='save as',
+                          default_directory=swift_path,
+                          default_filename='config.ini',
+                          wildcard='*.ini')
+        is_ok = file.open()
+        if is_ok == OK:
+            print('Exporting settings to local path {0}'.format(file.path))
+            # copy settings so we can modify dict in place to write for configparser
+            settings_out = copy.deepcopy(self.settings)
+            # iterate over nested dict and set inner value to a bare string rather than dict
+            for section in settings_out:
+                for setting, inner_dict in self.settings[section].iteritems():
+                    settings_out[section][setting] = str(inner_dict.value)
+            # write out with config parser
+            parser = configparser.RawConfigParser()
+            # the optionxform is needed to handle case sensitive settings
+            parser.optionxform = str
+            parser.read_dict(settings_out)
+            # write to ini file
+            try:
+                with open(file.path, "w") as f:
+                    parser.write(f)
+            except IOError as e:
+                print('Unable to export settings to file due to IOError: {}'.format(e))
+        else:  # No error message because user pressed cancel and didn't choose a file
+            pass
+
+    def _settings_import_from_file_button_fired(self):
+        """Imports settings from INI file and sends settings write to device for each entry.
+        Prompts user for input file.  Should handle all expected error cases.
+        """
+        # Prompt user for file
+        file = FileDialog(action='open',
+                          default_directory=swift_path,
+                          default_filename='config.ini',
+                          wildcard='*.ini')
+        is_ok = file.open()
+        if is_ok == OK:  # file chosen successfully
+            print('Importing settings from local path {} to device.'.format(file.path))
+            parser = configparser.ConfigParser()
+            # the optionxform is needed to handle case sensitive settings
+            parser.optionxform = str
+            try:
+                with open(file.path, 'r') as f:
+                    parser.read_file(f)
+            except configparser.ParsingError as e:  # file formatted incorrectly
+                print('Unable to parse ini file due to ParsingError: {}.'.format(e))
+                print('Unable to import settings to device.')
+                return
+            except IOError as e:  # IOError (likely a file permission issue)
+                print('Unable to read ini file due to IOError: {}'.format(e))
+                print('Unable to import settings to device.')
+                return
+
+            # Iterate over each setting and set in the GUI.
+            # Use the same mechanism as GUI to do settings write to device
+
+            for section, settings in parser.items():
+                this_section = self.settings.get(section, None)
+                for setting, value in settings.items():
+                    if this_section:
+                        this_setting = this_section.get(setting, None)
+                        if this_setting:
+                            this_setting.value = value
+                        else:
+                            print(("Unable to import settings from file. Setting \"{0}\" in section \"{1}\""
+                                   " has not been sent from device.").format(setting, section))
+                            return
+                    else:
+                        print(("Unable to import settings from file."
+                               " Setting section \"{0}\" has not been sent from device.").format(section))
+                        return
+
+            # Double check that no settings had a write failure.  All settings should exist if we get to this point.
+            a = TimedDelayStoppableThread(SETTINGS_REVERT_TIMEOUT + 0.1,
+                                          target=self._wait_for_any_write_failures,
+                                          args=(dict(parser)))
+            a.start()
+        else:
+            pass  # No error message here because user likely pressed cancel when choosing file
+
     def _auto_survey_fired(self):
         confirm_prompt = prompt.CallbackPrompt(
             title="Auto populate surveyed position?",
@@ -368,6 +482,32 @@ class SettingsView(HasTraits):
         self.settings['surveyed_position']['surveyed_lon'].value = lon_value
         self.settings['surveyed_position']['surveyed_alt'].value = alt_value
         self.settings_display_setup(do_read_finished=False)
+
+    def _wait_for_any_write_failures(self, parser):
+        """Checks for any settings write failures for which a successful write is expected.
+        If no failures have occurred, we prompt the user whether to save settings to the device's flash.
+
+           Args:
+                parser (dict): A dict of dicts with setting sections then names for keys
+        """
+        write_failures = 0
+        for section, settings in parser.items():
+            for setting, _ in settings.items():
+                if self.settings[section][setting].write_failure:
+                    write_failures += 1
+                    self.settings[section][setting].write_failure = False
+        if write_failures == 0:
+            print("Successfully imported settings from file.")
+            confirm_prompt = prompt.CallbackPrompt(
+                title="Save to device flash?",
+                actions=[prompt.close_button, prompt.ok_button],
+                callback=self._settings_save_button_fired)
+            confirm_prompt.text = "\n" \
+                                  "  Settings import from file complete.  Click OK to save the settings  \n" \
+                                  "  to the device's persistent storage.  \n"
+            confirm_prompt.run(block=False)
+        else:
+            print("Unable to import settings from file: {0} settings write failures occurred.".format(write_failures))
 
     # Callbacks for receiving messages
     def settings_display_setup(self, do_read_finished=True):
@@ -404,8 +544,7 @@ class SettingsView(HasTraits):
         try:
             if self.settings[settings_list[0]][settings_list[1]].value != settings_list[2]:
                 try:
-                    float_val = float(self.settings[settings_list[0]][
-                                      settings_list[1]].value)
+                    float_val = float(self.settings[settings_list[0]][settings_list[1]].value)
                     float_val2 = float(settings_list[2])
                     if abs(float_val - float_val2) > 0.000001:
                         confirmed_set = False

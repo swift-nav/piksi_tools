@@ -57,8 +57,8 @@ class SystemMonitorView(HasTraits):
     msg_obs_window_period_ms = Int(0)
 
     piksi_reset_button = SVGButton(
-        label='Reset Piksi',
-        tooltip='Reset Piksi',
+        label='Reset Device',
+        tooltip='Reset Device',
         filename=resource_filename('console/images/fontawesome/power27.svg'),
         width=16,
         height=16,
