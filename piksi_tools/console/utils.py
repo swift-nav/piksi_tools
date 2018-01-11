@@ -81,7 +81,7 @@ mode_dict = {
     DGNSS_MODE: 'DGPS',
     FLOAT_MODE: 'Float RTK',
     FIXED_MODE: 'Fixed RTK',
-    DR_MODE:    'Dead Reckoning'
+    DR_MODE: 'Dead Reckoning'
 }
 
 color_dict = {

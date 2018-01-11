@@ -26,7 +26,7 @@ from sbp.navigation import (
     SBP_MSG_AGE_CORRECTIONS, SBP_MSG_DOPS, SBP_MSG_DOPS_DEP_A,
     SBP_MSG_GPS_TIME, SBP_MSG_GPS_TIME_DEP_A, SBP_MSG_POS_LLH,
     SBP_MSG_POS_LLH_DEP_A, SBP_MSG_UTC_TIME, SBP_MSG_VEL_NED,
-    SBP_MSG_VEL_NED_DEP_A, SBP_MSG_POS_LLH_COV, SBP_MSG_VEL_NED_COV,
+    SBP_MSG_VEL_NED_DEP_A, SBP_MSG_POS_LLH_COV,
     MsgAgeCorrections, MsgDops, MsgDopsDepA, MsgGPSTime,
     MsgGPSTimeDepA, MsgPosLLH, MsgPosLLHDepA, MsgUtcTime, MsgVelNED,
     MsgVelNEDDepA)
@@ -339,7 +339,6 @@ class SolutionView(HasTraits):
         self.lngs_gps = self.lngs_gps[-self.plot_history_max:]
         self.modes_gps = self.modes_gps[-self.plot_history_max:]
 
-
     def pos_llh_cov_callback(self, sbp_msg, **metadata):
         pos_table = []
         soln = sbp_msg
@@ -376,7 +375,6 @@ class SolutionView(HasTraits):
         self.lats_cov = self.lats_cov[-self.plot_history_max:]
         self.lngs_cov = self.lngs_cov[-self.plot_history_max:]
         self.modes_cov = self.modes_cov[-self.plot_history_max:]
-
 
     def solution_draw(self):
         if self.running:
@@ -774,7 +772,7 @@ class SolutionView(HasTraits):
         self.link = link
         self.link.add_callback(self.pos_llh_cov_callback,
                                [SBP_MSG_POS_LLH_COV])
-        #self.link.add_callback(self.vel_ned_cov_callback,
+        # self.link.add_callback(self.vel_ned_cov_callback,
         #                       [SBP_MSG_VEL_NED_COV])
         self.link.add_callback(self.pos_llh_callback,
                                [SBP_MSG_POS_LLH_DEP_A, SBP_MSG_POS_LLH])
