@@ -57,7 +57,9 @@ class MagView(HasTraits):
 
     def mag_raw_callback(self, sbp_msg, **metadata):
         self.mag[:-1, :] = self.mag[1:, :]
-        self.mag[-1] = (sbp_msg.mag_x, sbp_msg.mag_y, sbp_msg.mag_z)
+        self.mag[-1] = (sbp_msg.mag_x / 16.0,
+                        sbp_msg.mag_y / 16.0,
+                        sbp_msg.mag_z / 16.0)
 
     def __init__(self, link):
         super(MagView, self).__init__()
@@ -93,11 +95,11 @@ class MagView(HasTraits):
             LegendTool(self.plot.legend, drag_button="right"))
 
         mag_x = self.plot.plot(
-            ('t', 'mag_x'), type='line', color='auto', name='Mag. X')
+            ('t', 'mag_x'), type='line', color='auto', name='Mag. X (uT)')
         mag_y = self.plot.plot(
-            ('t', 'mag_y'), type='line', color='auto', name='Mag. Y')
+            ('t', 'mag_y'), type='line', color='auto', name='Mag. Y (uT)')
         mag_z = self.plot.plot(
-            ('t', 'mag_z'), type='line', color='auto', name='Mag. Z')
+            ('t', 'mag_z'), type='line', color='auto', name='Mag. Z (uT)')
 
         self.link = link
         self.link.add_callback(self.mag_raw_callback, SBP_MSG_MAG_RAW)
