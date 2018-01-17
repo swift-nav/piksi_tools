@@ -12,6 +12,7 @@
 
 from __future__ import print_function
 
+import time
 import datetime
 
 from sbp.observation import (SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B,
@@ -118,6 +119,7 @@ class ObservationView(CodeFiltered):
         if (sbp_msg.sender is not None and (self.relay ^
                                             (sbp_msg.sender == 0))):
             return
+        self.last_obs_time = time.time()
         tow = sbp_msg.header.t.tow
         wn = sbp_msg.header.t.wn
         seq = sbp_msg.header.n_obs
@@ -264,6 +266,7 @@ class ObservationView(CodeFiltered):
         self.obs_count = 0
         self.gps_tow = 0.0
         self.gps_week = 0
+        self.last_obs_time = None
         self.relay = relay
         self.name = name
         self.rinex_file = None

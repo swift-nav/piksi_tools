@@ -190,6 +190,7 @@ class SwiftConsole(HasTraits):
     num_sats = Int(0)
     cnx_desc = Str('')
     latency = Str('')
+    base_obs_delay = Str('')
     directory_name = Directory
     json_logging = Bool(True)
     csv_logging = Bool(False)
@@ -357,6 +358,17 @@ class SwiftConsole(HasTraits):
                         padding=2,
                         show_label=False,
                         style='readonly'),
+                    Item(
+                        '',
+                        label='Base obs delay:',
+                        emphasized=True,
+                        tooltip='Time since last base station observation received'
+                    ),
+                    Item(
+                        'base_obs_delay',
+                        padding=2,
+                        show_label=False,
+                        style='readonly'),
                     Spring(springy=True),
                     Item(
                         'cnx_icon',
@@ -485,6 +497,12 @@ class SwiftConsole(HasTraits):
                     self.system_monitor_view.msg_obs_window_latency_ms)
             else:
                 self.latency = EMPTY_STR
+        
+        if self.observation_view_base:
+            last_obs_time = self.observation_view_base.last_obs_time
+            if last_obs_time is not None:
+                self.base_obs_delay = '{:.2f} s'.format(time.time() - last_obs_time)
+
 
     def _csv_logging_button_action(self):
         if self.csv_logging and self.baseline_view.logging_b and self.solution_view.logging_p and self.solution_view.logging_v:
@@ -583,6 +601,7 @@ class SwiftConsole(HasTraits):
         self.mode = ''
         self.forwarder = None
         self.latency = '--'
+        self.base_obs_delay = '--'
         # if we have passed a logfile, we set our directory to it
         override_filename = override_filename
 
