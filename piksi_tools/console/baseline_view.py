@@ -20,10 +20,11 @@ from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.api import GUI
 from sbp.navigation import (
-    SBP_MSG_AGE_CORRECTIONS, SBP_MSG_BASELINE_HEADING, SBP_MSG_BASELINE_NED,
+    SBP_MSG_AGE_CORRECTIONS, SBP_MSG_BASELINE_NED,
     SBP_MSG_BASELINE_NED_DEP_A, SBP_MSG_GPS_TIME, SBP_MSG_GPS_TIME_DEP_A,
-    SBP_MSG_UTC_TIME, MsgAgeCorrections, MsgBaselineHeading,
-    MsgBaselineNEDDepA, MsgGPSTime, MsgGPSTimeDepA, MsgUtcTime)
+    SBP_MSG_UTC_TIME, MsgAgeCorrections, MsgBaselineNEDDepA, MsgGPSTime,
+    MsgGPSTimeDepA, MsgUtcTime)
+from sbp.orientation import SBP_MSG_BASELINE_HEADING, MsgBaselineHeading
 from sbp.piksi import SBP_MSG_IAR_STATE, MsgResetFilters
 from traits.api import Bool, Button, Dict, File, HasTraits, Instance, List
 from traitsui.api import HGroup, HSplit, Item, TabularEditor, VGroup, View
