@@ -22,7 +22,7 @@ from pyface.api import GUI
 from sbp.navigation import (
     SBP_MSG_AGE_CORRECTIONS, SBP_MSG_BASELINE_NED,
     SBP_MSG_BASELINE_NED_DEP_A, SBP_MSG_GPS_TIME, SBP_MSG_GPS_TIME_DEP_A,
-    SBP_MSG_UTC_TIME, MsgAgeCorrections, MsgBaselineNEDDepA, MsgGPSTime, 
+    SBP_MSG_UTC_TIME, MsgAgeCorrections, MsgBaselineNEDDepA, MsgGPSTime,
     MsgGPSTimeDepA, MsgUtcTime)
 from sbp.orientation import SBP_MSG_BASELINE_HEADING, MsgBaselineHeading
 from sbp.piksi import SBP_MSG_IAR_STATE, MsgResetFilters
