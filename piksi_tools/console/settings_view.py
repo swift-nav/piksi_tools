@@ -20,7 +20,8 @@ from pyface.api import GUI
 from sbp.piksi import MsgReset
 from sbp.settings import (
     SBP_MSG_SETTINGS_READ_BY_INDEX_DONE, SBP_MSG_SETTINGS_READ_BY_INDEX_REQ,
-    SBP_MSG_SETTINGS_READ_BY_INDEX_RESP, SBP_MSG_SETTINGS_READ_RESP,
+    SBP_MSG_SETTINGS_READ_BY_INDEX_RESP,
+    SBP_MSG_SETTINGS_READ_RESP, SBP_MSG_SETTINGS_WRITE_RESP,
     MsgSettingsReadByIndexReq, MsgSettingsSave, MsgSettingsWrite)
 from sbp.system import SBP_MSG_STARTUP
 from traits.api import (Bool, Color, Constant, Float, Font, HasTraits,
@@ -558,6 +559,33 @@ class SettingsView(HasTraits):
         except KeyError:
             return
 
+    def settings_write_resp_callback(self, sbp_msg, **metadata):
+        if sbp_msg.status == 2:
+            # Setting was rejected.  This shouldn't happen because we'll only
+            # send requests for settings enumerated using read by index.
+            return
+        settings_list = sbp_msg.setting.split("\0")
+        if len(settings_list) <= 3:
+            print("Received malformed settings write response {0}".format(
+                sbp_msg))
+            return
+        try:
+            setting = self.settings[settings_list[0]][settings_list[1]]
+        except KeyError:
+            return
+        if setting.timed_revert_thread:
+            setting.timed_revert_thread.stop()
+        if sbp_msg.status == 1:
+            # Value was rejected.  Inform the user and revert display to the
+            # old value.
+            new = setting.value
+            old = settings_list[2]
+            setting.revert_to_prior_value(setting.name, old, new)
+            return
+        # Write accepted.  Use confirmed value in display.
+        setting.value = settings_list[2]
+        setting.confirmed_set = True
+
     def settings_read_by_index_callback(self, sbp_msg, **metadata):
         section, setting, value, format_type = sbp_msg.payload[2:].split(
             '\0')[:4]
@@ -641,6 +669,8 @@ class SettingsView(HasTraits):
                                SBP_MSG_SETTINGS_READ_BY_INDEX_DONE)
         self.link.add_callback(self.settings_read_resp_callback,
                                SBP_MSG_SETTINGS_READ_RESP)
+        self.link.add_callback(self.settings_write_resp_callback,
+                               SBP_MSG_SETTINGS_WRITE_RESP)
         # Read in yaml file for setting metadata
         self.settings_yaml = SettingsList(name_of_yaml_file)
         # List of functions to be executed after all settings are read.
