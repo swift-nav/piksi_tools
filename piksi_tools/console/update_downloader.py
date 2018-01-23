@@ -32,7 +32,6 @@ class UpdateDownloader:
             return
 
     def set_root_path(self, path):
-        print("setting path")
         self.root_dir = path
 
     def download_stm_firmware(self, hwrev):

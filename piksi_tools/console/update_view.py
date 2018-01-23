@@ -20,11 +20,11 @@ from urllib2 import URLError
 
 from intelhex import HexRecordError, IntelHex
 from pkg_resources import parse_version as pkparse_version
-from pyface.api import GUI, OK, FileDialog, ProgressDialog
+from pyface.api import GUI, OK, FileDialog, DirectoryDialog, ProgressDialog
 from sbp.bootload import MsgBootloaderJumpToApp
 from sbp.logging import SBP_MSG_LOG
 from sbp.piksi import MsgReset
-from traits.api import Bool, Button, Directory, HasTraits, Instance, String
+from traits.api import Bool, Button, HasTraits, Instance, String
 from traitsui.api import HGroup, InstanceEditor, Item, UItem, VGroup, View, Spring
 
 import piksi_tools.console.callback_prompt as prompt
@@ -52,6 +52,7 @@ def parse_version(version):
     return pkparse_version(version.replace(
         "dirty",
         "", ))
+
 
 
 class FirmwareFileDialog(HasTraits):
@@ -160,15 +161,14 @@ class UpdateView(HasTraits):
     download_directory_label = String('Firmware Download Directory:')
 
     update_stm_firmware = Button(label='Update FW')
-    update_nap_firmware = Button(label='Update NAP')
-    update_full_firmware = Button(label='Update Piksi STM and NAP Firmware')
 
     updating = Bool(False)
     update_stm_en = Bool(False)
     upgrade_steps = String("Firmware upgrade status:")
 
     download_firmware = Button(label='Download Latest Firmware')
-    download_directory = Directory()
+    download_directory = String()
+    choose_dir = Button(label='...', padding=-1)
     download_stm = Button(label='Download', height=HT)
     downloading = Bool(False)
     download_fw_en = Bool(False)
@@ -223,15 +223,21 @@ class UpdateView(HasTraits):
                         editor_args={'enabled': False}),
                     label="Swift Console Version",
                     show_border=True), ),
-            HGroup(
-                VGroup(
-                    UItem('download_directory'),
-                    UItem('download_firmware', enabled_when='download_fw_en'),
-                    label="Firmware Download Directory",
+                HGroup(
+                    VGroup(
+                    HGroup(
+                           Item('download_directory', label = "Directory", resizable=True),
+                           UItem('choose_dir', width=-0.1),
+                    ),
+                    HGroup(
+                           Spring(width=50, springy=False),
+                           Item('download_firmware', enabled_when='download_fw_en',
+                                show_label=False, resizable=True, springy=True)
+                    ),
+                    label="Firmware Download",
                     show_border=True),
-                Spring()
-            ),
-            VGroup(
+                    Spring()
+                ),
                 UItem(
                     'upgrade_steps',
                     visible_when='not sbp_upgrade',
@@ -243,7 +249,6 @@ class UpdateView(HasTraits):
                     show_label=False, ),
                 show_border=True, ),
         )
-    )
 
     def __init__(self,
                  link,
@@ -274,6 +279,17 @@ class UpdateView(HasTraits):
         self.stm_fw.on_trait_change(self._manage_enables, 'status')
         self.stream = OutputStream()
         self.last_call_fw_version = None
+
+    def _choose_dir_fired(self):
+        dialog = DirectoryDialog(
+            label='Choose Download location',
+            action='open',
+            default_directory=self.download_directory)
+        dialog.open()
+        if dialog.return_code == OK:
+            self.download_directory = dialog.path
+        else:
+            self._write('Error while selecting firmware download location')
 
     def _manage_enables(self):
         """ Manages whether traits widgets are enabled in the UI or not. """
@@ -364,36 +380,6 @@ class UpdateView(HasTraits):
 
         self._firmware_update_thread = Thread(
             target=self.manage_firmware_updates, args=("STM",))
-        self._firmware_update_thread.start()
-
-    def _update_nap_firmware_fired(self):
-        """
-        Handle update_nap_firmware button. Starts thread so as not to block the GUI
-        thread.
-        """
-        try:
-            if self._firmware_update_thread.is_alive():
-                return
-        except AttributeError:
-            pass
-
-        self._firmware_update_thread = Thread(
-            target=self.manage_firmware_updates, args=("M25",))
-        self._firmware_update_thread.start()
-
-    def _update_full_firmware_fired(self):
-        """
-        Handle update_full_firmware button. Starts thread so as not to block the GUI
-        thread.
-        """
-        try:
-            if self._firmware_update_thread.is_alive():
-                return
-        except AttributeError:
-            pass
-
-        self._firmware_update_thread = Thread(
-            target=self.manage_firmware_updates, args=("ALL",))
         self._firmware_update_thread.start()
 
     def _download_firmware(self):
