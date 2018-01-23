@@ -38,9 +38,9 @@ Create an disk image installer (.dmg) for Swift Console OSX application.
 Options:
 
     -a --app PATH      Path to a build Swift Console.app to include in the disk image.
-                       (default dist/Swift Console.app)
+                       (default pyinstall_dist/Swift Console.app)
     -o --out PATH      Name for the generated the disk image.
-                       (default dist/swift_console_VERSION.dmg)
+                       (default pyinstall_dist/swift_console_VERSION.dmg)
     -k --keep-temp     Keep the temporary files after creating the final image.
     -h --help          Print this help
 '
@@ -57,8 +57,8 @@ then
      exit 1
 fi
 
-APP="dist/Swift Console.app"
-DMG="dist/$1"
+APP="pyinstall_dist/Swift Console.app"
+DMG="pyinstall_dist/$1"
 
 KEEP_TEMP=0
 

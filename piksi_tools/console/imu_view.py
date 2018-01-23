@@ -32,7 +32,7 @@ colours_list = [
     0xFF7F00,
     0xFFFF33,
     0xA65628,
-    0xF781BF,
+    0xFFFFFF,
 ]
 
 

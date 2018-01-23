@@ -15,6 +15,7 @@ env/
 build/
 develop-eggs/
 dist/
+pyinstall_dist/
 downloads/
 eggs/
 lib/

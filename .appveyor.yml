@@ -35,5 +35,5 @@ install:
 build: off
 
 artifacts:
-  - path: dist
+  - path: pyinstall_dist
     name: swift_console
