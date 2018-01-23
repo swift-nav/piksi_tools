@@ -18,7 +18,6 @@ from threading import Thread
 from time import sleep
 from urllib2 import URLError
 
-from intelhex import HexRecordError, IntelHex
 from pkg_resources import parse_version as pkparse_version
 from pyface.api import GUI, OK, FileDialog, DirectoryDialog, ProgressDialog
 from sbp.bootload import MsgBootloaderJumpToApp
@@ -52,7 +51,6 @@ def parse_version(version):
     return pkparse_version(version.replace(
         "dirty",
         "", ))
-
 
 
 class FirmwareFileDialog(HasTraits):
@@ -223,32 +221,32 @@ class UpdateView(HasTraits):
                         editor_args={'enabled': False}),
                     label="Swift Console Version",
                     show_border=True), ),
-                HGroup(
-                    VGroup(
+            HGroup(
+                VGroup(
                     HGroup(
-                           Item('download_directory', label = "Directory", resizable=True),
-                           UItem('choose_dir', width=-0.1),
+                        Item('download_directory', label="Directory", resizable=True),
+                        UItem('choose_dir', width=-0.1),
                     ),
                     HGroup(
-                           Spring(width=50, springy=False),
-                           Item('download_firmware', enabled_when='download_fw_en',
-                                show_label=False, resizable=True, springy=True)
+                        Spring(width=50, springy=False),
+                        Item('download_firmware', enabled_when='download_fw_en',
+                             show_label=False, resizable=True, springy=True)
                     ),
                     label="Firmware Download",
                     show_border=True),
-                    Spring()
-                ),
-                UItem(
-                    'upgrade_steps',
-                    visible_when='not sbp_upgrade',
-                    style='readonly'),
-                Item(
-                    'stream',
-                    style='custom',
-                    editor=InstanceEditor(),
-                    show_label=False, ),
-                show_border=True, ),
-        )
+                Spring()
+            ),
+            UItem(
+                'upgrade_steps',
+                visible_when='not sbp_upgrade',
+                style='readonly'),
+            Item(
+                'stream',
+                style='custom',
+                editor=InstanceEditor(),
+                show_label=False, ),
+            show_border=True, ),
+    )
 
     def __init__(self,
                  link,
