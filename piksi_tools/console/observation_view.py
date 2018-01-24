@@ -16,8 +16,8 @@ import datetime
 
 from sbp.observation import (SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B,
                              SBP_MSG_OBS_DEP_C)
-from traits.api import Dict, Float, Int, List
-from traitsui.api import HGroup, Item, Spring, TabularEditor, VGroup, View
+from traits.api import Dict, Float, Int, List, Str
+from traitsui.api import HGroup, Item, UItem, Spring, TabularEditor, VGroup, View
 from traitsui.tabular_adapter import TabularAdapter
 
 from piksi_tools.console.gui_utils import CodeFiltered
@@ -36,7 +36,7 @@ class SimpleAdapter(TabularAdapter):
 
 class ObservationView(CodeFiltered):
     python_console_cmds = Dict()
-
+    Label = Str('')
     _obs_table_list = List()
     obs = Dict()
     old_cp = Dict()
@@ -53,14 +53,18 @@ class ObservationView(CodeFiltered):
         info = HGroup(
             Spring(width=4, springy=False),
             Item(
-                '',
+                'Label',
                 label='Week:',
+                style='readonly',
                 emphasized=True,
+                width=-1, padding=-1, style_sheet='*{font-size:1px}',
                 tooltip='GPS Week Number (since 1980'),
             Item('gps_week', style='readonly', show_label=False),
             Item(
-                '',
-                label='TOW:',
+                'Label',
+                label='  TOW:',
+                style='readonly',
+                width=-1, padding=-1, style_sheet='*{font-size:1px}',
                 emphasized=True,
                 tooltip='GPS milliseconds in week'),
             Item(
@@ -69,25 +73,36 @@ class ObservationView(CodeFiltered):
                 show_label=False,
                 format_str='%.3f'),
             Item(
-                '',
-                label='Total obs:',
+                'Label',
+                label='  Total:',
+                style='readonly',
                 emphasized=True,
+                width=-1, padding=-1, style_sheet='*{font-size:1px}',
                 tooltip='Total observation count'),
-            Item('obs_count', style='readonly', show_label=False), )
+            Item('obs_count', style='readonly', show_label=False),
+        )
 
         for code in SUPPORTED_CODES:
             code_str = code_to_str(code)
             info.content.append(
                 Item(
-                    '',
-                    label='{}:'.format(code_str),
+                    'Label',
+                    label='  {}'.format(code_str),
+                    style='readonly',
                     emphasized=True,
-                    tooltip='{} observation count'.format(code_str)))
+                    tooltip='{} observation count'.format(code_str),
+                    visible_when="{} in received_codes".format(code),
+                    width=-1, padding=-1, style_sheet='*{font-size:1px}'
+                ),
+            )
             info.content.append(
-                Item(
+                UItem(
                     'count_{}'.format(code),
                     style='readonly',
-                    show_label=False))
+                    visible_when="{} in received_codes".format(code),
+
+                )
+            )
 
         return View(
             VGroup(
@@ -105,7 +120,7 @@ class ObservationView(CodeFiltered):
     def update_obs(self):
         self.obs_count = len(self.obs)
         self._obs_table_list = [
-            ('{} ({})'.format(svid[0], code_to_str(svid[1])), ) + obs
+            ('{} ({})'.format(svid[0], code_to_str(svid[1])),) + obs
             for svid, obs in sorted(self.obs.items())
             if getattr(self, 'show_{}'.format(svid[1]), True)
         ]
@@ -113,10 +128,11 @@ class ObservationView(CodeFiltered):
         for code in SUPPORTED_CODES:
             setattr(self, 'count_{}'.format(code),
                     len([key for key in self.obs.keys() if key[1] == code]))
+            if getattr(self, 'count_{}'.format(code)) != 0 and code not in self.received_codes:
+                self.received_codes.append(code)
 
     def obs_packed_callback(self, sbp_msg, **metadata):
-        if (sbp_msg.sender is not None and (self.relay ^
-                                            (sbp_msg.sender == 0))):
+        if (sbp_msg.sender is not None and (self.relay ^ (sbp_msg.sender == 0))):
             return
         tow = sbp_msg.header.t.tow
         wn = sbp_msg.header.t.wn
@@ -137,10 +153,8 @@ class ObservationView(CodeFiltered):
             self.old_cp = self.new_cp
             self.new_cp.clear()
             self.incoming_obs.clear()
-        elif self.gps_tow != tow or\
-                self.gps_week != wn or\
-                self.prev_obs_count + 1 != count or\
-                self.prev_obs_total != total:
+        elif (self.gps_tow != tow or self.gps_week != wn or
+                self.prev_obs_count + 1 != count or self.prev_obs_total != total):
             print("We dropped a packet. Skipping this observation sequence")
             self.prev_obs_count = -1
             return
@@ -150,8 +164,6 @@ class ObservationView(CodeFiltered):
         # Save this packet
         # See sbp_piksi.h for format
         for o in sbp_msg.obs:
-            if getattr(self, "received_{}".format(o.sid.code), True) == False:
-                setattr(self, "received_{}".format(o.sid.code), True)
             # Handle all the message specific stuff
             prn = o.sid.sat
             flags = 0
@@ -159,7 +171,7 @@ class ObservationView(CodeFiltered):
 
             # Old PRN values had to add one for GPS
             if (code_is_gps(o.sid.code) and sbp_msg.msg_type in [
-                    SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C
+                SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C
             ]):
                 prn += 1
 
@@ -172,7 +184,7 @@ class ObservationView(CodeFiltered):
                 divisor = 5e1
 
             if sbp_msg.msg_type not in [
-                    SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C
+                SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C
             ]:
                 flags = o.flags
                 msdopp = float(o.D.i) + float(o.D.f) / (1 << 8)
@@ -180,14 +192,14 @@ class ObservationView(CodeFiltered):
 
             try:
                 ocp = self.old_cp[prn]
-            except: # noqa
+            except:  # noqa
                 ocp = 0
 
             cp = float(o.L.i) + float(o.L.f) / (1 << 8)
 
             # Compute time difference of carrier phase for display, but only if carrier phase is valid
             if ocp != 0 and ((sbp_msg.msg_type in [
-                    SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C
+                SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C
             ]) or (flags & 0x3) == 0x3):
                 # Doppler per RINEX has opposite sign direction to carrier phase
                 if self.gps_tow != self.old_tow:
@@ -206,7 +218,7 @@ class ObservationView(CodeFiltered):
 
             # Save carrier phase value, but only if value is valid
             if (sbp_msg.msg_type in [
-                    SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C
+                SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C
             ]) or (flags & 0x3) == 0x3:
                 self.new_cp[prn] = cp
 
@@ -235,7 +247,7 @@ class ObservationView(CodeFiltered):
 
             # Sets invalid values to zero
             if sbp_msg.msg_type not in [
-                    SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C
+                SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C
             ]:
                 if not (flags & 0x01):
                     pr_str = EMPTY_STR
@@ -250,9 +262,9 @@ class ObservationView(CodeFiltered):
                                       cpdopp_str, lock_str, flags_str)
 
         if (count == total - 1):
-            self.t = datetime.datetime(1980, 1, 6) + \
-                datetime.timedelta(weeks=self.gps_week) + \
-                datetime.timedelta(seconds=self.gps_tow)
+            self.t = (datetime.datetime(1980, 1, 6) +
+                      datetime.timedelta(weeks=self.gps_week) +
+                      datetime.timedelta(seconds=self.gps_tow))
             self.obs.clear()
             self.obs.update(self.incoming_obs)
 
