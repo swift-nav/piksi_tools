@@ -77,8 +77,8 @@ class MagView(HasTraits):
         self.plot.title = 'Raw Magnetometer Data'
         self.plot.title_color = [0, 0, 0.43]
         self.ylim = self.plot.value_mapper.range
-        self.ylim.low = -2000
-        self.ylim.high = 2000
+        self.ylim.low = -150
+        self.ylim.high = 150
         # self.plot.value_range.bounds_func = lambda l, h, m, tb: (0, h * (1 + m))
         self.plot.value_axis.orientation = 'right'
         self.plot.value_axis.axis_line_visible = False
