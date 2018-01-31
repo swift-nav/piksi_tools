@@ -28,7 +28,6 @@ from traitsui.api import HGroup, InstanceEditor, Item, UItem, VGroup, View, Spri
 
 import piksi_tools.console.callback_prompt as prompt
 from piksi_tools import __version__ as CONSOLE_VERSION
-from piksi_tools import bootload, flash
 from piksi_tools.bootload_v3 import shell_command
 from piksi_tools.fileio import FileIO
 
