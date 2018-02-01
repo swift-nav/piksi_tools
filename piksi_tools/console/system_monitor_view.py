@@ -15,10 +15,11 @@ from sbp.piksi import (SBP_MSG_NETWORK_STATE_RESP, SBP_MSG_THREAD_STATE,
                        SBP_MSG_UART_STATE, SBP_MSG_UART_STATE_DEPA,
                        MsgNetworkStateReq, MsgReset)
 from sbp.system import SBP_MSG_HEARTBEAT
-from traits.api import Dict, HasTraits, Int, List
+from traits.api import Dict, HasTraits, Int, List, Button, Str
 from traits.etsconfig.api import ETSConfig
 from traitsui.api import HGroup, Item, TabularEditor, VGroup, View
 from traitsui.tabular_adapter import TabularAdapter
+import webbrowser
 
 from .utils import resource_filename
 
@@ -46,6 +47,8 @@ class SystemMonitorView(HasTraits):
 
     _network_info = List()
 
+    device_uuid = Str('')
+
     msg_obs_avg_latency_ms = Int(0)
     msg_obs_min_latency_ms = Int(0)
     msg_obs_max_latency_ms = Int(0)
@@ -71,6 +74,8 @@ class SystemMonitorView(HasTraits):
         width=16,
         height=16,
         aligment='center')
+
+    skylark_button = Button(label='Connect to Skylark')
 
     traits_view = View(
         VGroup(
@@ -132,6 +137,7 @@ class SystemMonitorView(HasTraits):
                         show_border=True,
                         label="Observation Connection Monitor"),
                     Item('piksi_reset_button', show_label=False, width=0.50),
+                    Item('skylark_button', show_label=False, width=0.50),
                 ),
                 VGroup(
                     Item(
@@ -170,13 +176,18 @@ class SystemMonitorView(HasTraits):
         self._network_info = []
         self.link(MsgNetworkStateReq())
 
+    def _skylark_button_fired(self):
+        if self.device_uuid:
+            webbrowser.open("https://skylark.swiftnav.com/add-device/" + self.device_uuid)
+        else:
+            print("No device UUID has been received yet. Please wait until all the settings have loaded.")
+
     def _network_callback(self, m, **metadata):
         self._network_info.append(
             (m.interface_name, ip_bytes_to_string(m.ipv4_address),
              ((m.flags & (1 << 6)) != 0)))
 
     def uart_state_callback(self, m, **metadata):
-
         self.msg_obs_avg_latency_ms = m.latency.avg
         self.msg_obs_min_latency_ms = m.latency.lmin
         self.msg_obs_max_latency_ms = m.latency.lmax
@@ -186,6 +197,9 @@ class SystemMonitorView(HasTraits):
             self.msg_obs_min_period_ms = m.obs_period.pmin
             self.msg_obs_max_period_ms = m.obs_period.pmax
             self.msg_obs_window_period_ms = m.obs_period.current
+
+    def set_uuid(self, uuid):
+        self.device_uuid = uuid
 
     def __init__(self, link):
         super(SystemMonitorView, self).__init__()

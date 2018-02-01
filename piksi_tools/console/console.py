@@ -691,6 +691,7 @@ class SwiftConsole(HasTraits):
                 self.networking_view.set_route(uuid=uuid, serial_id=mfg_id)
                 if self.networking_view.connect_when_uuid_received:
                     self.networking_view._connect_rover_fired()
+                self.system_monitor_view.set_uuid(uuid)
 
             settings_read_finished_functions.append(update_serial)
             self.settings_view = SettingsView(
