@@ -27,7 +27,7 @@ from sbp.navigation import (
 from sbp.orientation import SBP_MSG_BASELINE_HEADING, MsgBaselineHeading
 from sbp.piksi import SBP_MSG_IAR_STATE, MsgResetFilters
 from traits.api import Bool, Button, Dict, File, HasTraits, Instance, List
-from traitsui.api import HGroup, HSplit, Item, TabularEditor, VGroup, View
+from traitsui.api import HGroup, HSplit, Item, TabularEditor, VGroup, View, Tabbed
 from traitsui.tabular_adapter import TabularAdapter
 
 from piksi_tools.console.gui_utils import plot_square_axes
@@ -44,7 +44,6 @@ class SimpleAdapter(TabularAdapter):
 
 
 class BaselineView(HasTraits):
-
     # This mapping should match the flag definitions in libsbp for
     # the MsgBaselineNED message. While this isn't strictly necessary
     # it helps avoid confusion
@@ -57,7 +56,10 @@ class BaselineView(HasTraits):
     directory_name_b = File
 
     plot = Instance(Plot)
+    plot_hdg = Instance(Plot)
+    strip_hdg = Instance(Plot)
     plot_data = Instance(ArrayPlotData)
+    plot_data_hdg = Instance(ArrayPlotData)
 
     running = Bool(True)
     zoomall = Bool(False)
@@ -110,10 +112,29 @@ class BaselineView(HasTraits):
                     Item('zoomall_button', show_label=False),
                     Item('center_button', show_label=False),
                     Item('reset_button', show_label=False), ),
-                Item(
-                    'plot',
-                    show_label=False,
-                    editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8)), ))))
+                Tabbed(
+                    Item(
+                        'plot',
+                        label='Baseline Scatter',
+                        show_label=False,
+                        editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8))
+                    ),
+                    Item(
+                        'plot_hdg',
+                        label='Heading Arrow',
+                        show_label=False,
+                        editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8))
+                    ),
+                    Item(
+                        'strip_hdg',
+                        label='Heading strip',
+                        show_label=False,
+                        editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8))
+                    )
+                )
+            )
+        )
+    )
 
     def _zoomall_button_fired(self):
         self.zoomall = not self.zoomall
@@ -205,6 +226,8 @@ class BaselineView(HasTraits):
         headingMsg = MsgBaselineHeading(sbp_msg)
         if headingMsg.flags & 0x7 != 0:
             self.heading = headingMsg.heading * 1e-3
+            self.hdg_time_history[:-1] = self.hdg_time_history[1:]
+            self.hdg_time_history[-1] = self.heading
         else:
             self.heading = "---"
 
@@ -219,7 +242,7 @@ class BaselineView(HasTraits):
         soln.h_accuracy = soln.h_accuracy * 1e-3
         soln.v_accuracy = soln.v_accuracy * 1e-3
 
-        dist = np.sqrt(soln.n**2 + soln.e**2 + soln.d**2)
+        dist = np.sqrt(soln.n ** 2 + soln.e ** 2 + soln.d ** 2)
 
         tow = soln.tow * 1e-3
         if self.nsec is not None:
@@ -373,6 +396,9 @@ class BaselineView(HasTraits):
             plot_square_axes(self.plot, ('e_fixed', 'e_float', 'e_dgnss'),
                              ('n_fixed', 'n_float', 'n_dgnss'))
 
+        # self.plot_data_hdg.set_data('t', self.t)
+        self.plot_data_hdg.set_data('hdg_time_history', self.hdg_time_history)
+
     def __init__(self, link, plot_history_max=1000, dirname=''):
         super(BaselineView, self).__init__()
         self.log_file = None
@@ -404,15 +430,26 @@ class BaselineView(HasTraits):
             cur_float_d=[],
             cur_dgnss_e=[],
             cur_dgnss_n=[],
-            cur_dgnss_d=[])
+            cur_dgnss_d=[]
+        )
+        self.plot_data_hdg = ArrayPlotData(
+            t=np.arange(plot_history_max / 5),
+            unit_circ_hdg_x=[0.0],
+            unit_circ_hdg_y=[0.0],
+            hdg_time_history=[0.0]
+        )
 
         self.plot_history_max = plot_history_max
         self.n = np.zeros(plot_history_max)
+        # self.t = np.arange(plot_history_max)
         self.e = np.zeros(plot_history_max)
         self.d = np.zeros(plot_history_max)
+        self.hdg_time_history = np.zeros(plot_history_max / 5)
         self.mode = np.zeros(plot_history_max)
 
         self.plot = Plot(self.plot_data)
+        self.plot_hdg = Plot(self.plot_data_hdg)
+        self.strip_hdg = Plot(self.plot_data_hdg)
         pts_float = self.plot.plot(
             ('e_float', 'n_float'),
             type='scatter',
@@ -481,6 +518,16 @@ class BaselineView(HasTraits):
         self.plot.value_axis.title_spacing = 5
         self.plot.padding = (25, 25, 25, 25)
 
+        self.plot_hdg.padding = (25, 25, 25, 25)
+        self.strip_hdg.padding = (25, 25, 25, 25)
+
+        self.ylim = self.strip_hdg.value_mapper.range
+        self.ylim.low = 0
+        self.ylim.high = 400
+        self.plot_hdg.value_axis.orientation = 'right'
+        self.plot_hdg.value_axis.axis_line_visible = False
+        strip_hdg = self.strip_hdg.plot(('t', 'hdg_time_history'), type='line')
+        # self.plot.value_range.bounds_func = lambda l, h, m, tb: (0, h * (1 + m))
         self.plot.tools.append(PanTool(self.plot))
         zt = ZoomTool(
             self.plot, zoom_factor=1.1, tool_mode="box", always_on=False)
