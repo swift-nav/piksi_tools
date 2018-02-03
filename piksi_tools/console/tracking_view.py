@@ -24,8 +24,13 @@ from traitsui.api import HGroup, Item, Spring, VGroup, View
 
 from piksi_tools.acq_results import SNR_THRESHOLD
 from piksi_tools.console.gui_utils import CodeFiltered
-from piksi_tools.console.utils import (SUPPORTED_CODES, code_is_glo,
-                                       code_is_gps, code_to_str)
+from piksi_tools.console.utils import (SUPPORTED_CODES,
+                                       code_is_glo,
+                                       code_is_gps,
+                                       code_is_sbas,
+                                       code_is_bds2,
+                                       code_is_qzss,
+                                       code_to_str)
 
 NUM_POINTS = 200
 TRK_RATE = 2.0
@@ -66,38 +71,11 @@ color_dict = {
     '(0, 30)': 0x1d39f2,
     '(0, 31)': 0x828ed9,
     '(0, 32)': 0x000073,
-    '(1, 1)': 0x000066,
-    '(1, 2)': 0x8c7aff,
-    '(1, 3)': 0x1b0033,
-    '(1, 4)': 0xd900ca,
-    '(1, 5)': 0x730e6c,
-    '(1, 6)': 0x402e3f,
-    '(1, 7)': 0xcc7abc,
-    '(1, 8)': 0xcc1978,
-    '(1, 9)': 0x7f0033,
-    '(1, 10)': 0xff1f5a,
-    '(1, 11)': 0x330c11,
-    '(1, 12)': 0xcc627e,
-    '(1, 13)': 0x73000f,
-    '(1, 14)': 0x663d43,
-    '(1, 15)': 0xd9b6bb,
-    '(1, 16)': 0xff0000,
-    '(1, 17)': 0xf20000,
-    '(1, 18)': 0xe56653,
-    '(1, 19)': 0x4c1b09,
-    '(1, 20)': 0xffbfa8,
-    '(1, 21)': 0xf2843a,
-    '(1, 22)': 0x8c5b3b,
-    '(1, 23)': 0x402d17,
-    '(1, 24)': 0xffdeb8,
-    '(1, 25)': 0xd99e27,
-    '(1, 26)': 0x736c0e,
-    '(1, 27)': 0xfff23d,
-    '(1, 28)': 0x999777,
-    '(1, 29)': 0xf1ffb8,
-    '(1, 30)': 0x1f2610,
-    '(1, 31)': 0x366600,
-    '(1, 32)': 0x71bf17
+    '(0, 33)': 0x000066,
+    '(0, 34)': 0x8c7aff,
+    '(0, 35)': 0x1b0033,
+    '(0, 36)': 0xd900ca,
+    '(0, 37)': 0x730e6c,
 }
 
 
@@ -106,10 +84,14 @@ def get_color(key):
 
     # reuse palatte for glo signals
     if code_is_glo(code):
-        code -= 3
         sat += GLO_FCN_OFFSET
-
-    key = str((code, sat % 32))
+    elif code_is_sbas(code):
+        sat -= 120
+    elif code_is_qzss(code):
+        sat -= 193
+    if sat > 37:
+        sat = sat % 37
+    key = str((0, sat))
     color = color_dict.get(key, 0xff0000)
     return color
 
@@ -118,12 +100,18 @@ def get_label(key, extra):
     code, sat, ch = key
     lbl = 'Ch {ch:02d}: {code} '.format(ch=ch, code=code_to_str(code))
 
-    if code_is_gps(code):
-        lbl += 'PRN {sat:02d}'.format(sat=sat)
-    elif code_is_glo(code):
-        lbl += 'FCN {sat:0=+3d}'.format(sat=sat)
+    if code_is_glo(code):
+        lbl += 'F{sat:0=+3d}'.format(sat=sat)
         if sat in extra:
-            lbl += ' Slot: {slot:02d}'.format(slot=extra[sat])
+            lbl += ' R{slot:02d}'.format(slot=extra[sat])
+    elif code_is_sbas(code):
+        lbl += 'S{sat:3d}'.format(sat=sat)
+    elif code_is_bds2(code):
+        lbl += 'C{sat:02d}'.format(sat=sat)
+    elif code_is_qzss(code):
+        lbl += 'J{sat:3d}'.format(sat=sat)
+    else:
+        lbl += 'G{sat:02d}'.format(sat=sat)
 
     return lbl
 
@@ -166,16 +154,18 @@ class TrackingView(CodeFiltered):
         # If there is no CN0 or not tracking for an epoch, 0 will be used
         # each array can be plotted against host_time, t
         for i, s in enumerate(sbp_msg.states):
-            if code_is_gps(s.sid.code):
-                sat = s.sid.sat
-            elif code_is_glo(s.sid.code):
+            if code_is_glo(s.sid.code):
                 sat = s.fcn - GLO_FCN_OFFSET
                 self.glo_slot_dict[sat] = s.sid.sat
-
+            else:
+                sat = s.sid.sat
             key = (s.sid.code, sat, i)
             if s.cn0 != 0:
                 self.CN0_dict[key][-1] = s.cn0 / 4.0
-
+            received_code_list = getattr(self, "received_codes", [])
+            if s.sid.code not in received_code_list:
+                received_code_list.append(s.sid.code)
+                self.received_codes = received_code_list
         GUI.invoke_later(self.update_plot)
 
     def tracking_state_callback_dep_b(self, sbp_msg, **metadata):
@@ -190,11 +180,11 @@ class TrackingView(CodeFiltered):
             else:
                 self.CN0_dict[key][0:-1] = cno_array[1:]
                 self.CN0_dict[key][-1] = 0
-            # If the whole array is 0 we remove it
-            # for each satellite, we have a (code, prn, channel) keyed dict
-            # for each SID, an array of size MAX PLOT with the history of CN0's stored
-            # If there is no CN0 or not tracking for an epoch, 0 will be used
-            # each array can be plotted against host_time, t
+                # If the whole array is 0 we remove it
+                # for each satellite, we have a (code, prn, channel) keyed dict
+                # for each SID, an array of size MAX PLOT with the history of CN0's stored
+                # If there is no CN0 or not tracking for an epoch, 0 will be used
+                # each array can be plotted against host_time, t
         for i, s in enumerate(sbp_msg.states):
             prn = s.sid.sat
             if code_is_gps(s.sid.code):
@@ -204,6 +194,10 @@ class TrackingView(CodeFiltered):
                 if len(self.CN0_dict.get(key, [])) == 0:
                     self.CN0_dict[key] = np.zeros(NUM_POINTS)
                 self.CN0_dict[key][-1] = s.cn0
+            received_code_list = getattr(self, "received_codes", [])
+            if s.sid.code not in received_code_list:
+                received_code_list.append(s.sid.code)
+                self.received_codes = received_code_list
         GUI.invoke_later(self.update_plot)
 
     def update_plot(self):
@@ -223,8 +217,9 @@ class TrackingView(CodeFiltered):
             if int(k[0]) not in SUPPORTED_CODES:
                 continue
             key = str(k)
-            # set plot data and create plot for any selected for display
-            if (getattr(self, 'show_{}'.format(int(k[0])))):
+
+            # set plot data and create plot for any selected for display, default to showing anything unknown
+            if (getattr(self, 'show_{}'.format(int(k[0])), True)):
                 self.plot_data.set_data(key, cno_array)
                 if key not in self.plot.plots.keys():
                     pl = self.plot.plot(

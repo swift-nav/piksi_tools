@@ -9,7 +9,7 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 import numpy as np
-from traits.api import Bool, HasTraits
+from traits.api import Bool, HasTraits, List
 from traitsui.api import HGroup, Item, Spring, TextEditor
 
 from piksi_tools.console.utils import SUPPORTED_CODES, code_to_str
@@ -48,7 +48,7 @@ def plot_square_axes(plot, xnames, ynames):
 
         try:
             aspect = float(plot.width) / plot.height
-        except: # noqa
+        except:  # noqa
             aspect = 1
         if aspect * rangey > rangex:
             padding = (aspect * rangey - rangex) / 2
@@ -62,7 +62,7 @@ def plot_square_axes(plot, xnames, ynames):
             plot.index_range.high_setting = maxx
             plot.value_range.low_setting = miny - padding
             plot.value_range.high_setting = maxy + padding
-    except: # noqa
+    except:  # noqa
         import traceback
         traceback.print_exc()
 
@@ -73,17 +73,14 @@ class CodeFiltered(HasTraits):
     used to select which of the supported SV codes are selected. You can
     add this feature to your class through class inheritance.
     '''
-
+    received_codes = List()
     # Add boolean variables for each supported code.
     for code in SUPPORTED_CODES:
-        vars()['show_{}'.format(code)] = Bool()
+        vars()['show_{}'.format(code)] = Bool(True)
 
     def __init__(self):
         super(CodeFiltered, self).__init__()
-
-        # True as default value for each code.
-        for code in SUPPORTED_CODES:
-            setattr(self, 'show_{}'.format(code), True)
+        self.received_codes = []
 
     @staticmethod
     def get_filter_group():
@@ -97,6 +94,7 @@ class CodeFiltered(HasTraits):
             hgroup.content.append(
                 Item(
                     'show_{}'.format(code),
-                    label="{}:".format(code_to_str(code))))
+                    label="{}:".format(code_to_str(code)),
+                    visible_when="{} in received_codes".format(code)))
 
         return hgroup
