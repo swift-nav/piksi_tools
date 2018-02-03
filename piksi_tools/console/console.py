@@ -904,12 +904,14 @@ def main():
             host, ip_port = port.split(':')
             selected_driver = TCPDriver(host, int(ip_port))
             connection_description = port
+            cnx_info['mode'] = 'TCP/IP'
         except:  # noqa
             raise Exception('Invalid host and/or port')
             sys.exit(1)
     elif port and args.file:
         # Use file and interpret port arg as the file
         print("Using file '%s'" % port)
+        cnx_info['mode'] = 'file'
         selected_driver = s.get_driver(args.ftdi, port, baud, args.file)
         connection_description = os.path.split(port)[-1]
     elif not port:
@@ -949,6 +951,7 @@ def main():
         selected_driver = s.get_driver(
             args.ftdi, port, baud, args.file, rtscts=args.rtscts)
         connection_description = os.path.split(port)[-1] + " @" + str(baud)
+        cnx_info['mode'] = 'serial'
 
     with selected_driver as driver:
         with sbpc.Handler(
