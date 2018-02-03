@@ -20,7 +20,6 @@ from urllib2 import URLError
 
 from pkg_resources import parse_version as pkparse_version
 from pyface.api import GUI, OK, FileDialog, DirectoryDialog, ProgressDialog
-from sbp.bootload import MsgBootloaderJumpToApp
 from sbp.logging import SBP_MSG_LOG
 from sbp.piksi import MsgReset
 from traits.api import Bool, Button, HasTraits, Instance, String
@@ -611,89 +610,6 @@ class UpdateView(HasTraits):
                 % INDEX_URL)
             return
 
-    def manage_stm_firmware_update(self):
-        # Erase all of STM's flash (other than bootloader) if box is checked.
-        if self.erase_stm:
-            text = "Erasing STM"
-            self._write(text)
-            self.create_flash("STM")
-            sectors_to_erase = set(range(self.pk_flash.n_sectors)).difference(
-                set(self.pk_flash.restricted_sectors))
-            progress_dialog = PulsableProgressDialog(
-                len(sectors_to_erase), False)
-            progress_dialog.title = text
-            GUI.invoke_later(progress_dialog.open)
-            erase_count = 0
-            for s in sorted(sectors_to_erase):
-                progress_dialog.progress(erase_count)
-                self._write('Erasing %s sector %d' % (self.pk_flash.flash_type,
-                                                      s))
-                self.pk_flash.erase_sector(s)
-                erase_count += 1
-            self.stop_flash()
-            self._write("")
-            try:
-                progress_dialog.close()
-            except AttributeError:
-                pass
-        # Flash STM.
-        text = "Updating STM"
-        self._write(text)
-        self.create_flash("STM")
-        stm_n_ops = self.pk_flash.ihx_n_ops(
-            self.stm_fw.ihx, erase=not self.erase_stm)
-        progress_dialog = PulsableProgressDialog(stm_n_ops, True)
-        progress_dialog.title = text
-        GUI.invoke_later(progress_dialog.open)
-        # Don't erase sectors if we've already done so above.
-        self.pk_flash.write_ihx(
-            self.stm_fw.ihx,
-            self.stream,
-            mod_print=0x40,
-            elapsed_ops_cb=progress_dialog.progress,
-            erase=not self.erase_stm)
-        self.stop_flash()
-        self._write("")
-        try:
-            progress_dialog.close()
-        except AttributeError:
-            pass
-
-    def manage_nap_firmware_update(self, check_version=False):
-        # Flash NAP if out of date.
-        try:
-            local_nap_version = parse_version(
-                self.settings['system_info']['nap_version'].value)
-            remote_nap_version = parse_version(self.newest_nap_vers)
-            nap_out_of_date = local_nap_version != remote_nap_version
-        except KeyError:
-            nap_out_of_date = True
-        if nap_out_of_date or not check_version:
-            text = "Updating NAP"
-            self._write(text)
-            self.create_flash("M25")
-            nap_n_ops = self.pk_flash.ihx_n_ops(self.nap_fw.ihx)
-            progress_dialog = PulsableProgressDialog(nap_n_ops, True)
-            progress_dialog.title = text
-            GUI.invoke_later(progress_dialog.open)
-            self.pk_flash.write_ihx(
-                self.nap_fw.ihx,
-                self.stream,
-                mod_print=0x40,
-                elapsed_ops_cb=progress_dialog.progress)
-            self.stop_flash()
-            self._write("")
-            try:
-                progress_dialog.close()
-            except AttributeError:
-                pass
-            return True
-        else:
-            text = "NAP is already to latest version, not updating!"
-            self._write(text)
-            self._write("")
-            return False
-
     def manage_multi_firmware_update(self):
         # Set up progress dialog and transfer file to Piksi using SBP FileIO
         progress_dialog = PulsableProgressDialog(len(self.stm_fw.blob))
@@ -747,79 +663,10 @@ class UpdateView(HasTraits):
         if so directed. Flash NAP only if new firmware is available.
         """
         self.updating = True
-        update_nap = False
         self._write('')
         if not self.is_v2:
             self.manage_multi_firmware_update()
-            self.updating = False
-            return
-        elif device == "STM":
-            self.manage_stm_firmware_update()
-        elif device == "M25":
-            update_nap = self.manage_nap_firmware_update()
         else:
-            self.manage_stm_firmware_update()
-            update_nap = self.manage_nap_firmware_update(check_version=True)
-
-        # Must tell Piksi to jump to application after updating firmware.
-        if device == "STM" or update_nap:
-            self.link(MsgBootloaderJumpToApp(jump=0))
-            self._write("Firmware update finished.")
+            self._write('Unable to upgrade piksi v2; please use the last supported v2 console version.')
             self._write("")
-
         self.updating = False
-
-    def create_flash(self, flash_type):
-        """
-        Create flash.Flash instance and set Piksi into bootloader mode, prompting
-        user to reset if necessary.
-
-        Parameter
-        ---------
-        flash_type : string
-          Either "STM" or "M25".
-        """
-        # Reset device if the application is running to put into bootloader mode.
-        self.link(MsgReset(flags=0))
-
-        self.pk_boot = bootload.Bootloader(self.link)
-
-        self._write("Waiting for bootloader handshake message from Piksi ...")
-        reset_prompt = None
-        handshake_received = self.pk_boot.handshake(1)
-
-        # Prompt user to reset Piksi if we don't receive the handshake message
-        # within a reasonable amount of tiime (firmware might be corrupted).
-        while not handshake_received:
-            reset_prompt = \
-                prompt.CallbackPrompt(
-                    title="Please Reset Piksi",
-                    actions=[prompt.close_button],
-                )
-
-            reset_prompt.text = \
-                "You must press the reset button on your Piksi in order\n" + \
-                "to update your firmware.\n\n" + \
-                "Please press it now.\n\n"
-
-            reset_prompt.run(block=False)
-
-            while not reset_prompt.closed and not handshake_received:
-                handshake_received = self.pk_boot.handshake(1)
-
-            reset_prompt.kill()
-            reset_prompt.wait()
-
-        self._write("received bootloader handshake message.")
-        self._write("Piksi Onboard Bootloader Version: " +
-                    self.pk_boot.version)
-
-        self.pk_flash = flash.Flash(self.link, flash_type,
-                                    self.pk_boot.sbp_version)
-
-    def stop_flash(self):
-        """
-        Stop Flash and Bootloader instances (removes callback from SerialLink).
-        """
-        self.pk_flash.stop()
-        self.pk_boot.stop()
