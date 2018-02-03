@@ -263,10 +263,10 @@ class SettingsView(HasTraits):
     show_auto_survey = Bool(False)
     settings_yaml = list()
     auto_survey = SVGButton(
-        label='Auto Survey',
+        label='Auto\nSurvey',
         tooltip='Auto populate surveyed lat, lon and alt fields',
         filename='',
-        width=16,
+        width=20,
         height=20)
     settings_read_button = SVGButton(
         tooltip='Reload settings from Piksi',
@@ -274,28 +274,28 @@ class SettingsView(HasTraits):
         allow_clipping=False,
         width_padding=4, height_padding=4)
     settings_save_button = SVGButton(
-        label='Save to Device',
+        label='Save to\nDevice',
         tooltip='Save settings to persistent storage on device.',
         filename=resource_filename('console/images/fontawesome/floppy-o.svg'),
-        width=16,
+        width=20,
         height=20)
     settings_export_to_file_button = SVGButton(
-        label='Export to File',
+        label='Export to\nFile',
         tooltip='Export settings from device to a file on this PC.',
         filename=resource_filename('console/images/fontawesome/download.svg'),
-        width=16,
+        width=20,
         height=20)
     settings_import_from_file_button = SVGButton(
-        label='Import from File',
+        label='Import\nfrom File',
         tooltip='Import settings to device from a file on this PC.',
         filename=resource_filename('console/images/fontawesome/upload.svg'),
-        width=16,
+        width=20,
         height=20)
     factory_default_button = SVGButton(
-        label='Reset to Defaults',
+        label='Reset to\nDefaults',
         tooltip='Reset to Factory Defaults',
         filename=resource_filename('console/images/fontawesome/exclamation-triangle.svg'),
-        width=16,
+        width=20,
         height=20)
     settings_list = List(SettingBase)
     expert = Bool()
@@ -323,12 +323,11 @@ class SettingsView(HasTraits):
                         visible_when='show_auto_survey'),
                 ),
                 HGroup(
-                    Item('settings_read_button', label="Refresh settings from device",
+                    Item('settings_read_button', show_label=False,
                          padding=0, height=-20, width=-20),
-                    Item(
-                        'expert',
-                        label="Show Advanced Settings",
-                        show_label=True),
+                    Item('', label="Refresh settings\nfrom device", padding=0),
+                    Item('expert', show_label=False),
+                    Item('', label="Show Advanced\nSettings", padding=0),
                 ),
                 Item('selected_setting', style='custom', show_label=False),
             ),
