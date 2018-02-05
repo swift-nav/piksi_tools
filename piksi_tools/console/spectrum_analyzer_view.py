@@ -9,20 +9,20 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 import struct
-from collections import defaultdict
 
 import numpy as np
 from chaco.api import ArrayPlotData, Plot
 from enable.api import ComponentEditor
 from pyface.api import GUI
+from sbp.client.util.fftmonitor import FFTMonitor
 from sbp.piksi import SBP_MSG_SPECAN, SBP_MSG_SPECAN_DEP
-from sbp.client.util.fftmonitor import GPSTimeSecCmp, FFTMonitor
 from traits.api import Dict, HasTraits, Instance, Str
 from traitsui.api import EnumEditor, Item, View, HGroup, Spring
 
 # How many points are in each FFT?
 NUM_POINTS = 512
-CHANNELS = [1,2,3,4]
+CHANNELS = [1, 2, 3, 4]
+
 
 class SpectrumAnalyzerView(HasTraits):
     python_console_cmds = Dict()
@@ -50,7 +50,6 @@ class SpectrumAnalyzerView(HasTraits):
             Spring(width=20, springy=True),
             Item('hint', show_label=False, style='readonly', style_sheet='*{font-style:italic}'),
             Spring(width=20, springy=True)))
-
 
     def parse_payload(self, raw_payload):
         """
@@ -101,7 +100,6 @@ class SpectrumAnalyzerView(HasTraits):
         payload_json['diff_amplitudes'] = fft_msg_payload
         return payload_json
 
-
     def _which_plot_changed(self):
         channel = int(self.which_plot[-1:])
         self.fftmonitor.enable_channel(channel)
@@ -124,7 +122,6 @@ class SpectrumAnalyzerView(HasTraits):
             self.most_recent_complete_data['amplitudes'] = most_recent_fft['amplitudes']
             GUI.invoke_later(self.update_plot)
 
-
     def update_plot(self):
         most_recent_fft = self.most_recent_complete_data
         if len(most_recent_fft['frequencies']) != 0:
@@ -135,7 +132,6 @@ class SpectrumAnalyzerView(HasTraits):
                 most_recent_fft['amplitudes'])
             self.plot.value_mapper.range.high = max(
                 most_recent_fft['amplitudes'])
-
 
     def __init__(self, link):
         super(SpectrumAnalyzerView, self).__init__()
