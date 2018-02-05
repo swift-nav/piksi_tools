@@ -9,52 +9,19 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 import struct
-from collections import defaultdict
 
 import numpy as np
 from chaco.api import ArrayPlotData, Plot
 from enable.api import ComponentEditor
 from pyface.api import GUI
+from sbp.client.util.fftmonitor import FFTMonitor
 from sbp.piksi import SBP_MSG_SPECAN, SBP_MSG_SPECAN_DEP
 from traits.api import Dict, HasTraits, Instance, Str
 from traitsui.api import EnumEditor, Item, View, HGroup, Spring
 
 # How many points are in each FFT?
 NUM_POINTS = 512
-
-
-class GpsTime():
-    def __init__(self, week, TOW):
-        self.TOW = TOW
-        self.week = week
-
-    # these are probably not the most robust implementations
-
-    def __cmp__(self, other):
-        if other is None:
-            return 1
-        if self.week < other.week:
-            return -1
-        elif self.week > other.week:
-            return 1
-        else:
-            if self.TOW < other.TOW:
-                return -1
-            elif self.TOW > other.TOW:
-                return 1
-            else:
-                return 0
-
-    def __eq__(self, other):
-        if not isinstance(other, GpsTime):
-            return False
-        return (self.week == other.week) and (self.TOW == other.TOW)
-
-    def __repr__(self):
-        return '(week: {0}, TOW: {1})'.format(self.week, self.TOW)
-
-    def __hash__(self):
-        return (self.week, self.TOW).__hash__()
+CHANNELS = [1, 2, 3, 4]
 
 
 class SpectrumAnalyzerView(HasTraits):
@@ -133,21 +100,10 @@ class SpectrumAnalyzerView(HasTraits):
         payload_json['diff_amplitudes'] = fft_msg_payload
         return payload_json
 
-    def get_frequencies(self, start_freq, freq_step, n):
-        '''
-        start_freq: float (Hz)
-        freq_step: float (Hz)
-        n: int
-        '''
-        return np.array([start_freq + freq_step * i for i in range(n)])
-
-    def get_amplitudes(self, min_amplitude, diffs, unit):
-        '''
-        min_amplitude: float (dB)
-        diffs: tuple of floats (dB)
-        unit: float (dB)
-        '''
-        return np.array([min_amplitude + diff * unit for diff in diffs])
+    def _which_plot_changed(self):
+        channel = int(self.which_plot[-1:])
+        self.fftmonitor.enable_channel(channel)
+        self.fftmonitor.disable_channel([ch for ch in CHANNELS if ch != channel])
 
     def spectrum_analyzer_state_callback(self, sbp_msg, **metadata):
         '''
@@ -157,48 +113,14 @@ class SpectrumAnalyzerView(HasTraits):
 
         Updates the view's data for use in self.update_plot
         '''
-        # Need to figure out which user_msg_tag means it's an FFT message
-        # for now assume that all SBP_MSG_USER_DATA is relevant
-
-        fft = sbp_msg
-        frequencies = self.get_frequencies(fft.freq_ref, fft.freq_step,
-                                           len(fft.amplitude_value))
-        amplitudes = self.get_amplitudes(
-            fft.amplitude_ref, fft.amplitude_value, fft.amplitude_unit)
-
-        tag = fft.channel_tag
-        if (tag == 1 and self.which_plot != "Channel 1"):
-            return
-        if (tag == 2 and self.which_plot != "Channel 2"):
-            return
-        if (tag == 3 and self.which_plot != "Channel 3"):
-            return
-        if (tag == 4 and self.which_plot != "Channel 4"):
-            return
-        timestamp = GpsTime(fft.t.wn, fft.t.tow)
-        if len(self.incomplete_data[timestamp]['frequencies']) + len(
-                frequencies) == NUM_POINTS:
-            self.most_recent_complete_data['frequencies'] = np.append(
-                self.incomplete_data[timestamp]['frequencies'],
-                frequencies,
-                axis=0)
-            self.most_recent_complete_data['amplitudes'] = np.append(
-                self.incomplete_data[timestamp]['amplitudes'],
-                amplitudes,
-                axis=0)
-            self.incomplete_data.pop(timestamp)
-            if timestamp is None or timestamp > self.most_recent:
-                self.most_recent = timestamp
+        self.fftmonitor.capture_fft(sbp_msg, **metadata)
+        channel = int(self.which_plot[-1:])
+        if self.fftmonitor.num_ffts(channel) > 0:
+            most_recent_fft = self.fftmonitor.get_ffts(channel).pop()
+            self.fftmonitor.clear_ffts()
+            self.most_recent_complete_data['frequencies'] = most_recent_fft['frequencies']
+            self.most_recent_complete_data['amplitudes'] = most_recent_fft['amplitudes']
             GUI.invoke_later(self.update_plot)
-        else:
-            self.incomplete_data[timestamp]['frequencies'] = np.append(
-                self.incomplete_data[timestamp]['frequencies'],
-                frequencies,
-                axis=0)
-            self.incomplete_data[timestamp]['amplitudes'] = np.append(
-                self.incomplete_data[timestamp]['amplitudes'],
-                amplitudes,
-                axis=0)
 
     def update_plot(self):
         most_recent_fft = self.most_recent_complete_data
@@ -218,14 +140,13 @@ class SpectrumAnalyzerView(HasTraits):
                                [SBP_MSG_SPECAN, SBP_MSG_SPECAN_DEP])
         self.python_console_cmds = {'spectrum': self}
 
-        # keys are GpsTime
-        self.incomplete_data = defaultdict(
-            lambda: {'frequencies': np.array([]), 'amplitudes': np.array([])})
+        self.fftmonitor = FFTMonitor()
+        self.fftmonitor.enable_channel(int(self.which_plot[-1:]))
+
         self.most_recent_complete_data = {
             'frequencies': np.array([]),
             'amplitudes': np.array([])
         }
-        self.most_recent = None
 
         self.plot_data = ArrayPlotData()
         self.plot = Plot(self.plot_data, emphasized=True)
