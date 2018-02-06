@@ -51,6 +51,15 @@ class MagView(HasTraits):
     )
 
     def mag_set_data(self):
+        min_data = np.min(self.mag)
+        max_data = np.max(self.mag)
+        padding = (max_data - min_data) / 4.0
+        if ((min_data - padding) < self.plot.value_range.low_setting or
+                self.plot.value_range.low_setting == 'auto'):
+            self.plot.value_range.low_setting = min_data - padding
+        if ((max_data + padding) > self.plot.value_range.high_setting or
+                self.plot.value_range.high_setting == 'auto'):
+            self.plot.value_range.high_setting = max_data + padding
         self.plot_data.set_data('mag_x', self.mag[:, 0])
         self.plot_data.set_data('mag_y', self.mag[:, 1])
         self.plot_data.set_data('mag_z', self.mag[:, 2])
@@ -76,13 +85,8 @@ class MagView(HasTraits):
             self.plot_data, auto_colors=colours_list, emphasized=True)
         self.plot.title = 'Raw Magnetometer Data'
         self.plot.title_color = [0, 0, 0.43]
-        self.ylim = self.plot.value_mapper.range
-        self.ylim.low = -2000
-        self.ylim.high = 2000
-        # self.plot.value_range.bounds_func = lambda l, h, m, tb: (0, h * (1 + m))
         self.plot.value_axis.orientation = 'right'
         self.plot.value_axis.axis_line_visible = False
-        self.plot.value_axis.title = 'LSB count'
         call_repeatedly(0.2, self.mag_set_data)
 
         self.legend_visible = True

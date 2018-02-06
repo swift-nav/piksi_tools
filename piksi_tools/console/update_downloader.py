@@ -15,7 +15,7 @@ from urlparse import urlparse
 
 from piksi_tools.utils import sopen
 from piksi_tools.console.utils import swift_path
-INDEX_URL = 'http://downloads.swiftnav.com/index.json'
+INDEX_URL = 'https://s3-us-west-1.amazonaws.com/downloads.swiftnav.com/index_https.json'
 
 
 class UpdateDownloader:
