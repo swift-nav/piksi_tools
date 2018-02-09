@@ -39,6 +39,9 @@ def build_linux():
     maybe_remove(out)
     shutil.move(out_pyi, out)
 
+    # prevents missing export error on ubuntu 16.04 with intel graphics
+    os.remove(os.path.join(out, 'libdrm.so.2'))
+
     print('Creating tar archive')
     with tarfile.open(out + '.tar.gz', 'w:gz') as tar:
         tar.add(out, arcname=os.path.basename(out))
