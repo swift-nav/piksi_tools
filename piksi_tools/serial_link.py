@@ -25,6 +25,7 @@ from sbp.client.drivers.cdc_driver import CdcDriver
 from sbp.client.drivers.network_drivers import HTTPDriver, TCPDriver
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
+from sbp.client.drivers.file_driver import FileDriver
 from sbp.client.loggers.json_logger import JSONLogger
 from sbp.client.loggers.null_logger import NullLogger
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP, MsgLog
@@ -166,7 +167,7 @@ def get_driver(use_ftdi=False,
         if use_ftdi:
             return PyFTDIDriver(baud)
         if file:
-            return open(port, 'rb')
+            return FileDriver(open(port, 'rb'))
     # HACK - if we are on OSX and the device appears to be a CDC device, open as a binary file
         for each in serial.tools.list_ports.comports():
             if port == each[0] and sys.platform == "darwin":
