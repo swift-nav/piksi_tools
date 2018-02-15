@@ -1422,7 +1422,7 @@
   enumerated possible values:
   Description: Interval at which the NMEA GGA sentence is uploaded to the NTRIP server
   Notes: The interval (in seconds) at which the NMEA GGA sentence is uploaded to
-     the specified NTRIP server.  The default of 0 disables the GGC sentence upload.
+     the specified NTRIP server.  The default of 0 disables the GGA sentence upload.
 
 - group: pps
   name: width
