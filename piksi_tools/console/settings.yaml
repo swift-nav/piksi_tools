@@ -1412,6 +1412,18 @@
   readonly: false
   Description: Additional debug messages for NTRIP (sent to /var/log/messages).
 
+- group: ntrip
+  name: interval
+  expert: true
+  type: integer
+  units: seconds
+  default value: '0'
+  readonly: false
+  enumerated possible values:
+  Description: Interval at which the NMEA GGA sentence is uploaded to the NTRIP server
+  Notes: The interval (in seconds) at which the NMEA GGA sentence is uploaded to
+     the specified NTRIP server.  The default of 0 disables the GGC sentence upload.
+
 - group: pps
   name: width
   expert: false
