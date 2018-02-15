@@ -1388,7 +1388,7 @@
   default value: 'False'
   readonly: false
   enumerated possible values: True,False
-  Description: Enable NTRIP client.
+  Description: Enable NTRIP client. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033 and 1230 RTCMv3.1 messages and will not transmit or receive any other messages.
   Notes: If True, NTRIP client will be used.
 
 - group: ntrip
@@ -1399,7 +1399,7 @@
   default value: N/A
   readonly: false
   enumerated possible values:
-  Description: NTRIP URL to use.
+  Description: NTRIP URL to use. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033 and 1230 RTCMv3.1 messages and will not transmit or receive any other messages.
   Notes: URL to use with NTRIP client. NTRIP must be enabled to use this setting.
     URLs should be HTTP URLs with optional credentials, a port, and a mountpoint
     path such as username:password@example.com:2101/BAZ_RTCM3 or example.com:2101/BAZ_RTCM3.
