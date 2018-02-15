@@ -53,7 +53,7 @@ RES=$DIRNAME/dmg-resources
 
 if [[ $# -le 0 ]]
 then
-    echo "This script is intended to be called with one positional cmd line parmaeter, the name of the output DMG file (command line: $*)"
+     echo "This script is intended to be called with one positional cmd line parmaeter, the name of the output DMG file (command line: $*)"
      exit 1
 fi
 
