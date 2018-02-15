@@ -1403,6 +1403,7 @@
   Notes: URL to use with NTRIP client. NTRIP must be enabled to use this setting.
     URLs should be HTTP URLs with optional credentials, a port, and a mountpoint
     path such as username:password@example.com:2101/BAZ_RTCM3 or example.com:2101/BAZ_RTCM3.
+    Only alphanumeric characters are supported in usernames and password.
 
 - group: ntrip
   name: debug
