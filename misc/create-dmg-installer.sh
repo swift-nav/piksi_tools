@@ -51,9 +51,9 @@ DIRNAME=$(dirname "$0")
 # Path to dmg resources (volume icon, background, ...)
 RES=$DIRNAME/dmg-resources
 
-if [ $# -le 1]
+if [[ $# -le 0 ]]
 then
-     echo "This script is intended to be called with one positional cmd line parmaeter, the name of the output DMG file"
+     echo "This script is intended to be called with one positional cmd line parmaeter, the name of the output DMG file (command line: $*)"
      exit 1
 fi
 
