@@ -508,7 +508,7 @@ class SwiftConsole(HasTraits):
             filename = time.strftime("swift-gnss-%Y%m%d-%H%M%S.sbp.json")
             filename = os.path.normpath(
                 os.path.join(self.directory_name, filename))
-        self.logger = s.get_logger(True, filename)
+        self.logger = s.get_logger(True, filename, self.expand_json)
         self.forwarder = sbpc.Forwarder(self.link, self.logger)
         self.forwarder.start()
         if self.settings_view:
@@ -574,7 +574,9 @@ class SwiftConsole(HasTraits):
                  override_filename=None,
                  log_console=False,
                  networking=None,
-                 connection_info=None):
+                 connection_info=None,
+                 expand_json=False
+                 ):
         self.error = error
         self.cnx_desc = cnx_desc
         self.connection_info = connection_info
@@ -583,6 +585,7 @@ class SwiftConsole(HasTraits):
         self.mode = ''
         self.forwarder = None
         self.latency = '--'
+        self.expand_json = expand_json
         # if we have passed a logfile, we set our directory to it
         override_filename = override_filename
 
@@ -972,7 +975,8 @@ def main():
                     override_filename=args.logfilename,
                     log_console=args.log_console,
                     networking=args.networking,
-                    connection_info=cnx_info) as console:
+                    connection_info=cnx_info,
+                    expand_json=args.expand_json) as console:
 
                 console.configure_traits()
 
