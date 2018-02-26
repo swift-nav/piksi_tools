@@ -25,7 +25,8 @@ from sbp.client.drivers.cdc_driver import CdcDriver
 from sbp.client.drivers.network_drivers import HTTPDriver, TCPDriver
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
-from sbp.client.loggers.json_logger import JSONLogger
+from sbp.client.drivers.file_driver import FileDriver
+from sbp.client.loggers.json_logger import JSONLogger, JSONBinLogger
 from sbp.client.loggers.null_logger import NullLogger
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP, MsgLog
 from sbp.piksi import MsgReset
@@ -120,6 +121,12 @@ def base_cl_options(override_arg_parse=None, add_help=True):
         help="Use a TCP connection instead of a local serial port. \
                       If TCP is selected, the port is interpreted as host:port"
     )
+    parser.add_argument(
+        '--expand-json',
+        action="store_true",
+        default=False,
+        help="Expand fields in JSON logs"
+    )
     return parser
 
 
@@ -166,7 +173,7 @@ def get_driver(use_ftdi=False,
         if use_ftdi:
             return PyFTDIDriver(baud)
         if file:
-            return open(port, 'rb')
+            return FileDriver(open(port, 'rb'))
     # HACK - if we are on OSX and the device appears to be a CDC device, open as a binary file
         for each in serial.tools.list_ports.comports():
             if port == each[0] and sys.platform == "darwin":
@@ -181,7 +188,7 @@ def get_driver(use_ftdi=False,
         sys.exit(1)
 
 
-def get_logger(use_log=False, filename=logfilename()):
+def get_logger(use_log=False, filename=logfilename(), expand_json=False):
     """
     Get a logger based on configuration options.
 
@@ -199,7 +206,11 @@ def get_logger(use_log=False, filename=logfilename()):
         mkdir_p(dirname)
     print("Starting JSON logging at %s" % filename)
     infile = open(filename, 'w')
-    return JSONLogger(infile)
+    if expand_json:
+        logger = JSONLogger
+    else:
+        logger = JSONBinLogger
+    return logger(infile)
 
 
 def get_append_logger(filename, tags):
@@ -370,7 +381,7 @@ def main(args):
         # Handler with context
     with Handler(Framer(driver.read, driver.write, args.verbose)) as link:
         # Logger with context
-        with get_logger(args.log, log_filename) as logger:
+        with get_logger(args.log, log_filename, args.expand_json) as logger:
             with get_append_logger(append_log_filename, tags) as append_logger:
                 link.add_callback(printer, SBP_MSG_PRINT_DEP)
                 link.add_callback(log_printer, SBP_MSG_LOG)
