@@ -37,3 +37,5 @@ build: off
 artifacts:
   - path: dist
     name: swift_console
+  - path: dist
+    name: cmd_line

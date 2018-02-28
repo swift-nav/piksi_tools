@@ -84,7 +84,12 @@ def main():
         build_macos()
     elif plat.startswith('win'):
         build_win()
-
+    try: 
+        check_call(['tox', '-e', 'pyinstaller_cmdline_tools'])
+    except CalledProcessError as cpe:
+      print("Output:\n" + cpe.output)
+      print("Return Code:\n" + str(cpe.returncode))
+      raise CalledProcessError
 
 if __name__ == '__main__':
     main()
