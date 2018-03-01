@@ -1392,6 +1392,28 @@
   Notes: If True, NTRIP client will be used.
 
 - group: ntrip
+  name: username
+  expert: false
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: false
+  enumerated possible values:
+  Description: NTRIP username to use. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033 and 1230 RTCMv3.1 messages and will not transmit or receive any other messages.
+  Notes: Username to use with NTRIP client. NTRIP must be enabled to use this setting.
+
+- group: ntrip
+  name: password
+  expert: false
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: false
+  enumerated possible values:
+  Description: NTRIP password to use. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033 and 1230 RTCMv3.1 messages and will not transmit or receive any other messages.
+  Notes: Password to use with NTRIP client. NTRIP must be enabled to use this setting.
+
+- group: ntrip
   name: url
   expert: false
   type: string
@@ -1401,9 +1423,7 @@
   enumerated possible values:
   Description: NTRIP URL to use. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033 and 1230 RTCMv3.1 messages and will not transmit or receive any other messages.
   Notes: URL to use with NTRIP client. NTRIP must be enabled to use this setting.
-    URLs should be HTTP URLs with optional credentials, a port, and a mountpoint
-    path such as username:password@example.com:2101/BAZ_RTCM3 or example.com:2101/BAZ_RTCM3.
-    Only alphanumeric characters are supported in usernames and passwords.
+    URLs should be HTTP URLs with a port, and a mountpoint path such as example.com:2101/BAZ_RTCM3.
 
 - group: ntrip
   name: debug
@@ -1414,7 +1434,7 @@
   Description: Additional debug messages for NTRIP (sent to /var/log/messages).
 
 - group: ntrip
-  name: interval
+  name: gga_out_interval
   expert: true
   type: integer
   units: seconds
