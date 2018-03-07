@@ -7,7 +7,6 @@ https://github.com/enthought/chaco/archive/d7e9b5aa4a12fd7343e49c0c6de63b9996b84
 traits==4.6.0 
 traitsui==5.1.0 
 pyface==5.1.0 
-wsgiref==0.1.2 
 #pyside==1.2.2 
 #sip (required but installed through apt / brew)
 #qt4 (required but installed through apt / brew)
