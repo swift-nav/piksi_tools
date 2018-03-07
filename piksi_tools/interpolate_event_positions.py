@@ -7,6 +7,8 @@ from __future__ import print_function
 import csv
 
 from sbp.client.loggers.json_logger import JSONLogIterator
+from sbp.client.framer import Framer
+from sbp.client.drivers.file_driver import FileDriver
 
 
 def lin_interp(oldpos, newpos, oldtow, newtow, triggertow):
@@ -293,88 +295,76 @@ def rid_access_data(message_type, msg_tow, msg_horizontal, msg_vertical,
     return numofmsg
 
 
-def collect_positions(infilename, msgtype, debouncetime):
+def collect_positions(iterator, msgtype, debouncetime):
     """
     Collects data from the log file and calls functions to analyze that data
 
     Parameters
     ----------
-    infile : string
-      Log file to get data from.
+    iterator : Iterator
+      SBP Message iterator yielding tuples in form (msg, metadata)
     msgtype : string
       type of parameters to analyze and output
     debouncetime : integer
       time in milliseconds to compensate for switch debounce
     """
-    with open(infilename, 'r') as infile:
-        with JSONLogIterator(infile) as log:
-            log = next(log)
+    # declaring all lists
+    message_type = []
+    msg_tow = []
+    msg_horizontal = []
+    msg_vertical = []
+    msg_depth = []
+    msg_sats = []
+    msg_flag = []
+    numofmsg = 0
+    for (msg, metadata) in iterator:
+        valid_msg = [
+            "MsgBaselineECEF", "MsgPosECEF", "MsgBaselineNED",
+            "MsgPosLLH", "MsgExtEvent"
+        ]
+        # collect all data in lists
+        if msg.__class__.__name__ in valid_msg:
+            message_type.append(msg.__class__.__name__)
+            msg_tow.append(msg.tow)
+            msg_flag.append(msg.flags)
+            if msg.__class__.__name__ == "MsgBaselineECEF" or msg.__class__.__name__ == "MsgPosECEF":
+                msg_horizontal.append(msg.x)
+                msg_vertical.append(msg.y)
+                msg_depth.append(msg.z)
+                msg_sats.append(msg.n_sats)
+            elif msg.__class__.__name__ == "MsgBaselineNED":
+                msg_horizontal.append(msg.n)
+                msg_vertical.append(msg.e)
+                msg_depth.append(msg.d)
+                msg_sats.append(msg.n_sats)
+            elif msg.__class__.__name__ == "MsgPosLLH":
+                msg_horizontal.append(msg.lat)
+                msg_vertical.append(msg.lon)
+                msg_depth.append(msg.height)
+                msg_sats.append(msg.n_sats)
+            elif msg.__class__.__name__ == "MsgExtEvent":
+                print(msg.tow)
+                msg_horizontal.append("0")
+                msg_vertical.append("0")
+                msg_depth.append("0")
+                msg_sats.append("0")
+            numofmsg += 1
+    print("reached end of file.")
+    fix_trigger_rollover(message_type, msg_tow, numofmsg)
+    print('done roll')
+    fix_trigger_debounce(message_type, msg_tow, numofmsg,
+                         debouncetime)
+    print(' done bebounce')
+    get_trigger_positions(message_type, msg_tow, msgtype,
+                          numofmsg, msg_horizontal,
+                          msg_vertical, msg_depth, msg_sats)
+    print('done interpolation')
+    print()
+    numofmsg = rid_access_data(
+        message_type, msg_tow, msg_horizontal, msg_vertical,
+        msg_depth, msg_flag, msg_sats, numofmsg)
 
-            # declaring all lists
-            message_type = []
-            msg_tow = []
-            msg_horizontal = []
-            msg_vertical = []
-            msg_depth = []
-            msg_sats = []
-            msg_flag = []
-            numofmsg = 0
-
-            while True:
-                try:
-                    msg, metadata = next(log)
-                    hostdelta = metadata['delta']
-                    hosttimestamp = metadata['timestamp']
-                    valid_msg = [
-                        "MsgBaselineECEF", "MsgPosECEF", "MsgBaselineNED",
-                        "MsgPosLLH", "MsgExtEvent"
-                    ]
-                    # collect all data in lists
-                    if msg.__class__.__name__ in valid_msg:
-                        message_type.append(msg.__class__.__name__)
-                        msg_tow.append(msg.tow)
-                        msg_flag.append(msg.flags)
-                        if msg.__class__.__name__ == "MsgBaselineECEF" or msg.__class__.__name__ == "MsgPosECEF":
-                            msg_horizontal.append(msg.x)
-                            msg_vertical.append(msg.y)
-                            msg_depth.append(msg.z)
-                            msg_sats.append(msg.n_sats)
-                        elif msg.__class__.__name__ == "MsgBaselineNED":
-                            msg_horizontal.append(msg.n)
-                            msg_vertical.append(msg.e)
-                            msg_depth.append(msg.d)
-                            msg_sats.append(msg.n_sats)
-                        elif msg.__class__.__name__ == "MsgPosLLH":
-                            msg_horizontal.append(msg.lat)
-                            msg_vertical.append(msg.lon)
-                            msg_depth.append(msg.height)
-                            msg_sats.append(msg.n_sats)
-                        elif msg.__class__.__name__ == "MsgExtEvent":
-                            print(msg.tow)
-                            msg_horizontal.append("0")
-                            msg_vertical.append("0")
-                            msg_depth.append("0")
-                            msg_sats.append("0")
-                        numofmsg += 1
-
-                except StopIteration:
-                    print("reached end of file after {0} milli-seconds".format(
-                        hostdelta))
-                    fix_trigger_rollover(message_type, msg_tow, numofmsg)
-                    print('done roll')
-                    fix_trigger_debounce(message_type, msg_tow, numofmsg,
-                                         debouncetime)
-                    print(' done bebounce')
-                    get_trigger_positions(message_type, msg_tow, msgtype,
-                                          numofmsg, msg_horizontal,
-                                          msg_vertical, msg_depth, msg_sats)
-                    print('done interpolation')
-                    print()
-                    numofmsg = rid_access_data(
-                        message_type, msg_tow, msg_horizontal, msg_vertical,
-                        msg_depth, msg_flag, msg_sats, numofmsg)
-
-                    return message_type, msg_tow, msg_horizontal, msg_vertical, msg_depth, msg_flag, msg_sats, numofmsg
+    return message_type, msg_tow, msg_horizontal, msg_vertical, msg_depth, msg_flag, msg_sats, numofmsg
 
 
 def get_args():
@@ -388,7 +378,12 @@ def get_args():
         '--filename',
         default=[None],
         nargs=1,
-        help="The SBP log file to extract data from.")
+        help="The SBP log file to extract data from. Default format is sbp json")
+    parser.add_argument(
+        '-b',
+        '--binary',
+        action="store_true",
+        help="Flag to indicate that the SBP file is a binary sbp file. Default format is sbp json")
     parser.add_argument(
         '-o',
         '--outfile',
@@ -416,8 +411,13 @@ if __name__ == '__main__':
     args = get_args()
     if args.type[0] == 'MsgBaselineNED' or args.type[0] == 'MsgPosECEF' or args.type[0] == 'MsgPosLLH' or args.type[0] == 'MsgBaselineECEF':
         if args.filename[0]:
-            a, b, c, d, e, f, g, h = collect_positions(
-                args.filename[0], args.type[0], args.debouncetime[0])
+            infile = open(args.filename[0], 'r')
+            if args.binary:
+                driver = FileDriver(infile)
+                iterator = Framer(driver.read, driver.write, True)
+            else:
+                iterator = JSONLogIterator(infile).next()
+            a, b, c, d, e, f, g, h = collect_positions(iterator, args.type[0], args.debouncetime[0])
             display_data(a, b, c, d, e, f, g, h, args.type[0], args.outfile[0])
         else:
             print("Please provide a filename argument")
