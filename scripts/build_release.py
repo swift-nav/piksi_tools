@@ -33,7 +33,7 @@ def build(env='pyinstaller'):
 
 def build_linux():
     import tarfile
-    out_pyi, version = build()
+    out_pyi, version = build('pyinstaller-linux')
     out = os.path.join(os.getcwd(), os.path.join('dist', 'swift_console_v{}_linux'.format(version)))
     maybe_remove(out)
     shutil.move(out_pyi, out)
@@ -57,7 +57,7 @@ def build_macos():
 
 
 def build_win():
-    out, version = build()
+    out, version = build('pyinstaller-win')
 
     # workaround for https://github.com/pyinstaller/pyinstaller/issues/1793
     srcs = ['msvcp90.dll', 'msvcr90.dll', 'msvcm90.dll', 'Microsoft.VC90.CRT.manifest']
