@@ -353,7 +353,6 @@
   Notes: If "fixed", the receiver will output a integer fixed ambiguity estimate.  If
     no fixed solution is available, it will revert to the float solution.  If "float",
     the device will only output the float ambiguity estimate.
-    This settings is not used by Piksi Multi and Duro.
 
 - group: solution
   name: known_baseline_n
@@ -702,7 +701,7 @@
   expert: false
   type: string
   units: N/A
-  default value: 'blank - all messages are enabled'
+  default value: '23,29,65,72,74,80,117,134,136,144,163,165,166, 167,171,181,185,187,188,257,258,259,520,522,524, 526,527,528,1025,2304,2305,2306,65280,65282,65535'
   readonly: false
   Description: Configure which messages should be sent to the server.
   Notes: The enabled sbp messages settings is a list of message types
@@ -718,7 +717,7 @@
   expert: false
   type: string
   units: N/A
-  default value: ''
+  default value: '23,29,65,72,74,80,117,134,136,144,163,165,166, 167,171,181,185,187,188,257,258,259,520,522,524, 526,527,528,1025,2304,2305,2306,65280,65282,65535'
   readonly: false
   Description: IP address for UDP client 0.
   Notes: The address setting is defined according to the convention "hostname:port".
@@ -788,7 +787,7 @@
   expert: false
   type: string
   units: N/A
-  default value: 'blank - all messages are enabled'
+  default value: ''
   readonly: false
   Description: Configure which messages should be sent on the port.
   Notes: Has no effect for a UDP server.
@@ -824,7 +823,7 @@
   expert: false
   type: string
   units: N/A
-  default value: 'blank - all messages are enabled'
+  default value: ''
   readonly: false
   Description: Configure which messages should be sent on the port.
   Notes: Has no effect for a UDP server.
@@ -968,7 +967,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '72,74,65535'
+  default value: '72,74,117,65535'
   readonly: false
   Description: Configure which messages should be sent on the port.
   Notes: The enabled sbp messages settings is a list of message types
@@ -1623,7 +1622,7 @@
   expert: false
   type: string
   units: N/A
-  default value: 'blank - all messages are enabled'
+  default value: '23,29,65,72,74,80,117,134,136,144,163,165,166, 167,171,181,185,187,188,257,258,259,520,522,524, 526,527,528,1025,2304,2305,2306,65280,65282,65535'
   readonly: false
   Description: Configure which messages should be sent on the port. Does not effect which incoming messages are listened to.
   Notes: The enabled sbp messages settings is a list of message types
@@ -1667,7 +1666,7 @@
   expert: false
   type: string
   units: N/A
-  default value: 'blank - all messages are enabled'
+  default value: '23,29,65,72,74,80,117,134,136,144,163,165,166, 167,171,181,185,187,188,257,258,259,520,522,524, 526,527,528,1025,2304,2305,2306,65280,65282,65535'
   readonly: false
   Description: Configure which messages should be sent on the port. Does not effect which incoming messages are listened to.
   Notes: The enabled sbp messages settings is a list of message types
@@ -1711,7 +1710,7 @@
   expert: false
   type: string
   units: N/A
-  default value: 'blank - all messages are enabled'
+  default value: '23,29,65,72,74,80,117,134,136,144,163,165,166, 167,171,181,185,187,188,257,258,259,520,522,524, 526,527,528,1025,2304,2305,2306,65280,65282,65535'
   readonly: false
   Description: Configure which messages should be sent on the port. Does not effect which incoming messages are listened to.
   Notes: The enabled sbp messages settings is a list of message types
@@ -1756,7 +1755,7 @@
   expert: false
   type: string
   units: N/A
-  default value: 'blank - all messages are enabled'
+  default value: '23,29,65,72,74,80,117,134,136,144,163,165,166, 167,171,181,185,187,188,257,258,259,520,522,524, 526,527,528,1025,2304,2305,2306,65280,65282,65535'
   readonly: false
   Description: Configure which messages should be sent on the port. Does not effect which incoming messages are listened to.
   Notes: The enabled sbp messages settings is a list of message types
