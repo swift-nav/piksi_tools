@@ -267,7 +267,7 @@
 
 - group: skylark
   name: enable
-  expert: true
+  expert: false
   type: boolean
   units: N/A
   default value: 'False'
@@ -1421,7 +1421,7 @@
 
 - group: ntrip
   name: gga_out_interval
-  expert: true
+  expert: false
   type: integer
   units: seconds
   default value: '0'
