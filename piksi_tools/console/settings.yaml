@@ -978,7 +978,7 @@
     3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For uart1,
     the default value is optimal for logging and communication with the console.
 
-- group: ext_events_a
+- group: ext_event_a
   name: edge_trigger
   expert: false
   type: enum
@@ -993,7 +993,7 @@
     reporting the event, including a timestamp accurate to better than
     a microsecond.
 
-- group: ext_events_a
+- group: ext_event_a
   name: sensitivity
   expert: false
   type: integer
@@ -1004,7 +1004,7 @@
   Description: Minimum time between events (0 = disabled).
   Notes: Any event that is triggered within the sensitivity window after the previous event will be ignored and no MSG_EXT_EVENT will be generated.
 
-- group: ext_events_b
+- group: ext_event_b
   name: edge_trigger
   expert: true
   type: enum
@@ -1019,7 +1019,7 @@
     reporting the event, including a timestamp accurate to better than
     a microsecond.
 
-- group: ext_events_b
+- group: ext_event_b
   name: sensitivity
   expert: true
   type: integer
@@ -1030,7 +1030,7 @@
   Description: Duro only. Minimum time between events (0 = disabled).
   Notes: Any event that is triggered within the sensitivity window after the previous event will be ignored and no MSG_EXT_EVENT will be generated.
 
-- group: ext_events_c
+- group: ext_event_c
   name: edge_trigger
   expert: true
   type: enum
@@ -1045,7 +1045,7 @@
     reporting the event, including a timestamp accurate to better than
     a microsecond.
 
-- group: ext_events_c
+- group: ext_event_c
   name: sensitivity
   expert: true
   type: integer
