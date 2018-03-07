@@ -353,7 +353,6 @@
   Notes: If "fixed", the receiver will output a integer fixed ambiguity estimate.  If
     no fixed solution is available, it will revert to the float solution.  If "float",
     the device will only output the float ambiguity estimate.
-    This settings is not used by Piksi Multi and Duro.
 
 - group: solution
   name: known_baseline_n
@@ -702,7 +701,7 @@
   expert: false
   type: string
   units: N/A
-  default value: 'blank - all messages are enabled'
+  default value: '23,29,65,72,74,80,117,134,136,144,163,165,166, 167,171,181,185,187,188,257,258,259,520,522,524, 526,527,528,1025,2304,2305,2306,65280,65282,65535'
   readonly: false
   Description: Configure which messages should be sent to the server.
   Notes: The enabled sbp messages settings is a list of message types
@@ -718,7 +717,7 @@
   expert: false
   type: string
   units: N/A
-  default value: ''
+  default value: '23,29,65,72,74,80,117,134,136,144,163,165,166, 167,171,181,185,187,188,257,258,259,520,522,524, 526,527,528,1025,2304,2305,2306,65280,65282,65535'
   readonly: false
   Description: IP address for UDP client 0.
   Notes: The address setting is defined according to the convention "hostname:port".
@@ -788,7 +787,7 @@
   expert: false
   type: string
   units: N/A
-  default value: 'blank - all messages are enabled'
+  default value: ''
   readonly: false
   Description: Configure which messages should be sent on the port.
   Notes: Has no effect for a UDP server.
@@ -824,7 +823,7 @@
   expert: false
   type: string
   units: N/A
-  default value: 'blank - all messages are enabled'
+  default value: ''
   readonly: false
   Description: Configure which messages should be sent on the port.
   Notes: Has no effect for a UDP server.
@@ -968,7 +967,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '72,74,65535'
+  default value: '72,74,117,65535'
   readonly: false
   Description: Configure which messages should be sent on the port.
   Notes: The enabled sbp messages settings is a list of message types
@@ -979,7 +978,7 @@
     3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For uart1,
     the default value is optimal for logging and communication with the console.
 
-- group: ext_events_0
+- group: ext_events_a
   name: edge_trigger
   expert: false
   type: enum
@@ -994,7 +993,7 @@
     reporting the event, including a timestamp accurate to better than
     a microsecond.
 
-- group: ext_events_0
+- group: ext_events_a
   name: sensitivity
   expert: false
   type: integer
@@ -1005,7 +1004,7 @@
   Description: Minimum time between events (0 = disabled).
   Notes: Any event that is triggered within the sensitivity window after the previous event will be ignored and no MSG_EXT_EVENT will be generated.
 
-- group: ext_events_1
+- group: ext_events_b
   name: edge_trigger
   expert: true
   type: enum
@@ -1020,7 +1019,7 @@
     reporting the event, including a timestamp accurate to better than
     a microsecond.
 
-- group: ext_events_1
+- group: ext_events_b
   name: sensitivity
   expert: true
   type: integer
@@ -1031,7 +1030,7 @@
   Description: Duro only. Minimum time between events (0 = disabled).
   Notes: Any event that is triggered within the sensitivity window after the previous event will be ignored and no MSG_EXT_EVENT will be generated.
 
-- group: ext_events_2
+- group: ext_events_c
   name: edge_trigger
   expert: true
   type: enum
@@ -1046,7 +1045,7 @@
     reporting the event, including a timestamp accurate to better than
     a microsecond.
 
-- group: ext_events_2
+- group: ext_events_c
   name: sensitivity
   expert: true
   type: integer
@@ -1379,6 +1378,28 @@
   Notes: If True, NTRIP client will be used.
 
 - group: ntrip
+  name: username
+  expert: false
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: false
+  enumerated possible values:
+  Description: NTRIP username to use. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033 and 1230 RTCMv3.1 messages and will not transmit or receive any other messages.
+  Notes: Username to use with NTRIP client. NTRIP must be enabled to use this setting.
+
+- group: ntrip
+  name: password
+  expert: false
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: false
+  enumerated possible values:
+  Description: NTRIP password to use. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033 and 1230 RTCMv3.1 messages and will not transmit or receive any other messages.
+  Notes: Password to use with NTRIP client. NTRIP must be enabled to use this setting.
+
+- group: ntrip
   name: url
   expert: false
   type: string
@@ -1388,9 +1409,7 @@
   enumerated possible values:
   Description: NTRIP URL to use. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033 and 1230 RTCMv3.1 messages and will not transmit or receive any other messages.
   Notes: URL to use with NTRIP client. NTRIP must be enabled to use this setting.
-    URLs should be HTTP URLs with optional credentials, a port, and a mountpoint
-    path such as username:password@example.com:2101/BAZ_RTCM3 or example.com:2101/BAZ_RTCM3.
-    Only alphanumeric characters are supported in usernames and passwords.
+    URLs should be HTTP URLs with a port, and a mountpoint path such as example.com:2101/BAZ_RTCM3.
 
 - group: ntrip
   name: debug
@@ -1401,7 +1420,7 @@
   Description: Additional debug messages for NTRIP (sent to /var/log/messages).
 
 - group: ntrip
-  name: interval
+  name: gga_out_interval
   expert: true
   type: integer
   units: seconds
@@ -1603,7 +1622,7 @@
   expert: false
   type: string
   units: N/A
-  default value: 'blank - all messages are enabled'
+  default value: '23,29,65,72,74,80,117,134,136,144,163,165,166, 167,171,181,185,187,188,257,258,259,520,522,524, 526,527,528,1025,2304,2305,2306,65280,65282,65535'
   readonly: false
   Description: Configure which messages should be sent on the port. Does not effect which incoming messages are listened to.
   Notes: The enabled sbp messages settings is a list of message types
@@ -1647,7 +1666,7 @@
   expert: false
   type: string
   units: N/A
-  default value: 'blank - all messages are enabled'
+  default value: '23,29,65,72,74,80,117,134,136,144,163,165,166, 167,171,181,185,187,188,257,258,259,520,522,524, 526,527,528,1025,2304,2305,2306,65280,65282,65535'
   readonly: false
   Description: Configure which messages should be sent on the port. Does not effect which incoming messages are listened to.
   Notes: The enabled sbp messages settings is a list of message types
@@ -1691,7 +1710,7 @@
   expert: false
   type: string
   units: N/A
-  default value: 'blank - all messages are enabled'
+  default value: '23,29,65,72,74,80,117,134,136,144,163,165,166, 167,171,181,185,187,188,257,258,259,520,522,524, 526,527,528,1025,2304,2305,2306,65280,65282,65535'
   readonly: false
   Description: Configure which messages should be sent on the port. Does not effect which incoming messages are listened to.
   Notes: The enabled sbp messages settings is a list of message types
@@ -1736,7 +1755,7 @@
   expert: false
   type: string
   units: N/A
-  default value: 'blank - all messages are enabled'
+  default value: '23,29,65,72,74,80,117,134,136,144,163,165,166, 167,171,181,185,187,188,257,258,259,520,522,524, 526,527,528,1025,2304,2305,2306,65280,65282,65535'
   readonly: false
   Description: Configure which messages should be sent on the port. Does not effect which incoming messages are listened to.
   Notes: The enabled sbp messages settings is a list of message types
@@ -1990,3 +2009,16 @@
   Notes: Setting this to true triggers the logger to start trying to write logs to the output_directory.
          Setting this to false will immediately close the current file and stop logging.
          Reenabling logging will increment the session counter which is reflected in the log file names (see USB Logging File Output section).
+         
+- group: system
+  name: system_time
+  type: enum
+  expert: false
+  default value: 'GPS'
+  enumerated possible values: GPS+NTP,GPS,NTP
+  readonly: false
+  Description: Sources for Linux System Time.
+  units: N/A
+  Notes: Configures the possible sources for Linux system time on the Swift Device. 
+         Linux system time is required for HTTPS certification validation and other Linux system functionality.
+
