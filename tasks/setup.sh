@@ -141,9 +141,14 @@ function install_python_deps_osx () {
     # Uses brew to install system-wide dependencies and pip to install
     # python dependencies.
     log_info "Installing Python dependencies..."
+
     if [[ ! -x /usr/local/bin/python ]]; then 
-      brew install python --framework --with-brewed-openssl 2>&1 || :
+      brew install python@2 --framework --with-brewed-openssl 2>&1 || :
     fi
+
+    brew install python@2
+    brew link python@2 --force
+
     pip install --upgrade pip
     brew tap-unpin cartr/qt4 | true # If brew tap-pin is run twice, it errors.
     brew untap cartr/qt4 | true     # If brew tap is run twice, it errors.
