@@ -11,5 +11,5 @@ pyparsing==2.2.0
 pygments==2.2.0
 requests==2.18.4
 six==1.10.0
-sbp==2.3.8
+sbp==2.3.11
 ruamel.yaml==0.15.31
