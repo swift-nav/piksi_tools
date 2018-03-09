@@ -20,7 +20,7 @@ from traits.etsconfig.api import ETSConfig
 from traitsui.api import HGroup, Item, TabularEditor, VGroup, View
 from traitsui.tabular_adapter import TabularAdapter
 
-from .utils import resource_filename
+from .utils import resource_filename, sizeof_fmt
 
 if ETSConfig.toolkit != 'null':
     from enable.savage.trait_defs.ui.svg_button import SVGButton
@@ -35,7 +35,7 @@ class SimpleAdapter(TabularAdapter):
 
 
 class SimpleNetworkAdapter(TabularAdapter):
-    columns = [('Interface Name', 0), ('IPv4 Addr', 1), ('Running', 2)]
+    columns = [('Interface Name', 0), ('IPv4 Addr', 1), ('Running', 2), ('Tx Usage', 3), ('Rx Usage', 4)]
 
 
 class SystemMonitorView(HasTraits):
@@ -152,6 +152,9 @@ class SystemMonitorView(HasTraits):
                 self.threads, key=lambda x: x[1].cpu, reverse=True)
         ]
 
+    def update_network_state(self):
+        self._network_refresh_button_fired();
+
     def heartbeat_callback(self, sbp_msg, **metadata):
         if self.threads != []:
             self.update_threads()
@@ -173,7 +176,8 @@ class SystemMonitorView(HasTraits):
     def _network_callback(self, m, **metadata):
         self._network_info.append(
             (m.interface_name, ip_bytes_to_string(m.ipv4_address),
-             ((m.flags & (1 << 6)) != 0)))
+             ((m.flags & (1 << 6)) != 0),
+             sizeof_fmt(m.tx_bytes), sizeof_fmt(m.rx_bytes)))
 
     def uart_state_callback(self, m, **metadata):
 
