@@ -65,6 +65,8 @@ CODE_QZS_L5X = 33
 
 SUPPORTED_CODES = [CODE_GPS_L1CA,
                    CODE_GPS_L2CM,
+                   CODE_GPS_L1P,
+                   CODE_GPS_L2P,
                    CODE_GLO_L1OF,
                    CODE_GLO_L2OF,
                    CODE_SBAS_L1CA,
