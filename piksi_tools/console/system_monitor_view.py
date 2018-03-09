@@ -153,7 +153,7 @@ class SystemMonitorView(HasTraits):
         ]
 
     def update_network_state(self):
-        self._network_refresh_button_fired();
+        self._network_refresh_button_fired()
 
     def heartbeat_callback(self, sbp_msg, **metadata):
         if self.threads != []:
