@@ -13,6 +13,8 @@
 from __future__ import print_function
 
 import numpy as np
+import time
+
 from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
@@ -20,7 +22,7 @@ from sbp.mag import SBP_MSG_MAG_RAW
 from traits.api import Dict, HasTraits, Instance
 from traitsui.api import Item, VGroup, View
 
-from piksi_tools.console.utils import call_repeatedly
+from .gui_utils import GUI_UPDATE_PERIOD
 
 NUM_POINTS = 200
 
@@ -51,6 +53,7 @@ class MagView(HasTraits):
     )
 
     def mag_set_data(self):
+        self.last_plot_update_time = time.time()
         min_data = np.min(self.mag)
         max_data = np.max(self.mag)
         padding = (max_data - min_data) / 4.0
@@ -69,11 +72,14 @@ class MagView(HasTraits):
         self.mag[-1] = (sbp_msg.mag_x / 16.0,
                         sbp_msg.mag_y / 16.0,
                         sbp_msg.mag_z / 16.0)
+        if time.time() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
+            self.mag_set_data()
 
     def __init__(self, link):
         super(MagView, self).__init__()
 
         self.mag = np.zeros((NUM_POINTS, 3))
+        self.last_plot_update_time = 0
 
         self.plot_data = ArrayPlotData(
             t=np.arange(NUM_POINTS),
@@ -87,8 +93,6 @@ class MagView(HasTraits):
         self.plot.title_color = [0, 0, 0.43]
         self.plot.value_axis.orientation = 'right'
         self.plot.value_axis.axis_line_visible = False
-        call_repeatedly(0.2, self.mag_set_data)
-
         self.legend_visible = True
         self.plot.legend.visible = True
         self.plot.legend.align = 'll'
