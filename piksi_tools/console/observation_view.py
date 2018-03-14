@@ -13,6 +13,7 @@
 from __future__ import print_function
 
 import datetime
+import time
 
 from sbp.observation import (SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B,
                              SBP_MSG_OBS_DEP_C)
@@ -22,7 +23,8 @@ from traitsui.tabular_adapter import TabularAdapter
 
 from piksi_tools.console.gui_utils import CodeFiltered
 from piksi_tools.console.utils import (
-    EMPTY_STR, SUPPORTED_CODES, call_repeatedly, code_is_gps, code_to_str)
+    EMPTY_STR, SUPPORTED_CODES, code_is_gps, code_to_str)
+from piksi_tools.console.gui_utils import GUI_UPDATE_PERIOD
 
 
 class SimpleAdapter(TabularAdapter):
@@ -134,16 +136,15 @@ class ObservationView(CodeFiltered):
     def obs_packed_callback(self, sbp_msg, **metadata):
         if (sbp_msg.sender is not None and (self.relay ^ (sbp_msg.sender == 0))):
             return
-        tow = sbp_msg.header.t.tow
+        tow = float(sbp_msg.header.t.tow / 1000.0)
         wn = sbp_msg.header.t.wn
         seq = sbp_msg.header.n_obs
-
-        tow = float(tow) / 1000.0
-
         total = seq >> 4
         count = seq & ((1 << 4) - 1)
+
         # Confirm this packet is good.
         # Assumes no out-of-order packets
+        # this happens on first packet received of epoch
         if count == 0:
             self.old_tow = self.gps_tow
             self.gps_tow = tow
@@ -160,7 +161,9 @@ class ObservationView(CodeFiltered):
             return
         else:
             self.prev_obs_count = count
-
+        # Don't bother updating anything except the TOW faster than 2Hz
+        if self.gps_tow - self.last_table_update_tow < 0.5:
+            return
         # Save this packet
         # See sbp_piksi.h for format
         for o in sbp_msg.obs:
@@ -267,12 +270,18 @@ class ObservationView(CodeFiltered):
                       datetime.timedelta(seconds=self.gps_tow))
             self.obs.clear()
             self.obs.update(self.incoming_obs)
-
+            # this is here to let GUI catch up to real time if required
+            if time.time() - self.last_table_update_time > GUI_UPDATE_PERIOD:
+                self.update_obs()
+                self.last_table_update_tow = self.gps_tow
+                self.last_table_update_time = time.time()
         return
 
     def __init__(self, link, name='Local', relay=False, dirname=None):
         super(ObservationView, self).__init__()
         self.dirname = dirname
+        self.last_table_update_tow = 0
+        self.last_table_update_time = 0
         self.obs = {}
         self.incoming_obs = {}
         self.obs_count = 0
@@ -288,4 +297,3 @@ class ObservationView(CodeFiltered):
             SBP_MSG_OBS_DEP_C
         ])
         self.python_console_cmds = {'obs': self}
-        call_repeatedly(0.2, self.update_obs)
