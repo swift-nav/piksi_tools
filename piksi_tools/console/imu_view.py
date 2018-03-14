@@ -13,6 +13,7 @@
 from __future__ import print_function
 
 import numpy as np
+import time
 from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
@@ -20,8 +21,7 @@ from sbp.imu import SBP_MSG_IMU_AUX, SBP_MSG_IMU_RAW
 from traits.api import Dict, Float, HasTraits, Instance, Int
 from traitsui.api import HGroup, Item, VGroup, View
 
-from piksi_tools.console.utils import call_repeatedly
-
+from .gui_utils import GUI_UPDATE_PERIOD
 NUM_POINTS = 200
 
 colours_list = [
@@ -63,6 +63,7 @@ class IMUView(HasTraits):
     )
 
     def imu_set_data(self):
+        self.last_plot_update_time = time.time()
         self.plot_data.set_data('acc_x', self.acc[:, 0])
         self.plot_data.set_data('acc_y', self.acc[:, 1])
         self.plot_data.set_data('acc_z', self.acc[:, 2])
@@ -89,12 +90,15 @@ class IMUView(HasTraits):
             self.rms_acc_x = sf * np.sqrt(np.mean(np.square(self.acc[:, 0])))
             self.rms_acc_y = sf * np.sqrt(np.mean(np.square(self.acc[:, 1])))
             self.rms_acc_z = sf * np.sqrt(np.mean(np.square(self.acc[:, 2])))
+        if time.time() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
+            self.imu_set_data()
 
     def __init__(self, link):
         super(IMUView, self).__init__()
 
         self.acc = np.zeros((NUM_POINTS, 3))
         self.gyro = np.zeros((NUM_POINTS, 3))
+        self.last_plot_update_time = 0
 
         self.plot_data = ArrayPlotData(
             t=np.arange(NUM_POINTS),
@@ -116,7 +120,6 @@ class IMUView(HasTraits):
         self.plot.value_axis.orientation = 'right'
         self.plot.value_axis.axis_line_visible = False
         self.plot.value_axis.title = 'LSB count'
-        call_repeatedly(0.2, self.imu_set_data)
 
         self.legend_visible = True
         self.plot.legend.visible = True

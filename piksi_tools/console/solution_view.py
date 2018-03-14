@@ -38,11 +38,11 @@ from traitsui.tabular_adapter import TabularAdapter
 from piksi_tools.console.gui_utils import MultilineTextEditor, plot_square_axes
 from piksi_tools.console.utils import (
     DGNSS_MODE, EMPTY_STR, FIXED_MODE, FLOAT_MODE, SBAS_MODE,
-    SPP_MODE, call_repeatedly,
-    color_dict, datetime_2_str, get_mode, log_time_strings,
+    SPP_MODE, color_dict, datetime_2_str, get_mode, log_time_strings,
     mode_dict)
 from piksi_tools.utils import sopen
 from .utils import resource_filename
+from .gui_utils import GUI_UPDATE_PERIOD
 
 
 def meters_per_deg(lat):
@@ -219,12 +219,6 @@ class SolutionView(HasTraits):
         self._clear_history()
         self._reset_remove_current()
 
-    def _pos_llh_callback(self, sbp_msg, **metadata):
-        # Updating an ArrayPlotData isn't thread safe (see chaco issue #9), so
-        # actually perform the update in the UI thread.
-        if self.running:
-            GUI.invoke_later(self.pos_llh_callback, sbp_msg)
-
     def age_corrections_callback(self, sbp_msg, **metadata):
         age_msg = MsgAgeCorrections(sbp_msg)
         if age_msg.age != 0xFFFF:
@@ -360,6 +354,8 @@ class SolutionView(HasTraits):
         self.alts = self.alts[-self.plot_history_max:]
         self.tows = self.tows[-self.plot_history_max:]
         self.modes = self.modes[-self.plot_history_max:]
+        if time.time() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
+            self.solution_draw()
 
     def solution_draw(self):
         if self.running:
@@ -369,6 +365,7 @@ class SolutionView(HasTraits):
         spp_indexer, dgnss_indexer, float_indexer, fixed_indexer, sbas_indexer = None, None, None, None, None
         self._clear_history()
         soln = self.last_soln
+        self.last_plot_uptdate_time = time.time()
         if np.any(self.modes):
             if self.display_units == "meters":
                 offset = (np.mean(self.lats[~(np.equal(self.modes, 0))]),
@@ -620,6 +617,7 @@ class SolutionView(HasTraits):
         self.longitude = 0
         self.latitude = 0
         self.last_pos_mode = 0
+        self.last_plot_update_time = 0
 
         self.plot_data = ArrayPlotData(
             lat_spp=[],
@@ -791,8 +789,6 @@ class SolutionView(HasTraits):
         self.link.add_callback(self.utc_time_callback, [SBP_MSG_UTC_TIME])
         self.link.add_callback(self.age_corrections_callback,
                                SBP_MSG_AGE_CORRECTIONS)
-        call_repeatedly(0.2, self.solution_draw)
-
         self.week = None
         self.utc_time = None
         self.age_corrections = None
