@@ -32,10 +32,11 @@ from traitsui.tabular_adapter import TabularAdapter
 
 from piksi_tools.console.gui_utils import plot_square_axes
 from piksi_tools.console.utils import (
-    DGNSS_MODE, EMPTY_STR, FIXED_MODE, FLOAT_MODE, call_repeatedly, color_dict,
+    DGNSS_MODE, EMPTY_STR, FIXED_MODE, FLOAT_MODE, color_dict,
     datetime_2_str, get_mode, log_time_strings, mode_dict)
 from piksi_tools.utils import sopen
 from .utils import resource_filename
+from .gui_utils import GUI_UPDATE_PERIOD
 
 
 class SimpleAdapter(TabularAdapter):
@@ -257,6 +258,8 @@ class BaselineView(HasTraits):
             self.log_file.flush()
 
         self.last_mode = get_mode(soln)
+        if time.time() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
+            self.solution_draw()
 
         if self.last_mode < 1:
             table.append(('GPS Week', EMPTY_STR))
@@ -324,6 +327,7 @@ class BaselineView(HasTraits):
     def _solution_draw(self):
         self._clear_history()
         soln = self.last_soln
+        self.last_plot_update_time = time.time()
         if np.any(self.mode):
             float_indexer = (self.mode == FLOAT_MODE)
             fixed_indexer = (self.mode == FIXED_MODE)
@@ -411,6 +415,7 @@ class BaselineView(HasTraits):
         self.e = np.zeros(plot_history_max)
         self.d = np.zeros(plot_history_max)
         self.mode = np.zeros(plot_history_max)
+        self.last_plot_update_time = 0
 
         self.plot = Plot(self.plot_data)
         pts_float = self.plot.plot(
@@ -504,7 +509,5 @@ class BaselineView(HasTraits):
         self.link.add_callback(self.utc_time_callback, [SBP_MSG_UTC_TIME])
         self.link.add_callback(self.age_corrections_callback,
                                SBP_MSG_AGE_CORRECTIONS)
-
-        call_repeatedly(0.2, self.solution_draw)
 
         self.python_console_cmds = {'baseline': self}
