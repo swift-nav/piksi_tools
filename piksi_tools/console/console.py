@@ -690,7 +690,7 @@ class SwiftConsole(HasTraits):
                 except KeyError:
                     pass
                 if mfg_id:
-                    self.device_serial = 'PK' + str(mfg_id)[-6:]
+                    self.device_serial = 'PK' + str(mfg_id)
                 self.networking_view.set_route(uuid=uuid, serial_id=mfg_id)
                 if self.networking_view.connect_when_uuid_received:
                     self.networking_view._connect_rover_fired()
