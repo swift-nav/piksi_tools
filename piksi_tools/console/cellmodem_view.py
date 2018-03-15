@@ -14,9 +14,8 @@ from __future__ import absolute_import
 import datetime
 
 from sbp.piksi import SBP_MSG_NETWORK_BANDWIDTH_USAGE
-from traits.api import Dict, HasTraits, Int, List, String
-from traitsui.api import Item, TabularEditor, VGroup, View
-from traitsui.tabular_adapter import TabularAdapter
+from traits.api import Dict, HasTraits, String
+from traitsui.api import Item, VGroup, View
 
 from .utils import sizeof_fmt
 
@@ -49,9 +48,9 @@ class CellModemView(HasTraits):
     )
 
     def _set_network_usage(self, interface_name, duration, tx_usage, rx_usage):
-        self._cell_modem_usage  = "{}/{} ({})".format(tx_usage,
-                                                      rx_usage,
-                                                      interface_name)
+        self._cell_modem_usage = "{}/{} ({})".format(tx_usage,
+                                                     rx_usage,
+                                                     interface_name)
         self._cell_modem_measurement_duration = duration
 
     def _network_callback(self, m, **metadata):
