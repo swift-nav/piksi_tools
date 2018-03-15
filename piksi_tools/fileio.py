@@ -22,7 +22,7 @@ from sbp.file_io import (SBP_MSG_FILEIO_READ_DIR_RESP,
                          MsgFileioReadDirReq, MsgFileioReadDirResp,
                          MsgFileioReadReq, MsgFileioRemove, MsgFileioWriteReq)
 
-from . import serial_link
+from piksi_tools import serial_link
 
 MAX_PAYLOAD_SIZE = 255
 SBP_FILEIO_WINDOW_SIZE = 10

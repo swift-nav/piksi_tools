@@ -15,8 +15,7 @@ def maybe_remove(path):
 
 def build(env='pyinstaller'):
     check_call(['tox', '-e', env])
-    out_pyi = os.path.join('dist', 'console')
-
+    out_pyi = os.path.join(os.getcwd(), os.path.join('dist', 'console'))
     exe = os.path.join(out_pyi, 'console')
 
     # https://bugs.python.org/issue18920
@@ -34,8 +33,8 @@ def build(env='pyinstaller'):
 
 def build_linux():
     import tarfile
-    out_pyi, version = build()
-    out = os.path.join('dist', 'swift_console_v{}_linux'.format(version))
+    out_pyi, version = build('pyinstaller-linux')
+    out = os.path.join(os.getcwd(), os.path.join('dist', 'swift_console_v{}_linux'.format(version)))
     maybe_remove(out)
     shutil.move(out_pyi, out)
 
@@ -51,14 +50,14 @@ def build_macos():
     out, version = build('pyinstaller-macos')
     check_call([
         'sudo',
-        os.path.join('misc',
-                     'create-dmg-installer.sh'),
+        os.path.join(os.getcwd(), os.path.join('misc',
+                     'create-dmg-installer.sh')),
         'swift_console_v{}_macos.dmg'.format(version)
     ])
 
 
 def build_win():
-    out, version = build()
+    out, version = build('pyinstaller-win')
 
     # workaround for https://github.com/pyinstaller/pyinstaller/issues/1793
     srcs = ['msvcp90.dll', 'msvcr90.dll', 'msvcm90.dll', 'Microsoft.VC90.CRT.manifest']
@@ -84,7 +83,12 @@ def main():
         build_macos()
     elif plat.startswith('win'):
         build_win()
-
+    try: 
+        check_call(['tox', '-e', 'pyinstaller_cmdline_tools'])
+    except CalledProcessError as cpe:
+      print("Output:\n" + cpe.output)
+      print("Return Code:\n" + str(cpe.returncode))
+      raise CalledProcessError
 
 if __name__ == '__main__':
     main()

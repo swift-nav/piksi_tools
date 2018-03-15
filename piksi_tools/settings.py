@@ -52,7 +52,7 @@ from sbp.settings import (
     MsgSettingsReadByIndexReq, MsgSettingsReadReq,
     MsgSettingsSave, MsgSettingsWrite)
 
-from . import serial_link
+from piksi_tools import serial_link
 
 DEFAULT_READ_RETRIES = 5
 DEFAULT_CONFIRM_RETRIES = 2
