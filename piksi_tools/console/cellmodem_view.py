@@ -65,8 +65,7 @@ class CellModemView(HasTraits):
 
     def __init__(self, link):
         super(CellModemView, self).__init__()
-        #self.cellmodem_interface_name = "ppp0"
-        self.cellmodem_interface_name = "eth0"
+        self.cellmodem_interface_name = "ppp0"
         self._set_network_usage(self.cellmodem_interface_name, "-", "-", "-")
         self.link = link
         self.link.add_callback(self._network_callback,
