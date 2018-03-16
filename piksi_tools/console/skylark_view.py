@@ -24,8 +24,8 @@ SKYLARK_URL = 'https://swiftnav.com/skylark'
 class SkylarkView(HasTraits):
     information = String(
         "Skylark is Swift Navigation's high accuracy GNSS corrections service, "
-        "delivered over the internet. It removes the need for a base station, "
-        "CORS station, or VRS station.")
+        "delivered over the internet. It removes the need for a base station "
+        "or CORS station.")
     link = Button(SKYLARK_URL)
     uuid = String()
 
