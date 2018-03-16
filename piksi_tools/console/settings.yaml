@@ -274,7 +274,10 @@
   readonly: false
   enumerated possible values: True,False
   Description: Enable Skylark client.
-  Notes: If True, Skyark client will be used.
+  Notes: |
+      If True, Skyark client will be used. Klobuchar correction must be disabled
+      if order for Skylark to function properly, set solution.disable_klobuchar_correction
+      to True before enabling Skylark.
 
 - group: skylark
   name: url
@@ -447,14 +450,16 @@
 
 - group: solution
   name: disable_klobuchar_correction
-  expert: true
+  expert: false
   type: boolean
   units: N/A
   default value: 'False'
   readonly: false
   enumerated possible values: True,False
   Description: Disable Klobuchar ionospheric corrections.
-  Notes: If True, Klobuchar ionospheric corrections will not be applied.
+  Notes: |
+      If True, Klobuchar ionospheric corrections will not be applied.
+      This setting must be set to True when Skylark is enabled (skylark.enable == True)
 
 - group: solution
   name: enable_glonass
