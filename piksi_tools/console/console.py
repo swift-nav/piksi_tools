@@ -60,6 +60,7 @@ from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
                                        icon, swift_path)
 from piksi_tools.console.skylark_view import SkylarkView
 
+
 class ArgumentParserError(Exception):
     pass
 
@@ -365,7 +366,7 @@ class SwiftConsole(HasTraits):
                         label='Device UUID:',
                         emphasized=True,
                         tooltip='Corrections latency (-1 means no corrections)'
-                    ),                    Item(
+                    ), Item(
                         'uuid',
                         padding=2,
                         show_label=False,

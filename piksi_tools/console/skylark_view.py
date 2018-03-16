@@ -9,20 +9,18 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from traits.api import Bool, Button, Enum, HasTraits, Int, String
-from traitsui.api import (HGroup, Item, Spring, TextEditor, UItem, VGroup,
-                          View, spring)
-from enable.savage.trait_defs.ui.svg_button import SVGButton
+from traits.api import Button, HasTraits, String
+from traitsui.api import (HGroup, Item, TextEditor, VGroup, View, spring)
 
 from piksi_tools.console.gui_utils import MultilineTextEditor
-from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
-                                       get_mode, mode_dict, resource_filename,
-                                       icon, swift_path)
+
 import webbrowser
 import threading
 import time
 
 SKYLARK_URL = 'https://swiftnav.com/skylark'
+
+
 class SkylarkView(HasTraits):
     information = String(
         "Skylark is Swift Navigation's high accuracy GNSS corrections service, "
