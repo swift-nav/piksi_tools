@@ -191,6 +191,7 @@ class SwiftConsole(HasTraits):
     num_sats = Int(0)
     cnx_desc = Str('')
     latency = Str('')
+    uuid = Str('')
     directory_name = Directory
     json_logging = Bool(True)
     csv_logging = Bool(False)
@@ -356,6 +357,16 @@ class SwiftConsole(HasTraits):
                     ),
                     Item(
                         'latency',
+                        padding=2,
+                        show_label=False,
+                        style='readonly'),
+                    Item(
+                        '',
+                        label='Device UUID:',
+                        emphasized=True,
+                        tooltip='Corrections latency (-1 means no corrections)'
+                    ),                    Item(
+                        'uuid',
                         padding=2,
                         show_label=False,
                         style='readonly'),
@@ -683,10 +694,9 @@ class SwiftConsole(HasTraits):
             # by the networking view.
 
             def update_serial():
-                uuid = None
                 mfg_id = None
                 try:
-                    uuid = self.settings_view.settings['system_info'][
+                    self.uuid = self.settings_view.settings['system_info'][
                         'uuid'].value
                     mfg_id = self.settings_view.settings['system_info'][
                         'serial_number'].value
@@ -694,8 +704,8 @@ class SwiftConsole(HasTraits):
                     pass
                 if mfg_id:
                     self.device_serial = 'PK' + str(mfg_id)
-                self.skylark_view.set_uuid(uuid)
-                self.networking_view.set_route(uuid=uuid, serial_id=mfg_id)
+                self.skylark_view.set_uuid(self.uuid)
+                self.networking_view.set_route(uuid=self.uuid, serial_id=mfg_id)
                 if self.networking_view.connect_when_uuid_received:
                     self.networking_view._connect_rover_fired()
 
