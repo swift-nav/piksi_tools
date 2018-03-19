@@ -22,7 +22,7 @@ class SkylarkView(HasTraits):
         "Skylark is Swift Navigation's high accuracy GNSS corrections service, "
         "delivered over the internet. It removes the need for a base station "
         "or CORS station.")
-    link = Button(SKYLARK_URL)
+    skylark_url = String()
     uuid = String()
 
     view = View(VGroup(spring,
@@ -34,9 +34,12 @@ class SkylarkView(HasTraits):
                         show_label=False,
                         style='readonly',
                         editor=MultilineTextEditor(TextEditor(multi_line=True))),
-                    Item('link', label='Skylark URL: ' + SKYLARK_URL, width=400, editor=TextEditor(readonly_allow_selection=True), style='readonly'),
+                    Item('skylark_url', label='Skylark URL', width=400, editor=TextEditor(readonly_allow_selection=True), style='readonly'),
                     Item('uuid', label='Device UUID', width=400, editor=TextEditor(readonly_allow_selection=True), style='readonly'),
                 ), spring), spring))
 
     def set_uuid(self, uuid):
         self.uuid = uuid
+
+    def __init__(self):
+        self.skylark_url = SKYLARK_URL
