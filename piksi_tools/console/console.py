@@ -251,7 +251,7 @@ class SwiftConsole(HasTraits):
                         show_label=False),
                     label='Observations', ),
                 Item('settings_view', style='custom', label='Settings'),
-                Item('update_view', style='custom', label='Firmware Update'),
+                Item('update_view', style='custom', label='Update'),
                 Tabbed(
                     Item(
                         'system_monitor_view',
@@ -365,12 +365,12 @@ class SwiftConsole(HasTraits):
                         '',
                         label='Device UUID:',
                         emphasized=True,
-                        tooltip='Corrections latency (-1 means no corrections)'
+                        tooltip='Universally Unique Device Identifier (UUID)'
                     ), Item(
                         'uuid',
                         padding=2,
                         show_label=False,
-                        style='readonly'),
+                        style='readonly', width=6),
                     Spring(springy=True),
                     Item(
                         'cnx_icon',

@@ -160,7 +160,6 @@ class UpdateView(HasTraits):
 
     updating = Bool(False)
     update_stm_en = Bool(False)
-    upgrade_steps = String("Firmware upgrade status:")
 
     download_firmware = Button(label='Download Latest Firmware')
     download_directory = String()
@@ -232,18 +231,16 @@ class UpdateView(HasTraits):
                     ),
                     label="Firmware Download",
                     show_border=True),
-                Spring()
+                VGroup(
+                    Item(
+                        'stream',
+                        style='custom',
+                        editor=InstanceEditor(),
+                        show_label=False, ),
+                    show_border=True,
+                    label="Firmware Upgrade Status"),
             ),
-            UItem(
-                'upgrade_steps',
-                visible_when='not sbp_upgrade',
-                style='readonly'),
-            Item(
-                'stream',
-                style='custom',
-                editor=InstanceEditor(),
-                show_label=False, ),
-            show_border=True, ),
+            show_border=True),
     )
 
     def __init__(self,
