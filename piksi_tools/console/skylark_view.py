@@ -15,8 +15,6 @@ from traitsui.api import (HGroup, Item, TextEditor, VGroup, View, spring)
 from piksi_tools.console.gui_utils import MultilineTextEditor
 
 import webbrowser
-import threading
-import time
 
 SKYLARK_URL = 'https://swiftnav.com/skylark'
 
@@ -39,23 +37,11 @@ class SkylarkView(HasTraits):
                         style='readonly',
                         editor=MultilineTextEditor(TextEditor(multi_line=True))),
                     HGroup(spring, Item('link', show_label=False), spring),
-                    Item('uuid', label='Device UUID', width=400),
+                    Item('uuid', label='Device UUID', width=400, editor=TextEditor(readonly_allow_selection=True), style='readonly'),
                 ), spring), spring))
 
-    def __init__(self):
-        self.real_uuid = ''
+    def set_uuid(self, uuid):
+        self.uuid = uuid
 
     def _link_fired(self):
         webbrowser.open(SKYLARK_URL)
-
-    def _uuid_changed(self):
-        if self.uuid != self.real_uuid:
-            threading.Thread(target=self._fix_uuid).start()
-
-    def set_uuid(self, uuid):
-        self.real_uuid = uuid
-        self.uuid = uuid
-
-    def _fix_uuid(self):
-        time.sleep(0.1)
-        self.uuid = self.real_uuid
