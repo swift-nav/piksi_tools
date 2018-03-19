@@ -34,7 +34,6 @@ class SkylarkView(HasTraits):
                         show_label=False,
                         style='readonly',
                         editor=MultilineTextEditor(TextEditor(multi_line=True))),
-                    HGroup(spring, Item('link', show_label=False), spring),
                     Item('link', label='Skylark URL: ' + SKYLARK_URL, width=400, editor=TextEditor(readonly_allow_selection=True), style='readonly'),
                     Item('uuid', label='Device UUID', width=400, editor=TextEditor(readonly_allow_selection=True), style='readonly'),
                 ), spring), spring))
