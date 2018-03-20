@@ -128,6 +128,8 @@ STR_TO_CODE_MAP = {
 CODE_NOT_AVAILABLE = 'N/A'
 EMPTY_STR = '--'
 
+SBAS_MODE = 6
+DR_MODE   = 5
 FIXED_MODE = 4
 FLOAT_MODE = 3
 DGNSS_MODE = 2
@@ -139,7 +141,9 @@ mode_dict = {
     SPP_MODE: 'SPP',
     DGNSS_MODE: 'DGPS',
     FLOAT_MODE: 'Float RTK',
-    FIXED_MODE: 'Fixed RTK'
+    FIXED_MODE: 'Fixed RTK',
+    DR_MODE: 'Dead Reckoning',
+    SBAS_MODE: 'SBAS'
 }
 
 color_dict = {
@@ -147,7 +151,9 @@ color_dict = {
     SPP_MODE: (0, 0, 1.0),
     DGNSS_MODE: (0, 0.7, 1.0),
     FLOAT_MODE: (0.75, 0, 0.75),
-    FIXED_MODE: 'orange'
+    FIXED_MODE: 'orange',
+    DR_MODE: 'black',
+    SBAS_MODE: 'green'
 }
 
 
