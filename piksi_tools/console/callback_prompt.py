@@ -94,7 +94,9 @@ class CallbackPrompt(HasTraits):
             title=title,
             handler=CallbackHandler(actions),
             icon=icon,
-            resizable=True, )
+            resizable=True,
+            kind='livemodal',
+        )
 
     def run(self, block=True):
         try:

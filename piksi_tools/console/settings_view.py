@@ -101,7 +101,7 @@ class Setting(SettingBase):
             Item('value', editor=TextEditor(auto_set=False, enter_set=True),
                  visible_when='confirmed_set and not readonly'),
             Item('value', style='readonly',
-                 visible_when='not confirmed_set or readonly'),
+                 visible_when='not confirmed_set or readonly', editor=TextEditor(readonly_allow_selection=True)),
             Item('units', style='readonly'),
             UItem('default_value',
                   style='readonly',

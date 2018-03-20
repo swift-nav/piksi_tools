@@ -267,14 +267,17 @@
 
 - group: skylark
   name: enable
-  expert: true
+  expert: false
   type: boolean
   units: N/A
   default value: 'False'
   readonly: false
   enumerated possible values: True,False
   Description: Enable Skylark client.
-  Notes: If True, Skyark client will be used.
+  Notes: |
+      If True, Skyark client will be used. Klobuchar correction must be disabled
+      if order for Skylark to function properly, set solution.disable_klobuchar_correction
+      to True before enabling Skylark.
 
 - group: skylark
   name: url
@@ -447,14 +450,16 @@
 
 - group: solution
   name: disable_klobuchar_correction
-  expert: true
+  expert: false
   type: boolean
   units: N/A
   default value: 'False'
   readonly: false
   enumerated possible values: True,False
   Description: Disable Klobuchar ionospheric corrections.
-  Notes: If True, Klobuchar ionospheric corrections will not be applied.
+  Notes: |
+      If True, Klobuchar ionospheric corrections will not be applied.
+      This setting must be set to True when Skylark is enabled (skylark.enable == True)
 
 - group: solution
   name: enable_glonass
@@ -1378,6 +1383,18 @@
   Notes: If True, NTRIP client will be used.
 
 - group: ntrip
+  name: url
+  expert: false
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: false
+  enumerated possible values:
+  Description: NTRIP URL to use.
+  Notes: URL to use with NTRIP client. NTRIP must be enabled to use this setting.
+    URLs should be HTTP URLs with a port, and a mountpoint path such as example.com:2101/BAZ_RTCM3.
+
+- group: ntrip
   name: username
   expert: false
   type: string
@@ -1385,7 +1402,7 @@
   default value: N/A
   readonly: false
   enumerated possible values:
-  Description: NTRIP username to use. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033 and 1230 RTCMv3.1 messages and will not transmit or receive any other messages.
+  Description: NTRIP username to use.
   Notes: Username to use with NTRIP client. NTRIP must be enabled to use this setting.
 
 - group: ntrip
@@ -1396,32 +1413,12 @@
   default value: N/A
   readonly: false
   enumerated possible values:
-  Description: NTRIP password to use. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033 and 1230 RTCMv3.1 messages and will not transmit or receive any other messages.
+  Description: NTRIP password to use.
   Notes: Password to use with NTRIP client. NTRIP must be enabled to use this setting.
 
 - group: ntrip
-  name: url
-  expert: false
-  type: string
-  units: N/A
-  default value: N/A
-  readonly: false
-  enumerated possible values:
-  Description: NTRIP URL to use. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033 and 1230 RTCMv3.1 messages and will not transmit or receive any other messages.
-  Notes: URL to use with NTRIP client. NTRIP must be enabled to use this setting.
-    URLs should be HTTP URLs with a port, and a mountpoint path such as example.com:2101/BAZ_RTCM3.
-
-- group: ntrip
-  name: debug
-  expert: true
-  type: boolean
-  default value: 'False'
-  readonly: false
-  Description: Additional debug messages for NTRIP (sent to /var/log/messages).
-
-- group: ntrip
   name: gga_out_interval
-  expert: true
+  expert: false
   type: integer
   units: seconds
   default value: '0'
@@ -1430,6 +1427,14 @@
   Description: Interval at which the NMEA GGA sentence is uploaded to the NTRIP server
   Notes: The interval (in seconds) at which the NMEA GGA sentence is uploaded to
      the specified NTRIP server.  The default of 0 disables the GGA sentence upload.
+
+- group: ntrip
+  name: debug
+  expert: true
+  type: boolean
+  default value: 'False'
+  readonly: false
+  Description: Additional debug messages for NTRIP (sent to /var/log/messages).
 
 - group: pps
   name: width

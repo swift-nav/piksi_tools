@@ -160,7 +160,6 @@ class UpdateView(HasTraits):
 
     updating = Bool(False)
     update_stm_en = Bool(False)
-    upgrade_steps = String("Firmware upgrade status:")
 
     download_firmware = Button(label='Download Latest Firmware')
     download_directory = String()
@@ -232,18 +231,16 @@ class UpdateView(HasTraits):
                     ),
                     label="Firmware Download",
                     show_border=True),
-                Spring()
+                VGroup(
+                    Item(
+                        'stream',
+                        style='custom',
+                        editor=InstanceEditor(),
+                        show_label=False, ),
+                    show_border=True,
+                    label="Firmware Upgrade Status"),
             ),
-            UItem(
-                'upgrade_steps',
-                visible_when='not sbp_upgrade',
-                style='readonly'),
-            Item(
-                'stream',
-                style='custom',
-                editor=InstanceEditor(),
-                show_label=False, ),
-            show_border=True, ),
+            show_border=True),
     )
 
     def __init__(self,
@@ -349,7 +346,7 @@ class UpdateView(HasTraits):
                 "  \tThis should take less than 5 minutes.\n"
                 "4.\tWhen the upgrade completes you will be prompted to remove the USB flash drive and reset your Piksi Multi.\n"
                 "5.\tVerify that the firmware version has upgraded via inspection of the Current Firmware Version box\n"
-                "  \ton the Firmware Update Tab of the Swift Console.\n")
+                "  \ton the Update Tab of the Swift Console.\n")
 
             confirm_prompt = prompt.CallbackPrompt(
                 title="Update device over serial connection?",
@@ -555,13 +552,13 @@ class UpdateView(HasTraits):
                 if 'fw' in self.update_dl.index[self.piksi_hw_rev]:
                     fw_update_prompt.text = \
                         "New Piksi firmware available.\n\n" + \
-                        "Please use the Firmware Update tab to update.\n\n" + \
+                        "Please use the Update tab to update.\n\n" + \
                         "Newest Firmware Version :\n\t%s\n\n" % \
                         self.update_dl.index[self.piksi_hw_rev]['fw']['version']
                 else:
                     fw_update_prompt.text = \
                         "New Piksi firmware available.\n\n" + \
-                        "Please use the Firmware Update tab to update.\n\n" + \
+                        "Please use the Update tab to update.\n\n" + \
                         "Newest STM Version :\n\t%s\n\n" % \
                         self.update_dl.index[self.piksi_hw_rev]['stm_fw']['version'] + \
                         "Newest SwiftNAP Version :\n\t%s\n\n" % \

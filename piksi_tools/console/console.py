@@ -59,6 +59,7 @@ from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
                                        get_mode, mode_dict, resource_filename,
                                        icon, swift_path)
+from piksi_tools.console.skylark_view import SkylarkView
 
 
 class ArgumentParserError(Exception):
@@ -177,6 +178,7 @@ class SwiftConsole(HasTraits):
     imu_view = Instance(IMUView)
     mag_view = Instance(MagView)
     spectrum_analyzer_view = Instance(SpectrumAnalyzerView)
+    skylark_view = Instance(SkylarkView)
     log_level_filter = Enum(list(SYSLOG_LEVELS.itervalues()))
     """"
   mode : baseline and solution view - SPP, Fixed or Float
@@ -192,6 +194,7 @@ class SwiftConsole(HasTraits):
     num_sats = Int(0)
     cnx_desc = Str('')
     latency = Str('')
+    uuid = Str('')
     directory_name = Directory
     json_logging = Bool(True)
     csv_logging = Bool(False)
@@ -251,7 +254,7 @@ class SwiftConsole(HasTraits):
                     label='Observations', ),
                 Item('settings_view', style='custom', label='Settings'),
                 Item('cellmodem_view', style='custom', label='Cell Modem'),
-                Item('update_view', style='custom', label='Firmware Update'),
+                Item('update_view', style='custom', label='Update'),
                 Tabbed(
                     Item(
                         'system_monitor_view',
@@ -270,6 +273,7 @@ class SwiftConsole(HasTraits):
                         style='custom'),
                     label='Advanced',
                     show_labels=False),
+                Item('skylark_view', style='custom', label='Skylark'),
                 show_labels=False),
             VGroup(
                 VGroup(
@@ -360,6 +364,16 @@ class SwiftConsole(HasTraits):
                         padding=2,
                         show_label=False,
                         style='readonly'),
+                    Item(
+                        '',
+                        label='Device UUID:',
+                        emphasized=True,
+                        tooltip='Universally Unique Device Identifier (UUID)'
+                    ), Item(
+                        'uuid',
+                        padding=2,
+                        show_label=False,
+                        style='readonly', width=6),
                     Spring(springy=True),
                     Item(
                         'cnx_icon',
@@ -669,6 +683,7 @@ class SwiftConsole(HasTraits):
                 'whitelist': [SBP_MSG_POS_LLH, SBP_MSG_HEARTBEAT]
             })
             self.networking_view = SbpRelayView(self.link, **networking_dict)
+            self.skylark_view = SkylarkView()
             self.json_logging = json_logging
             self.csv_logging = False
             self.first_json_press = True
@@ -684,18 +699,18 @@ class SwiftConsole(HasTraits):
             # by the networking view.
 
             def update_serial():
-                uuid = None
                 mfg_id = None
                 try:
-                    uuid = self.settings_view.settings['system_info'][
+                    self.uuid = self.settings_view.settings['system_info'][
                         'uuid'].value
                     mfg_id = self.settings_view.settings['system_info'][
                         'serial_number'].value
                 except KeyError:
                     pass
                 if mfg_id:
-                    self.device_serial = 'PK' + str(mfg_id)[-6:]
-                self.networking_view.set_route(uuid=uuid, serial_id=mfg_id)
+                    self.device_serial = 'PK' + str(mfg_id)
+                self.skylark_view.set_uuid(self.uuid)
+                self.networking_view.set_route(uuid=self.uuid, serial_id=mfg_id)
                 if self.networking_view.connect_when_uuid_received:
                     self.networking_view._connect_rover_fired()
 
