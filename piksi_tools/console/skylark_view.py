@@ -9,7 +9,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from traits.api import Button, HasTraits, String
+from traits.api import HasTraits, String
 from traitsui.api import (HGroup, Item, TextEditor, VGroup, View, spring)
 
 from piksi_tools.console.gui_utils import MultilineTextEditor
