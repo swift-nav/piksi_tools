@@ -53,6 +53,7 @@ from piksi_tools.console.settings_view import SettingsView
 from piksi_tools.console.solution_view import SolutionView
 from piksi_tools.console.spectrum_analyzer_view import SpectrumAnalyzerView
 from piksi_tools.console.system_monitor_view import SystemMonitorView
+from piksi_tools.console.cellmodem_view import CellModemView
 from piksi_tools.console.tracking_view import TrackingView
 from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
@@ -171,6 +172,7 @@ class SwiftConsole(HasTraits):
     networking_view = Instance(SbpRelayView)
     observation_view_base = Instance(ObservationView)
     system_monitor_view = Instance(SystemMonitorView)
+    cellmodem_view = Instance(CellModemView)
     settings_view = Instance(SettingsView)
     update_view = Instance(UpdateView)
     imu_view = Instance(IMUView)
@@ -251,6 +253,7 @@ class SwiftConsole(HasTraits):
                         show_label=False),
                     label='Observations', ),
                 Item('settings_view', style='custom', label='Settings'),
+                Item('cellmodem_view', style='custom', label='Cell Modem'),
                 Item('update_view', style='custom', label='Update'),
                 Tabbed(
                     Item(
@@ -650,6 +653,7 @@ class SwiftConsole(HasTraits):
                 relay=True,
                 dirname=self.directory_name)
             self.system_monitor_view = SystemMonitorView(self.link)
+            self.cellmodem_view = CellModemView(self.link)
             self.update_view = UpdateView(
                 self.link,
                 download_dir=swift_path,
@@ -730,6 +734,8 @@ class SwiftConsole(HasTraits):
                 self.observation_view.python_console_cmds)
             self.python_console_env.update(
                 self.networking_view.python_console_cmds)
+            self.python_console_env.update(
+                self.cellmodem_view.python_console_cmds)
             self.python_console_env.update(
                 self.system_monitor_view.python_console_cmds)
             self.python_console_env.update(

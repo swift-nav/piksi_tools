@@ -237,6 +237,15 @@ def datetime_2_str(datetm):
     return (datetm.strftime('%Y-%m-%d %H:%M'), datetm.strftime('%S.%f'))
 
 
+# Modified based on https://stackoverflow.com/a/1094933
+def sizeof_fmt(num, suffix='B'):
+    for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
+        if abs(num) < 1024.0:
+            return "{:3.1f}{}{}".format(num, unit, suffix)
+        num /= 1024.0
+    return "{:.1f}{}{}".format(num, 'Y', suffix)
+
+
 def log_time_strings(week, tow):
     """Returns two tuples, first is local time, second is gps time
        Each tuple is a string with the date and a string with the
