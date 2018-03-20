@@ -36,7 +36,7 @@ from traitsui.tabular_adapter import TabularAdapter
 
 from piksi_tools.console.gui_utils import MultilineTextEditor, plot_square_axes
 from piksi_tools.console.utils import (
-    DGNSS_MODE, EMPTY_STR, FIXED_MODE, FLOAT_MODE, SBAS_MODE, DR_MODE,
+    DGNSS_MODE, EMPTY_STR, FIXED_MODE, FLOAT_MODE, SBAS_MODE,
     SPP_MODE, call_repeatedly,
     color_dict, datetime_2_str, get_mode, log_time_strings,
     mode_dict)
@@ -572,7 +572,7 @@ class SolutionView(HasTraits):
             lng_sbas=[],
             cur_lat_sbas=[],
             cur_lng_sbas=[]
-            )
+        )
         self.plot = Plot(self.plot_data)
 
         # 1000 point buffer
@@ -682,7 +682,8 @@ class SolutionView(HasTraits):
             line_width=1.5,
             marker_size=5.0)
         plot_labels = ['SPP', 'SBAS', 'DGPS', 'RTK float', 'RTK fixed']
-        plots_legend = dict(zip(plot_labels, [spp, sbas, dgnss, rtkfloat, rtkfix]))
+        plots_legend = dict(
+            zip(plot_labels, [spp, sbas, dgnss, rtkfloat, rtkfix]))
         self.plot.legend.plots = plots_legend
         self.plot.legend.labels = plot_labels  # sets order
         self.plot.legend.visible = True
