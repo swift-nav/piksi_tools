@@ -21,14 +21,23 @@ from sbp.client.handler import Handler
 from sbp.client.loggers.udp_logger import UdpLogger
 from sbp.observation import (SBP_MSG_BASE_POS_ECEF, SBP_MSG_BASE_POS_LLH,
                              SBP_MSG_OBS, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C)
-from traits.api import Bool, Button, Enum, HasTraits, Int, String
+from sbp.piksi import (SBP_MSG_NETWORK_STATE_RESP, MsgNetworkStateReq)
+from traits.api import Bool, Button, Enum, HasTraits, Int, String, List, \
+    Instance
 from traitsui.api import (HGroup, Item, Spring, TextEditor, UItem, VGroup,
-                          View, spring)
+                          View, spring, TabularEditor)
+from traitsui.tabular_adapter import TabularAdapter
 
 from piksi_tools.console.callback_prompt import CallbackPrompt, close_button
 from piksi_tools.console.gui_utils import MultilineTextEditor
+from piksi_tools.console.cellmodem_view import CellModemView
 from piksi_tools.serial_link import (CHANNEL_UUID, DEFAULT_BASE, get_uuid,
                                      swriter)
+from traits.etsconfig.api import ETSConfig
+from .utils import resource_filename, sizeof_fmt
+
+if ETSConfig.toolkit != 'null':
+    from enable.savage.trait_defs.ui.svg_button import SVGButton
 
 DEFAULT_UDP_ADDRESS = "127.0.0.1"
 DEFAULT_UDP_PORT = 13320
@@ -36,6 +45,15 @@ OBS_MSGS = [
     SBP_MSG_OBS_DEP_C, SBP_MSG_OBS_DEP_B, SBP_MSG_BASE_POS_LLH,
     SBP_MSG_BASE_POS_ECEF, SBP_MSG_OBS
 ]
+
+
+def ip_bytes_to_string(ip_bytes):
+    return '.'.join(str(x) for x in ip_bytes)
+
+
+class SimpleNetworkAdapter(TabularAdapter):
+    columns = [('Interface Name', 0), ('IPv4 Addr', 1), ('Running', 2),
+               ('Tx Usage', 3), ('Rx Usage', 4)]
 
 
 class HttpConsoleConnectConfig(object):
@@ -62,9 +80,9 @@ class HttpConsoleConnectConfig(object):
         return ("link: {0}, url {1}, device_uid: {2}, "
                 "whitelist {3}, rover pragma: {4}, base_pragma: {5}, "
                 "rover_uuid: {6}, base_uuid {7}").format(
-                    self.link, self.url, self.device_uid, self.whitelist,
-                    self.rover_pragma, self.base_pragma, self.rover_uuid,
-                    self.base_uuid)
+            self.link, self.url, self.device_uid, self.whitelist,
+            self.rover_pragma, self.base_pragma, self.rover_uuid,
+            self.base_uuid)
 
 
 class HttpWatchdogThread(threading.Thread):
@@ -124,7 +142,7 @@ class HttpWatchdogThread(threading.Thread):
         if self.stopped_callback:
             try:
                 self.stopped_callback()
-            except: # noqa
+            except:  # noqa
                 print(
                     "Error stopping HttpWatchdogThread: User supplied callback has unhandeled exception"
                 )
@@ -133,8 +151,8 @@ class HttpWatchdogThread(threading.Thread):
         if self.verbose:
             print(("HttpWatchdogThread initialized "
                    "at {0} and connected since {1} stopped at {2}").format(
-                       self.get_init_time(),
-                       self.get_connect_time(), self.get_stop_time()))
+                self.get_init_time(),
+                self.get_connect_time(), self.get_stop_time()))
 
     def stopped(self):
         """ determines if thread is stopped currently """
@@ -175,14 +193,13 @@ class HttpWatchdogThread(threading.Thread):
         self._connect_time = time.time()
         if self.verbose:
             print(
-                "HttpWatchdogThread connection attempted at time {0} with parameters {1}".
-                format(self.get_connect_time(), read_config))
+                "HttpWatchdogThread connection attempted at time {0} with parameters {1}".format(
+                    self.get_connect_time(), read_config))
         i = 0
         repeats = 5
         http = HTTPDriver(
             device_uid=read_config.base_uuid, url=read_config.url)
-        if not http.connect_write(
-                link, read_config.whitelist, pragma=read_config.base_pragma):
+        if not http.connect_write(link, read_config.whitelist, pragma=read_config.base_pragma):
             msg = ("\nUnable to connect!\n\n" +
                    "Please check that you have a network connection.")
             self._prompt_networking_error(msg)
@@ -193,9 +210,9 @@ class HttpWatchdogThread(threading.Thread):
 
         # If we get here, we were able to connect as a base
         print("Attempting to read observations ...")
-        while (not self.stopped() and http and not http.connect_read(
-                device_uid=read_config.rover_uuid,
-                pragma=read_config.rover_pragma)):
+        while (not self.stopped() and http and
+               not http.connect_read(device_uid=read_config.rover_uuid,
+                                     pragma=read_config.rover_pragma)):
             time.sleep(0.1)
             i += 1
             if i >= repeats:
@@ -251,6 +268,7 @@ class SbpRelayView(HasTraits):
     to relay over UDP and to configure a http connection
     """
     running = Bool(False)
+    _network_info = List()
     configured = Bool(False)
     broadcasting = Bool(False)
     msg_enum = Enum('Observations', 'All')
@@ -279,6 +297,14 @@ class SbpRelayView(HasTraits):
     base_device_uid = String()
     rover_device_uid = String()
     toggle = True
+    network_refresh_button = SVGButton(
+        label='Refresh Network Status',
+        tooltip='Refresh Network Status',
+        filename=resource_filename('console/images/fontawesome/refresh.svg'),
+        width=16,
+        height=16,
+        aligment='center')
+    cell_modem_view = Instance(CellModemView)
     view = View(
         VGroup(spring,
                HGroup(
@@ -313,7 +339,11 @@ class SbpRelayView(HasTraits):
                            show_label=False,
                            resizable=True,
                            padding=15),
-                       spring, ), ), spring,
+                       spring,
+                   ),
+                   visible_when='not show_networking'
+               ),
+               spring,
                HGroup(
                    VGroup(
                        HGroup(spring,
@@ -331,7 +361,7 @@ class SbpRelayView(HasTraits):
                                'url',
                                enabled_when='not connected_rover',
                                show_label=True), Spring(
-                                   springy=False, width=2)),
+                               springy=False, width=2)),
                        HGroup(spring,
                               Item('base_pragma', label='Base option '),
                               Item('base_device_uid', label='Base device '),
@@ -352,7 +382,29 @@ class SbpRelayView(HasTraits):
                            resizable=True,
                            padding=15),
                        spring, ),
-                   visible_when='show_networking', ), spring))
+                   visible_when='show_networking'),
+               HGroup(Item('cell_modem_view', style='custom', show_label=False),
+                      VGroup(
+                          Item(
+                              '_network_info',
+                              style='readonly',
+                              editor=TabularEditor(
+                                  adapter=SimpleNetworkAdapter()),
+                              show_label=False, ),
+                          Item(
+                              'network_refresh_button', show_label=False,
+                              width=0.50),
+                          show_border=True,
+                          label="Network"),
+                      )
+               )
+    )
+
+    def _network_callback(self, m, **metadata):
+        self._network_info.append(
+            (m.interface_name, ip_bytes_to_string(m.ipv4_address),
+             ((m.flags & (1 << 6)) != 0),
+             sizeof_fmt(m.tx_bytes), sizeof_fmt(m.rx_bytes)))
 
     def __init__(self,
                  link,
@@ -383,6 +435,7 @@ class SbpRelayView(HasTraits):
         """
         self.link = link
         # Whitelist used for UDP broadcast view
+        self.cell_modem_view = CellModemView(link)
         self.msgs = OBS_MSGS
         # register a callback when the msg_enum trait changes
         self.on_trait_change(self.update_msgs, 'msg_enum')
@@ -402,6 +455,9 @@ class SbpRelayView(HasTraits):
             self.connect_when_uuid_received = True
         else:
             self.connect_when_uuid_received = False
+        self.cellmodem_interface_name = "ppp0"
+        self.link.add_callback(self._network_callback,
+                               SBP_MSG_NETWORK_STATE_RESP)
 
     def update_msgs(self):
         """Updates the instance variable msgs which store the msgs that we
@@ -453,22 +509,29 @@ class SbpRelayView(HasTraits):
         prompt.text = text
         prompt.run(block=False)
 
+    def update_network_state(self):
+        self._network_refresh_button_fired()
+
+    def _network_refresh_button_fired(self):
+        self._network_info = []
+        self.link(MsgNetworkStateReq())
+
     def _disconnect_rover_fired(self):
         """Handle callback for HTTP rover disconnects.
 
         """
         try:
-            if isinstance(self.http_watchdog_thread, threading.Thread) and \
-               not self.http_watchdog_thread.stopped():
-                self.http_watchdog_thread.stop()
+            if (isinstance(self.http_watchdog_thread, threading.Thread) and
+               not self.http_watchdog_thread.stopped()):
+                    self.http_watchdog_thread.stop()
             else:
                 print(("Unable to disconnect: Http watchdog thread "
                        "inititalized at {0} and connected since {1} has "
                        "already been stopped").format(
-                           self.http_watchdog_thread.get_init_time(),
-                           self.http_watchdog_thread.get_connect_time()))
+                    self.http_watchdog_thread.get_init_time(),
+                    self.http_watchdog_thread.get_connect_time()))
             self.connected_rover = False
-        except: # noqa
+        except:  # noqa
             self.connected_rover = False
             import traceback
             print(traceback.format_exc())
@@ -494,9 +557,8 @@ class SbpRelayView(HasTraits):
                 verbose=self.verbose)
             self.connected_rover = True
             self.http_watchdog_thread.start()
-        except: # noqa
-            if isinstance(self.http_watchdog_thread, threading.Thread) \
-               and self.http_watchdog_thread.stopped():
+        except:  # noqa
+            if (isinstance(self.http_watchdog_thread, threading.Thread) and self.http_watchdog_thread.stopped()):
                 self.http_watchdog_thread.stop()
             self.connected_rover = False
             import traceback
@@ -512,7 +574,7 @@ class SbpRelayView(HasTraits):
         try:
             self.func = UdpLogger(self.ip_ad, self.port)
             self.link.add_callback(self.func, self.msgs)
-        except: # noqa
+        except:  # noqa
             import traceback
             print(traceback.format_exc())
 
@@ -527,6 +589,6 @@ class SbpRelayView(HasTraits):
             self.func.__exit__()
             self.func = None
             self.running = False
-        except: # noqa
+        except:  # noqa
             import traceback
             print(traceback.format_exc())
