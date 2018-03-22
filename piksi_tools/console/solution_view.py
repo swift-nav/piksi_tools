@@ -29,7 +29,8 @@ from sbp.navigation import (
     SBP_MSG_VEL_NED_DEP_A, MsgAgeCorrections, MsgDops, MsgDopsDepA, MsgGPSTime,
     MsgGPSTimeDepA, MsgPosLLH, MsgPosLLHDepA, MsgUtcTime, MsgVelNED,
     MsgVelNEDDepA)
-from traits.api import Bool, Dict, File, HasTraits, Instance, Int, List, Str
+from traits.api import Bool, Dict, File, HasTraits, Instance, Int, List, Str, \
+    Enum
 from traitsui.api import (HGroup, HSplit, Item, TabularEditor, TextEditor,
                           VGroup, View)
 from traitsui.tabular_adapter import TabularAdapter
@@ -42,6 +43,25 @@ from piksi_tools.console.utils import (
     mode_dict)
 from piksi_tools.utils import sopen
 from .utils import resource_filename
+
+
+def meters_per_deg(lat):
+    m1 = 111132.92  # latitude calculation term 1
+    m2 = -559.82    # latitude calculation term 2
+    m3 = 1.175      # latitude calculation term 3
+    m4 = -0.0023    # latitude calculation term 4
+    p1 = 111412.84  # longitude calculation term 1
+    p2 = -93.5      # longitude calculation term 2
+    p3 = 0.118      # longitude calculation term 3
+
+    # Calculate the length of a degree of latitude and longitude in meters
+    latlen = m1 + (m2 * math.cos(2 * lat * math.pi / 180)) + (
+        m3 * math.cos(4 * lat * math.pi / 180)) + \
+        (m4 * math.cos(6 * lat * math.pi / 180))
+    longlen = (p1 * math.cos(lat * math.pi / 180)) + (
+        p2 * math.cos(3 * lat * math.pi / 180)) + \
+        (p3 * math.cos(5 * lat * math.pi / 180))
+    return (latlen, longlen)
 
 
 class SimpleAdapter(TabularAdapter):
@@ -61,6 +81,7 @@ class SolutionView(HasTraits):
   """
     plot_history_max = Int(1000)
     logging_v = Bool(False)
+    display_units = Enum(["degrees", "meters"])
     directory_name_v = File
 
     logging_p = Bool(False)
@@ -139,7 +160,8 @@ class SolutionView(HasTraits):
                     Item('paused_button', show_label=False),
                     Item('clear_button', show_label=False),
                     Item('zoomall_button', show_label=False),
-                    Item('center_button', show_label=False), ),
+                    Item('center_button', show_label=False),
+                    Item('display_units', label="Display Units"), ),
                 Item(
                     'plot',
                     show_label=False,
@@ -189,11 +211,11 @@ class SolutionView(HasTraits):
         self.plot_data.set_data('alt_sbas', [])
 
     def _clear_button_fired(self):
-        self.tows = np.empty(self.plot_history_max)
-        self.lats = np.empty(self.plot_history_max)
-        self.lngs = np.empty(self.plot_history_max)
-        self.alts = np.empty(self.plot_history_max)
-        self.modes = np.empty(self.plot_history_max)
+        self.tows = np.zeros(self.plot_history_max)
+        self.lats = np.zeros(self.plot_history_max)
+        self.lngs = np.zeros(self.plot_history_max)
+        self.alts = np.zeros(self.plot_history_max)
+        self.modes = np.zeros(self.plot_history_max)
         self._clear_history()
         self._reset_remove_current()
 
@@ -348,6 +370,21 @@ class SolutionView(HasTraits):
         self._clear_history()
         soln = self.last_soln
         if np.any(self.modes):
+            if self.display_units == "meters":
+                offset = (np.mean(self.lats[~(np.equal(self.modes, 0))]),
+                          np.mean(self.lngs[~(np.equal(self.modes, 0))]),
+                          np.mean(self.alts[~(np.equal(self.modes, 0))]))
+                if not self.meters_per_lat:
+                    (self.meters_per_lat, self.meters_per_lon) = meters_per_deg(
+                        soln.lat)
+                sf = (self.meters_per_lat, self.meters_per_lon)
+                self.plot.value_axis.title = 'Latitude (meters)'
+                self.plot.index_axis.title = 'Longitude (meters)'
+            else:
+                offset = (0, 0, 0)
+                sf = (1, 1)
+                self.plot.value_axis.title = 'Latitude (degrees)'
+                self.plot.index_axis.title = 'Longitude (degrees)'
             spp_indexer = (self.modes == SPP_MODE)
             dgnss_indexer = (self.modes == DGNSS_MODE)
             sbas_indexer = (self.modes == SBAS_MODE)
@@ -356,63 +393,100 @@ class SolutionView(HasTraits):
 
             # make sure that there is at least one true in indexer before setting
             if any(spp_indexer):
-                self.plot_data.set_data('lat_spp', self.lats[spp_indexer])
-                self.plot_data.set_data('lng_spp', self.lngs[spp_indexer])
-                self.plot_data.set_data('alt_spp', self.alts[spp_indexer])
+                self.plot_data.set_data('lat_spp',
+                                        (self.lats[spp_indexer] - offset[0]) *
+                                        sf[0])
+                self.plot_data.set_data('lng_spp',
+                                        (self.lngs[spp_indexer] - offset[1]) *
+                                        sf[1])
+                self.plot_data.set_data('alt_spp',
+                                        (self.alts[spp_indexer] - offset[2]))
             if any(dgnss_indexer):
-                self.plot_data.set_data('lat_dgnss', self.lats[dgnss_indexer])
-                self.plot_data.set_data('lng_dgnss', self.lngs[dgnss_indexer])
-                self.plot_data.set_data('alt_dgnss', self.alts[dgnss_indexer])
+                self.plot_data.set_data('lat_dgnss',
+                                        (self.lats[dgnss_indexer] - offset[0]) *
+                                        sf[0])
+                self.plot_data.set_data('lng_dgnss',
+                                        (self.lngs[dgnss_indexer] - offset[1]) *
+                                        sf[1])
+                self.plot_data.set_data('alt_dgnss',
+                                        (self.alts[dgnss_indexer] - offset[2]))
             if any(float_indexer):
-                self.plot_data.set_data('lat_float', self.lats[float_indexer])
-                self.plot_data.set_data('lng_float', self.lngs[float_indexer])
-                self.plot_data.set_data('alt_float', self.alts[float_indexer])
+                self.plot_data.set_data('lat_float',
+                                        (self.lats[float_indexer] - offset[0]) *
+                                        sf[0])
+                self.plot_data.set_data('lng_float',
+                                        (self.lngs[float_indexer] - offset[1]) *
+                                        sf[1])
+                self.plot_data.set_data('alt_float',
+                                        (self.alts[float_indexer] - offset[2]))
             if any(fixed_indexer):
-                self.plot_data.set_data('lat_fixed', self.lats[fixed_indexer])
-                self.plot_data.set_data('lng_fixed', self.lngs[fixed_indexer])
-                self.plot_data.set_data('alt_fixed', self.alts[fixed_indexer])
+                self.plot_data.set_data('lat_fixed',
+                                        (self.lats[fixed_indexer] - offset[0]) *
+                                        sf[0])
+                self.plot_data.set_data('lng_fixed',
+                                        (self.lngs[fixed_indexer] - offset[1]) *
+                                        sf[1])
+                self.plot_data.set_data('alt_fixed',
+                                        (self.alts[fixed_indexer] - offset[2]))
             if any(sbas_indexer):
-                self.plot_data.set_data('lat_sbas', self.lats[sbas_indexer])
-                self.plot_data.set_data('lng_sbas', self.lngs[sbas_indexer])
-                self.plot_data.set_data('alt_sbas', self.alts[sbas_indexer])
+                self.plot_data.set_data('lat_sbas',
+                                        (self.lats[sbas_indexer] - offset[0]) *
+                                        sf[0])
+                self.plot_data.set_data('lng_sbas',
+                                        (self.lngs[sbas_indexer] - offset[1]) *
+                                        sf[1])
+                self.plot_data.set_data('alt_sbas',
+                                        (self.alts[sbas_indexer] - offset[2]))
 
-            # update our "current solution" icon
+                # update our "current solution" icon
             if self.last_pos_mode == SPP_MODE:
                 self._reset_remove_current()
-                self.plot_data.set_data('cur_lat_spp', [soln.lat])
-                self.plot_data.set_data('cur_lng_spp', [soln.lon])
+                self.plot_data.set_data('cur_lat_spp',
+                                        [(soln.lat - offset[0]) * sf[0]])
+                self.plot_data.set_data('cur_lng_spp',
+                                        [(soln.lon - offset[1]) * sf[1]])
             elif self.last_pos_mode == DGNSS_MODE:
                 self._reset_remove_current()
-                self.plot_data.set_data('cur_lat_dgnss', [soln.lat])
-                self.plot_data.set_data('cur_lng_dgnss', [soln.lon])
+                self.plot_data.set_data('cur_lat_dgnss',
+                                        [(soln.lat - offset[0]) * sf[0]])
+                self.plot_data.set_data('cur_lng_dgnss',
+                                        [(soln.lon - offset[1]) * sf[1]])
             elif self.last_pos_mode == FLOAT_MODE:
                 self._reset_remove_current()
-                self.plot_data.set_data('cur_lat_float', [soln.lat])
-                self.plot_data.set_data('cur_lng_float', [soln.lon])
+                self.plot_data.set_data('cur_lat_float',
+                                        [(soln.lat - offset[0]) * sf[0]])
+                self.plot_data.set_data('cur_lng_float',
+                                        [(soln.lon - offset[1]) * sf[1]])
             elif self.last_pos_mode == FIXED_MODE:
                 self._reset_remove_current()
-                self.plot_data.set_data('cur_lat_fixed', [soln.lat])
-                self.plot_data.set_data('cur_lng_fixed', [soln.lon])
+                self.plot_data.set_data('cur_lat_fixed',
+                                        [(soln.lat - offset[0]) * sf[0]])
+                self.plot_data.set_data('cur_lng_fixed',
+                                        [(soln.lon - offset[1]) * sf[1]])
             elif self.last_pos_mode == SBAS_MODE:
                 self._reset_remove_current()
-                self.plot_data.set_data('cur_lat_sbas', [soln.lat])
-                self.plot_data.set_data('cur_lng_sbas', [soln.lon])
+                self.plot_data.set_data('cur_lat_sbas',
+                                        [(soln.lat - offset[0]) * sf[0]])
+                self.plot_data.set_data('cur_lng_sbas',
+                                        [(soln.lon - offset[1]) * sf[1]])
             else:
                 pass
 
-        # TODO: figure out how to center the graph now that we have two separate messages
-        # when we selectively send only SPP, the centering function won't work anymore
-
-        if not self.zoomall and self.position_centered:
-            d = (self.plot.index_range.high - self.plot.index_range.low) / 2.
-            self.plot.index_range.set_bounds(soln.lon - d, soln.lon + d)
-            d = (self.plot.value_range.high - self.plot.value_range.low) / 2.
-            self.plot.value_range.set_bounds(soln.lat - d, soln.lat + d)
-        if self.zoomall:
-            plot_square_axes(self.plot, ('lng_spp', 'lng_dgnss', 'lng_float',
-                                         'lng_fixed', 'lng_sbas'),
-                             ('lat_spp', 'lat_dgnss', 'lat_float',
-                              'lat_fixed', 'lng_sbas'))
+            if not self.zoomall and self.position_centered:
+                d = (self.plot.index_range.high - self.plot.index_range.low) / 2.
+                self.plot.index_range.set_bounds(
+                    (soln.lon - offset[1]) * sf[1] - d,
+                    (soln.lon - offset[1]) * sf[1] + d)
+                d = (self.plot.value_range.high - self.plot.value_range.low) / 2.
+                self.plot.value_range.set_bounds(
+                    (soln.lat - offset[0]) * sf[0] - d,
+                    (soln.lat - offset[0]) * sf[0] + d)
+            if self.zoomall:
+                plot_square_axes(self.plot,
+                                 ('lng_spp', 'lng_dgnss', 'lng_float',
+                                  'lng_fixed', 'lng_sbas'),
+                                 ('lat_spp', 'lat_dgnss', 'lat_float',
+                                  'lat_fixed', 'lng_sbas'))
 
     def dops_callback(self, sbp_msg, **metadata):
         flags = 0
@@ -723,6 +797,8 @@ class SolutionView(HasTraits):
         self.utc_time = None
         self.age_corrections = None
         self.nsec = 0
+        self.meters_per_lat = None
+        self.meters_per_lon = None
 
         self.python_console_cmds = {
             'solution': self,
