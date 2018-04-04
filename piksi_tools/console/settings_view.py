@@ -152,6 +152,10 @@ class Setting(SettingBase):
 
     def revert_to_prior_value(self, name, old, new):
         '''Revert setting to old value in the case we can't confirm new value'''
+
+        if self.readonly:
+            return
+
         self.revert_in_progress = True
         self.value = old
         self.revert_in_progress = False
