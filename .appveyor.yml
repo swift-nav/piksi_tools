@@ -32,6 +32,8 @@ install:
   - powershell .\\tasks\\missing-headers.ps1
   - '%CMD_IN_ENV% python scripts\build_release.py'
 
+script: tox
+
 build: off
 
 artifacts:
