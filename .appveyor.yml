@@ -30,9 +30,8 @@ install:
   # Upgrade to the latest pip.
   - '%CMD_IN_ENV% python -m pip install -U pip setuptools wheel tox'
   - powershell .\\tasks\\missing-headers.ps1
+  - tox
   - '%CMD_IN_ENV% python scripts\build_release.py'
-
-script: tox
 
 build: off
 
