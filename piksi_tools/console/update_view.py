@@ -614,6 +614,7 @@ class UpdateView(HasTraits):
         progress_dialog.title = "Transferring image file"
         GUI.invoke_later(progress_dialog.open)
         self._write("Transferring image file...")
+        sleep(2)
         try:
             FileIO(self.link).write(
                 "upgrade.image_set.bin",
