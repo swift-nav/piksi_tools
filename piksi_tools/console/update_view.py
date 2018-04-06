@@ -115,7 +115,8 @@ class PulsableProgressDialog(ProgressDialog):
         pulsed : bool
           Show non-partial progress initially.
         """
-        super(PulsableProgressDialog, self).__init__()
+        super(PulsableProgressDialog, self).__init__(style='modal', can_cancel=False)
+        self.style= 'modal'
         self.min = 0
         self.max = 0
         self.pulsed = pulsed
@@ -633,16 +634,16 @@ class UpdateView(HasTraits):
         GUI.invoke_later(progress_dialog.open)
         self._write("Committing file to flash...")
 
-        def log_cb(msg, **kwargs):
-            self._write(msg.text)
+        #def log_cb(msg, **kwargs):
+        #    self._write(msg.text)
 
-        self.link.add_callback(log_cb, SBP_MSG_LOG)
+        #self.link.add_callback(log_cb, SBP_MSG_LOG)
         code = shell_command(
             self.link,
             "upgrade_tool upgrade.image_set.bin",
             600,
             progress_cb=progress_dialog.progress)
-        self.link.remove_callback(log_cb, SBP_MSG_LOG)
+        #self.link.remove_callback(log_cb, SBP_MSG_LOG)
         progress_dialog.close()
 
         if code != 0:
