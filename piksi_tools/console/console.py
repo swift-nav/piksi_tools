@@ -58,7 +58,7 @@ from piksi_tools.console.tracking_view import TrackingView
 from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
                                        get_mode, mode_dict, resource_filename,
-                                       icon, swift_path)
+                                       icon, swift_path, stop_all_threads)
 from piksi_tools.console.skylark_view import SkylarkView
 
 
@@ -577,6 +577,7 @@ class SwiftConsole(HasTraits):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        print("Swift console exiting...")
         self.console_output.close()
 
     def __init__(self,
@@ -998,15 +999,13 @@ def main():
                     networking=args.networking,
                     connection_info=cnx_info,
                     expand_json=args.expand_json) as console:
-
                 console.configure_traits()
 
-    # Force exit, even if threads haven't joined
-    try:
-        os._exit(0)
-    except:  # noqa
-        pass
+    print("Exiting, stopping all threads...")
+    stop_all_threads()
 
 
 if __name__ == "__main__":
     main()
+
+# vim: ts=4:et:sts=4:sw=4:ai:
