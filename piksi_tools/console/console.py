@@ -125,6 +125,15 @@ CONSOLE_TITLE = 'Swift Console v' + CONSOLE_VERSION
 BAUD_LIST = [57600, 115200, 230400, 921600, 1000000]
 
 
+import tracemalloc
+import datetime
+
+memtracelog = open('/tmp/console_memory_trace.txt', 'a')
+
+def time_prefix():
+    return datetime.datetime.now().strftime('%Y%m%d_%H:%M:%S - ')
+
+
 class ConsoleHandler(Handler):
     """
     Handler that updates the window title with the device serial number
@@ -143,6 +152,35 @@ class ConsoleHandler(Handler):
         if info.initialized:
             info.ui.title = (info.object.dev_id +
                              "(" + info.object.device_serial + ") " + CONSOLE_TITLE)
+
+    def init(self, info):
+        r = Handler.init(self, info)
+        tracemalloc.start()
+        memtracelog.write(time_prefix() + "Console window is initializing, starting memory trace...\n")
+        memtracelog.flush()
+        return r
+
+    def close(self, info, ok):
+        r = Handler.close(self, info, ok)
+        memtracelog.write(time_prefix() + "Console window is starting to close...\n")
+        memtracelog.flush()
+        return r
+
+    def closed(self, info, ok):
+        r = Handler.closed(self, info, ok)
+        memtracelog.write(time_prefix() + "Console window is closed...\n")
+        memtracelog.write(time_prefix() + "Printing memory usage:\n")
+        memtracelog.flush()
+        snapshot = tracemalloc.take_snapshot()
+        top_stats = snapshot.statistics('lineno')
+        memtracelog.write(time_prefix() + "[ Top 50 ]\n")
+        for stat in top_stats[:50]:
+            memtracelog.write(time_prefix() + str(stat) + "\n")
+            memtracelog.flush()
+        memtracelog.write(time_prefix() + "...done\n")
+        memtracelog.flush()
+        memtracelog.close()
+        return r
 
 
 class SwiftConsole(HasTraits):
