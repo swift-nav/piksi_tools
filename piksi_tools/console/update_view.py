@@ -121,6 +121,29 @@ class PulsableProgressDialog(ProgressDialog):
         self.pulsed = pulsed
         self.passed_max = max
 
+    def open_in_gui_thread(self, timeout_secs=5):
+        """
+        Open dialog in gui thread and wait to return until open up to timeout_sec seconds
+        The superclass open method sets the _start_time variable which is used as a signal
+        for whether open has occured.
+
+        Parameters
+        ----------
+        timeouts_secs : int
+            Number of seconds to wait for widget to initialize.
+
+        Returns
+        ----------
+            True if widget was opened (i.e _start_time var exists)
+            False if otherwise
+        """
+        GUI.invoke_later(self.open)
+        counter = 0
+        while(getattr(self, '_start_time', -1) == -1 and counter < timeout_secs * 2):
+            sleep(0.5)
+            counter += 1
+        return getattr(self, '_start_time', -1) != -1
+
     def progress(self, count):
         """
         Update progress of progress bar. If pulsing initially, wait until count
@@ -611,8 +634,10 @@ class UpdateView(HasTraits):
         # Set up progress dialog and transfer file to Piksi using SBP FileIO
         progress_dialog = PulsableProgressDialog(len(self.stm_fw.blob))
         progress_dialog.title = "Transferring image file"
-        GUI.invoke_later(progress_dialog.open)
         self._write("Transferring image file...")
+        if not progress_dialog.open_in_gui_thread():
+            self._write("Failed to open progress dialog.\n")
+            return
         try:
             FileIO(self.link).write(
                 "upgrade.image_set.bin",
@@ -630,8 +655,9 @@ class UpdateView(HasTraits):
         # Setup up pulsed progress dialog and commit to flash
         progress_dialog = PulsableProgressDialog(100, True)
         progress_dialog.title = "Committing to flash"
-        GUI.invoke_later(progress_dialog.open)
-        self._write("Committing file to flash...")
+        if not progress_dialog.open_in_gui_thread():
+            self._write("Failed to open progress dialog.\n")
+            return
 
         def log_cb(msg, **kwargs):
             self._write(msg.text)
