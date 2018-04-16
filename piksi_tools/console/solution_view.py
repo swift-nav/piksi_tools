@@ -486,7 +486,7 @@ class SolutionView(HasTraits):
                                  ('lng_spp', 'lng_dgnss', 'lng_float',
                                   'lng_fixed', 'lng_sbas'),
                                  ('lat_spp', 'lat_dgnss', 'lat_float',
-                                  'lat_fixed', 'lng_sbas'))
+                                  'lat_fixed', 'lat_sbas'))
 
     def dops_callback(self, sbp_msg, **metadata):
         flags = 0
