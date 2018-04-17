@@ -2009,12 +2009,36 @@
   expert: false
   default value: 'False'
   readonly: false
-  Description: Standalone logging enabled.
   units: N/A
+  Description: Standalone logging enabled.
   Notes: Setting this to true triggers the logger to start trying to write logs to the output_directory.
          Setting this to false will immediately close the current file and stop logging.
          Reenabling logging will increment the session counter which is reflected in the log file names (see USB Logging File Output section).
-         
+
+- group: standalone_logging
+  name: logging_file_system
+  type: enum
+  expert: true
+  default value: 'FAT'
+  readonly: false
+  units: N/A
+  Description: Configure the file-system used for standalone logging (SD card only).
+  Notes: Configures the file-system used for standalone logging.
+         Setting this to F2FS will reparition and the reformat any SD card
+         that is not formatted with F2FS upon system reboot.  Settings must
+         be persisted for this to take effect.
+
+- group: standalone_logging
+  name: copy_system_logs
+  type: boolean
+  expert: true
+  default value: 'False'
+  readonly: false
+  units: N/A
+  Description: Copy system logs to the SD card at regular intervals.
+  Notes: Setting this to true will cause the device to copy the systems to the SD card at regular intervals.
+         Setting this to false will stop the device from copying the systems logs to the SD card.
+
 - group: system
   name: system_time
   type: enum
