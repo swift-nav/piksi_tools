@@ -2009,8 +2009,8 @@
   expert: false
   default value: 'False'
   readonly: false
-  Description: Standalone logging enabled.
   units: N/A
+  Description: Standalone logging enabled.
   Notes: Setting this to true triggers the logger to start trying to write logs to the output_directory.
          Setting this to false will immediately close the current file and stop logging.
          Reenabling logging will increment the session counter which is reflected in the log file names (see USB Logging File Output section).
