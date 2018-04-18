@@ -2014,7 +2014,31 @@
   Notes: Setting this to true triggers the logger to start trying to write logs to the output_directory.
          Setting this to false will immediately close the current file and stop logging.
          Reenabling logging will increment the session counter which is reflected in the log file names (see USB Logging File Output section).
-         
+
+- group: standalone_logging
+  name: logging_file_system
+  type: enum
+  expert: true
+  default value: 'FAT'
+  readonly: false
+  units: N/A
+  Description: Configure the file-system used for standalone logging (SD card only).
+  Notes: Configures the file-system used for standalone logging.
+         Setting this to F2FS will reparition and the reformat any SD card
+         that is not formatted with F2FS upon system reboot.  Settings must
+         be persisted for this to take effect.
+
+- group: standalone_logging
+  name: copy_system_logs
+  type: boolean
+  expert: true
+  default value: 'False'
+  readonly: false
+  units: N/A
+  Description: Copy system logs to the SD card at regular intervals.
+  Notes: Setting this to true will cause the device to copy the system logs to the SD card at regular intervals.
+         Setting this to false will stop the device from copying the systems logs to the SD card.
+
 - group: system
   name: system_time
   type: enum
@@ -2027,3 +2051,34 @@
   Notes: Configures the possible sources for Linux system time on the Swift Device. 
          Linux system time is required for HTTPS certification validation and other Linux system functionality.
 
+- group: system
+  name: log_ping_activity
+  type: boolean
+  expert: true
+  default value: 'False'
+  readonly: false
+  units: N/A
+  Description: If set to true, the network poll service will also log ping activity.
+  Notes: Configures the network poll service to log ping activity to /var/log/ping.log.
+
+- group: system
+  name: connectivity_check_frequency
+  type: float
+  expert: true
+  default value: '0.1'
+  readonly: false
+  units: Hz
+  Description: The frequency at which the network poll service checks for connectivity.
+  Notes: The network poll service will perform a connectivity check with a well known IP
+         address at the frequency configured by this setting.
+
+- group: system
+  name: connectivity_retry_frequency
+  type: float
+  expert: true
+  default value: '1.0'
+  readonly: false
+  units: Hz
+  Description: The frequency at which the network poll service retries after a failed connectivity check.
+  Notes: If a connectivity check fails, this settings controls the frequency at which a new
+         connectivity check is performed.
