@@ -44,6 +44,7 @@ def build_linux():
     print('Creating tar archive')
     with tarfile.open(out + '.tar.gz', 'w:gz') as tar:
         tar.add(out, arcname=os.path.basename(out))
+    os.remove(out)
 
 
 def build_macos():
