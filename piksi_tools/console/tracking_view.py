@@ -148,18 +148,15 @@ class TrackingView(CodeFiltered):
                 new_arr[-1] = 0
                 self.CN0_dict[key] = new_arr
 
-        # If the whole array is 0 we remove it
-        # for each satellite, we have a (code, prn, channel) keyed dict
-        # for each SID, an array of size MAX PLOT with the history of CN0's stored
-        # If there is no CN0 or not tracking for an epoch, 0 will be used
-        # each array can be plotted against host_time, t
         for i, s in enumerate(sbp_msg.states):
             if code_is_glo(s.mesid.code):
-                sat = self.glo_fcn_dict.get(i, 0)
+                # for Glonass satellites, store in two dictionaries FCN and SLOT
+                # so that they can both be retrieved when displaying the channel
                 if (s.mesid.sat > 90):
                     self.glo_fcn_dict[i] = s.mesid.sat - 100
                 else:
                     self.glo_slot_dict[i] = s.mesid.sat
+                sat = self.glo_fcn_dict.get(i, 0)
             else:
                 sat = s.mesid.sat
             key = (s.mesid.code, sat, i)
