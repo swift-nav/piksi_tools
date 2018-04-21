@@ -18,7 +18,7 @@ from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
 from pyface.api import GUI
-from sbp.tracking import SBP_MSG_TRACKING_STATE, SBP_MSG_TRACKING_STATE_DEP_B
+from sbp.tracking import SBP_MSG_MEASUREMENT_STATE, SBP_MSG_TRACKING_STATE, SBP_MSG_TRACKING_STATE_DEP_B
 from traits.api import Bool, Dict, Instance, List
 from traitsui.api import HGroup, Item, Spring, VGroup, View
 
@@ -102,8 +102,8 @@ def get_label(key, extra):
 
     if code_is_glo(code):
         lbl += 'F{sat:0=+3d}'.format(sat=sat)
-        if sat in extra:
-            lbl += ' R{slot:02d}'.format(slot=extra[sat])
+        if ch in extra:
+            lbl += ' R{slot:02d}'.format(slot=extra[ch])
     elif code_is_sbas(code):
         lbl += 'S{sat:3d}'.format(sat=sat)
     elif code_is_bds2(code):
@@ -134,6 +134,43 @@ class TrackingView(CodeFiltered):
                 Item('legend_visible', label="Show Legend:"),
                 CodeFiltered.get_filter_group(), )))
 
+    def measurement_state_callback(self, sbp_msg, **metadata):
+        t = time.time() - self.t_init
+        self.time[0:-1] = self.time[1:]
+        self.time[-1] = t
+        # first we loop over all the SIDs / channel keys we have stored and set 0 in for CN0
+        for key, cno_array in self.CN0_dict.items():
+            # p
+            if (cno_array == 0).all():
+                self.CN0_dict.pop(key)
+            else:
+                new_arr = np.roll(cno_array, -1)
+                new_arr[-1] = 0
+                self.CN0_dict[key] = new_arr
+
+        # If the whole array is 0 we remove it
+        # for each satellite, we have a (code, prn, channel) keyed dict
+        # for each SID, an array of size MAX PLOT with the history of CN0's stored
+        # If there is no CN0 or not tracking for an epoch, 0 will be used
+        # each array can be plotted against host_time, t
+        for i, s in enumerate(sbp_msg.states):
+            if code_is_glo(s.mesid.code):
+                sat = self.glo_fcn_dict.get(i, 0)
+                if (s.mesid.sat > 90):
+                    self.glo_fcn_dict[i] = s.mesid.sat - 100
+                else:
+                    self.glo_slot_dict[i] = s.mesid.sat
+            else:
+                sat = s.mesid.sat
+            key = (s.mesid.code, sat, i)
+            if s.cn0 != 0:
+                self.CN0_dict[key][-1] = s.cn0 / 4.0
+            received_code_list = getattr(self, "received_codes", [])
+            if s.mesid.code not in received_code_list:
+                received_code_list.append(s.mesid.code)
+                self.received_codes = received_code_list
+        GUI.invoke_later(self.update_plot)
+
     def tracking_state_callback(self, sbp_msg, **metadata):
         t = time.time() - self.t_init
         self.time[0:-1] = self.time[1:]
@@ -156,7 +193,7 @@ class TrackingView(CodeFiltered):
         for i, s in enumerate(sbp_msg.states):
             if code_is_glo(s.sid.code):
                 sat = s.fcn - GLO_FCN_OFFSET
-                self.glo_slot_dict[sat] = s.sid.sat
+                self.glo_slot_dict[i] = s.sid.sat
             else:
                 sat = s.sid.sat
             key = (s.sid.code, sat, i)
@@ -253,6 +290,7 @@ class TrackingView(CodeFiltered):
         self.t_init = time.time()
         self.time = [x * 1 / TRK_RATE for x in range(-NUM_POINTS, 0, 1)]
         self.CN0_dict = defaultdict(lambda: np.zeros(NUM_POINTS))
+        self.glo_fcn_dict = {}
         self.glo_slot_dict = {}
         self.n_channels = None
         self.plot_data = ArrayPlotData(t=[0.0])
@@ -278,6 +316,8 @@ class TrackingView(CodeFiltered):
         self.plot.legend.tools.append(
             LegendTool(self.plot.legend, drag_button="right"))
         self.link = link
+        self.link.add_callback(self.measurement_state_callback,
+                               SBP_MSG_MEASUREMENT_STATE)
         self.link.add_callback(self.tracking_state_callback,
                                SBP_MSG_TRACKING_STATE)
         self.link.add_callback(self.tracking_state_callback_dep_b,
