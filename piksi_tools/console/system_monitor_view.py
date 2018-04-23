@@ -34,11 +34,6 @@ class SimpleAdapter(TabularAdapter):
     columns = [('Thread Name', 0), ('CPU %', 1), ('Stack Free', 2)]
 
 
-class SimpleNetworkAdapter(TabularAdapter):
-    columns = [('Interface Name', 0), ('IPv4 Addr', 1), ('Running', 2),
-               ('Tx Usage', 3), ('Rx Usage', 4)]
-
-
 class SystemMonitorView(HasTraits):
     python_console_cmds = Dict()
 
