@@ -34,10 +34,6 @@ class SimpleAdapter(TabularAdapter):
     columns = [('Thread Name', 0), ('CPU %', 1), ('Stack Free', 2)]
 
 
-class SimpleNetworkAdapter(TabularAdapter):
-    columns = [('Interface Name', 0), ('IPv4 Addr', 1), ('Running', 2), ('Tx Usage', 3), ('Rx Usage', 4)]
-
-
 class SystemMonitorView(HasTraits):
     python_console_cmds = Dict()
 
@@ -60,14 +56,6 @@ class SystemMonitorView(HasTraits):
         label='Reset Device',
         tooltip='Reset Device',
         filename=resource_filename('console/images/fontawesome/power27.svg'),
-        width=16,
-        height=16,
-        aligment='center')
-
-    network_refresh_button = SVGButton(
-        label='Refresh Network Status',
-        tooltip='Refresh Network Status',
-        filename=resource_filename('console/images/fontawesome/refresh.svg'),
         width=16,
         height=16,
         aligment='center')
@@ -131,19 +119,11 @@ class SystemMonitorView(HasTraits):
                             show_border=True, ),
                         show_border=True,
                         label="Observation Connection Monitor"),
-                    Item('piksi_reset_button', show_label=False, width=0.50),
+                    Item('piksi_reset_button', show_label=False, width=0.50)
                 ),
-                VGroup(
-                    Item(
-                        '_network_info',
-                        style='readonly',
-                        editor=TabularEditor(adapter=SimpleNetworkAdapter()),
-                        show_label=False, ),
-                    Item(
-                        'network_refresh_button', show_label=False,
-                        width=0.50),
-                    show_border=True,
-                    label="Network"), ), ), )
+            ),
+        )
+    )
 
     def update_threads(self):
         self._threads_table_list = [
