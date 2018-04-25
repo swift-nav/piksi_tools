@@ -74,7 +74,12 @@ SUPPORTED_CODES = [CODE_GPS_L1CA,
                    CODE_BDS2_B2,
                    CODE_GPS_L5Q,
                    CODE_QZS_L1CA,
-                   CODE_QZS_L2CM]
+                   CODE_QZS_L2CM,
+                   CODE_GAL_E1X,
+                   CODE_GAL_E6X,
+                   CODE_GAL_E7X,
+                   CODE_GAL_E8,
+                   CODE_GAL_E5X]
 
 L1CA_STR = 'GPS L1CA'
 L2CM_STR = 'GPS L2C'
@@ -90,6 +95,11 @@ BDS_B2_STR = 'BDS B2'
 QZS_L1CA_STR = 'QZSS L1CA'
 QZS_L2CM_STR = 'QZSS L2CM'
 QZS_L2CX_STR = 'QZSS L2C'
+GAL_E1_STR = 'GAL E1'
+GAL_E6_STR = 'GAL E6'
+GAL_E7_STR = 'GAL E5b'
+GAL_E8_STR = 'GAL AltBOC'
+GAL_E5_STR = 'GAL E5a'
 
 CODE_TO_STR_MAP = {
     CODE_GPS_L1CA: L1CA_STR,
@@ -105,7 +115,20 @@ CODE_TO_STR_MAP = {
     CODE_BDS2_B2: BDS_B2_STR,
     CODE_QZS_L1CA: QZS_L1CA_STR,
     CODE_QZS_L2CM: QZS_L2CM_STR,
-    CODE_QZS_L2CX: QZS_L2CX_STR
+    CODE_QZS_L2CX: QZS_L2CX_STR,
+    CODE_GAL_E1B: GAL_E1_STR,
+    CODE_GAL_E1C: GAL_E1_STR,
+    CODE_GAL_E1X: GAL_E1_STR,
+    CODE_GAL_E6B: GAL_E6_STR,
+    CODE_GAL_E6C: GAL_E6_STR,
+    CODE_GAL_E6X: GAL_E6_STR,
+    CODE_GAL_E7I: GAL_E7_STR,
+    CODE_GAL_E7Q: GAL_E7_STR,
+    CODE_GAL_E7X: GAL_E7_STR,
+    CODE_GAL_E8: GAL_E8_STR,
+    CODE_GAL_E5I: GAL_E5_STR,
+    CODE_GAL_E5Q: GAL_E5_STR,
+    CODE_GAL_E5X: GAL_E5_STR
 }
 
 STR_TO_CODE_MAP = {
@@ -122,7 +145,12 @@ STR_TO_CODE_MAP = {
     BDS_B2_STR: CODE_BDS2_B2,
     QZS_L1CA_STR: CODE_QZS_L1CA,
     QZS_L2CM_STR: CODE_QZS_L2CM,
-    QZS_L2CX_STR: CODE_QZS_L2CX
+    QZS_L2CX_STR: CODE_QZS_L2CX,
+    GAL_E1_STR: CODE_GAL_E1X,
+    GAL_E6_STR: CODE_GAL_E6X,
+    GAL_E7_STR: CODE_GAL_E7X,
+    GAL_E8_STR : CODE_GAL_E8,
+    GAL_E5_STR : CODE_GAL_E5X
 }
 
 CODE_NOT_AVAILABLE = 'N/A'
@@ -215,6 +243,23 @@ qzss_codes = {CODE_QZS_L1CA,
 def code_is_qzss(code):
     return code in qzss_codes
 
+gal_codes = {CODE_GAL_E1B,
+             CODE_GAL_E1C,
+             CODE_GAL_E1X,
+             CODE_GAL_E6B,
+             CODE_GAL_E6C,
+             CODE_GAL_E6X,
+             CODE_GAL_E7I,
+             CODE_GAL_E7Q,
+             CODE_GAL_E7X,
+             CODE_GAL_E8,
+             CODE_GAL_E5I,
+             CODE_GAL_E5Q,
+             CODE_GAL_E5X
+             }
+
+def code_is_galileo(code):
+    return code in gal_codes
 
 def get_mode(msg):
     mode = msg.flags & 0x7
