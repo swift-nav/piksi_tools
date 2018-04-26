@@ -57,7 +57,7 @@ from piksi_tools.console.tracking_view import TrackingView
 from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
                                        get_mode, mode_dict, resource_filename,
-                                       icon, swift_path, stop_all_threads)
+                                       icon, swift_path, start_gc_collect_thread)
 from piksi_tools.console.skylark_view import SkylarkView
 
 
@@ -123,11 +123,53 @@ def get_args():
 CONSOLE_TITLE = 'Swift Console v' + CONSOLE_VERSION
 BAUD_LIST = [57600, 115200, 230400, 921600, 1000000]
 
-
-import tracemalloc
 import datetime
 
-memtracelog = open('/tmp/console_memory_trace.txt', 'a')
+
+if os.environ.get('TRACE_CONSOLE_MEMORY', '') != '':
+    import tracemalloc
+    memtracelog = open('/tmp/console_memory_trace.txt', 'a')
+else:
+    memtracelog = None
+
+
+class MemTraceHandler(object):
+
+    def __init__(self, memtracelog):
+        self.memtracelog = memtracelog
+
+    def start(self):
+        if self.memtracelog is None:
+            return
+        tracemalloc.start()
+        memtracelog.write(time_prefix() + "Console window is initializing, starting memory trace...\n")
+        memtracelog.flush()
+
+    def console_close(self):
+        if self.memtracelog is None:
+            return
+        memtracelog.write(time_prefix() + "Console window is starting to close...\n")
+        memtracelog.flush()
+
+    def console_closed(self):
+        if self.memtracelog is None:
+            return
+        memtracelog.write(time_prefix() + "Console window is closed...\n")
+        memtracelog.write(time_prefix() + "Printing memory usage:\n")
+        memtracelog.flush()
+        snapshot = tracemalloc.take_snapshot()
+        top_stats = snapshot.statistics('lineno')
+        memtracelog.write(time_prefix() + "[ Top 50 ]\n")
+        for stat in top_stats[:50]:
+            memtracelog.write(time_prefix() + str(stat) + "\n")
+            memtracelog.flush()
+        memtracelog.write(time_prefix() + "...done\n")
+        memtracelog.flush()
+        memtracelog.close()
+
+
+memtracehandler = MemTraceHandler(memtracelog)
+
 
 def time_prefix():
     return datetime.datetime.now().strftime('%Y%m%d_%H:%M:%S - ')
@@ -154,31 +196,17 @@ class ConsoleHandler(Handler):
 
     def init(self, info):
         r = Handler.init(self, info)
-        tracemalloc.start()
-        memtracelog.write(time_prefix() + "Console window is initializing, starting memory trace...\n")
-        memtracelog.flush()
+        memtracehandler.start()
         return r
 
     def close(self, info, ok):
         r = Handler.close(self, info, ok)
-        memtracelog.write(time_prefix() + "Console window is starting to close...\n")
-        memtracelog.flush()
+        memtracehandler.console_close()
         return r
 
     def closed(self, info, ok):
         r = Handler.closed(self, info, ok)
-        memtracelog.write(time_prefix() + "Console window is closed...\n")
-        memtracelog.write(time_prefix() + "Printing memory usage:\n")
-        memtracelog.flush()
-        snapshot = tracemalloc.take_snapshot()
-        top_stats = snapshot.statistics('lineno')
-        memtracelog.write(time_prefix() + "[ Top 50 ]\n")
-        for stat in top_stats[:50]:
-            memtracelog.write(time_prefix() + str(stat) + "\n")
-            memtracelog.flush()
-        memtracelog.write(time_prefix() + "...done\n")
-        memtracelog.flush()
-        memtracelog.close()
+        memtracehandler.console_closed()
         return r
 
 
