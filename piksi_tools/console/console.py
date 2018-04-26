@@ -415,16 +415,13 @@ class SwiftConsole(HasTraits):
             for eachline in reversed(encoded.split('\n')):
                 self.console_output.write_level(
                     eachline, str_to_log_level(eachline.split(':')[0]))
-        except UnicodeDecodeError:
-            print("Critical Error encoding the serial stream as ascii.")
+        except UnicodeDecodeError as e:
+            print("Error encoding msg_print: {}".format(e))
 
     def log_message_callback(self, sbp_msg, **metadata):
-        try:
-            encoded = sbp_msg.text.encode('ascii', 'ignore')
-            for eachline in reversed(encoded.split('\n')):
-                self.console_output.write_level(eachline, sbp_msg.level)
-        except UnicodeDecodeError:
-            print("Critical Error encoding the serial stream as ascii.")
+        encoded = sbp_msg.text
+        for eachline in reversed(encoded.split('\n')):
+            self.console_output.write_level(eachline, sbp_msg.level)
 
     def ext_event_callback(self, sbp_msg, **metadata):
         e = MsgExtEvent(sbp_msg)
