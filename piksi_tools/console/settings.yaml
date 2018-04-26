@@ -1482,7 +1482,7 @@
 
 - group: acquisition
   name: sbas_acquisition_enabled
-  expert: true
+  expert: false
   type: boolean
   units: N/A
   default value: 'False'
