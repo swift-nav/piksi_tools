@@ -1481,26 +1481,15 @@
   Notes:
 
 - group: acquisition
-  name: sbas_enabled
-  expert: true
-  type: boolean
-  units: N/A
-  default value: 'False'
-  readonly: false
-  enumerated possible values: True,False
-  Description: Enable the SBAS constellation.
-  Notes:
-
-- group: acquisition
   name: sbas_acquisition_enabled
-  expert: true
+  expert: false
   type: boolean
   units: N/A
   default value: 'False'
   readonly: false
   enumerated possible values: True,False
-  Description: Enable the SBAS constellation.
-  Notes:
+  Description: Enable SBAS acquisition.
+  Notes: If SBAS satellites are already being tracked, this setting will not remove them from tracking or exclude SBAS corrections from being used in positioning - the setting must be saved and the receiver must be restarted for this to take effect.
 
 - group: acquisition
   name: bds2_acquisition_enabled
@@ -1510,8 +1499,8 @@
   default value: 'False'
   readonly: false
   enumerated possible values: True,False
-  Description: Enable the bds2 constellation.
-  Notes:
+  Description: Enable Beidou2 acquisition.
+  Notes: If Beidou2 satellites are already being tracked, this setting will not remove them from tracking or exclude them from being used in positioning - the setting must be saved and the receiver must be restarted for this to take effect.
 
 - group: acquisition
   name: qzss_acquisition_enabled
@@ -1521,7 +1510,7 @@
   default value: 'False'
   readonly: false
   enumerated possible values: True,False
-  Description: Enable the QZSS constellation.
+  Description: Enable QZSS acquisition.
   Notes:
 
 - group: acquisition
@@ -1532,8 +1521,8 @@
   default value: 'True'
   readonly: false
   enumerated possible values: True,False
-  Description: Enable the GLONASS acquisition and raw measurements.
-  Notes: This is a precondition for navigation with GLONASS.
+  Description: Enable GLONASS acquisition.
+  Notes: If GLONASS satellites are already being tracked, this setting will not remove them from tracking or exclude them from being used in positioning - the setting must be saved and the receiver must be restarted for this to take effect.
 
 - group: acquisition
   name: almanacs_enabled
