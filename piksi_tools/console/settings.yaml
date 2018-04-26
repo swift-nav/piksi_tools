@@ -1959,6 +1959,14 @@
   Description: Access point name (provided by cell carrier).
   units: N/A
 
+- group: cell_modem
+  name: device_override
+  expert: true
+  type: string
+  default value: ''
+  readonly: false
+  Description: Override the device used for cell modem connectivity. If left empty, uses default device discovery to determine the correct device to use.
+
 - group: standalone_logging
   name: file_duration
   expert: false
