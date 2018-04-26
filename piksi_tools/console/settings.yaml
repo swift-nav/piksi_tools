@@ -1976,7 +1976,7 @@
   type: string
   default value: ''
   readonly: false
-  Description: Override the device used for cell modem connectivity.
+  Description: Override the device used for cell modem connectivity. If left empty, uses default device discovery to determine the correct device to use.
 
 - group: standalone_logging
   name: file_duration
