@@ -272,26 +272,19 @@ def log_time_strings(week, tow):
     return ((t_local_date, t_local_secs), (t_gps_date, t_gps_secs))
 
 
-thread_stop_event_list = {}
-
-
-def stop_all_threads():
-    for (k, stop_event) in thread_stop_event_list.items():
-        stop_event.set()
-
-
 def call_repeatedly(interval, func, *args):
     stopped = Event()
 
     def loop():
         # https://stackoverflow.com/questions/29082268/python-time-sleep-vs-event-wait
-        thread_stop_event_list[threading.current_thread().ident] = stopped
         while not stopped.is_set():
             func(*args)
             time.sleep(interval)
-        del thread_stop_event_list[threading.current_thread().ident]
 
-    Thread(target=loop).start()
+    thread = Thread(target=loop)
+    thread.daemon = True
+    thread.start()
+
     return stopped.set
 
 

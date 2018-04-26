@@ -1060,9 +1060,7 @@ def main():
                     connection_info=cnx_info,
                     expand_json=args.expand_json) as console:
                 console.configure_traits()
-
-    print("Exiting, stopping all threads...")
-    stop_all_threads()
+    print("Exiting...")
 
 
 if __name__ == "__main__":
