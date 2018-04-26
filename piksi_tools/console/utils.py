@@ -4,6 +4,7 @@ import datetime
 import pkg_resources
 import time
 import os
+import gc
 
 from functools import partial
 import threading
@@ -286,6 +287,19 @@ def call_repeatedly(interval, func, *args):
     thread.start()
 
     return stopped.set
+
+
+GARBAGE_COLLECT_INTERVAL_SEC = 60
+
+
+def start_gc_collect_thread():
+    def loop():
+        while True:
+            time.sleep(GARBAGE_COLLECT_INTERVAL_SEC)
+            gc.collect()
+    thread = Thread(target=loop)
+    thread.daemon = True
+    thread.start()
 
 
 resource_filename = partial(pkg_resources.resource_filename, 'piksi_tools')

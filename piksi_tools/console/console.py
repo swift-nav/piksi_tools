@@ -949,6 +949,7 @@ class PortChooser(HasTraits):
 
 
 def main():
+    start_gc_collect_thread()
     warnings.simplefilter(action="ignore", category=FutureWarning)
     logging.basicConfig()
     args = None
