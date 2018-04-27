@@ -95,6 +95,21 @@
   Notes: Most active antennas require an antenna bias in order to power
     the amplifier in the antenna.
 
+- group: frontend
+  name: use_ext_clk
+  expert: false
+  type: bool
+  units: N/A
+  default value: 'False'
+  readonly: false
+  Description: Enable/Disable External Clock Input.
+  Notes: This setting toggles the hardware switch for Piksi Multi 10Mhz clock source. 
+    When true, Piksi Multi will be configured to use an external clock source rather 
+    than its onboard oscillator.  It is only available on Piksi Multi hardware versions 
+    greater than or equal to 5.1 (00108-05 rev 1).  The external clock input signal can 
+    be provided on the Piksi Multi evaluation board through a labeled SMA connector. 
+    It is not exposed on Duro.
+
 - group: sbp
   name: obs_msg_max_size
   expert: true
