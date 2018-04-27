@@ -149,8 +149,8 @@ STR_TO_CODE_MAP = {
     GAL_E1_STR: CODE_GAL_E1X,
     GAL_E6_STR: CODE_GAL_E6X,
     GAL_E7_STR: CODE_GAL_E7X,
-    GAL_E8_STR : CODE_GAL_E8,
-    GAL_E5_STR : CODE_GAL_E5X
+    GAL_E8_STR: CODE_GAL_E8,
+    GAL_E5_STR: CODE_GAL_E5X
 }
 
 CODE_NOT_AVAILABLE = 'N/A'
@@ -243,6 +243,7 @@ qzss_codes = {CODE_QZS_L1CA,
 def code_is_qzss(code):
     return code in qzss_codes
 
+
 gal_codes = {CODE_GAL_E1B,
              CODE_GAL_E1C,
              CODE_GAL_E1X,
@@ -258,8 +259,10 @@ gal_codes = {CODE_GAL_E1B,
              CODE_GAL_E5X
              }
 
+
 def code_is_galileo(code):
     return code in gal_codes
+
 
 def get_mode(msg):
     mode = msg.flags & 0x7
