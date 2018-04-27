@@ -26,6 +26,7 @@ from piksi_tools.console.utils import (
     EMPTY_STR, SUPPORTED_CODES, code_is_gps, code_to_str)
 from piksi_tools.console.gui_utils import GUI_UPDATE_PERIOD
 
+
 class SimpleAdapter(TabularAdapter):
     columns = [('PRN', 0), ('Pseudorange (m)', 1), ('Carrier Phase (cycles)',
                                                     2), ('C/N0 (dB-Hz)', 3),
