@@ -721,7 +721,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '23,29,65,72,74,80,117,134,136,144,163,165,166, 167,171,181,185,187,188,257,258,259,520,522,524, 526,527,528,1025,2304,2305,2306,65280,65282,65535'
+  default value: '23,29,65,72,74,81,117,134,136,144,163,165, 166,167,171,175,181,185,187,188,189,190, 257,258,259,520,522,524,526,527,528,1025, 2304,2305,2306,30583,65280,65282,65535' 
   readonly: false
   Description: Configure which messages should be sent to the server.
   Notes: The enabled sbp messages settings is a list of message types
@@ -737,7 +737,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '23,29,65,72,74,80,117,134,136,144,163,165,166, 167,171,181,185,187,188,257,258,259,520,522,524, 526,527,528,1025,2304,2305,2306,65280,65282,65535'
+  default value: ''
   readonly: false
   Description: IP address for UDP client 0.
   Notes: The address setting is defined according to the convention "hostname:port".
@@ -764,7 +764,7 @@
   expert: false
   type: string
   units: N/A
-  default value: 'blank - all messages are enabled'
+  default value: '23,29,65,72,74,81,117,134,136,144,163,165, 166,167,171,175,181,185,187,188,189,190, 257,258,259,520,522,524,526,527,528,1025, 2304,2305,2306,30583,65280,65282,65535' 
   readonly: false
   Description: Configure which messages should be sent to the server.
   Notes: The enabled sbp messages settings is a list of message types
@@ -807,7 +807,7 @@
   expert: false
   type: string
   units: N/A
-  default value: ''
+  default value: 'blank - all messages are enabled'
   readonly: false
   Description: Configure which messages should be sent on the port.
   Notes: Has no effect for a UDP server.
@@ -933,7 +933,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '23,29,65,72,74,80,117,134,136,144,163,165,166, 167,171,181,185,187,188,257,258,259,520,522,524, 526,527,528,1025,2304,2305,2306,65280,65282,65535'
+  default value: '23,29,65,72,74,81,117,134,136,144,163,165, 166,167,171,175,181,185,187,188,189,190, 257,258,259,520,522,524,526,527,528,1025, 2304,2305,2306,30583,65280,65282,65535' 
   readonly: false
   Description: Configure which messages should be sent on the port.
   Notes: The enabled sbp messages settings is a list of message types
@@ -1631,7 +1631,6 @@
   expert: false
   type: string
   units: N/A
-  default value: '23,29,65,72,74,80,117,134,136,144,163,165,166, 167,171,181,185,187,188,257,258,259,520,522,524, 526,527,528,1025,2304,2305,2306,65280,65282,65535'
   readonly: false
   Description: Configure which messages should be sent on the port. Does not effect which incoming messages are listened to.
   Notes: The enabled sbp messages settings is a list of message types
@@ -1675,7 +1674,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '23,29,65,72,74,80,117,134,136,144,163,165,166, 167,171,181,185,187,188,257,258,259,520,522,524, 526,527,528,1025,2304,2305,2306,65280,65282,65535'
+  default value: '23,29,65,72,74,81,117,134,136,144,163,165, 166,167,171,175,181,185,187,188,189,190, 257,258,259,520,522,524,526,527,528,1025, 2304,2305,2306,30583,65280,65282,65535' 
   readonly: false
   Description: Configure which messages should be sent on the port. Does not effect which incoming messages are listened to.
   Notes: The enabled sbp messages settings is a list of message types
@@ -1719,7 +1718,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '23,29,65,72,74,80,117,134,136,144,163,165,166, 167,171,181,185,187,188,257,258,259,520,522,524, 526,527,528,1025,2304,2305,2306,65280,65282,65535'
+  default value: '23,29,65,72,74,81,117,134,136,144,163,165, 166,167,171,175,181,185,187,188,189,190, 257,258,259,520,522,524,526,527,528,1025, 2304,2305,2306,30583,65280,65282,65535' 
   readonly: false
   Description: Configure which messages should be sent on the port. Does not effect which incoming messages are listened to.
   Notes: The enabled sbp messages settings is a list of message types
@@ -1764,7 +1763,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '23,29,65,72,74,80,117,134,136,144,163,165,166, 167,171,181,185,187,188,257,258,259,520,522,524, 526,527,528,1025,2304,2305,2306,65280,65282,65535'
+  default value: '23,29,65,72,74,81,117,134,136,144,163,165, 166,167,171,175,181,185,187,188,189,190, 257,258,259,520,522,524,526,527,528,1025, 2304,2305,2306,30583,65280,65282,65535' 
   readonly: false
   Description: Configure which messages should be sent on the port. Does not effect which incoming messages are listened to.
   Notes: The enabled sbp messages settings is a list of message types
