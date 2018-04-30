@@ -1,8 +1,9 @@
 usage: console.py [-p PORT] [-b BAUD] [--rtscts] [-v] [-f] [-l] [-r]
                   [-o LOG_DIRNAME] [--logfilename LOGFILENAME]
                   [-a APPEND_LOG_FILENAME] [--file] [-d TAGS] [-t]
-                  [-i INITLOGLEVEL] [-u] [--toolkit TOOLKIT] [--error]
-                  [--log-console] [--networking [NETWORKING]] [-h] [-V]
+                  [--expand-json] [-i INITLOGLEVEL] [-u] [--toolkit TOOLKIT]
+                  [--error] [--log-console] [--networking [NETWORKING]] [-h]
+                  [-V]
 
 Swift Console
 
@@ -26,6 +27,7 @@ optional arguments:
   -t, --tcp             Use a TCP connection instead of a local serial port.
                         If TCP is selected, the port is interpreted as
                         host:port
+  --expand-json         Expand fields in JSON logs
   -i INITLOGLEVEL, --initloglevel INITLOGLEVEL
                         Set log level filter.
   -u, --update          don't prompt about firmware/console updates.
