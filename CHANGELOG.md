@@ -1,5 +1,99 @@
 # Change Log
 
+## [v1.5.10](https://github.com/swift-nav/piksi_tools/tree/v1.5.10) (2018-04-27)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.5.9...v1.5.10)
+
+**Merged pull requests:**
+
+- Doc settings v1.5 rel [\#778](https://github.com/swift-nav/piksi_tools/pull/778)
+- Doc setting v1.5 [\#777](https://github.com/swift-nav/piksi_tools/pull/777)
+- Mark cellmodem.device\_override as advanced \[master\] [\#775](https://github.com/swift-nav/piksi_tools/pull/775)
+- Make acq settings behavior more clear \[master\] [\#774](https://github.com/swift-nav/piksi_tools/pull/774)
+- Make acquisition settings behavior more clear \[release\] [\#773](https://github.com/swift-nav/piksi_tools/pull/773)
+- remove UnicodeDecodeError cryptic messages to fix DEVC-574 [\#771](https://github.com/swift-nav/piksi_tools/pull/771)
+- Mark cellmodem.device\_override as advanced [\#769](https://github.com/swift-nav/piksi_tools/pull/769)
+- Remove call repeatedly [\#763](https://github.com/swift-nav/piksi_tools/pull/763)
+
+## [v1.5.9](https://github.com/swift-nav/piksi_tools/tree/v1.5.9) (2018-04-26)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.5.8...v1.5.9)
+
+## [v1.5.8](https://github.com/swift-nav/piksi_tools/tree/v1.5.8) (2018-04-25)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.5.7...v1.5.8)
+
+**Merged pull requests:**
+
+- update libsbp to 2.3.16 [\#768](https://github.com/swift-nav/piksi_tools/pull/768)
+- move cell modem and network widget to network tab [\#767](https://github.com/swift-nav/piksi_tools/pull/767)
+- move cell modem and network widget to network tab [\#766](https://github.com/swift-nav/piksi_tools/pull/766)
+- Add support for msg\_measurement\_t [\#765](https://github.com/swift-nav/piksi_tools/pull/765)
+
+## [v1.5.7](https://github.com/swift-nav/piksi_tools/tree/v1.5.7) (2018-04-20)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.5.6...v1.5.7)
+
+**Merged pull requests:**
+
+- Fix zoom\_all with SBAS \(DEVC-524\) [\#760](https://github.com/swift-nav/piksi_tools/pull/760)
+- Fix zoom\_all with SBAS \(DEVC-524\) [\#759](https://github.com/swift-nav/piksi_tools/pull/759)
+
+## [v1.5.6](https://github.com/swift-nav/piksi_tools/tree/v1.5.6) (2018-04-18)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.5.5...v1.5.6)
+
+**Merged pull requests:**
+
+- Silverjam/v1.5/copy syslogs expert [\#762](https://github.com/swift-nav/piksi_tools/pull/762)
+- Mark settings for supporting cell modem debugging as advanced [\#761](https://github.com/swift-nav/piksi_tools/pull/761)
+
+## [v1.5.5](https://github.com/swift-nav/piksi_tools/tree/v1.5.5) (2018-04-13)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.5.4...v1.5.5)
+
+## [v1.5.4](https://github.com/swift-nav/piksi_tools/tree/v1.5.4) (2018-04-10)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.6.dev0...v1.5.4)
+
+**Merged pull requests:**
+
+- update\_view: ensure progress dialog is open b4 using [\#758](https://github.com/swift-nav/piksi_tools/pull/758)
+- update\_view: ensure progress dialog is open b4 using [\#757](https://github.com/swift-nav/piksi_tools/pull/757)
+
+## [v1.6.dev0](https://github.com/swift-nav/piksi_tools/tree/v1.6.dev0) (2018-04-05)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.5.3...v1.6.dev0)
+
+## [v1.5.3](https://github.com/swift-nav/piksi_tools/tree/v1.5.3) (2018-04-04)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.5.2...v1.5.3)
+
+**Merged pull requests:**
+
+- don't attempt to revert if readonly setting changes [\#754](https://github.com/swift-nav/piksi_tools/pull/754)
+- don't attempt to revert if readonly setting changes [\#753](https://github.com/swift-nav/piksi_tools/pull/753)
+
+## [v1.5.2](https://github.com/swift-nav/piksi_tools/tree/v1.5.2) (2018-04-02)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.5.1...v1.5.2)
+
+**Merged pull requests:**
+
+- Update configure\_udev\_rules.sh [\#752](https://github.com/swift-nav/piksi_tools/pull/752)
+
+## [v1.5.1](https://github.com/swift-nav/piksi_tools/tree/v1.5.1) (2018-03-29)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.5.0...v1.5.1)
+
+## [v1.5.0](https://github.com/swift-nav/piksi_tools/tree/v1.5.0) (2018-03-23)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.5.0-branch...v1.5.0)
+
+## [v1.5.0-branch](https://github.com/swift-nav/piksi_tools/tree/v1.5.0-branch) (2018-03-23)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.4.6...v1.5.0-branch)
+
+**Closed issues:**
+
+- Support SBP 2.3.13 and SBAS mode flag [\#749](https://github.com/swift-nav/piksi_tools/issues/749)
+
+**Merged pull requests:**
+
+- Implement Cell Status Message in Console [\#751](https://github.com/swift-nav/piksi_tools/pull/751)
+- Add SBAS support [\#750](https://github.com/swift-nav/piksi_tools/pull/750)
+- Firmware Update -\> Update [\#748](https://github.com/swift-nav/piksi_tools/pull/748)
+- Update Changelog v1.4.6 [\#747](https://github.com/swift-nav/piksi_tools/pull/747)
+- Allow display of generic meters north and meters east on solution view [\#739](https://github.com/swift-nav/piksi_tools/pull/739)
+- Implement Cell Modem Wizard Usage Widget [\#735](https://github.com/swift-nav/piksi_tools/pull/735)
+
 ## [v1.4.6](https://github.com/swift-nav/piksi_tools/tree/v1.4.6) (2018-03-20)
 [Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.4.5...v1.4.6)
 
@@ -20,6 +114,7 @@
 
 **Merged pull requests:**
 
+- remove call repeatedly [\#776](https://github.com/swift-nav/piksi_tools/pull/776)
 - Dz skylark [\#743](https://github.com/swift-nav/piksi_tools/pull/743)
 - Add Skylark tab and show serial number and UUID in main window. [\#740](https://github.com/swift-nav/piksi_tools/pull/740)
 - NTRIP and Skylark settings tweaks [\#738](https://github.com/swift-nav/piksi_tools/pull/738)
@@ -71,7 +166,10 @@
 - Change scaling on Magnetomter view [\#710](https://github.com/swift-nav/piksi_tools/pull/710)
 
 ## [v1.4.0](https://github.com/swift-nav/piksi_tools/tree/v1.4.0) (2018-02-03)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.3.8...v1.4.0)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.4.0-branch...v1.4.0)
+
+## [v1.4.0-branch](https://github.com/swift-nav/piksi_tools/tree/v1.4.0-branch) (2018-02-03)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.3.8...v1.4.0-branch)
 
 **Closed issues:**
 
@@ -134,21 +232,21 @@
 - Move some settings to expert [\#681](https://github.com/swift-nav/piksi_tools/pull/681)
 
 ## [v1.3.2](https://github.com/swift-nav/piksi_tools/tree/v1.3.2) (2017-12-05)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.3.0-test...v1.3.2)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.3.dev...v1.3.2)
 
 **Merged pull requests:**
 
 - remove travis pypi deploy [\#680](https://github.com/swift-nav/piksi_tools/pull/680)
 - Mark the NTRIP debug setting as an "expert" value [\#679](https://github.com/swift-nav/piksi_tools/pull/679)
 
+## [v1.3.dev](https://github.com/swift-nav/piksi_tools/tree/v1.3.dev) (2017-12-02)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.3.0-test...v1.3.dev)
+
 ## [v1.3.0-test](https://github.com/swift-nav/piksi_tools/tree/v1.3.0-test) (2017-12-02)
 [Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.3_devtestest...v1.3.0-test)
 
 ## [v1.3_devtestest](https://github.com/swift-nav/piksi_tools/tree/v1.3_devtestest) (2017-12-02)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.3.dev...v1.3_devtestest)
-
-## [v1.3.dev](https://github.com/swift-nav/piksi_tools/tree/v1.3.dev) (2017-12-02)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.3.1...v1.3.dev)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.3.1...v1.3_devtestest)
 
 ## [v1.3.1](https://github.com/swift-nav/piksi_tools/tree/v1.3.1) (2017-11-29)
 [Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.3.0...v1.3.1)
@@ -641,17 +739,17 @@
 - bug\_fixes [\#399](https://github.com/swift-nav/piksi_tools/pull/399)
 
 ## [v0.30.3](https://github.com/swift-nav/piksi_tools/tree/v0.30.3) (2016-12-15)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v0.30.2...v0.30.3)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v0.30.4...v0.30.3)
 
 **Merged pull requests:**
 
 - Add hardware incompatibility warning for Piksi v2 [\#398](https://github.com/swift-nav/piksi_tools/pull/398)
 
-## [v0.30.2](https://github.com/swift-nav/piksi_tools/tree/v0.30.2) (2016-12-15)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v0.30.4...v0.30.2)
-
 ## [v0.30.4](https://github.com/swift-nav/piksi_tools/tree/v0.30.4) (2016-12-15)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v0.30.1...v0.30.4)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v0.30.2...v0.30.4)
+
+## [v0.30.2](https://github.com/swift-nav/piksi_tools/tree/v0.30.2) (2016-12-15)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v0.30.1...v0.30.2)
 
 ## [v0.30.1](https://github.com/swift-nav/piksi_tools/tree/v0.30.1) (2016-12-15)
 [Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v0.31.2...v0.30.1)
