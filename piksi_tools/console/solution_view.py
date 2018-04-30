@@ -706,6 +706,12 @@ class SolutionView(HasTraits):
             marker_size=1.0)
         self.plot.plot(
             ('lng_sbas', 'lat_sbas'),
+            type='line',
+            line_width=0.1,
+            name='',
+            color=color_dict[SBAS_MODE])
+        self.plot.plot(
+            ('lng_sbas', 'lat_sbas'),
             type='scatter',
             name='',
             color=color_dict[SBAS_MODE],
