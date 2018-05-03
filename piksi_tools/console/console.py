@@ -69,6 +69,8 @@ class ConsoleArgumentParser(argparse.ArgumentParser):
     def error(self, message):
         raise ArgumentParserError(message)
 
+def auto_int(x):
+    return int(x, 0)
 
 def get_args():
     """
@@ -117,6 +119,11 @@ def get_args():
         action='version',
         version='Swift Console {}'.format(CONSOLE_VERSION)
     )
+    parser.add_argument(
+        '--tab-mask',
+        default=None,
+        type=auto_int,
+        help="Specify which tabs to show. Each tab is bit 2^n, where n is the zero indexed order of tab starting from left.  Advanced view has just one mask value.")
     return parser
 
 
@@ -441,7 +448,7 @@ class SwiftConsole(HasTraits):
         temp_mode = "None"
         temp_num_sats = 0
         view = None
-        if hasattr(self, 'baseline_view') and hasattr(self, 'solution_view'):
+        if getattr(self, 'baseline_view', None) and getattr(self, 'solution_view', None):
             # If we have a recent baseline update, we use the baseline info
             if time.time() - self.baseline_view.last_btime_update < 10:
                 view = self.baseline_view
@@ -458,11 +465,11 @@ class SwiftConsole(HasTraits):
         self.mode = temp_mode
         self.num_sats = temp_num_sats
 
-        if hasattr(self, 'settings_view'):
+        if getattr(self, 'settings_view', None):
             self.settings_view.lat = self.solution_view.latitude
             self.settings_view.lon = self.solution_view.longitude
             self.settings_view.alt = self.solution_view.altitude
-        if hasattr(self, 'advanced_view'):
+        if getattr(self, 'advanced_view', None):
             if self.advanced_view.system_monitor_view.msg_obs_window_latency_ms != -1:
                 self.latency = "{0} ms".format(
                     self.advanced_view.system_monitor_view.msg_obs_window_latency_ms)
