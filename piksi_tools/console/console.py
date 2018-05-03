@@ -31,11 +31,11 @@ from sbp.navigation import SBP_MSG_POS_LLH
 from sbp.piksi import SBP_MSG_COMMAND_RESP, MsgCommandResp, MsgReset
 from sbp.system import SBP_MSG_HEARTBEAT
 from traits.api import (Bool, Dict, Directory, Enum, HasTraits, Instance, Int,
-                        List, Str)
+                        List, Any, Str)
 # Toolkit
 from traits.etsconfig.api import ETSConfig
 from traitsui.api import (EnumEditor, Handler, HGroup, HTMLEditor, ImageEditor,
-                          InstanceEditor, Item, Label, Spring,
+                          InstanceEditor, Item, Label, Spring, ListEditor,
                           Tabbed, UItem, VGroup, View, VSplit)
 
 import piksi_tools.serial_link as s
@@ -178,6 +178,8 @@ class SwiftConsole(HasTraits):
     spectrum_analyzer_view = Instance(SpectrumAnalyzerView)
     skylark_view = Instance(SkylarkView)
     log_level_filter = Enum(list(SYSLOG_LEVELS.itervalues()))
+    tab_list = List()
+    selected_tab = Any()
     """"
   mode : baseline and solution view - SPP, Fixed or Float
   num_sat : baseline and solution view - number of satellites
@@ -239,39 +241,9 @@ class SwiftConsole(HasTraits):
 
     view = View(
         VSplit(
-            Tabbed(
-                Item('tracking_view', style='custom', label='Tracking'),
-                Item('solution_view', style='custom', label='Solution'),
-                Item('baseline_view', style='custom', label='Baseline'),
-                VSplit(
-                    Item('observation_view', style='custom', show_label=False),
-                    Item(
-                        'observation_view_base',
-                        style='custom',
-                        show_label=False),
-                    label='Observations', ),
-                Item('settings_view', style='custom', label='Settings'),
-                Item('update_view', style='custom', label='Update'),
-                Tabbed(
-                    Item(
-                        'system_monitor_view',
-                        style='custom',
-                        label='System Monitor'),
-                    Item('imu_view', style='custom', label='IMU'),
-                    Item('mag_view', style='custom', label='Magnetometer'),
-                    Item(
-                        'networking_view',
-                        label='Networking',
-                        style='custom',
-                        show_label=False),
-                    Item(
-                        'spectrum_analyzer_view',
-                        label='Spectrum Analyzer',
-                        style='custom'),
-                    label='Advanced',
-                    show_labels=False),
-                Item('skylark_view', style='custom', label='Skylark'),
-                show_labels=False),
+            Item('tab_list', style='custom', show_label=False, 
+                 editor=ListEditor(use_notebook=True, deletable=False,
+                 dock_style='tab', selected='selected_tab')),
             VGroup(
                 VGroup(
                     HGroup(
@@ -447,11 +419,11 @@ class SwiftConsole(HasTraits):
         self.console_output.clear()
 
     def _directory_name_changed(self):
-        if self.baseline_view and self.solution_view:
+        if getattr(self, 'baseline_view', None) and getattr(self, 'solution_view', None):
             self.baseline_view.directory_name_b = self.directory_name
             self.solution_view.directory_name_p = self.directory_name
             self.solution_view.directory_name_v = self.directory_name
-        if self.observation_view and self.observation_view_base:
+        if getattr(self, 'observation_view', None):
             self.observation_view.dirname = self.directory_name
             self.observation_view_base.dirname = self.directory_name
 
@@ -469,7 +441,7 @@ class SwiftConsole(HasTraits):
         temp_mode = "None"
         temp_num_sats = 0
         view = None
-        if self.baseline_view and self.solution_view:
+        if hasattr(self, 'baseline_view') and hasattr(self, 'solution_view'):
             # If we have a recent baseline update, we use the baseline info
             if time.time() - self.baseline_view.last_btime_update < 10:
                 view = self.baseline_view
@@ -486,14 +458,14 @@ class SwiftConsole(HasTraits):
         self.mode = temp_mode
         self.num_sats = temp_num_sats
 
-        if self.settings_view:  # for auto populating surveyed fields
+        if hasattr(self, 'settings_view'):
             self.settings_view.lat = self.solution_view.latitude
             self.settings_view.lon = self.solution_view.longitude
             self.settings_view.alt = self.solution_view.altitude
-        if self.system_monitor_view:
-            if self.system_monitor_view.msg_obs_window_latency_ms != -1:
+        if hasattr(self, 'advanced_view'):
+            if self.advanced_view.system_monitor_view.msg_obs_window_latency_ms != -1:
                 self.latency = "{0} ms".format(
-                    self.system_monitor_view.msg_obs_window_latency_ms)
+                    self.advanced_view.system_monitor_view.msg_obs_window_latency_ms)
             else:
                 self.latency = EMPTY_STR
 
@@ -587,7 +559,7 @@ class SwiftConsole(HasTraits):
                  networking=None,
                  connection_info=None,
                  expand_json=False
-                 ):
+                ):
         self.error = error
         self.cnx_desc = cnx_desc
         self.connection_info = connection_info
@@ -631,32 +603,6 @@ class SwiftConsole(HasTraits):
             self.link.add_callback(self.update_on_heartbeat, SBP_MSG_HEARTBEAT)
             self.dep_handler = DeprecatedMessageHandler(link)
             settings_read_finished_functions = []
-            self.tracking_view = TrackingView(self.link)
-            self.solution_view = SolutionView(
-                self.link, dirname=self.directory_name)
-            self.baseline_view = BaselineView(
-                self.link, dirname=self.directory_name)
-            self.observation_view = ObservationView(
-                self.link,
-                name='Local',
-                relay=False,
-                dirname=self.directory_name)
-            self.observation_view_base = ObservationView(
-                self.link,
-                name='Remote',
-                relay=True,
-                dirname=self.directory_name)
-            self.system_monitor_view = SystemMonitorView(self.link)
-            self.update_view = UpdateView(
-                self.link,
-                download_dir=swift_path,
-                prompt=update,
-                connection_info=self.connection_info)
-            self.imu_view = IMUView(self.link)
-            self.mag_view = MagView(self.link)
-            self.spectrum_analyzer_view = SpectrumAnalyzerView(self.link)
-            settings_read_finished_functions.append(
-                self.update_view.compare_versions)
             if networking:
                 from ruamel.yaml import YAML
                 yaml = YAML(typ='safe')
@@ -675,8 +621,31 @@ class SwiftConsole(HasTraits):
             networking_dict.update({
                 'whitelist': [SBP_MSG_POS_LLH, SBP_MSG_HEARTBEAT]
             })
-            self.networking_view = SbpRelayView(self.link, **networking_dict)
+            
+            self.selected_tab = self.tracking_view = TrackingView(self.link)
+            self.solution_view = SolutionView(
+                self.link, dirname=self.directory_name)
+            self.baseline_view = BaselineView(
+                self.link, dirname=self.directory_name)
+            self.observation_view = ObservationView(
+                self.link,
+                name='Local',
+                relay=False,
+                dirname=self.directory_name)
+            self.observation_view_base = ObservationView(
+                self.link,
+                name='Remote',
+                relay=True,
+                dirname=self.directory_name)
+            self.update_view = UpdateView(
+                self.link,
+                download_dir=swift_path,
+                prompt=update,
+                connection_info=self.connection_info)
+            settings_read_finished_functions.append(
+                self.update_view.compare_versions)
             self.skylark_view = SkylarkView()
+           
             self.json_logging = json_logging
             self.csv_logging = False
             self.first_json_press = True
@@ -703,9 +672,9 @@ class SwiftConsole(HasTraits):
                 if mfg_id:
                     self.device_serial = 'PK' + str(mfg_id)
                 self.skylark_view.set_uuid(self.uuid)
-                self.networking_view.set_route(uuid=self.uuid, serial_id=mfg_id)
-                if self.networking_view.connect_when_uuid_received:
-                    self.networking_view._connect_rover_fired()
+                self.advanced_view.sbp_relay_view.set_route(uuid=self.uuid, serial_id=mfg_id)
+                if self.advanced_view.sbp_relay_view.connect_when_uuid_received:
+                    self.advanced_vies.networking_view._connect_rover_fired()
 
             settings_read_finished_functions.append(update_serial)
             self.settings_view = SettingsView(
@@ -713,6 +682,43 @@ class SwiftConsole(HasTraits):
                 settings_read_finished_functions,
                 skip=skip_settings)
             self.update_view.settings = self.settings_view.settings
+            self.tab_list.append(self.tracking_view)
+            self.tab_list.append(self.solution_view)
+            self.tab_list.append(self.baseline_view)
+            self.tab_list.append(self.observation_view)
+            self.tab_list.append(self.settings_view)
+            self.tab_list.append(self.update_view)
+            self.tab_list.append(self.skylark_view)
+            class AdvancedView(HasTraits):
+                tab_list = List(HasTraits)
+                selected_tab = Any
+                view = View(Item('tab_list', style='custom', show_label=False,
+                                 editor=ListEditor(use_notebook=True, deletable=False,
+                                 dock_style='tab', selected='selected_tab')))
+
+                def _selected(self, asker):
+                   return (self.parent.selected_tab == self and
+                           self.selected_tab == asker)
+
+                def __init__(self, link, parent):
+                  self.link = link
+                  self.parent = parent
+                  self.system_monitor_view = SystemMonitorView(link)
+                  self.selected_tab = self.system_monitor_view
+                  self.mag_view = MagView(self.link)
+                  self.imu_view = IMUView(self.link)
+                  self.sbp_relay_view = SbpRelayView(self.link, **networking_dict)
+                  self.spectrum_analyzer_view = SpectrumAnalyzerView(self.link)
+                  self.tab_list.append(self.system_monitor_view)
+                  self.tab_list.append(self.imu_view)
+                  self.tab_list.append(self.mag_view)
+                  self.tab_list.append(self.sbp_relay_view)
+                  parent.python_console_env.update(self.system_monitor_view.python_console_cmds)
+                  parent.python_console_env.update(self.imu_view.python_console_cmds)
+                  parent.python_console_env.update(self.sbp_relay_view.python_console_cmds)
+
+            self.advanced_view = AdvancedView(self.link, self)
+            self.tab_list.append(self.advanced_view)
             self.python_console_env = {
                 'send_message': self.link,
                 'link': self.link,
@@ -726,17 +732,9 @@ class SwiftConsole(HasTraits):
             self.python_console_env.update(
                 self.observation_view.python_console_cmds)
             self.python_console_env.update(
-                self.networking_view.python_console_cmds)
-            self.python_console_env.update(
-                self.system_monitor_view.python_console_cmds)
-            self.python_console_env.update(
                 self.update_view.python_console_cmds)
-            self.python_console_env.update(self.imu_view.python_console_cmds)
-            self.python_console_env.update(self.mag_view.python_console_cmds)
             self.python_console_env.update(
                 self.settings_view.python_console_cmds)
-            self.python_console_env.update(
-                self.spectrum_analyzer_view.python_console_cmds)
 
         except:  # noqa
             import traceback
