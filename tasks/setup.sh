@@ -142,7 +142,7 @@ function install_python_deps_osx () {
     # python dependencies.
     log_info "Installing Python dependencies..."
 
-    if [[ ! -x /usr/local/bin/python ]]; then 
+    if [[ ! -x /usr/local/bin/python2 ]]; then 
       brew install python@2 --framework --with-brewed-openssl 2>&1 || :
     fi
 
