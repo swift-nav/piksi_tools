@@ -60,6 +60,16 @@ from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
                                        icon, swift_path)
 from piksi_tools.console.skylark_view import SkylarkView
 
+tab_dict= { 'TrackingView'   : 0x1,
+            'SolutionView'   : 0x2,
+            'BaselineView'   : 0x4,
+            'ObservationView': 0x8,
+            'SettingsView'   : 0x10,
+            'UpdateView'     : 0x20,
+            'AdvancedView'   : 0x40,
+            'SkylarkView'    : 0x80
+          }
+          
 
 class ArgumentParserError(Exception):
     pass
@@ -149,7 +159,14 @@ class ConsoleHandler(Handler):
         if info.initialized:
             info.ui.title = (info.object.dev_id +
                              "(" + info.object.device_serial + ") " + CONSOLE_TITLE)
-
+class ObservationGroup(HasTraits):
+   python_console_cmds = Dict()
+   local = Instance(ObservationView)
+   remote = Instance(ObservationView)
+   view = View(
+            Item('local', style='custom', show_label=False),
+            Item('remote', style='custom', show_label=False),
+          )
 
 class SwiftConsole(HasTraits):
     """Traits-defined Swift Console.
@@ -174,9 +191,8 @@ class SwiftConsole(HasTraits):
     tracking_view = Instance(TrackingView)
     solution_view = Instance(SolutionView)
     baseline_view = Instance(BaselineView)
-    observation_view = Instance(ObservationView)
+    observation_view = Instance(ObservationGroup)
     networking_view = Instance(SbpRelayView)
-    observation_view_base = Instance(ObservationView)
     system_monitor_view = Instance(SystemMonitorView)
     settings_view = Instance(SettingsView)
     update_view = Instance(UpdateView)
@@ -385,6 +401,12 @@ class SwiftConsole(HasTraits):
         handler=ConsoleHandler(),
         title=CONSOLE_TITLE)
 
+    def tab_visible(self, tab_name):
+        if getattr(self, 'tab_mask', None):
+            return self.tab_mask & tab_dict[tab_name]
+        else:
+            return True
+
     def print_message_callback(self, sbp_msg, **metadata):
         try:
             encoded = sbp_msg.payload.encode('ascii', 'ignore')
@@ -431,8 +453,8 @@ class SwiftConsole(HasTraits):
             self.solution_view.directory_name_p = self.directory_name
             self.solution_view.directory_name_v = self.directory_name
         if getattr(self, 'observation_view', None):
-            self.observation_view.dirname = self.directory_name
-            self.observation_view_base.dirname = self.directory_name
+            self.observation_view.local.dirname = self.directory_name
+            self.observation_view.remote.dirname = self.directory_name
 
     def check_heartbeat(self):
         # if our heartbeat hasn't changed since the last timer interval the connection must have dropped
@@ -565,7 +587,8 @@ class SwiftConsole(HasTraits):
                  log_console=False,
                  networking=None,
                  connection_info=None,
-                 expand_json=False
+                 expand_json=False,
+                 tab_mask=None
                 ):
         self.error = error
         self.cnx_desc = cnx_desc
@@ -576,6 +599,7 @@ class SwiftConsole(HasTraits):
         self.forwarder = None
         self.latency = '--'
         self.expand_json = expand_json
+        self.tab_mask = tab_mask
         # if we have passed a logfile, we set our directory to it
         override_filename = override_filename
 
@@ -629,30 +653,52 @@ class SwiftConsole(HasTraits):
                 'whitelist': [SBP_MSG_POS_LLH, SBP_MSG_HEARTBEAT]
             })
             
-            self.selected_tab = self.tracking_view = TrackingView(self.link)
-            self.solution_view = SolutionView(
+            if self.tab_visible('TrackingView'): 
+                self.tracking_view = TrackingView(self.link)
+                self.tab_list.append(self.tracking_view)
+                self.python_console_env.update(
+                    self.tracking_view.python_console_cmds)
+            if self.tab_visible('SolutionView'):
+                self.solution_view = SolutionView(
+                    self.link, dirname=self.directory_name)
+                self.tab_list.append(self.solution_view)
+                self.python_console_env.update(
+                    self.solution_view.python_console_cmds)
+            if self.tab_visible('BaselineView'):
+                self.baseline_view = BaselineView(
                 self.link, dirname=self.directory_name)
-            self.baseline_view = BaselineView(
-                self.link, dirname=self.directory_name)
-            self.observation_view = ObservationView(
-                self.link,
-                name='Local',
-                relay=False,
-                dirname=self.directory_name)
-            self.observation_view_base = ObservationView(
-                self.link,
-                name='Remote',
-                relay=True,
-                dirname=self.directory_name)
-            self.update_view = UpdateView(
-                self.link,
-                download_dir=swift_path,
-                prompt=update,
-                connection_info=self.connection_info)
-            settings_read_finished_functions.append(
-                self.update_view.compare_versions)
-            self.skylark_view = SkylarkView()
-           
+                self.tab_list.append(self.baseline_view)
+                self.python_console_env.update(
+                    self.baseline_view.python_console_cmds)
+            if self.tab_visible('ObservationView'):
+                self.observation_view = ObservationGroup()
+                self.observation_view.local = ObservationView(
+                    self.link,
+                    name='Local',
+                    relay=False,
+                    dirname=self.directory_name)
+                self.observation_view.remote = ObservationView(
+                    self.link,
+                    name='Remote',
+                    relay=True,
+                    dirname=self.directory_name)
+                self.tab_list.append(self.observation_view)
+                self.python_console_env.update(
+                    self.observation_view.python_console_cmds)
+            if self.tab_visible('UpdateView'):
+                self.update_view = UpdateView(
+                    self.link,
+                    download_dir=swift_path,
+                    prompt=update,
+                    connection_info=self.connection_info)
+                settings_read_finished_functions.append(
+                    self.update_view.compare_versions)
+                self.tab_list.append(self.update_view)
+                self.python_console_env.update(
+                    self.update_view.python_console_cmds)
+            if self.tab_visible('SkylarkView'):
+                self.skylark_view = SkylarkView()
+                self.tab_list.append(self.skylark_view)
             self.json_logging = json_logging
             self.csv_logging = False
             self.first_json_press = True
@@ -667,81 +713,68 @@ class SwiftConsole(HasTraits):
             # title. This callback will also update the header route as used
             # by the networking view.
 
-            def update_serial():
-                mfg_id = None
-                try:
-                    self.uuid = self.settings_view.settings['system_info'][
-                        'uuid'].value
-                    mfg_id = self.settings_view.settings['system_info'][
-                        'serial_number'].value
-                except KeyError:
-                    pass
-                if mfg_id:
-                    self.device_serial = 'PK' + str(mfg_id)
-                self.skylark_view.set_uuid(self.uuid)
-                self.advanced_view.sbp_relay_view.set_route(uuid=self.uuid, serial_id=mfg_id)
-                if self.advanced_view.sbp_relay_view.connect_when_uuid_received:
-                    self.advanced_vies.networking_view._connect_rover_fired()
+            if self.tab_visible('SettingsView'):
+                def update_serial():
+                    mfg_id = None
+                    try:
+                        self.uuid = self.settings_view.settings['system_info'][
+                            'uuid'].value
+                        mfg_id = self.settings_view.settings['system_info'][
+                            'serial_number'].value
+                    except KeyError:
+                        pass
+                    if mfg_id:
+                        self.device_serial = 'PK' + str(mfg_id)
+                    if self.tab_visible('SkylarkView'):
+                        self.skylark_view.set_uuid(self.uuid)
+                    if self.tab_visible('AdvancedView'):
+                        self.advanced_view.sbp_relay_view.set_route(uuid=self.uuid, serial_id=mfg_id)
+                        if self.advanced_view.sbp_relay_view.connect_when_uuid_received:
+                            self.advanced_vies.networking_view._connect_rover_fired()
 
-            settings_read_finished_functions.append(update_serial)
-            self.settings_view = SettingsView(
-                self.link,
-                settings_read_finished_functions,
-                skip=skip_settings)
-            self.update_view.settings = self.settings_view.settings
-            self.tab_list.append(self.tracking_view)
-            self.tab_list.append(self.solution_view)
-            self.tab_list.append(self.baseline_view)
-            self.tab_list.append(self.observation_view)
-            self.tab_list.append(self.settings_view)
-            self.tab_list.append(self.update_view)
-            self.tab_list.append(self.skylark_view)
-            class AdvancedView(HasTraits):
-                tab_list = List(HasTraits)
-                selected_tab = Any
-                view = View(Item('tab_list', style='custom', show_label=False,
-                                 editor=ListEditor(use_notebook=True, deletable=False,
-                                 dock_style='tab', selected='selected_tab')))
+                settings_read_finished_functions.append(update_serial)
+                self.settings_view = SettingsView(
+                    self.link,
+                    settings_read_finished_functions,
+                    skip=skip_settings)
+                self.update_view.settings = self.settings_view.settings
+                self.python_console_env.update(
+                    self.settings_view.python_console_cmds)
+            if self.tab_visible('AdvancedView'):
+                class AdvancedView(HasTraits):
+                    tab_list = List(HasTraits)
+                    selected_tab = Any
+                    view = View(Item('tab_list', style='custom', show_label=False,
+                                     editor=ListEditor(use_notebook=True, deletable=False,
+                                     dock_style='tab', selected='selected_tab')))
 
-                def _selected(self, asker):
-                   return (self.parent.selected_tab == self and
-                           self.selected_tab == asker)
+                    def _selected(self, asker):
+                       return (self.parent.selected_tab == self and
+                               self.selected_tab == asker)
 
-                def __init__(self, link, parent):
-                  self.link = link
-                  self.parent = parent
-                  self.system_monitor_view = SystemMonitorView(link)
-                  self.selected_tab = self.system_monitor_view
-                  self.mag_view = MagView(self.link)
-                  self.imu_view = IMUView(self.link)
-                  self.sbp_relay_view = SbpRelayView(self.link, **networking_dict)
-                  self.spectrum_analyzer_view = SpectrumAnalyzerView(self.link)
-                  self.tab_list.append(self.system_monitor_view)
-                  self.tab_list.append(self.imu_view)
-                  self.tab_list.append(self.mag_view)
-                  self.tab_list.append(self.sbp_relay_view)
-                  parent.python_console_env.update(self.system_monitor_view.python_console_cmds)
-                  parent.python_console_env.update(self.imu_view.python_console_cmds)
-                  parent.python_console_env.update(self.sbp_relay_view.python_console_cmds)
+                    def __init__(self, link, parent):
+                      self.link = link
+                      self.parent = parent
+                      self.system_monitor_view = SystemMonitorView(link)
+                      self.selected_tab = self.system_monitor_view
+                      self.mag_view = MagView(self.link)
+                      self.imu_view = IMUView(self.link)
+                      self.sbp_relay_view = SbpRelayView(self.link, **networking_dict)
+                      self.spectrum_analyzer_view = SpectrumAnalyzerView(self.link)
+                      self.tab_list.append(self.system_monitor_view)
+                      self.tab_list.append(self.imu_view)
+                      self.tab_list.append(self.mag_view)
+                      self.tab_list.append(self.sbp_relay_view)
+                      parent.python_console_env.update(self.system_monitor_view.python_console_cmds)
+                      parent.python_console_env.update(self.imu_view.python_console_cmds)
+                      parent.python_console_env.update(self.sbp_relay_view.python_console_cmds)
 
-            self.advanced_view = AdvancedView(self.link, self)
-            self.tab_list.append(self.advanced_view)
+                self.advanced_view = AdvancedView(self.link, self)
+                self.tab_list.append(self.advanced_view)
             self.python_console_env = {
                 'send_message': self.link,
                 'link': self.link,
             }
-            self.python_console_env.update(
-                self.tracking_view.python_console_cmds)
-            self.python_console_env.update(
-                self.solution_view.python_console_cmds)
-            self.python_console_env.update(
-                self.baseline_view.python_console_cmds)
-            self.python_console_env.update(
-                self.observation_view.python_console_cmds)
-            self.python_console_env.update(
-                self.update_view.python_console_cmds)
-            self.python_console_env.update(
-                self.settings_view.python_console_cmds)
 
         except:  # noqa
             import traceback
@@ -993,7 +1026,8 @@ def main():
                     log_console=args.log_console,
                     networking=args.networking,
                     connection_info=cnx_info,
-                    expand_json=args.expand_json) as console:
+                    expand_json=args.expand_json,
+                    tab_mask = args.tab_mask) as console:
 
                 console.configure_traits()
 
