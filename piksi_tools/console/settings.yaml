@@ -290,7 +290,7 @@
   enumerated possible values: True,False
   Description: Enable Skylark client.
   Notes: |
-      If True, Skyark client will be used. Klobuchar correction must be disabled
+      If True, Skylark client will be used. Klobuchar correction must be disabled
       if order for Skylark to function properly, set solution.disable_klobuchar_correction
       to True before enabling Skylark.
 
