@@ -1838,7 +1838,7 @@
   default value: 'False'
   readonly: false
   Description: Enable/Disable raw data output from onboard Bosch BMM150 Magnetometer.
-  Notes:  The magnetometer raw data can be seen in the Advanced Tab of the Swift Console.
+  Notes:  The magnetometer raw data can be seen in the Advanced Tab of the Swift Console. imu.imu_raw_output must also be set to True for the magnetometer output to be enabled.
 
 - group: imu
   name: mag_rate
