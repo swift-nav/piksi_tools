@@ -359,16 +359,14 @@ def get_base_args_driver(args):
             raise Exception('Invalid host and/or port: {0}'.format(traceback.format_exc()))
     else:
         driver = get_driver(
-            args.ftdi, port, baud, args.file, rtscts=args.rtscts)
+            args.ftdi, args.port, args.baud, args.file, rtscts=args.rtscts)
     return driver
-    
+
 
 def main(args):
     """
     Get configuration, get driver, get logger, and build handler and start it.
     """
-    port = args.port
-    baud = args.baud
     timeout = args.timeout
     log_filename = args.logfilename
     log_dirname = args.log_dirname
