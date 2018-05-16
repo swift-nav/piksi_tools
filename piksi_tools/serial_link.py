@@ -348,6 +348,21 @@ def run(args, link):
         sys.exit(1)
 
 
+def get_base_args_driver(args):
+    driver = None
+    if args.tcp:
+        try:
+            host, port = args.port.split(':')
+            driver = TCPDriver(host, int(port))
+        except: # noqa
+            import traceback
+            raise Exception('Invalid host and/or port: {0}'.format(traceback.format_exc()))
+    else:
+        driver = get_driver(
+            args.ftdi, port, baud, args.file, rtscts=args.rtscts)
+    return driver
+    
+
 def main(args):
     """
     Get configuration, get driver, get logger, and build handler and start it.
@@ -369,16 +384,7 @@ def main(args):
     base = args.base
     use_broker = args.broker
     # Driver with context
-    if args.tcp:
-        try:
-            host, port = port.split(':')
-            driver = TCPDriver(host, int(port))
-        except: # noqa
-            raise Exception('Invalid host and/or port')
-    else:
-        driver = get_driver(
-            args.ftdi, port, baud, args.file, rtscts=args.rtscts)
-        # Handler with context
+    driver = get_base_args_driver(args)
     with Handler(Framer(driver.read, driver.write, args.verbose)) as link:
         # Logger with context
         with get_logger(args.log, log_filename, args.expand_json) as logger:
