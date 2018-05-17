@@ -297,40 +297,17 @@ def get_args():
     Get and parse arguments.
     """
     import argparse
-    parser = argparse.ArgumentParser(description='Piksi Settings Tool',
-                                     formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     epilog=("Returns:\n"
-                                             "  0: Upon success\n"
-                                             "  1: Runtime error or invalid settings request.\n"
-                                             "  2: Improper usage"))
+    parser = serial_link.base_cl_options()
+    parser.description = 'Piksi Settings Tool'
+    parser.formatter_class = argparse.RawDescriptionHelpFormatter
+    parser.epilog = ("Returns:\n"
+                     "  0: Upon success\n"
+                     "  1: Runtime error or invalid settings request.\n"
+                     "  2: Improper usage")
     parser.add_argument(
-        "-f",
-        "--ftdi",
-        help="use pylibftdi instead of pyserial.",
-        action="store_true")
-    parser.add_argument(
-        '-p',
-        '--port',
-        default=[serial_link.SERIAL_PORT],
-        nargs=1,
-        help='specify the serial port to use.')
-    parser.add_argument(
-        "-b",
-        "--baud",
-        default=[serial_link.SERIAL_BAUD],
-        nargs=1,
-        help="specify the baud rate to use.")
-    parser.add_argument(
-        "-t",
         "--timeout",
         default=DEFAULT_TIMEOUT_SECS,
         help="specify the timeout for settings reads.")
-    parser.add_argument(
-        '-v',
-        '--verbose',
-        default=False,
-        action="store_true",
-        help='print helpful debug info.')
     parser.add_argument(
         '-s',
         '--save_after_write',
@@ -369,32 +346,29 @@ def main():
     Get configuration, get driver, and build handler and start it.
     """
     args = get_args()
-    port = args.port[0]
-    baud = args.baud[0]
     command = args.command
     return_code = 0
-
-    with serial_link.get_driver(args.ftdi, port, baud) as driver:
-        with Handler(Framer(driver.read, driver.write)) as link:
-            settings = Settings(link)
-            if command == 'write':
-                settings.write(args.section, args.setting, args.value, verbose=args.verbose)
-            elif command == 'read':
-                print(settings.read(args.section, args.setting, verbose=args.verbose))
-            elif command == 'all':
-                settings.read_all(verbose=True)
-            elif command == 'save':
-                settings.save()
-            elif command == 'reset':
-                settings.reset()
-            elif command == 'read_to_file':
-                settings.read_to_file(args.output, verbose=args.verbose)
-            elif command == 'write_from_file':
-                settings.write_from_file(args.filename, verbose=args.verbose)
-            # If saving was requested, we have done a write command, and the write was requested, we save
-            if command.startswith("write") and args.save_after_write:
-                print("Saving Settings to Flash.")
-                settings.save()
+    driver = serial_link.get_base_args_driver(args)
+    with Handler(Framer(driver.read, driver.write)) as link:
+        settings = Settings(link)
+        if command == 'write':
+            settings.write(args.section, args.setting, args.value, verbose=args.verbose)
+        elif command == 'read':
+            print(settings.read(args.section, args.setting, verbose=args.verbose))
+        elif command == 'all':
+            settings.read_all(verbose=True)
+        elif command == 'save':
+            settings.save()
+        elif command == 'reset':
+            settings.reset()
+        elif command == 'read_to_file':
+            settings.read_to_file(args.output, verbose=args.verbose)
+        elif command == 'write_from_file':
+            settings.write_from_file(args.filename, verbose=args.verbose)
+        # If saving was requested, we have done a write command, and the write was requested, we save
+        if command.startswith("write") and args.save_after_write:
+            print("Saving Settings to Flash.")
+            settings.save()
 
 
 if __name__ == "__main__":
