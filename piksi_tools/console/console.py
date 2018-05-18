@@ -715,7 +715,7 @@ class SwiftConsole(HasTraits):
                 skip=skip_settings)
             self.update_view.settings = self.settings_view.settings
             self.settings_report = SettingsReport(self.settings_view.settings)
-            settings_read_finished_functions.append(self.settings_report.report_settings)
+            settings_read_finished_functions.append(self.settings_report.run)
             self.python_console_env = {
                 'send_message': self.link,
                 'link': self.link,
