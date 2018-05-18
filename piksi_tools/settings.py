@@ -67,6 +67,25 @@ class Settings(object):
     The :class:`Settings` class retrieves and sends settings.
     """
 
+    def __enter__(self):
+        self.link.add_callback(self._settings_callback,
+                               SBP_MSG_SETTINGS_READ_RESP)
+        self.link.add_callback(self._settings_list_callback,
+                               SBP_MSG_SETTINGS_READ_BY_INDEX_RESP)
+        self.link.add_callback(self._settings_done_callback,
+                               SBP_MSG_SETTINGS_READ_BY_INDEX_DONE)
+        self.link.add_callback(self._print_callback, [SBP_MSG_LOG])
+        return self
+
+    def __exit__(self, *args):
+        self.link.remove_callback(self._settings_callback,
+                                  SBP_MSG_SETTINGS_READ_RESP)
+        self.link.remove_callback(self._settings_list_callback,
+                                  SBP_MSG_SETTINGS_READ_BY_INDEX_RESP)
+        self.link.remove_callback(self._settings_done_callback,
+                                  SBP_MSG_SETTINGS_READ_BY_INDEX_DONE)
+        self.link.remove_callback(self._print_callback, [SBP_MSG_LOG])
+
     def __init__(self, link, timeout=DEFAULT_TIMEOUT_SECS):
         self.link = link
         self.settings_list = OrderedDict()
@@ -76,14 +95,6 @@ class Settings(object):
 
         # Add necessary callbacks for settings IO
         # TODO add callback for settings_write_response
-
-        self.link.add_callback(self._settings_callback,
-                               SBP_MSG_SETTINGS_READ_RESP)
-        self.link.add_callback(self._settings_list_callback,
-                               SBP_MSG_SETTINGS_READ_BY_INDEX_RESP)
-        self.link.add_callback(self._settings_done_callback,
-                               SBP_MSG_SETTINGS_READ_BY_INDEX_DONE)
-        self.link.add_callback(self._print_callback, [SBP_MSG_LOG])
 
     def read_all(self, verbose=False):
         """Read all settings from device
@@ -351,24 +362,25 @@ def main():
     driver = serial_link.get_base_args_driver(args)
     with Handler(Framer(driver.read, driver.write)) as link:
         settings = Settings(link)
-        if command == 'write':
-            settings.write(args.section, args.setting, args.value, verbose=args.verbose)
-        elif command == 'read':
-            print(settings.read(args.section, args.setting, verbose=args.verbose))
-        elif command == 'all':
-            settings.read_all(verbose=True)
-        elif command == 'save':
-            settings.save()
-        elif command == 'reset':
-            settings.reset()
-        elif command == 'read_to_file':
-            settings.read_to_file(args.output, verbose=args.verbose)
-        elif command == 'write_from_file':
-            settings.write_from_file(args.filename, verbose=args.verbose)
-        # If saving was requested, we have done a write command, and the write was requested, we save
-        if command.startswith("write") and args.save_after_write:
-            print("Saving Settings to Flash.")
-            settings.save()
+        with settings:
+            if command == 'write':
+                settings.write(args.section, args.setting, args.value, verbose=args.verbose)
+            elif command == 'read':
+                print(settings.read(args.section, args.setting, verbose=args.verbose))
+            elif command == 'all':
+                settings.read_all(verbose=True)
+            elif command == 'save':
+                settings.save()
+            elif command == 'reset':
+                settings.reset()
+            elif command == 'read_to_file':
+                settings.read_to_file(args.output, verbose=args.verbose)
+            elif command == 'write_from_file':
+                settings.write_from_file(args.filename, verbose=args.verbose)
+            # If saving was requested, we have done a write command, and the write was requested, we save
+            if command.startswith("write") and args.save_after_write:
+                print("Saving Settings to Flash.")
+                settings.save()
 
 
 if __name__ == "__main__":
