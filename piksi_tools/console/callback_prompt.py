@@ -18,7 +18,7 @@ from time import sleep
 
 from pyface.api import GUI
 from traits.api import Event, HasTraits, String
-from traitsui.api import Action, Handler, Item, TextEditor, View
+from traitsui.api import Action, Handler, Item, TextEditor, View, VGroup
 
 from .utils import icon
 
@@ -85,11 +85,12 @@ class CallbackPrompt(HasTraits):
         self.close = 0
 
         self.view = View(
-            Item(
-                'text',
-                style='readonly',
-                editor=TextEditor(),
-                show_label=False),
+            VGroup(
+                Item(
+                    'text',
+                    style='readonly',
+                    editor=TextEditor(),
+                    show_label=False)),
             buttons=actions,
             title=title,
             handler=CallbackHandler(actions),
