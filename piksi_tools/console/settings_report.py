@@ -15,15 +15,17 @@ import numbers
 
 class SettingsReport():
 
-    def __init__(self, settings):
+    def __init__(self, settings, debug=False):
         self._settings = settings
+        self.debug = debug
 
     def report_settings(self):
         try:
             post_data(str(self._settings['system_info']['uuid']),
                       json.dumps(dict_values_to_strings(self._settings)))
         except Exception:
-            print("report settings: failed to report settings")
+            if self.debug == True:
+                print("report settings: failed to report settings")
             pass
 
 def dict_values_to_strings(d):
@@ -48,13 +50,15 @@ def dict_values_to_strings(d):
 def post_data(uuid, data):
     # Check UUID is a string
     if not isinstance(uuid, str):
-        print("post data: uuid is not a string")
+        if self.debug == True:
+            print("report settings: post data: uuid is not a string")
         return
     # Check data is json.
     try:
         json.loads(data)
     except Exception:
-        print("post data: data is not valid json")
+        if self.debug == True:
+            print("report settings: post data: data is not valid json")
         return
 
     data_post = uuid, data
@@ -63,5 +67,6 @@ def post_data(uuid, data):
                        data=json.dumps(data_post))
 
     if r.status_code != requests.codes.ok:
-        print("post data: failed to post data, code:", r.status_code)
+        if self.debug == True:
+            print("report settings: post data: failed to post data, code:", r.status_code)
 
