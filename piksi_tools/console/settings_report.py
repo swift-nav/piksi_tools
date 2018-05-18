@@ -23,9 +23,10 @@ PERMISSION_FILEPATH = swift_path + '/permission.json'
 
 class SettingsReport():
 
-    def __init__(self, settings, debug=True):
+    def __init__(self, settings, debug=False):
         self._settings = settings
         self.debug = debug
+        # Only ask for permission once per console run.
         self.asked_permission_already = False
 
     def _write_permission_file(self):
