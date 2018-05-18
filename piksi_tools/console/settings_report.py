@@ -26,12 +26,11 @@ class SettingsReport():
     def __init__(self, settings, debug=True):
         self._settings = settings
         self.debug = debug
+        self.asked_permission_already = False
 
     def _write_permission_file(self):
         # Create permission file if it doesn't already exist.
         open(PERMISSION_FILEPATH, 'a').close()
-        # Ensure file has been written before returning.
-        sleep(5)
 
     def _check_permission(self):
         return os.path.isfile(PERMISSION_FILEPATH)
@@ -49,6 +48,7 @@ class SettingsReport():
                                  + "                                                                  \n" \
                                  + "    This will not send location data.                             \n"
         permission_prompt.run()
+        self.asked_permission_already = True
 
     def run(self):
         try:
@@ -57,14 +57,16 @@ class SettingsReport():
         except AttributeError:
             pass
 
-        self._report_settings_thread = Thread(target=self.report_settings)
+        self._report_settings_thread = Thread(target=self._report_settings)
         self._report_settings_thread.start()
 
-    def report_settings(self):
+    def _report_settings(self):
         permission = self._check_permission()
-        if not permission:
+        if not permission and not self.asked_permission_already:
             self._ask_permission()
 
+        # Ensure file has been written before reading.
+        sleep(5)
         permission = self._check_permission()
         if permission:
             try:
