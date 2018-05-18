@@ -21,6 +21,14 @@ from piksi_tools.console.utils import swift_path
 
 PERMISSION_FILEPATH = swift_path + '/permission.json'
 
+def create_dir_if_necessary(filepath):
+    if not os.path.exists(os.path.dirname(filepath)):
+        try:
+            os.makedirs(os.path.dirname(filepath))
+        except OSError as exc: # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise
+
 class SettingsReport():
 
     def __init__(self, settings, debug=False):
@@ -28,10 +36,10 @@ class SettingsReport():
         self.debug = debug
         # Only ask for permission once per console run.
         self.asked_permission_already = False
+        self.create_permission_file = False
 
-    def _write_permission_file(self):
-        # Create permission file if it doesn't already exist.
-        open(PERMISSION_FILEPATH, 'a').close()
+    def _set_create_permission_file_true(self):
+        self.create_permission_file = True
 
     def _check_permission(self):
         return os.path.isfile(PERMISSION_FILEPATH)
@@ -40,7 +48,7 @@ class SettingsReport():
         permission_prompt = prompt.CallbackPrompt(
             title="Share device usage data?",
             actions=[prompt.yes_dont_ask_again_button, prompt.no_button],
-            callback=self._write_permission_file)
+            callback=self._set_create_permission_file_true)
         permission_prompt.text = "\n" \
                                  + "    Click Yes to share device usage data with Swift Navigation.   \n" \
                                  + "                                                                  \n" \
@@ -65,9 +73,14 @@ class SettingsReport():
         permission = self._check_permission()
         if not permission and not self.asked_permission_already:
             self._ask_permission()
+            if self.create_permission_file:
+                create_dir_if_necessary(PERMISSION_FILEPATH)
+                # Ensure dir has been written before proceeding.
+                sleep(5)
+                open(PERMISSION_FILEPATH, 'a').close()
+                # Ensure file has been written before proceeding.
+                sleep(5)
 
-        # Ensure file has been written before reading.
-        sleep(5)
         permission = self._check_permission()
         if permission:
             try:
