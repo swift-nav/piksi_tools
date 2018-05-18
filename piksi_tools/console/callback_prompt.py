@@ -34,8 +34,8 @@ close_button = Action(
     name="Close", action="set_execute_callback_false", show_label=False)
 ok_button = Action(
     name="Ok", action="set_execute_callback_true", show_label=False)
-yes_button = Action(
-    name="Yes", action="set_execute_callback_true", show_label=False)
+yes_dont_ask_again_button = Action(
+    name="Yes, don't ask again", action="set_execute_callback_true", show_label=False)
 no_button = Action(
     name="No", action="set_execute_callback_false", show_label=False)
 

@@ -39,7 +39,7 @@ class SettingsReport():
     def _ask_permission(self):
         permission_prompt = prompt.CallbackPrompt(
             title="Share device usage data?",
-            actions=[prompt.yes_button, prompt.no_button],
+            actions=[prompt.yes_dont_ask_again_button, prompt.no_button],
             callback=self._write_permission_file)
         permission_prompt.text = "\n" \
                                  + "    Click Yes to share device usage data with Swift Navigation.   \n" \
