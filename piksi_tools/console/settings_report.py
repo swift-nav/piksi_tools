@@ -30,6 +30,8 @@ class SettingsReport():
     def _write_permission_file(self):
         # Create permission file if it doesn't already exist.
         open(PERMISSION_FILEPATH, 'a').close()
+        # Ensure file has been written before returning.
+        sleep(5)
 
     def _check_permission(self):
         return os.path.isfile(PERMISSION_FILEPATH)
@@ -60,17 +62,14 @@ class SettingsReport():
 
     def report_settings(self):
         permission = self._check_permission()
-        print "permission:", permission
         if not permission:
             self._ask_permission()
 
         permission = self._check_permission()
-        print "permission:", permission
         if permission:
             try:
                 post_data(str(self._settings['system_info']['uuid']),
                           json.dumps(dict_values_to_strings(self._settings)))
-                print "posted data"
             except Exception:
                 if self.debug == True:
                     print("report settings: failed to report settings")
