@@ -193,6 +193,9 @@ class SolutionView(HasTraits):
         self.plot_data.set_data('cur_lat_sbas', [])
         self.plot_data.set_data('cur_lng_sbas', [])
         self.plot_data.set_data('cur_alt_sbas', [])
+        self.plot_data.set_data('cur_lat_dr', [])
+        self.plot_data.set_data('cur_lng_dr', [])
+        self.plot_data.set_data('cur_alt_dr', [])
 
     def _clear_history(self):
         self.plot_data.set_data('lat_spp', [])
@@ -210,6 +213,9 @@ class SolutionView(HasTraits):
         self.plot_data.set_data('lat_sbas', [])
         self.plot_data.set_data('lng_sbas', [])
         self.plot_data.set_data('alt_sbas', [])
+        self.plot_data.set_data('lat_dr', [])
+        self.plot_data.set_data('lng_dr', [])
+        self.plot_data.set_data('alt_dr', [])
 
     def _clear_button_fired(self):
         self.tows = np.zeros(self.plot_history_max)
@@ -364,7 +370,6 @@ class SolutionView(HasTraits):
 
     def _solution_draw(self):
         spp_indexer, dgnss_indexer, float_indexer, fixed_indexer, sbas_indexer, dr_indexer = None, None, None, None, None, None
-        self._clear_history()
         soln = self.last_soln
         self.last_plot_uptdate_time = time.time()
         if np.any(self.modes):
