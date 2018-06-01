@@ -1606,7 +1606,7 @@
   type: boolean
   default value: 'False'
   readonly: false
-  Description: Additional debug messages for cell modem.
+  Description: Additional debug messages for cell modem. This setting must be saved and the device rebooted for it to take effect.
 
 - group: tcp_server0
   name: mode
