@@ -160,7 +160,7 @@ class Settings(object):
                                 "Setting may not exist.".format(setting, section, retries)))
 
     def write(self, section, setting, value, write_retries=DEFAULT_WRITE_RETRIES,
-              confirm_retries=DEFAULT_CONFIRM_RETRIES, verbose=False):
+              confirm_retries=DEFAULT_CONFIRM_RETRIES, verbose=True):
         """Write setting by name and confirm set
 
         Notes: Caller does not raise an exception, but RuntimeError may be raised when write unsuccessful
@@ -187,7 +187,10 @@ class Settings(object):
                 reply['status'] = msg.status
 
             self.link.add_callback(cb, SBP_MSG_SETTINGS_WRITE_RESP)
-            self.link(MsgSettingsWrite(setting='%s\0%s\0%s\0' % (section, setting, value)))
+            print(section, setting, value)
+            print(type(section), type(setting), type(value))
+            self.link(MsgSettingsWrite(setting='%s\0%s\0%s\0' % (section, setting, str(value))))
+            #self.link(MsgSettingsWrite(setting='%s\0%s\0%s\0' % (section, setting, value)))
             if self._confirm_write(section, setting, value, verbose=verbose, retries=confirm_retries):
                 self.link.remove_callback(cb, SBP_MSG_SETTINGS_WRITE_RESP)
                 return
