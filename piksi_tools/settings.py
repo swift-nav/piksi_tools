@@ -187,7 +187,7 @@ class Settings(object):
                 reply['status'] = msg.status
 
             self.link.add_callback(cb, SBP_MSG_SETTINGS_WRITE_RESP)
-            self.link(MsgSettingsWrite(setting='%s\0%s\0%s\0' % (section, setting, value)))
+            self.link(MsgSettingsWrite(setting='%s\0%s\0%s\0' % (section, setting, str(value))))
             if self._confirm_write(section, setting, value, verbose=verbose, retries=confirm_retries):
                 self.link.remove_callback(cb, SBP_MSG_SETTINGS_WRITE_RESP)
                 return
