@@ -1444,6 +1444,20 @@
      the specified NTRIP server.  The default of 0 disables the GGA sentence upload.
 
 - group: ntrip
+  name: gga_out_rev1
+  expert: true
+  type: boolean
+  units: seconds
+  default value: 'False'
+  readonly: false
+  enumerated possible values:
+  Description: If True, the NTRIP client will use an NTRIP 1.0 formatted GGA sentence.
+  Notes: |
+    By default, the NTRIP client will use an NTRIP 2.0 formatted GGA sentence,
+    which prefixes the GGA sentence with "Ntrip-GGA: ".  If this option is
+    enabled, the prefix will be dropped.
+
+- group: ntrip
   name: debug
   expert: true
   type: boolean
