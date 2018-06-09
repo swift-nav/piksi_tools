@@ -899,7 +899,7 @@
   readonly: false
   enumerated possible values:
   Description: The Baud rate for the UART 1.
-  Notes:
+  Notes: The maximum baud rate supported by the USB to RS232 adapter cable provided in the Piksi Multi / Duro kits is 230400.
 
 - group: uart1
   name: flow_control
@@ -953,7 +953,7 @@
   readonly: false
   enumerated possible values:
   Description: The Baud rate for the UART 0.
-  Notes:
+  Notes: The maximum baud rate supported by the USB to RS232 adapter cable provided in the Piksi Multi / Duro kits is 230400.
 
 - group: uart0
   name: flow_control
