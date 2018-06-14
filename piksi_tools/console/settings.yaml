@@ -17,60 +17,6 @@
     surveyed position will calculate and communicate a pseudo absolute
     RTK position based upon the received position.
 
-- group: surveyed_position
-  name: surveyed_lat
-  expert: false
-  type: Double
-  units: degrees
-  default value: '0'
-  readonly: false
-  enumerated possible values:
-  Description: Surveyed latitude of the antenna.
-  Notes: This setting represents the latitude of the local receiver's antenna, expressed
-    in decimal degrees relative to the equator (north = positive, south = negative).
-    If surveyed position "broadcast" is set to "true", the coordinate will be
-    communicated to remote receivers for use in calculating their pseudo-absolute
-    RTK position. The value should be as accurate as possible and should have
-    precision to at least 7 digits following the decimal point. For reference,
-    1e-7 degrees of latitude is about 1.1 cm on the surface of the earth. Any
-    errors in the surveyed position will directly affect the pseudo-absolute
-    RTK position measurement reported by the remote receiver.
-
-- group: surveyed_position
-  name: surveyed_lon
-  expert: false
-  type: Double
-  units: degrees
-  default value: '0'
-  readonly: false
-  enumerated possible values:
-  Description: Surveyed longitude of the antenna.
-  Notes: This setting represents the longitude of the local receiver's antenna, expressed
-    in decimal degrees relative to the Prime Meridian (east = positive, west = negative).
-    If surveyed position "broadcast" is set to "true", the coordinate will be
-    communicated to remote receivers for use in calculating their pseudo-absolute
-    RTK position. The value should be as accurate as possible and should have
-    precision to at least 7 digits following the decimal point. For reference,
-    1e-7 degrees of longitude at 35 degree latitude is about 1 cm.  Any
-    errors in the surveyed position will directly affect the pseudo-absolute
-    RTK position measurement reported by the remote receiver.
-
-- group: surveyed_position
-  name: surveyed_alt
-  expert: false
-  type: Double
-  units: meters
-  default value: '0'
-  readonly: false
-  enumerated possible values:
-  Description: Surveyed altitude of the antenna.
-  Notes: This setting represents the altitude of the receiver's antenna above the
-    WGS84 ellipsoid, in meters. If surveyed position "broadcast" is set to "true",
-    this coordinate will be communicated to remote receivers for use in calculating
-    their pseudo-absolute position. This value should be precise to 1 cm. Any
-    errors in the surveyed position will directly affect the pseudo-absolute
-    RTK position measurement reported by the Rover.
-
 - group: frontend
   expert: false
   name: antenna_selection
@@ -142,39 +88,6 @@
     base station. The simulator is intended to aid in system integration by
     providing realistic looking outputs but does not faithfully simulate every
     aspect of device operation.
-
-- group: simulator
-  name: base_ecef_x
-  expert: false
-  type: double
-  units: meters
-  default value: '-2706098.845'
-  readonly: false
-  enumerated possible values:
-  Description: Simulated base station position.
-  Notes: Earth Centered Earth Fixed (ECEF) x position of the simulated base station.
-
-- group: simulator
-  name: base_ecef_y
-  expert: false
-  type: double
-  units: meters
-  default value: '-4261216.475'
-  readonly: false
-  enumerated possible values:
-  Description: Simulated base station position.
-  Notes: Earth Centered Earth Fixed (ECEF) y position of the simulated base station.
-
-- group: simulator
-  name: base_ecef_z
-  expert: false
-  type: double
-  units: meters
-  default value: '3885597.912'
-  readonly: false
-  enumerated possible values:
-  Description: Simulated base station position.
-  Notes: Earth Centered Earth Fixed (ECEF) z position of the simulated base station.
 
 - group: simulator
   name: speed
@@ -294,17 +207,6 @@
       if order for Skylark to function properly, set solution.disable_klobuchar_correction
       to True before enabling Skylark.
 
-- group: skylark
-  name: url
-  expert: true
-  type: string
-  units: N/A
-  default value: N/A
-  readonly: false
-  enumerated possible values:
-  Description: Skylark URL to use.
-  Notes: URL to use with Skylark client. Skylark must be enabled to use this setting.
-
 - group: solution
   name: soln_freq
   expert: false
@@ -371,42 +273,6 @@
   Notes: If "fixed", the receiver will output a integer fixed ambiguity estimate.  If
     no fixed solution is available, it will revert to the float solution.  If "float",
     the device will only output the float ambiguity estimate.
-
-- group: solution
-  name: known_baseline_n
-  expert: false
-  type: double
-  units: meters
-  default value: '0'
-  readonly: false
-  enumerated possible values:
-  Description: Determines the baseline vector for the "init known baseline" feature.
-  Notes: This sets the number of meters that the rover is North from the
-    base station when the "init known baseline" feature is used.
-
-- group: solution
-  name: known_baseline_e
-  expert: false
-  type: double
-  units: meters
-  default value: '0'
-  readonly: false
-  enumerated possible values:
-  Description: Determines the baseline vector for the "init known baseline" feature.
-  Notes: This sets the number of meters that the rover is East from the
-    base station when the "init known baseline" feature is used.
-
-- group: solution
-  name: known_baseline_d
-  expert: false
-  type: double
-  units: meters
-  default value: '0'
-  readonly: false
-  enumerated possible values:
-  Description: Determines the baseline vector for the "init known baseline" feature.
-  Notes: This sets the number of meters that the rover is Down from the
-    base station when the "init known baseline" feature is used.
 
 - group: solution
   name: elevation_mask
@@ -486,40 +352,6 @@
   enumerated possible values: True,False
   Description: Enable GLONASS measurement processing in the navigation filter.
   Notes: If set to True, GLONASS measurements are processed in the navigation filter for SPP and RTK.
-
-- group: system_info
-  name: serial_number
-  expert: False
-  type: integer
-  units: N/A
-  default value: N/A
-  readonly: True
-  enumerated possible values:
-  Description: The serial number of the receiver.
-  Notes: This number should match the number on the barcode on the board and cannot be modified.
-
-- group: system_info
-  name: mac_address
-  expert: False
-  type: string
-  units: N/A
-  default value: N/A
-  readonly: True
-  enumerated possible values:
-  Description: The MAC address of the receiver.
-  Notes: This is a read only setting.
-
-- group: system_info
-  name: uuid
-  expert: False
-  type: string
-  units: N/A
-  default value: N/A
-  readonly: True
-  enumerated possible values:
-  Description: The UUID of the receiver.
-  Notes: The UUID is a Universally Unique IDentifier for this receiver.
-    The lower 16 bits of the UUID are used for the SBP Sender ID. This is a read only setting.
 
 - group: system_info
   name: firmware_version
@@ -644,17 +476,6 @@
   Notes: This is a read only setting.
 
 - group: system_info
-  name: sbp_sender_id
-  expert: false
-  type: string
-  units: N/A
-  default value: N/A
-  readonly: True
-  enumerated possible values:
-  Description: The SBP sender ID for any messages sent by the device.
-  Notes: ID value is equal to the lower 16 bits of the UUID. This is a read only setting.
-
-- group: system_info
   name: nap_channels
   expert: true
   type: string
@@ -732,17 +553,6 @@
     3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For Ethernet,
     the default value is optimal for logging and communication with the console.
 
-- group: udp_client0
-  name: address
-  expert: false
-  type: string
-  units: N/A
-  default value: ''
-  readonly: false
-  Description: IP address for UDP client 0.
-  Notes: The address setting is defined according to the convention "hostname:port".
-    For example, it should match the format 192.168.0.222:55555 or xxxxx.net:2101 .
-
 - group: udp_client1
   name: mode
   expert: false
@@ -774,17 +584,6 @@
     a divisor can be specified after the / character for each id.  For example, an entry of
     3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For Ethernet,
     the default value is optimal for logging and communication with the console.
-
-- group: udp_client1
-  name: address
-  expert: false
-  type: string
-  units: N/A
-  default value: ''
-  readonly: false
-  Description: IP address for UDP client 1.
-  Notes: The address setting is defined according to the convention "hostname:port".
-    For example, it should match the format 192.168.0.222:55555 or xxxxx.net:2101 .
 
 - group: udp_server0
   name: mode
@@ -1398,40 +1197,6 @@
   Notes: If True, NTRIP client will be used.
 
 - group: ntrip
-  name: url
-  expert: false
-  type: string
-  units: N/A
-  default value: N/A
-  readonly: false
-  enumerated possible values:
-  Description: NTRIP URL to use.
-  Notes: URL to use with NTRIP client. NTRIP must be enabled to use this setting.
-    URLs should be HTTP URLs with a port, and a mountpoint path such as example.com:2101/BAZ_RTCM3.
-
-- group: ntrip
-  name: username
-  expert: false
-  type: string
-  units: N/A
-  default value: N/A
-  readonly: false
-  enumerated possible values:
-  Description: NTRIP username to use.
-  Notes: Username to use with NTRIP client. NTRIP must be enabled to use this setting.
-
-- group: ntrip
-  name: password
-  expert: false
-  type: string
-  units: N/A
-  default value: N/A
-  readonly: false
-  enumerated possible values:
-  Description: NTRIP password to use.
-  Notes: Password to use with NTRIP client. NTRIP must be enabled to use this setting.
-
-- group: ntrip
   name: gga_out_interval
   expert: false
   type: integer
@@ -1574,53 +1339,6 @@
   readonly: false
   Description: Ethernet configuration mode.
   Notes: If DHCP is chosen the IP address will be assigned automatically. The DHCP assigned IP address cannot be viewed under the Settings tab, instead use the Advanced Tab and click on 'Refresh Network Status'.
-
-- group: ethernet
-  name: ip_address
-  expert: false
-  type: string
-  units: N/A
-  default value: '192.168.0.222'
-  readonly: false
-  Description: The static IP address.
-  Notes: The configured IP address in XXX.XXX.XXX.XXX format.
-
-- group: ethernet
-  name: netmask
-  expert: false
-  type: string
-  units: N/A
-  default value: '255.255.255.0'
-  readonly: false
-  Description: The netmask for the IP config.
-  Notes: The configured netmask in XXX.XXX.XXX.XXX format.
-
-- group: ethernet
-  name: gateway
-  expert: false
-  type: string
-  units: N/A
-  default value: '192.168.0.1'
-  readonly: false
-  Description: The default gateway for the IP config.
-  Notes: The configured gateway in XXX.XXX.XXX.XXX format.
-
-- group: cell_modem
-  name: modem_type
-  expert: true
-  type: enum
-  enumerated possible values: GSM,CDMA
-  default value: 'GSM'
-  readonly: false
-  Description: The type of cell modem in use.
-
-- group: cell_modem
-  name: debug
-  expert: true
-  type: boolean
-  default value: 'False'
-  readonly: false
-  Description: Additional debug messages for cell modem. This setting must be saved and the device rebooted for it to take effect.
 
 - group: tcp_server0
   name: mode
@@ -1977,15 +1695,6 @@
   type: string
   default value: 'ttyACM0'
   readonly: false
-  units: N/A
-
-- group: cell_modem
-  name: APN
-  expert: true
-  type: string
-  default value: INTERNET
-  readonly: false
-  Description: Access point name (provided by cell carrier).
   units: N/A
 
 - group: cell_modem
