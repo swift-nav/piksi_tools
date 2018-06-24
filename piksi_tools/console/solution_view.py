@@ -37,8 +37,9 @@ from traitsui.tabular_adapter import TabularAdapter
 
 from piksi_tools.console.gui_utils import MultilineTextEditor, plot_square_axes
 from piksi_tools.console.utils import (
-    DGNSS_MODE, EMPTY_STR, FIXED_MODE, FLOAT_MODE, SBAS_MODE,
-    SPP_MODE, color_dict, datetime_2_str, get_mode, log_time_strings,
+    DGNSS_MODE, EMPTY_STR, FIXED_MODE, FLOAT_MODE, SBAS_MODE, DR_MODE,
+    SPP_MODE, call_repeatedly,
+    color_dict, datetime_2_str, get_mode, log_time_strings,
     mode_dict)
 from piksi_tools.utils import sopen
 from .utils import resource_filename
@@ -192,6 +193,9 @@ class SolutionView(HasTraits):
         self.plot_data.set_data('cur_lat_sbas', [])
         self.plot_data.set_data('cur_lng_sbas', [])
         self.plot_data.set_data('cur_alt_sbas', [])
+        self.plot_data.set_data('cur_lat_dr', [])
+        self.plot_data.set_data('cur_lng_dr', [])
+        self.plot_data.set_data('cur_alt_dr', [])
 
     def _clear_history(self):
         self.plot_data.set_data('lat_spp', [])
@@ -209,6 +213,9 @@ class SolutionView(HasTraits):
         self.plot_data.set_data('lat_sbas', [])
         self.plot_data.set_data('lng_sbas', [])
         self.plot_data.set_data('alt_sbas', [])
+        self.plot_data.set_data('lat_dr', [])
+        self.plot_data.set_data('lng_dr', [])
+        self.plot_data.set_data('alt_dr', [])
 
     def _clear_button_fired(self):
         self.tows = np.zeros(self.plot_history_max)
@@ -362,8 +369,7 @@ class SolutionView(HasTraits):
             GUI.invoke_later(self._solution_draw)
 
     def _solution_draw(self):
-        spp_indexer, dgnss_indexer, float_indexer, fixed_indexer, sbas_indexer = None, None, None, None, None
-        self._clear_history()
+        spp_indexer, dgnss_indexer, float_indexer, fixed_indexer, sbas_indexer, dr_indexer = None, None, None, None, None, None
         soln = self.last_soln
         self.last_plot_uptdate_time = time.time()
         if np.any(self.modes):
@@ -387,6 +393,7 @@ class SolutionView(HasTraits):
             sbas_indexer = (self.modes == SBAS_MODE)
             float_indexer = (self.modes == FLOAT_MODE)
             fixed_indexer = (self.modes == FIXED_MODE)
+            dr_indexer = (self.modes == DR_MODE)
 
             # make sure that there is at least one true in indexer before setting
             if any(spp_indexer):
@@ -434,6 +441,15 @@ class SolutionView(HasTraits):
                                         sf[1])
                 self.plot_data.set_data('alt_sbas',
                                         (self.alts[sbas_indexer] - offset[2]))
+            if any(dr_indexer):
+                self.plot_data.set_data('lat_dr',
+                                        (self.lats[dr_indexer] - offset[0]) *
+                                        sf[0])
+                self.plot_data.set_data('lng_dr',
+                                        (self.lngs[dr_indexer] - offset[1]) *
+                                        sf[1])
+                self.plot_data.set_data('alt_dr',
+                                        (self.alts[dr_indexer] - offset[2]))
 
                 # update our "current solution" icon
             if self.last_pos_mode == SPP_MODE:
@@ -465,6 +481,12 @@ class SolutionView(HasTraits):
                 self.plot_data.set_data('cur_lat_sbas',
                                         [(soln.lat - offset[0]) * sf[0]])
                 self.plot_data.set_data('cur_lng_sbas',
+                                        [(soln.lon - offset[1]) * sf[1]])
+            elif self.last_pos_mode == DR_MODE:
+                self._reset_remove_current()
+                self.plot_data.set_data('cur_lat_dr',
+                                        [(soln.lat - offset[0]) * sf[0]])
+                self.plot_data.set_data('cur_lng_dr',
                                         [(soln.lon - offset[1]) * sf[1]])
             else:
                 pass
@@ -643,7 +665,11 @@ class SolutionView(HasTraits):
             lat_sbas=[],
             lng_sbas=[],
             cur_lat_sbas=[],
-            cur_lng_sbas=[]
+            cur_lng_sbas=[],
+            lat_dr=[],
+            lng_dr=[],
+            cur_lat_dr=[],
+            cur_lng_dr=[]
         )
         self.plot = Plot(self.plot_data)
 
@@ -718,6 +744,14 @@ class SolutionView(HasTraits):
             marker='dot',
             line_width=0.0,
             marker_size=1.0)
+        self.plot.plot(
+            ('lng_dr', 'lat_dr'),
+            type='scatter',
+            name='',
+            color=color_dict[DR_MODE],
+            marker='dot',
+            line_width=0.0,
+            marker_size=1.0)
         # current values
         spp = self.plot.plot(
             ('cur_lng_spp', 'cur_lat_spp'),
@@ -759,9 +793,17 @@ class SolutionView(HasTraits):
             marker='plus',
             line_width=1.5,
             marker_size=5.0)
-        plot_labels = ['SPP', 'SBAS', 'DGPS', 'RTK float', 'RTK fixed']
+        dr = self.plot.plot(
+            ('cur_lng_dr', 'cur_lat_dr'),
+            type='scatter',
+            name=mode_dict[DR_MODE],
+            color=color_dict[DR_MODE],
+            marker='plus',
+            line_width=1.5,
+            marker_size=5.0)
+        plot_labels = ['SPP', 'SBAS', 'DGPS', 'RTK float', 'RTK fixed', 'DR']
         plots_legend = dict(
-            zip(plot_labels, [spp, sbas, dgnss, rtkfloat, rtkfix]))
+            zip(plot_labels, [spp, sbas, dgnss, rtkfloat, rtkfix, dr]))
         self.plot.legend.plots = plots_legend
         self.plot.legend.labels = plot_labels  # sets order
         self.plot.legend.visible = True
