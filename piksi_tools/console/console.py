@@ -21,6 +21,8 @@ import time
 # Shut chaco up for now
 import warnings
 
+import PyQt4
+
 import sbp.client as sbpc
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.image_resource import ImageResource
