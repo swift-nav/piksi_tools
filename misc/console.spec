@@ -29,13 +29,12 @@ if is_linux:
   libs = ['libgtk-x11-2.0.so.0', 'libgio-2.0.so.0', 'libatk-1.0.so.0']
   binaries += [(findLibrary(l), '.') for l in libs]
 
-
 a = Analysis(['../piksi_tools/console/console.py'],
              binaries=binaries,
              datas=datas,
-             hiddenimports=[],
+             hiddenimports = ['PyQt4', 'PyQt4.uic', 'sip'],
              hookspath=['misc/pyi-hooks'],
-             runtime_hooks=[],
+             runtime_hooks=['misc/pyi-hooks/rthook-PyQt4.py'],
              excludes=[],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,

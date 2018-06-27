@@ -80,7 +80,6 @@ function all_dependencies_debian () {
     pip install -r ../requirements.txt
     pip install -r ../requirements_gui.txt
     pip install PyInstaller
-    pip install PySide==1.2.4
 }
 
 
@@ -109,8 +108,8 @@ function homebrew_install () {
     #    source ./setup.sh
     #    homebrew_install
     ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-    brew doctor
-    brew update
+    #brew doctor
+    #brew update
     # Homebrew apparently requires the contents of /usr/local to be
     # chown'd to your username.  See:
     # http://superuser.com/questions/254843/cant-install-brew-formulae-correctly-permission-denied-in-usr-local-lib
@@ -125,8 +124,8 @@ function bootstrap_osx () {
         log_info "Installing homebrew..."
         homebrew_install
     fi
-    brew update
-    brew upgrade
+    #brew update
+    #brew upgrade
     brew install openssl
     brew link openssl
 }
@@ -154,12 +153,11 @@ function install_python_deps_osx () {
     brew untap cartr/qt4 | true     # If brew tap is run twice, it errors.
     brew tap cartr/qt4
     brew tap-pin cartr/qt4
-    brew install qt@4 shiboken@1.2 qt-webkit@2.3
+    brew install --overwrite --force pyqt@4 qt@4 shiboken@1.2 qt-webkit@2.3
     brew install libftdi sip --force 2>&1 || :
     
     pip install -r ../requirements.txt
     pip install -r ../requirements_gui.txt
-    pip install PySide==1.2.2
     curl -O https://raw.githubusercontent.com/PySide/pyside-setup/1.2.2/pyside_postinstall.py
     python pyside_postinstall.py -install
     pip install PyInstaller==3.2.1
