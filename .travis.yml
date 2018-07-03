@@ -46,7 +46,7 @@ before_install:
 before_script:
   - "export DISPLAY=:0.0"
   - "export PATH=/usr/local/bin/:./:$PATH"
-  - Xvfb :0.0 -screen 1 800x600x16 &
+  - Xvfb :0.0 -screen 1 1600x1200x24+32 &
   - sleep 3
 
 script:
