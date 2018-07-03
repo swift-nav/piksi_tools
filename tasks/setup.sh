@@ -146,7 +146,7 @@ function install_python_deps_osx () {
     fi
 
     brew install python@2
-    brew link python@2 --force
+    brew link --overwrite --force python@2
 
     pip install --upgrade pip
     brew tap-unpin cartr/qt4 | true # If brew tap-pin is run twice, it errors.
