@@ -30,6 +30,9 @@ matrix:
 
   allow_failures:
    - os: osx
+     osx_image: xcode7.3
+     language: generic
+   - os: osx
      osx_image: xcode6.4
      language: generic
 
