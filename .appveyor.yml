@@ -25,7 +25,6 @@ cache:
 install:
   - cinst swig
   - cinst nsis
-  - cinst pyqt4
   - SET PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
   - python --version
   # Upgrade to the latest pip.
