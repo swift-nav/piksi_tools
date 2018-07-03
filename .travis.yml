@@ -47,7 +47,7 @@ before_script:
   - sleep 3
 
 script:
-  - bash tasks/travis.sh
+  - tasks/travis.sh
   - export GIT_DESCRIBE=`git describe`
 
 
