@@ -21,7 +21,6 @@ from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import PanTool, ZoomTool
 from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
-from pyface.api import GUI
 from sbp.navigation import (
     SBP_MSG_AGE_CORRECTIONS, SBP_MSG_DOPS, SBP_MSG_DOPS_DEP_A,
     SBP_MSG_GPS_TIME, SBP_MSG_GPS_TIME_DEP_A, SBP_MSG_POS_LLH,
@@ -29,7 +28,7 @@ from sbp.navigation import (
     SBP_MSG_VEL_NED_DEP_A, MsgAgeCorrections, MsgDops, MsgDopsDepA, MsgGPSTime,
     MsgGPSTimeDepA, MsgPosLLH, MsgPosLLHDepA, MsgUtcTime, MsgVelNED,
     MsgVelNEDDepA)
-from traits.api import Bool, Dict, File, HasTraits, Instance, Int, List, Str, \
+from traits.api import Bool, Dict, File, HasTraits, Instance, Int, Float, List, Str, \
     Enum
 from traitsui.api import (HGroup, HSplit, Item, TabularEditor, TextEditor,
                           VGroup, View)
@@ -80,6 +79,7 @@ class SolutionView(HasTraits):
   directory_name_p : location and name of velocity files
   """
     plot_history_max = Int(1000)
+    last_plot_update_time = Float()
     logging_v = Bool(False)
     display_units = Enum(["degrees", "meters"])
     directory_name_v = File
@@ -177,21 +177,21 @@ class SolutionView(HasTraits):
         self.running = not self.running
 
     def _reset_remove_current(self):
-        self.plot_data.set_data('cur_lat_spp', [])
-        self.plot_data.set_data('cur_lng_spp', [])
-        self.plot_data.set_data('cur_alt_spp', [])
-        self.plot_data.set_data('cur_lat_dgnss', [])
-        self.plot_data.set_data('cur_lng_dgnss', [])
-        self.plot_data.set_data('cur_alt_dgnss', [])
-        self.plot_data.set_data('cur_lat_float', [])
-        self.plot_data.set_data('cur_lng_float', [])
-        self.plot_data.set_data('cur_alt_float', [])
-        self.plot_data.set_data('cur_lat_fixed', [])
-        self.plot_data.set_data('cur_lng_fixed', [])
-        self.plot_data.set_data('cur_alt_fixed', [])
-        self.plot_data.set_data('cur_lat_sbas', [])
-        self.plot_data.set_data('cur_lng_sbas', [])
-        self.plot_data.set_data('cur_alt_sbas', [])
+        self.plot_data.update_data({'cur_lat_spp': [],
+                                    'cur_lng_spp': [],
+                                    'cur_alt_spp': [],
+                                    'cur_lat_dgnss': [],
+                                    'cur_lng_dgnss': [],
+                                    'cur_alt_dgnss': [],
+                                    'cur_lat_float': [],
+                                    'cur_lng_float': [],
+                                    'cur_alt_float': [],
+                                    'cur_lat_fixed': [],
+                                    'cur_lng_fixed': [],
+                                    'cur_alt_fixed': [],
+                                    'cur_lat_sbas': [],
+                                    'cur_lng_sbas': [],
+                                    'cur_alt_sbas': []})
 
     def _clear_history(self):
         self.plot_data.set_data('lat_spp', [])
@@ -354,18 +354,17 @@ class SolutionView(HasTraits):
         self.alts = self.alts[-self.plot_history_max:]
         self.tows = self.tows[-self.plot_history_max:]
         self.modes = self.modes[-self.plot_history_max:]
+        # Updating array plot data is not thread safe, so we have to fire an event
+        # and have the GUI thread do it
         if time.time() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
-            self.solution_draw()
+            self.last_plot_update_time = time.time()
 
-    def solution_draw(self):
-        if self.running:
-            GUI.invoke_later(self._solution_draw)
+    def _last_plot_update_time_changed(self):
+        self._solution_draw()
 
     def _solution_draw(self):
         spp_indexer, dgnss_indexer, float_indexer, fixed_indexer, sbas_indexer = None, None, None, None, None
-        self._clear_history()
         soln = self.last_soln
-        self.last_plot_uptdate_time = time.time()
         if np.any(self.modes):
             if self.display_units == "meters":
                 offset = (np.mean(self.lats[~(np.equal(self.modes, 0))]),
@@ -390,82 +389,67 @@ class SolutionView(HasTraits):
 
             # make sure that there is at least one true in indexer before setting
             if any(spp_indexer):
-                self.plot_data.set_data('lat_spp',
-                                        (self.lats[spp_indexer] - offset[0]) *
-                                        sf[0])
-                self.plot_data.set_data('lng_spp',
-                                        (self.lngs[spp_indexer] - offset[1]) *
-                                        sf[1])
-                self.plot_data.set_data('alt_spp',
-                                        (self.alts[spp_indexer] - offset[2]))
+                self.plot_data.update_data({'lat_spp': (self.lats[spp_indexer] - offset[0]) * sf[0],
+                                            'lng_spp': (self.lngs[spp_indexer] - offset[1]) * sf[1],
+                                            'alt_spp': (self.alts[spp_indexer] - offset[2])})
+            else:
+                self.plot_data.update_data({'lat_spp': [],
+                                            'lng_spp': [],
+                                            'alt_spp': []})
             if any(dgnss_indexer):
-                self.plot_data.set_data('lat_dgnss',
-                                        (self.lats[dgnss_indexer] - offset[0]) *
-                                        sf[0])
-                self.plot_data.set_data('lng_dgnss',
-                                        (self.lngs[dgnss_indexer] - offset[1]) *
-                                        sf[1])
-                self.plot_data.set_data('alt_dgnss',
-                                        (self.alts[dgnss_indexer] - offset[2]))
+                self.plot_data.update_data({'lat_dgnss': (self.lats[dgnss_indexer] - offset[0]) * sf[0],
+                                            'lng_dgnss': (self.lngs[dgnss_indexer] - offset[1]) * sf[1],
+                                            'alt_dgnss': (self.alts[dgnss_indexer] - offset[2])})
+            else:
+                self.plot_data.update_data({'lat_dgnss': [],
+                                            'lng_dgnss': [],
+                                            'alt_dgnss': []})
             if any(float_indexer):
-                self.plot_data.set_data('lat_float',
-                                        (self.lats[float_indexer] - offset[0]) *
-                                        sf[0])
-                self.plot_data.set_data('lng_float',
-                                        (self.lngs[float_indexer] - offset[1]) *
-                                        sf[1])
-                self.plot_data.set_data('alt_float',
-                                        (self.alts[float_indexer] - offset[2]))
+                self.plot_data.update_data({'lat_float': (self.lats[float_indexer] - offset[0]) * sf[0],
+                                            'lng_float': (self.lngs[float_indexer] - offset[1]) * sf[1],
+                                            'alt_float': (self.alts[float_indexer] - offset[2])})
+            else:
+                self.plot_data.update_data({'lat_float': [],
+                                            'lng_float': [],
+                                            'alt_float': []})
             if any(fixed_indexer):
-                self.plot_data.set_data('lat_fixed',
-                                        (self.lats[fixed_indexer] - offset[0]) *
-                                        sf[0])
-                self.plot_data.set_data('lng_fixed',
-                                        (self.lngs[fixed_indexer] - offset[1]) *
-                                        sf[1])
-                self.plot_data.set_data('alt_fixed',
-                                        (self.alts[fixed_indexer] - offset[2]))
+                self.plot_data.update_data({'lat_fixed': (self.lats[fixed_indexer] - offset[0]) * sf[0],
+                                            'lng_fixed': (self.lngs[fixed_indexer] - offset[1]) * sf[1],
+                                            'alt_fixed': (self.alts[fixed_indexer] - offset[2])})
+            else:
+                self.plot_data.update_data({'lat_fixed': [],
+                                            'lng_fixed': [],
+                                            'alt_fixed': []})
             if any(sbas_indexer):
-                self.plot_data.set_data('lat_sbas',
-                                        (self.lats[sbas_indexer] - offset[0]) *
-                                        sf[0])
-                self.plot_data.set_data('lng_sbas',
-                                        (self.lngs[sbas_indexer] - offset[1]) *
-                                        sf[1])
-                self.plot_data.set_data('alt_sbas',
-                                        (self.alts[sbas_indexer] - offset[2]))
+                self.plot_data.update_data({'lat_sbas': (self.lats[sbas_indexer] - offset[0]) * sf[0],
+                                            'lng_sbas': (self.lngs[sbas_indexer] - offset[1]) * sf[1],
+                                            'alt_sbas': (self.alts[sbas_indexer] - offset[2])})
+            else:
+                self.plot_data.update_data({'lat_sbas': [],
+                                            'lng_sbas': [],
+                                            'alt_sbas': []})
 
                 # update our "current solution" icon
             if self.last_pos_mode == SPP_MODE:
                 self._reset_remove_current()
-                self.plot_data.set_data('cur_lat_spp',
-                                        [(soln.lat - offset[0]) * sf[0]])
-                self.plot_data.set_data('cur_lng_spp',
-                                        [(soln.lon - offset[1]) * sf[1]])
+                self.plot_data.update_data({'cur_lat_spp': [(soln.lat - offset[0]) * sf[0]],
+                                            'cur_lng_spp': [(soln.lon - offset[1]) * sf[1]]})
             elif self.last_pos_mode == DGNSS_MODE:
                 self._reset_remove_current()
-                self.plot_data.set_data('cur_lat_dgnss',
-                                        [(soln.lat - offset[0]) * sf[0]])
-                self.plot_data.set_data('cur_lng_dgnss',
-                                        [(soln.lon - offset[1]) * sf[1]])
+                self.plot_data.update_data({'cur_lat_dgnss': [(soln.lat - offset[0]) * sf[0]],
+                                            'cur_lng_dgnss': [(soln.lon - offset[1]) * sf[1]]})
             elif self.last_pos_mode == FLOAT_MODE:
                 self._reset_remove_current()
-                self.plot_data.set_data('cur_lat_float',
-                                        [(soln.lat - offset[0]) * sf[0]])
-                self.plot_data.set_data('cur_lng_float',
-                                        [(soln.lon - offset[1]) * sf[1]])
+                self.plot_data.update_data({'cur_lat_float': [(soln.lat - offset[0]) * sf[0]],
+                                            'cur_lng_float': [(soln.lon - offset[1]) * sf[1]]})
             elif self.last_pos_mode == FIXED_MODE:
                 self._reset_remove_current()
-                self.plot_data.set_data('cur_lat_fixed',
-                                        [(soln.lat - offset[0]) * sf[0]])
-                self.plot_data.set_data('cur_lng_fixed',
-                                        [(soln.lon - offset[1]) * sf[1]])
+                self.plot_data.update_data({'cur_lat_fixed': [(soln.lat - offset[0]) * sf[0]],
+                                            'cur_lng_fixed': [(soln.lon - offset[1]) * sf[1]]})
             elif self.last_pos_mode == SBAS_MODE:
                 self._reset_remove_current()
-                self.plot_data.set_data('cur_lat_sbas',
-                                        [(soln.lat - offset[0]) * sf[0]])
-                self.plot_data.set_data('cur_lng_sbas',
-                                        [(soln.lon - offset[1]) * sf[1]])
+                self.plot_data.update_data({'cur_lat_sbas': [(soln.lat - offset[0]) * sf[0]],
+                                            'cur_lng_sbas': [(soln.lon - offset[1]) * sf[1]]})
             else:
                 pass
 
