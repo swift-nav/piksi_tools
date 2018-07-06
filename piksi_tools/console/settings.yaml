@@ -1514,7 +1514,7 @@
   expert: false
   type: boolean
   units: N/A
-  default value: 'False'
+  default value: 'True'
   readonly: false
   enumerated possible values: True,False
   Description: Enable SBAS acquisition.
