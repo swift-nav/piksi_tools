@@ -1514,7 +1514,7 @@
   expert: false
   type: boolean
   units: N/A
-  default value: 'False'
+  default value: 'True'
   readonly: false
   enumerated possible values: True,False
   Description: Enable SBAS acquisition.
@@ -1522,14 +1522,25 @@
 
 - group: acquisition
   name: bds2_acquisition_enabled
-  expert: true
+  expert: false
   type: boolean
   units: N/A
-  default value: 'False'
+  default value: 'True'
   readonly: false
   enumerated possible values: True,False
   Description: Enable Beidou2 acquisition.
   Notes: If Beidou2 satellites are already being tracked, this setting will not remove them from tracking or exclude them from being used in positioning - the setting must be saved and the receiver must be restarted for this to take effect.
+
+- group: acquisition
+  name: gal_acquisition_enabled
+  expert: false
+  type: boolean
+  units: N/A
+  default value: 'True'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Enable Galileo acquisition.
+  Notes: If Galileo satellites are already being tracked, this setting will not remove them from tracking or exclude them from being used in positioning - the setting must be saved and the receiver must be restarted for this to take effect.
 
 - group: acquisition
   name: qzss_acquisition_enabled
