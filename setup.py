@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os
-
+import os; os.environ['SETUPTOOLS_SCM_DEBUG'] ='1'
 from setuptools import setup
 
 CLASSIFIERS = [
@@ -69,7 +69,7 @@ except ImportError:
     # is not yet installed when it runs `pip install setuptools_scm .[TEST] ...`
     # so the above import fails. But the version doesn't matter, because it's
     # just querying for dependencies.
-    use_scm_version = False
+    print("Import Error on setuptools_scm")
 
 setup(
     name='piksi_tools',
