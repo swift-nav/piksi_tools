@@ -10,9 +10,9 @@
 
 import numpy as np
 from traits.api import Bool, HasTraits, List
-from traitsui.api import HGroup, Item, Spring, TextEditor
+from traitsui.api import HGroup, VGroup, Item, TextEditor
 
-from piksi_tools.console.utils import SUPPORTED_CODES, code_to_str
+from piksi_tools.console.utils import SUPPORTED_CODES, GUI_CODES, code_to_str
 
 GUI_UPDATE_PERIOD = 0.2
 
@@ -91,12 +91,13 @@ class CodeFiltered(HasTraits):
         '''
         hgroup = HGroup()
 
-        for code in SUPPORTED_CODES:
-            hgroup.content.append(Spring(width=8, springy=False))
-            hgroup.content.append(
-                Item(
-                    'show_{}'.format(code),
-                    label="{}:".format(code_to_str(code)),
-                    visible_when="{} in received_codes".format(code)))
-
+        for prefix, code_list in sorted(GUI_CODES.items(), key=lambda x: x[1][0] if x[0] != 'SBAS' else 100):
+            vgroup = VGroup()
+            for code in code_list:
+                vgroup.content.append(
+                    Item(
+                        'show_{}'.format(code),
+                        label="{}:".format(code_to_str(code)),
+                        visible_when="{} in received_codes".format(code)))
+            hgroup.content.append(vgroup)
         return hgroup
