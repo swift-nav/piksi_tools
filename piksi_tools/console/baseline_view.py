@@ -18,7 +18,6 @@ from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import PanTool, ZoomTool
 from enable.api import ComponentEditor
 from enable.savage.trait_defs.ui.svg_button import SVGButton
-from pyface.api import GUI
 from sbp.navigation import (
     SBP_MSG_AGE_CORRECTIONS, SBP_MSG_BASELINE_NED,
     SBP_MSG_BASELINE_NED_DEP_A, SBP_MSG_GPS_TIME, SBP_MSG_GPS_TIME_DEP_A,
@@ -26,7 +25,7 @@ from sbp.navigation import (
     MsgGPSTimeDepA, MsgUtcTime)
 from sbp.orientation import SBP_MSG_BASELINE_HEADING, MsgBaselineHeading
 from sbp.piksi import SBP_MSG_IAR_STATE, MsgResetFilters
-from traits.api import Bool, Button, Dict, File, HasTraits, Instance, List
+from traits.api import Bool, Button, Float, Dict, File, HasTraits, Instance, List
 from traitsui.api import HGroup, HSplit, Item, TabularEditor, VGroup, View
 from traitsui.tabular_adapter import TabularAdapter
 
@@ -51,6 +50,7 @@ class BaselineView(HasTraits):
     # it helps avoid confusion
 
     python_console_cmds = Dict()
+    last_plot_update_time = Float()
 
     table = List()
 
@@ -129,15 +129,15 @@ class BaselineView(HasTraits):
         self.link(MsgResetFilters(filter=0))
 
     def _reset_remove_current(self):
-        self.plot_data.set_data('cur_fixed_n', [])
-        self.plot_data.set_data('cur_fixed_e', [])
-        self.plot_data.set_data('cur_fixed_d', [])
-        self.plot_data.set_data('cur_float_n', [])
-        self.plot_data.set_data('cur_float_e', [])
-        self.plot_data.set_data('cur_float_d', [])
-        self.plot_data.set_data('cur_dgnss_n', [])
-        self.plot_data.set_data('cur_dgnss_e', [])
-        self.plot_data.set_data('cur_dgnss_d', [])
+        self.plot_data.update_data({'cur_fixed_n': [],
+                                    'cur_fixed_e': [],
+                                    'cur_fixed_d': [],
+                                    'cur_float_n': [],
+                                    'cur_float_e': [],
+                                    'cur_float_d': [],
+                                    'cur_dgnss_n': [],
+                                    'cur_dgnss_e': [],
+                                    'cur_dgnss_d': []})
 
     def _clear_history(self):
         self.plot_data.set_data('n_fixed', [])
@@ -259,7 +259,7 @@ class BaselineView(HasTraits):
 
         self.last_mode = get_mode(soln)
         if time.time() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
-            self.solution_draw()
+            self.last_plot_update_time = time.time()
 
         if self.last_mode < 1:
             table.append(('GPS Week', EMPTY_STR))
@@ -320,48 +320,55 @@ class BaselineView(HasTraits):
             self.n[0], self.e[0], self.d[0] = [np.NAN, np.NAN, np.NAN]
         self.mode[0] = self.last_mode
 
-    def solution_draw(self):
-        if self.running:
-            GUI.invoke_later(self._solution_draw)
+    def _last_plot_update_time_changed(self):
+        self._solution_draw()
 
     def _solution_draw(self):
-        self._clear_history()
         soln = self.last_soln
-        self.last_plot_update_time = time.time()
         if np.any(self.mode):
             float_indexer = (self.mode == FLOAT_MODE)
             fixed_indexer = (self.mode == FIXED_MODE)
             dgnss_indexer = (self.mode == DGNSS_MODE)
-
             if np.any(fixed_indexer):
-                self.plot_data.set_data('n_fixed', self.n[fixed_indexer])
-                self.plot_data.set_data('e_fixed', self.e[fixed_indexer])
-                self.plot_data.set_data('d_fixed', self.d[fixed_indexer])
+                self.plot_data.update_data({'n_fixed': self.n[fixed_indexer],
+                                            'e_fixed': self.e[fixed_indexer],
+                                            'd_fixed': self.d[fixed_indexer]})
+            else:
+                self.plot_data.update_data({'n_fixed': [],
+                                            'e_fixed': [],
+                                            'd_fixed': []})
             if np.any(float_indexer):
-                self.plot_data.set_data('n_float', self.n[float_indexer])
-                self.plot_data.set_data('e_float', self.e[float_indexer])
-                self.plot_data.set_data('d_float', self.d[float_indexer])
+                self.plot_data.update_data({'n_float': self.n[float_indexer],
+                                            'e_float': self.e[float_indexer],
+                                            'd_float': self.d[float_indexer]})
+            else:
+                self.plot_data.update_data({'n_float': [],
+                                            'e_float': [],
+                                            'd_float': []})
             if np.any(dgnss_indexer):
-                self.plot_data.set_data('n_dgnss', self.n[dgnss_indexer])
-                self.plot_data.set_data('e_dgnss', self.e[dgnss_indexer])
-                self.plot_data.set_data('d_dgnss', self.d[dgnss_indexer])
-
+                self.plot_data.update_data({'n_dgnss': self.n[dgnss_indexer],
+                                            'e_dgnss': self.e[dgnss_indexer],
+                                            'd_dgnss': self.d[dgnss_indexer]})
+            else:
+                self.plot_data.update_data({'n_dgnss': [],
+                                            'e_dgnss': [],
+                                            'd_dgnss': []})
             # Update our last solution icon
             if self.last_mode == FIXED_MODE:
                 self._reset_remove_current()
-                self.plot_data.set_data('cur_fixed_n', [soln.n])
-                self.plot_data.set_data('cur_fixed_e', [soln.e])
-                self.plot_data.set_data('cur_fixed_d', [soln.d])
+                self.plot_data.update_data({'cur_fixed_n': [soln.n],
+                                            'cur_fixed_e': [soln.e],
+                                            'cur_fixed_d': [soln.d]})
             elif self.last_mode == FLOAT_MODE:
                 self._reset_remove_current()
-                self.plot_data.set_data('cur_float_n', [soln.n])
-                self.plot_data.set_data('cur_float_e', [soln.e])
-                self.plot_data.set_data('cur_float_d', [soln.d])
+                self.plot_data.update_data({'cur_float_n': [soln.n],
+                                            'cur_float_e': [soln.e],
+                                            'cur_float_d': [soln.d]})
             elif self.last_mode == DGNSS_MODE:
                 self._reset_remove_current()
-                self.plot_data.set_data('cur_dgnss_n', [soln.n])
-                self.plot_data.set_data('cur_dgnss_e', [soln.e])
-                self.plot_data.set_data('cur_dgnss_d', [soln.d])
+                self.plot_data.update_data({'cur_dgnss_n': [soln.n],
+                                            'cur_dgnss_e': [soln.e],
+                                            'cur_dgnss_d': [soln.d]})
             else:
                 pass
         # make the zoomall win over the position centered button
