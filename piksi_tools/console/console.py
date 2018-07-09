@@ -191,7 +191,7 @@ class SwiftConsole(HasTraits):
     mode = Str('')
     num_sats = Int(0)
     cnx_desc = Str('')
-    latency = Str('')
+    age_of_corrections = Str('')
     uuid = Str('')
     directory_name = Directory
     json_logging = Bool(True)
@@ -352,12 +352,12 @@ class SwiftConsole(HasTraits):
                         style='readonly'),
                     Item(
                         '',
-                        label='Base Latency:',
+                        label='Age corr:',
                         emphasized=True,
-                        tooltip='Corrections latency (-1 means no corrections)'
+                        tooltip='Age of corrections (-- means invalid / not present)'
                     ),
                     Item(
-                        'latency',
+                        'age_of_corrections',
                         padding=2,
                         show_label=False,
                         style='readonly'),
@@ -490,12 +490,12 @@ class SwiftConsole(HasTraits):
             self.settings_view.lat = self.solution_view.latitude
             self.settings_view.lon = self.solution_view.longitude
             self.settings_view.alt = self.solution_view.altitude
-        if self.system_monitor_view:
-            if self.system_monitor_view.msg_obs_window_latency_ms != -1:
-                self.latency = "{0} ms".format(
-                    self.system_monitor_view.msg_obs_window_latency_ms)
+        if self.baseline_view:
+            if self.baseline_view.age_corrections is not None:
+                self.age_of_corrections = "{0} S".format(
+                    self.baseline_view.age_corrections)
             else:
-                self.latency = EMPTY_STR
+                self.age_of_corrections = EMPTY_STR
 
     def _csv_logging_button_action(self):
         if self.csv_logging and self.baseline_view.logging_b and self.solution_view.logging_p and self.solution_view.logging_v:
@@ -595,7 +595,7 @@ class SwiftConsole(HasTraits):
         self.num_sats = 0
         self.mode = ''
         self.forwarder = None
-        self.latency = '--'
+        self.age_of_corrections = '--'
         self.expand_json = expand_json
         # if we have passed a logfile, we set our directory to it
         override_filename = override_filename
