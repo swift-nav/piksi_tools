@@ -126,29 +126,30 @@ class Setting(SettingBase):
             show_border=True,
             label='Setting', ), )
 
-    def __init__(self, name, section, value, ordering, settings):
+    def __init__(self, name, section, value, ordering=0, settings=None):
         self.name = name
         self.section = section
         self.full_name = "%s.%s" % (section, name)
         self.value = value
         self.ordering = ordering
         self.settings = settings
-        self.expert = settings.settings_yaml.get_field(section, name, 'expert')
-        self.description = settings.settings_yaml.get_field(
-            section, name, 'Description')
-        self.units = settings.settings_yaml.get_field(section, name, 'units')
-        self.notes = settings.settings_yaml.get_field(section, name, 'Notes')
-        self.default_value = settings.settings_yaml.get_field(
-            section, name, 'default value')
-        readonly = settings.settings_yaml.get_field(section, name, 'readonly')
-        # get_field returns empty string if field missing, so I need this check to assign bool to traits bool
-        if readonly:
-            self.readonly = True
         self.revert_in_progress = False
         self.timed_revert_thread = None
         self.confirmed_set = True
         # flag on each setting to indicate a write failure if the revert thread has run on the setting
         self.write_failure = False
+        if settings:
+            self.expert = settings.settings_yaml.get_field(section, name, 'expert')
+            self.description = settings.settings_yaml.get_field(
+                section, name, 'Description')
+            self.units = settings.settings_yaml.get_field(section, name, 'units')
+            self.notes = settings.settings_yaml.get_field(section, name, 'Notes')
+            self.default_value = settings.settings_yaml.get_field(
+                section, name, 'default value')
+            readonly = settings.settings_yaml.get_field(section, name, 'readonly')
+            # get_field returns empty string if field missing, so I need this check to assign bool to traits bool
+            if readonly:
+                self.readonly = True
 
     def revert_to_prior_value(self, name, old, new):
         '''Revert setting to old value in the case we can't confirm new value'''
@@ -173,18 +174,29 @@ class Setting(SettingBase):
 
     def _value_changed(self, name, old, new):
         '''When a user changes a value, kick off a timed revert thread to revert it in GUI if no confirmation
-           that the change was successful is received. '''
-        if (old != new and old is not Undefined and new is not Undefined):
-            if type(self.value) == unicode:
-                self.value = self.value.encode('ascii', 'replace')
-            # Revert_in_progress is a guard to prevent this from running when the revert function changes the value
-            if not self.revert_in_progress:
-                self.confirmed_set = False
-                self.timed_revert_thread = TimedDelayStoppableThread(SETTINGS_REVERT_TIMEOUT,
-                                                                     target=self.revert_to_prior_value,
-                                                                     args=(name, old, new))
-                self.settings.set(self.section, self.name, self.value)
-                self.timed_revert_thread.start()
+            that the change was successful is received.'''
+        if getattr(self, 'settings', None):
+            if (old != new and old is not Undefined and new is not Undefined):
+                if type(self.value) == unicode:
+                    self.value = self.value.encode('ascii', 'replace')
+                # Revert_in_progress is a guard to prevent this from running when the revert function changes the value
+                if not self.revert_in_progress:
+                    self.confirmed_set = False
+                    self.timed_revert_thread = TimedDelayStoppableThread(
+                        SETTINGS_REVERT_TIMEOUT,
+                        target=self.revert_to_prior_value,
+                        args=(name, old, new))
+                    self.settings.set(self.section, self.name, self.value)
+                    self.timed_revert_thread.start()
+            # If we have toggled the Inertial Nav enable setting (currently "output mode")
+            # we display some helpful hints for the user
+            if (self.section == "ins" and self.name == "output_mode" and
+                    old is not None and self.settings is not None):
+                if new in ['GNSS and INS', 'INS Only', 'Loosely Coupled', 'LC + GNSS']:
+                    hint_thread = threading.Thread(
+                        target=self.settings._display_ins_settings_hint)
+                    hint_thread.start()
+                    # todo update when setting name changes
 
 
 class EnumSetting(Setting):
@@ -218,9 +230,9 @@ class EnumSetting(Setting):
             show_border=True,
             label='Setting', ), )
 
-    def __init__(self, name, section, value, ordering, values, **kwargs):
+    def __init__(self, name, section, value, values, **kwargs):
+        Setting.__init__(self, name, section, value, **kwargs)
         self.values = values
-        Setting.__init__(self, name, section, value, ordering, **kwargs)
 
 
 class SectionHeading(SettingBase):
@@ -232,6 +244,23 @@ class SectionHeading(SettingBase):
 
 class SimpleAdapter(TabularAdapter):
     columns = [('Name', 'name'), ('Value', 'value')]
+    font = Font('12')
+    can_edit = Bool(False)
+    SectionHeading_bg_color = Color(0xE0E0E0)
+    SectionHeading_font = Font('14 bold')
+    SectionHeading_name_text = Property
+    Setting_name_text = Property
+    name_width = Float(175)
+
+    def _get_SectionHeading_name_text(self):
+        return self.item.name.replace('_', ' ')
+
+    def _get_Setting_name_text(self):
+        return self.item.name.replace('_', ' ')
+
+
+class SimpleChangeAdapter(TabularAdapter):
+    columns = [('Name', 'name'), ('Current Value', 'value'), ('Recommended Value', 'rec_value')]
     font = Font('12')
     can_edit = Bool(False)
     SectionHeading_bg_color = Color(0xE0E0E0)
@@ -353,6 +382,80 @@ class SettingsView(HasTraits):
             self.settings_display_setup(do_read_finished=False)
         except AttributeError:
             pass
+
+    def update_required_smoothpose_settings(self):
+        """
+        Update any recommended settings for smoothpose
+        """
+        list = self._determine_smoothpose_recommended_settings()
+        for each_setting in list:
+            self.settings[each_setting.section][each_setting.name].value = each_setting.rec_value
+
+    def _determine_smoothpose_recommended_settings(self):
+        """
+        Returns a list of settings that should change for smoothpose
+        """
+
+        recommended_settings = {'imu_raw_output': Setting('imu_raw_output', 'imu', 'True'),
+                                'gyro_range': Setting('gyro_range', 'imu', '1000'),
+                                'acc_range': Setting('acc_range', 'imu', '8g'),
+                                'imu_rate': Setting('imu_rate', 'imu', '100')
+                                }
+        settings_wrong_list = []
+        for each_key in recommended_settings.keys():
+            if recommended_settings[each_key].value != self.settings['imu'][each_key].value:
+                self.settings['imu'][each_key].rec_value = recommended_settings[each_key].value
+                settings_wrong_list.append(self.settings['imu'][each_key])
+        return settings_wrong_list
+
+    def _save_and_reset(self):
+        self._settings_save_button_fired()
+        self.link(MsgReset(flags=0))
+
+    def _display_ins_settings_hint(self):
+        """
+        Display helpful hint messages to help a user set up inertial product
+        """
+        settings_list = self._determine_smoothpose_recommended_settings()
+        if len(settings_list) > 0:
+            confirm_prompt = prompt.CallbackPrompt(
+                title="Update Recommended Inertial Navigation Settings?",
+                actions=[prompt.close_button, prompt.update_button],
+                callback=self.update_required_smoothpose_settings)
+            confirm_prompt.settings_list = settings_list
+            confirm_prompt.text = "\n\n" \
+                                  "    In order to enable INS output, it is necessary to enable and configure the imu.    \n" \
+                                  "    Your current settings indicate that your imu raw ouptut is disabled and/or improperly configured.    \n\n" \
+                                  "    Choose \"Update\" to allow the console to change the following settings on your device to help enable INS output.    \n" \
+                                  "    Choose \"Close\" to ignore this recommendation and not update any device settings.    \n\n"
+            # from objbrowser import browse
+            # browse(confirm_prompt)
+            confirm_prompt.view.content.content[0].content.append(
+                Item("settings_list", editor=TabularEditor(
+                    adapter=SimpleChangeAdapter(),
+                    editable_labels=False,
+                    auto_update=True,
+                    editable=False),
+                    # Only make pop-up as tall as necessary
+                    height=-(len(confirm_prompt.settings_list) * 25 + 40),
+                    label='Recommended Settings'))
+            confirm_prompt.run(block=False)
+            while (confirm_prompt.thread.is_alive()):
+                # Wait until first popup is closed before opening second popup
+                time.sleep(1)
+        confirm_prompt2 = prompt.CallbackPrompt(
+            title="Restart Device?",
+            actions=[prompt.close_button, prompt.ok_button],
+            callback=self._save_and_reset)
+
+        confirm_prompt2.text = "\n\n" \
+                               "    In order for the \"Ins Output Mode\" setting to take effect, it is necessary to save the    \n" \
+                               "    current settings to device flash and then power cycle your device.    \n\n" \
+                               "    Choose \"OK\" to immediately save settings to device flash and send the software reset command.    \n" \
+                               "    The software reset will temporarily interrupt the console's connection to the device but it   \n" \
+                               "    will recover on its own.    \n\n"
+
+        confirm_prompt2.run(block=False)
 
     def _settings_read_button_fired(self):
         self.enumindex = 0
@@ -614,8 +717,8 @@ class SettingsView(HasTraits):
                     setting,
                     section,
                     value,
+                    enum_values,
                     ordering=self.ordering_counter,
-                    values=enum_values,
                     settings=self)
             else:
                 # Unknown type, just treat is as a string
