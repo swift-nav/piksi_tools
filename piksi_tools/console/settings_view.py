@@ -657,6 +657,7 @@ class SettingsView(HasTraits):
                  gui_mode=True,
                  skip=False):
         super(SettingsView, self).__init__()
+        self.ordering_counter = 0
         self.expert = expert
         self.show_auto_survey = False
         self.gui_mode = gui_mode
