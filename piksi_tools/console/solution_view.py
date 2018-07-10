@@ -15,6 +15,7 @@ import datetime
 import math
 import os
 import time
+import threading
 
 import numpy as np
 from chaco.api import ArrayPlotData, Plot
@@ -340,6 +341,7 @@ class SolutionView(HasTraits):
         self.pos_table = pos_table
         self.update_table()
         # setup_plot variables
+        self.list_lock.acquire()
         self.lats[1:] = self.lats[:-1]
         self.lngs[1:] = self.lngs[:-1]
         self.alts[1:] = self.alts[:-1]
@@ -357,6 +359,7 @@ class SolutionView(HasTraits):
         self.alts = self.alts[-self.plot_history_max:]
         self.tows = self.tows[-self.plot_history_max:]
         self.modes = self.modes[-self.plot_history_max:]
+        self.list_lock.release()
         # Updating array plot data is not thread safe, so we have to fire an event
         # and have the GUI thread do it
         if time.time() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
@@ -369,6 +372,7 @@ class SolutionView(HasTraits):
         spp_indexer, dgnss_indexer, float_indexer, fixed_indexer, sbas_indexer, dr_indexer = None, None, None, None, None, None
         soln = self.last_soln
         if np.any(self.modes):
+            self.list_lock.acquire()
             if self.display_units == "meters":
                 offset = (np.mean(self.lats[~(np.equal(self.modes, 0))]),
                           np.mean(self.lngs[~(np.equal(self.modes, 0))]),
@@ -441,7 +445,7 @@ class SolutionView(HasTraits):
                 self.plot_data.update_data({'lat_dr': [],
                                             'lng_dr': [],
                                             'alt_dr': []})
-
+            self.list_lock.release()
                 # update our "current solution" icon
             if self.last_pos_mode == SPP_MODE:
                 self._reset_remove_current()
@@ -597,7 +601,7 @@ class SolutionView(HasTraits):
 
     def __init__(self, link, dirname=''):
         super(SolutionView, self).__init__()
-
+        self.list_lock = threading.Lock()
         self.lats = np.zeros(self.plot_history_max)
         self.lngs = np.zeros(self.plot_history_max)
         self.alts = np.zeros(self.plot_history_max)
