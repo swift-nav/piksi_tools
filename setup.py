@@ -53,29 +53,13 @@ with open(cwd + '/README.rst') as f:
 with open(cwd + '/requirements.txt') as f:
     INSTALL_REQUIRES = [i.strip() for i in f.readlines()]
 
-
-use_scm_version = {
-         'write_to': 'piksi_tools/_version.py',
-    }
-
-try:
-    # hack `meta` to strip '-branch' substring off tags for swift convention that setuptools_scm cannot handle
-    import setuptools_scm.version
-    meta = setuptools_scm.version.meta
-    setuptools_scm.version.meta = lambda tag, *args, **kwargs: \
-        meta(tag.replace('-branch', ''), *args, **kwargs)
-except ImportError:
-    # At the beginning of a tox build in a clean virtualenv, `setuptools_scm`
-    # is not yet installed when it runs `pip install setuptools_scm .[TEST] ...`
-    # so the above import fails. But the version doesn't matter, because it's
-    # just querying for dependencies.
-    use_scm_version = False
-
 setup(
     name='piksi_tools',
     description='Python tools for the Piksi GNSS receiver.',
     long_description=readme,
-    use_scm_version=use_scm_version,
+    use_scm_version={
+        'write_to': 'piksi_tools/_version.py',
+    },
     setup_requires=['setuptools_scm'],
     author='Swift Navigation',
     author_email='dev@swiftnav.com',
