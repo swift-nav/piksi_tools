@@ -482,6 +482,8 @@ class SwiftConsole(HasTraits):
                     temp_mode = mode_dict.get(
                         get_mode(view.last_soln), EMPTY_STR)
                     temp_num_sats = view.last_soln.n_sats
+                if getattr(view, 'ins_used', False):
+                    temp_mode += "+INS"
 
         self.mode = temp_mode
         self.num_sats = temp_num_sats
