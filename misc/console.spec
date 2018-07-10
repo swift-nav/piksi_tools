@@ -46,10 +46,10 @@ exe = EXE(pyz,
           exclude_binaries=True,
           name='console',
           icon=icon,
-          debug=True,
+          debug=False,
           strip=False,
           upx=True,
-          console=True )
+          console=False )
 coll = COLLECT(exe,
                resources,
                a.binaries,
