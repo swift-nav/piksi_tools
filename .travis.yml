@@ -1,6 +1,7 @@
 dist: trusty
 sudo: required
-
+git:
+  depth: false
 
 python:
   - "2.7"
