@@ -192,7 +192,7 @@ class Setting(SettingBase):
             # we display some helpful hints for the user
             if (self.section == "ins" and self.name == "output_mode" and
                     old is not None and self.settings is not None):
-                if new in ['GNSS and INS', 'INS Only']:
+                if new in ['GNSS and INS', 'INS Only', 'Loosely Coupled', 'LC + GNSS']:
                     hint_thread = threading.Thread(
                         target=self.settings._display_ins_settings_hint)
                     hint_thread.start()
