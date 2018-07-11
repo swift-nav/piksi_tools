@@ -253,7 +253,7 @@ class SolutionView(HasTraits):
         self.last_soln = soln
 
         self.last_pos_mode = get_mode(soln)
-        self.ins_used = (soln.flags & 0x8 >> 3) == 1
+        self.ins_used = ((soln.flags & 0x8) >> 3) == 1
         pos_table = []
         soln.h_accuracy *= 1e-3
         soln.v_accuracy *= 1e-3
