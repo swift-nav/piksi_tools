@@ -555,6 +555,29 @@
   Notes: This is a read only setting that corresponds to the version number printed on the oem module hardware version sticker.
 
 - group: system_info
+  name: hw_variant
+  expert: False
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: True
+  enumerated possible values:
+  Description: Hardware Product Variant
+  Notes: This is a read only setting that corresponds to the variant of the current hardware revision that is connected to the console.
+
+- group: system_info
+  name: imageset_build_id
+  expert: True
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: True
+  enumerated possible values:
+  Description: Build id for the linux system image.
+  Notes: Relevant for determining uimage version when using DEV image,
+    otherwise this will be identical to the firmware build id. This is a read only setting.
+
+- group: system_info
   name: firmware_build_id
   expert: False
   type: string
@@ -1532,7 +1555,7 @@
   Notes: If Beidou2 satellites are already being tracked, this setting will not remove them from tracking or exclude them from being used in positioning - the setting must be saved and the receiver must be restarted for this to take effect.
 
 - group: acquisition
-  name: gal_acquisition_enabled
+  name: galileo_acquisition_enabled
   expert: false
   type: boolean
   units: N/A
