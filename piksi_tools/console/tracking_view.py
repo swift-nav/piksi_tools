@@ -18,8 +18,9 @@ import numpy as np
 from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
+from pyface.api import GUI
 from sbp.tracking import SBP_MSG_MEASUREMENT_STATE, SBP_MSG_TRACKING_STATE, SBP_MSG_TRACKING_STATE_DEP_B
-from traits.api import Bool, Dict, Instance, List, Event
+from traits.api import Bool, Dict, Instance, List
 from traitsui.api import HGroup, Item, Spring, VGroup, View
 
 from piksi_tools.acq_results import SNR_THRESHOLD
@@ -125,7 +126,6 @@ class TrackingView(CodeFiltered):
     plot = Instance(Plot)
     plots = List()
     plot_data = Instance(ArrayPlotData)
-    trigger_update = Event
 
     traits_view = View(
         VGroup(
@@ -172,7 +172,7 @@ class TrackingView(CodeFiltered):
                 received_code_list.append(s.mesid.code)
                 self.received_codes = received_code_list
         self.CN0_lock.release()
-        self.trigger_update = True
+        GUI.invoke_later(self.update_plot)
 
     def tracking_state_callback(self, sbp_msg, **metadata):
         self.CN0_lock.acquire()
@@ -208,7 +208,7 @@ class TrackingView(CodeFiltered):
                 received_code_list.append(s.sid.code)
                 self.received_codes = received_code_list
         self.CN0_lock.release()
-        self.trigger_update = True
+        GUI.invoke_later(self.update_plot)
 
     def tracking_state_callback_dep_b(self, sbp_msg, **metadata):
         self.CN0_lock.acquire()
@@ -242,10 +242,7 @@ class TrackingView(CodeFiltered):
                 received_code_list.append(s.sid.code)
                 self.received_codes = received_code_list
         self.CN0_lock.release()
-        self.trigger_update = True
-
-    def _trigger_update_changed(self):
-        self.update_plot()
+        GUI.invoke_later(self.update_plot)
 
     def update_plot(self):
         self.CN0_lock.acquire()
