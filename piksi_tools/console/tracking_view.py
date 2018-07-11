@@ -261,21 +261,14 @@ class TrackingView(CodeFiltered):
                     self.plot.delplot(each)
                 except KeyError:
                     pass
-        new_plot_data = {}
         for k, cno_array in self.CN0_dict.items():
             if int(k[0]) not in SUPPORTED_CODES:
                 continue
             key = str(k)
-            # set plot data
+
+            # set plot data and create plot for any selected for display, default to showing anything unknown
             if (getattr(self, 'show_{}'.format(int(k[0])), True)):
-                new_plot_data[key] = cno_array
-        self.plot_data.update_data(new_plot_data)
-        # plot item if necessary
-        for k, cno_array in self.CN0_dict.items():
-            if int(k[0]) not in SUPPORTED_CODES:
-                continue
-            key = str(k)
-            if (getattr(self, 'show_{}'.format(int(k[0])), True)):
+                self.plot_data.set_data(key, cno_array)
                 if key not in self.plot.plots.keys():
                     pl = self.plot.plot(
                         ('t', key), type='line', color=get_color(k), name=key)
