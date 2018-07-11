@@ -257,7 +257,6 @@ class TrackingView(CodeFiltered):
             if each not in [str(a)
                             for a in self.CN0_dict.keys()] and each != 't':
                 try:
-                    self.plot_data.del_data(each)
                     self.plot.delplot(each)
                 except KeyError:
                     pass
@@ -287,8 +286,6 @@ class TrackingView(CodeFiltered):
                     plot_labels.append(get_label(k, self.glo_slot_dict))
             # Remove plot data and plots not selected
             else:
-                if key in self.plot_data.list_data():
-                    self.plot_data.del_data(key)
                 if key in self.plot.plots.keys():
                     self.plot.delplot(key)
         plots = dict(zip(plot_labels, plots))
