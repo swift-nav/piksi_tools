@@ -446,7 +446,7 @@ class SolutionView(HasTraits):
                                             'lng_dr': [],
                                             'alt_dr': []})
             self.list_lock.release()
-                # update our "current solution" icon
+            # update our "current solution" icon
             if self.last_pos_mode == SPP_MODE:
                 self._reset_remove_current()
                 self.plot_data.update_data({'cur_lat_spp': [(soln.lat - offset[0]) * sf[0]],
