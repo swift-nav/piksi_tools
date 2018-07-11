@@ -352,7 +352,7 @@ class SwiftConsole(HasTraits):
                         style='readonly'),
                     Item(
                         '',
-                        label='Age corr:',
+                        label='Corr Age:',
                         emphasized=True,
                         tooltip='Age of corrections (-- means invalid / not present)'
                     ),
@@ -494,7 +494,7 @@ class SwiftConsole(HasTraits):
             self.settings_view.alt = self.solution_view.altitude
         if self.baseline_view:
             if self.baseline_view.age_corrections is not None:
-                self.age_of_corrections = "{0} S".format(
+                self.age_of_corrections = "{0} s".format(
                     self.baseline_view.age_corrections)
             else:
                 self.age_of_corrections = EMPTY_STR
