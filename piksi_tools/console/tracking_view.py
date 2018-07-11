@@ -11,22 +11,19 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 import time
-from collections import defaultdict
+from collections import defaultdict, deque
 import threading
-
-import numpy as np
+from pyface.api import GUI
 from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
-from sbp.tracking import SBP_MSG_MEASUREMENT_STATE, SBP_MSG_TRACKING_STATE, SBP_MSG_TRACKING_STATE_DEP_B
-from traits.api import Bool, Dict, Instance, List, Event
+from sbp.tracking import SBP_MSG_MEASUREMENT_STATE, SBP_MSG_TRACKING_STATE
+from traits.api import Bool, Dict, Instance, List
 from traitsui.api import HGroup, Item, Spring, VGroup, View
 
 from piksi_tools.acq_results import SNR_THRESHOLD
 from piksi_tools.console.gui_utils import CodeFiltered
-from piksi_tools.console.utils import (SUPPORTED_CODES,
-                                       code_is_glo,
-                                       code_is_gps,
+from piksi_tools.console.utils import (code_is_glo,
                                        code_is_sbas,
                                        code_is_bds,
                                        code_is_galileo,
@@ -37,7 +34,6 @@ NUM_POINTS = 200
 TRK_RATE = 2.0
 
 GLO_FCN_OFFSET = 8
-
 # These colors should be distinguishable from eachother
 color_dict = {
     '(0, 1)': 0xe58a8a,
@@ -125,7 +121,6 @@ class TrackingView(CodeFiltered):
     plot = Instance(Plot)
     plots = List()
     plot_data = Instance(ArrayPlotData)
-    trigger_update = Event
 
     traits_view = View(
         VGroup(
@@ -139,20 +134,11 @@ class TrackingView(CodeFiltered):
                 CodeFiltered.get_filter_group(), )))
 
     def measurement_state_callback(self, sbp_msg, **metadata):
+        codes_that_came = []
         t = time.time() - self.t_init
-        self.time[0:-1] = self.time[1:]
-        self.time[-1] = t
+        self.time.append(t)
         self.CN0_lock.acquire()
         # first we loop over all the SIDs / channel keys we have stored and set 0 in for CN0
-        for key, cno_array in self.CN0_dict.items():
-            # p
-            if (cno_array == 0).all():
-                self.CN0_dict.pop(key)
-            else:
-                new_arr = np.roll(cno_array, -1)
-                new_arr[-1] = 0
-                self.CN0_dict[key] = new_arr
-
         for i, s in enumerate(sbp_msg.states):
             if code_is_glo(s.mesid.code):
                 # for Glonass satellites, store in two dictionaries FCN and SLOT
@@ -165,32 +151,25 @@ class TrackingView(CodeFiltered):
             else:
                 sat = s.mesid.sat
             key = (s.mesid.code, sat, i)
+            codes_that_came.append(key)
             if s.cn0 != 0:
-                self.CN0_dict[key][-1] = s.cn0 / 4.0
+                self.CN0_dict[key].append(s.cn0 / 4.0)
             received_code_list = getattr(self, "received_codes", [])
             if s.mesid.code not in received_code_list:
                 received_code_list.append(s.mesid.code)
                 self.received_codes = received_code_list
+        for key, cno_array in self.CN0_dict.items():
+            if key not in codes_that_came:
+                cno_array.append(0)
         self.CN0_lock.release()
-        self.trigger_update = True
+        GUI.invoke_later(self.update_plot)
 
     def tracking_state_callback(self, sbp_msg, **metadata):
+        codes_that_came = []
         self.CN0_lock.acquire()
         t = time.time() - self.t_init
-        self.time[0:-1] = self.time[1:]
-        self.time[-1] = t
+        self.time.append(t)
         # first we loop over all the SIDs / channel keys we have stored and set 0 in for CN0
-        for key, cno_array in self.CN0_dict.items():
-            # p
-            if (cno_array == 0).all():
-                self.CN0_dict.pop(key)
-            else:
-                new_arr = np.roll(cno_array, -1)
-                new_arr[-1] = 0
-                self.CN0_dict[key] = new_arr
-
-        # If the whole array is 0 we remove it
-        # for each satellite, we have a (code, prn, channel) keyed dict
         # for each SID, an array of size MAX PLOT with the history of CN0's stored
         # If there is no CN0 or not tracking for an epoch, 0 will be used
         # each array can be plotted against host_time, t
@@ -201,94 +180,52 @@ class TrackingView(CodeFiltered):
             else:
                 sat = s.sid.sat
             key = (s.sid.code, sat, i)
+            codes_that_came.append(key)
             if s.cn0 != 0:
-                self.CN0_dict[key][-1] = s.cn0 / 4.0
+                self.CN0_dict[key].append(s.cn0 / 4.0)
             received_code_list = getattr(self, "received_codes", [])
             if s.sid.code not in received_code_list:
                 received_code_list.append(s.sid.code)
                 self.received_codes = received_code_list
-        self.CN0_lock.release()
-        self.trigger_update = True
-
-    def tracking_state_callback_dep_b(self, sbp_msg, **metadata):
-        self.CN0_lock.acquire()
-        t = time.time() - self.t_init
-        self.time[0:-1] = self.time[1:]
-        self.time[-1] = t
-        # first we loop over all the SIDs / channel keys we have stored and set 0 in for CN0
         for key, cno_array in self.CN0_dict.items():
-            # p
-            if (cno_array == 0).all():
-                self.CN0_dict.pop(key)
-            else:
-                self.CN0_dict[key][0:-1] = cno_array[1:]
-                self.CN0_dict[key][-1] = 0
-                # If the whole array is 0 we remove it
-                # for each satellite, we have a (code, prn, channel) keyed dict
-                # for each SID, an array of size MAX PLOT with the history of CN0's stored
-                # If there is no CN0 or not tracking for an epoch, 0 will be used
-                # each array can be plotted against host_time, t
-        for i, s in enumerate(sbp_msg.states):
-            prn = s.sid.sat
-            if code_is_gps(s.sid.code):
-                prn += 1
-            key = (s.sid.code, prn, i)
-            if s.state != 0:
-                if len(self.CN0_dict.get(key, [])) == 0:
-                    self.CN0_dict[key] = np.zeros(NUM_POINTS)
-                self.CN0_dict[key][-1] = s.cn0
-            received_code_list = getattr(self, "received_codes", [])
-            if s.sid.code not in received_code_list:
-                received_code_list.append(s.sid.code)
-                self.received_codes = received_code_list
+            if key not in codes_that_came:
+                cno_array.append(0)
         self.CN0_lock.release()
-        self.trigger_update = True
-
-    def _trigger_update_changed(self):
-        self.update_plot()
+        GUI.invoke_later(self.update_plot)
 
     def update_plot(self):
         self.CN0_lock.acquire()
         plot_labels = []
         plots = []
-        self.plot_data.set_data('t', self.time)
-        # Remove any stale plots that got removed from the dictionary
-        for each in self.plot_data.list_data():
-            if each not in [str(a)
-                            for a in self.CN0_dict.keys()] and each != 't':
-                try:
-                    self.plot_data.del_data(each)
-                    self.plot.delplot(each)
-                except KeyError:
-                    pass
-        new_plot_data = {}
+        # Update the underlying plot data from the CN0_dict for selected items
+        new_plot_data = {'t': self.time}
         for k, cno_array in self.CN0_dict.items():
-            if int(k[0]) not in SUPPORTED_CODES:
-                continue
             key = str(k)
             # set plot data
             if (getattr(self, 'show_{}'.format(int(k[0])), True)):
                 new_plot_data[key] = cno_array
         self.plot_data.update_data(new_plot_data)
-        # plot item if necessary
+        # Remove any stale plots that got removed from the dictionary
+        for each in self.plot.plots.keys():
+            if each not in [str(a) for a in self.CN0_dict.keys()] and each != 't':
+                try:
+                    self.plot.delplot(each)
+                except KeyError:
+                    pass
+        # add/remove plot as neccesary and build legend
         for k, cno_array in self.CN0_dict.items():
-            if int(k[0]) not in SUPPORTED_CODES:
-                continue
             key = str(k)
-            if (getattr(self, 'show_{}'.format(int(k[0])), True)):
+            if (getattr(self, 'show_{}'.format(int(k[0])), True) and
+               not cno_array.count(0) == NUM_POINTS):
                 if key not in self.plot.plots.keys():
-                    pl = self.plot.plot(
-                        ('t', key), type='line', color=get_color(k), name=key)
+                    pl = self.plot.plot(('t', key), type='line',
+                                        color=get_color(k), name=key)
                 else:
                     pl = self.plot.plots[key]
-                # if channel is still active:
-                if cno_array[-1] != 0:
-                    plots.append(pl)
-                    plot_labels.append(get_label(k, self.glo_slot_dict))
-            # Remove plot data and plots not selected
+                plots.append(pl)
+                plot_labels.append(get_label(k, self.glo_slot_dict))
+            # if not selected or all 0, remove
             else:
-                if key in self.plot_data.list_data():
-                    self.plot_data.del_data(key)
                 if key in self.plot.plots.keys():
                     self.plot.delplot(key)
         plots = dict(zip(plot_labels, plots))
@@ -307,9 +244,9 @@ class TrackingView(CodeFiltered):
     def __init__(self, link):
         super(TrackingView, self).__init__()
         self.t_init = time.time()
-        self.time = [x * 1 / TRK_RATE for x in range(-NUM_POINTS, 0, 1)]
+        self.time = deque([x * 1 / TRK_RATE for x in range(-NUM_POINTS, 0, 1)], maxlen=NUM_POINTS)
         self.CN0_lock = threading.Lock()
-        self.CN0_dict = defaultdict(lambda: np.zeros(NUM_POINTS))
+        self.CN0_dict = defaultdict(lambda: deque([0] * NUM_POINTS, maxlen=NUM_POINTS))
         self.glo_fcn_dict = {}
         self.glo_slot_dict = {}
         self.n_channels = None
@@ -340,6 +277,4 @@ class TrackingView(CodeFiltered):
                                SBP_MSG_MEASUREMENT_STATE)
         self.link.add_callback(self.tracking_state_callback,
                                SBP_MSG_TRACKING_STATE)
-        self.link.add_callback(self.tracking_state_callback_dep_b,
-                               SBP_MSG_TRACKING_STATE_DEP_B)
         self.python_console_cmds = {'track': self}

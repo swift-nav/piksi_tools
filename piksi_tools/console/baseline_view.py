@@ -15,6 +15,7 @@ import time
 import threading
 
 import numpy as np
+from pyface.api import GUI
 from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import PanTool, ZoomTool
 from enable.api import ComponentEditor
@@ -260,7 +261,7 @@ class BaselineView(HasTraits):
 
         self.last_mode = get_mode(soln)
         if time.time() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
-            self.last_plot_update_time = time.time()
+            GUI.invoke_later(self._solution_draw)
 
         if self.last_mode < 1:
             table.append(('GPS Week', EMPTY_STR))
@@ -323,10 +324,8 @@ class BaselineView(HasTraits):
         self.mode[0] = self.last_mode
         self.list_lock.release()
 
-    def _last_plot_update_time_changed(self):
-        self._solution_draw()
-
     def _solution_draw(self):
+        self.last_plot_update_time = time.time()
         soln = self.last_soln
         if np.any(self.mode):
             self.list_lock.acquire()

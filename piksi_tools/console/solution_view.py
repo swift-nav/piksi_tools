@@ -18,6 +18,7 @@ import time
 import threading
 
 import numpy as np
+from pyface.api import GUI
 from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import PanTool, ZoomTool
 from enable.api import ComponentEditor
@@ -363,10 +364,8 @@ class SolutionView(HasTraits):
         # Updating array plot data is not thread safe, so we have to fire an event
         # and have the GUI thread do it
         if time.time() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
-            self.last_plot_update_time = time.time()
+            GUI.invoke_later(self._solution_draw)
 
-    def _last_plot_update_time_changed(self):
-        self._solution_draw()
 
     def _display_units_changed(self):
         self.recenter = True
@@ -420,6 +419,7 @@ class SolutionView(HasTraits):
     def _solution_draw(self):
         spp_indexer, dgnss_indexer, float_indexer, fixed_indexer, sbas_indexer, dr_indexer = None, None, None, None, None, None
         soln = self.last_soln
+        self.last_plot_update_time = time.time()
         if np.any(self.modes):
             self.list_lock.acquire()
             spp_indexer = (self.modes == SPP_MODE)
