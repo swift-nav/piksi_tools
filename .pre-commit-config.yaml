@@ -1,0 +1,8 @@
+- repo: local
+  hooks:
+  - id: flake8
+    name: Run linter using tox
+    description: This hook requires tox and flake8
+    entry: tox -e flake8
+    language: system
+    always_run: true
