@@ -12,6 +12,7 @@ import datetime
 import math
 import os
 import time
+import threading
 
 import numpy as np
 from chaco.api import ArrayPlotData, Plot
@@ -306,6 +307,7 @@ class BaselineView(HasTraits):
         if self.age_corrections is not None:
             table.append(('Corr. Age [s]', self.age_corrections))
         self.table = table
+        self.list_lock.acquire()
         # Rotate array, deleting oldest entries to maintain
         # no more than N in plot
         self.n[1:] = self.n[:-1]
@@ -319,6 +321,7 @@ class BaselineView(HasTraits):
         else:
             self.n[0], self.e[0], self.d[0] = [np.NAN, np.NAN, np.NAN]
         self.mode[0] = self.last_mode
+        self.list_lock.release()
 
     def _last_plot_update_time_changed(self):
         self._solution_draw()
@@ -326,6 +329,7 @@ class BaselineView(HasTraits):
     def _solution_draw(self):
         soln = self.last_soln
         if np.any(self.mode):
+            self.list_lock.acquire()
             float_indexer = (self.mode == FLOAT_MODE)
             fixed_indexer = (self.mode == FIXED_MODE)
             dgnss_indexer = (self.mode == DGNSS_MODE)
@@ -353,6 +357,7 @@ class BaselineView(HasTraits):
                 self.plot_data.update_data({'n_dgnss': [],
                                             'e_dgnss': [],
                                             'd_dgnss': []})
+            self.list_lock.release()
             # Update our last solution icon
             if self.last_mode == FIXED_MODE:
                 self._reset_remove_current()
@@ -417,6 +422,7 @@ class BaselineView(HasTraits):
             cur_dgnss_n=[],
             cur_dgnss_d=[])
 
+        self.list_lock = threading.Lock()
         self.plot_history_max = plot_history_max
         self.n = np.zeros(plot_history_max)
         self.e = np.zeros(plot_history_max)

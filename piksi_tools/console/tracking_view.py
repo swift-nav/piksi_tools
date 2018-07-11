@@ -12,6 +12,7 @@
 
 import time
 from collections import defaultdict
+import threading
 
 import numpy as np
 from chaco.api import ArrayPlotData, Plot
@@ -141,6 +142,7 @@ class TrackingView(CodeFiltered):
         t = time.time() - self.t_init
         self.time[0:-1] = self.time[1:]
         self.time[-1] = t
+        self.CN0_lock.acquire()
         # first we loop over all the SIDs / channel keys we have stored and set 0 in for CN0
         for key, cno_array in self.CN0_dict.items():
             # p
@@ -169,9 +171,11 @@ class TrackingView(CodeFiltered):
             if s.mesid.code not in received_code_list:
                 received_code_list.append(s.mesid.code)
                 self.received_codes = received_code_list
+        self.CN0_lock.release()
         self.trigger_update = True
 
     def tracking_state_callback(self, sbp_msg, **metadata):
+        self.CN0_lock.acquire()
         t = time.time() - self.t_init
         self.time[0:-1] = self.time[1:]
         self.time[-1] = t
@@ -203,9 +207,11 @@ class TrackingView(CodeFiltered):
             if s.sid.code not in received_code_list:
                 received_code_list.append(s.sid.code)
                 self.received_codes = received_code_list
+        self.CN0_lock.release()
         self.trigger_update = True
 
     def tracking_state_callback_dep_b(self, sbp_msg, **metadata):
+        self.CN0_lock.acquire()
         t = time.time() - self.t_init
         self.time[0:-1] = self.time[1:]
         self.time[-1] = t
@@ -235,12 +241,14 @@ class TrackingView(CodeFiltered):
             if s.sid.code not in received_code_list:
                 received_code_list.append(s.sid.code)
                 self.received_codes = received_code_list
+        self.CN0_lock.release()
         self.trigger_update = True
 
     def _trigger_update_changed(self):
         self.update_plot()
 
     def update_plot(self):
+        self.CN0_lock.acquire()
         plot_labels = []
         plots = []
         self.plot_data.set_data('t', self.time)
@@ -285,6 +293,7 @@ class TrackingView(CodeFiltered):
                     self.plot.delplot(key)
         plots = dict(zip(plot_labels, plots))
         self.plot.legend.plots = plots
+        self.CN0_lock.release()
 
     def _legend_visible_changed(self):
         if self.plot:
@@ -299,6 +308,7 @@ class TrackingView(CodeFiltered):
         super(TrackingView, self).__init__()
         self.t_init = time.time()
         self.time = [x * 1 / TRK_RATE for x in range(-NUM_POINTS, 0, 1)]
+        self.CN0_lock = threading.Lock()
         self.CN0_dict = defaultdict(lambda: np.zeros(NUM_POINTS))
         self.glo_fcn_dict = {}
         self.glo_slot_dict = {}
