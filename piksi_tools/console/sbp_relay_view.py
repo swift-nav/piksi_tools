@@ -228,7 +228,7 @@ class HttpWatchdogThread(threading.Thread):
 
         # If we get here, we were able to connect as rover
         print("Connected as a rover!")
-        with Handler(Framer(http.read, http.write)) as net_link:
+        with Handler(Framer(http)) as net_link:
             fwd = Forwarder(net_link, swriter(link))
             if self.verbose:
                 print("Starting forwarder")

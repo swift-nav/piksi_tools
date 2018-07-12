@@ -98,7 +98,7 @@ def main():
     # Driver with context
     with serial_link.get_driver(use_ftdi, port, baud) as driver:
         # Handler with context
-        with Handler(Framer(driver.read, driver.write)) as link:
+        with Handler(Framer(driver)) as link:
             link.add_callback(serial_link.log_printer, SBP_MSG_LOG)
             link.add_callback(serial_link.printer, SBP_MSG_PRINT_DEP)
 

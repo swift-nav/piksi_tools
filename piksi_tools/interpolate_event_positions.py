@@ -414,7 +414,7 @@ if __name__ == '__main__':
             infile = open(args.filename[0], 'r')
             if args.binary:
                 driver = FileDriver(infile)
-                iterator = Framer(driver.read, driver.write, True)
+                iterator = Framer(driver, True)
             else:
                 iterator = JSONLogIterator(infile).next()
             a, b, c, d, e, f, g, h = collect_positions(iterator, args.type[0], args.debouncetime[0])

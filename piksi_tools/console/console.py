@@ -972,7 +972,7 @@ def main():
 
     with selected_driver as driver:
         with sbpc.Handler(
-                sbpc.Framer(driver.read, driver.write, args.verbose)) as link:
+                sbpc.Framer(driver, args.verbose)) as link:
             if args.reset:
                 link(MsgReset(flags=0))
             log_filter = DEFAULT_LOG_LEVEL_FILTER

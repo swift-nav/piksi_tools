@@ -113,7 +113,7 @@ def main():
     baud = args.baud[0]
     # Driver with context
     with serial_link.get_driver(args.ftdi, port, baud) as driver:
-        with Handler(Framer(driver.read, driver.write)) as link:
+        with Handler(Framer(driver)) as link:
             with STMUniqueID(link) as stm_unique_id:
                 unique_id = stm_unique_id.get_id()
             print("STM Unique ID =",

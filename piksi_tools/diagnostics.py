@@ -208,7 +208,7 @@ def main():
     diagnostics_filename = args.diagnostics_filename[0]
     # Driver with context
     with serial_link.get_driver(args.ftdi, port, baud) as driver:
-        with Handler(Framer(driver.read, driver.write)) as link:
+        with Handler(Framer(driver)) as link:
             diagnostics = Diagnostics(link).diagnostics
             with open(diagnostics_filename, 'w') as diagnostics_file:
                 yaml.dump(
