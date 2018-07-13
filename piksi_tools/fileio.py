@@ -12,7 +12,6 @@
 from __future__ import absolute_import, print_function
 
 import random
-import threading
 import time
 
 from sbp.client import Framer, Handler
@@ -25,38 +24,40 @@ from sbp.file_io import (SBP_MSG_FILEIO_READ_DIR_RESP,
 from piksi_tools import serial_link
 
 MAX_PAYLOAD_SIZE = 255
-SBP_FILEIO_WINDOW_SIZE = 10
-SBP_FILEIO_TIMEOUT = 1.0
+SBP_FILEIO_WINDOW_SIZE = 40
+SBP_FILEIO_TIMEOUT = 5.0
 
 
-class Semaphore(object):
-    """Semaphore implementation with timeout"""
-
-    def __init__(self, n=1):
-        self.sem = threading.Semaphore(n)
-        self.ev = threading.Event()
-
-    def acquire(self, timeout=None):
-        while not self.sem.acquire(False):
-            if not self.ev.wait(timeout):
-                return False
-        self.ev.clear()
-        return True
-
-    def release(self):
-        self.sem.release()
-        self.ev.set()
+class PendingWrite(object):
+    __slots__ = ["message", "sequence", "time", "tries", "complete"]
 
 
 class SelectiveRepeater(object):
     """Selective repeater for SBP file transfers"""
 
     def __init__(self, link, msg_type, cb=None):
-        self.sem = Semaphore(SBP_FILEIO_WINDOW_SIZE)
-        self.window = {}
+        self.window = [PendingWrite() for X in range(SBP_FILEIO_WINDOW_SIZE)]
+        self.pending = []
         self.link = link
         self.msg_type = msg_type
         self.cb = cb
+
+    def _return_pending_write(self, pending_write):
+        rtt = time.time() - pending_write.time
+        self.pending.pop(self.pending.index(pending_write))
+        self.window.append(pending_write)
+
+    def _fetch_pending_write(self, msg):
+        pending_write = self.window.pop()
+        self.pending.append(pending_write)
+        pending_write.message = msg
+        pending_write.sequence = msg.sequence
+        pending_write.time = time.time()
+        pending_write.tries = 0
+        pending_write.complete = False
+
+    def _window_available(self):
+        return len(self.window) != 0
 
     def __enter__(self):
         self.link.add_callback(self._cb, self.msg_type)
@@ -66,35 +67,40 @@ class SelectiveRepeater(object):
         self.link.remove_callback(self._cb, self.msg_type)
 
     def _cb(self, msg, **metadata):
-        if msg.sequence in self.window.keys():
-            if self.cb:
-                self.cb(self.window[msg.sequence][0], msg)
-            del self.window[msg.sequence]
-            self.sem.release()
+        for pending_write in self.pending[:]:
+            if msg.sequence == pending_write.sequence:
+                if self.cb:
+                    self.cb(pending_write.message, msg)
+                pending_write.complete = True
+                self._return_pending_write(pending_write)
 
-    def _wait(self):
-        while not self.sem.acquire(SBP_FILEIO_TIMEOUT):
+    def _check_pending(self):
+        for pending_write in self.pending[:]:
+            if pending_write.complete:
+                continue
             tnow = time.time()
-            for seq in self.window.keys():
-                try:
-                    msg, sent_time, tries = self.window[seq]
-                except: # noqa
-                    continue
-                if tnow - sent_time > SBP_FILEIO_TIMEOUT:
-                    if tries >= 3:
-                        raise Exception('Timed out')
-                    tries += 1
-                    self.window[seq] = (msg, tnow, tries)
-                    self.link(msg)
+            if tnow - pending_write.time > SBP_FILEIO_TIMEOUT:
+                if pending_write.tries >= 3:
+                    raise Exception('Timed out')
+                pending_write.tries += 1
+                pending_write.time = tnow
+                self.link(pending_write.message)
+
+    def _wait_window_available(self):
+        while not self._window_available():
+            self._check_pending()
+            if not self._window_available():
+                time.sleep(0.01)
 
     def send(self, msg):
-        self._wait()
-        self.window[msg.sequence] = msg, time.time(), 0
+        self._wait_window_available()
+        self._fetch_pending_write(msg)
         self.link(msg)
 
     def flush(self):
-        while self.window:
-            self._wait()
+        while len(self.pending) > 0:
+            self._check_pending()
+            time.sleep(0.01)
 
 
 class FileIO(object):
@@ -224,9 +230,7 @@ class FileIO(object):
                 end_index = offset + chunksize - 1
                 if end_index > len(data):
                     end_index = len(data)
-                # print "going from {0} to {1} in array for chunksize {2}".format(offset, end_index, chunksize)
                 chunk = data[offset:offset + chunksize - 1]
-                # print "len is {0}".format(len(chunk))
                 msg = MsgFileioWriteReq(
                     sequence=seq,
                     filename=(filename + '\0' + chunk),
