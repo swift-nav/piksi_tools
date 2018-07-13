@@ -487,6 +487,28 @@
   Description: Enable GLONASS measurement processing in the navigation filter.
   Notes: If set to True, GLONASS measurements are processed in the navigation filter for SPP and RTK.
 
+- group: solution
+  name: enable_galileo
+  expert: false
+  type: boolean
+  units: N/A
+  default value: 'True'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Enable Galileo measurement processing in the navigation filter.
+  Notes: If set to True, Galileo measurements are processed in the navigation filter for SPP and RTK.
+  
+- group: solution
+  name: enable_beidou
+  expert: false
+  type: boolean
+  units: N/A
+  default value: 'True'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Enable Beidou measurement processing in the navigation filter.
+  Notes: If set to True, Beidou measurements are processed in the navigation filter for SPP and RTK.
+
 - group: system_info
   name: serial_number
   expert: False
