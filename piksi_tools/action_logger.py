@@ -261,7 +261,7 @@ def main():
     # Driver with context
     with sl.get_driver(args.ftdi, port, baud) as driver:
         # Handler with context
-        with Handler(Framer(driver, args.verbose)) as link:
+        with Handler(Framer(driver.read, driver.write, args.verbose)) as link:
             # Logger with context
             with sl.get_logger(args.log, log_filename) as logger:
                 # Append logger iwth context

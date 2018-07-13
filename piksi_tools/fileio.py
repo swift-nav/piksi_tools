@@ -11,10 +11,9 @@
 
 from __future__ import absolute_import, print_function
 
-import sys
 import random
+import threading
 import time
-import itertools
 
 from sbp.client import Framer, Handler
 from sbp.client.drivers.network_drivers import TCPDriver
@@ -26,95 +25,76 @@ from sbp.file_io import (SBP_MSG_FILEIO_READ_DIR_RESP,
 from piksi_tools import serial_link
 
 MAX_PAYLOAD_SIZE = 255
-SBP_FILEIO_WINDOW_SIZE = 40
-SBP_FILEIO_TIMEOUT = 2.0
-BUFFER_WRITES = 2048
+SBP_FILEIO_WINDOW_SIZE = 10
+SBP_FILEIO_TIMEOUT = 1.0
 
 
-class PendingWrite(object):
-    __slots__ = ["message", "sequence", "time", "tries", "complete"]
+class Semaphore(object):
+    """Semaphore implementation with timeout"""
+
+    def __init__(self, n=1):
+        self.sem = threading.Semaphore(n)
+        self.ev = threading.Event()
+
+    def acquire(self, timeout=None):
+        while not self.sem.acquire(False):
+            if not self.ev.wait(timeout):
+                return False
+        self.ev.clear()
+        return True
+
+    def release(self):
+        self.sem.release()
+        self.ev.set()
 
 
 class SelectiveRepeater(object):
     """Selective repeater for SBP file transfers"""
 
     def __init__(self, link, msg_type, cb=None):
-        self.window = [PendingWrite() for X in range(SBP_FILEIO_WINDOW_SIZE)]
-        self.pending = []
+        self.sem = Semaphore(SBP_FILEIO_WINDOW_SIZE)
+        self.window = {}
         self.link = link
         self.msg_type = msg_type
         self.cb = cb
-        self.retry_total = 0
-        self.packet_count = 0
-        self.packet_max_rtt = 0
-        self.packet_avg_rtt = 0
-
-    def _return_pending_write(self, pending_write):
-        rtt = time.time() - pending_write.time
-        self.packet_max_rtt = max(rtt, self.packet_max_rtt)
-        self.packet_count += 1
-        self.packet_avg_rtt -= (self.packet_avg_rtt/100)
-        self.packet_avg_rtt += (rtt/100)
-        self.pending.pop(self.pending.index(pending_write))
-        self.window.append(pending_write)
-
-    def _fetch_pending_write(self, msg):
-        pending_write = self.window.pop()
-        self.pending.append(pending_write)
-        pending_write.message = msg
-        pending_write.sequence = msg.sequence
-        pending_write.time = time.time()
-        pending_write.tries = 0
-        pending_write.complete = False
-
-    def _window_available(self):
-        return len(self.window) != 0
 
     def __enter__(self):
         self.link.add_callback(self._cb, self.msg_type)
-        self.link.source.driver.buffer_writes(BUFFER_WRITES)
         return self
 
     def __exit__(self, type, value, traceback):
-        self.link.source.driver.buffer_writes(0)
         self.link.remove_callback(self._cb, self.msg_type)
 
     def _cb(self, msg, **metadata):
-        for pending_write in self.pending[:]:
-            if msg.sequence == pending_write.sequence:
-                if self.cb:
-                    self.cb(pending_write.message, msg)
-                pending_write.complete = True
-                self._return_pending_write(pending_write)
+        if msg.sequence in self.window.keys():
+            if self.cb:
+                self.cb(self.window[msg.sequence][0], msg)
+            del self.window[msg.sequence]
+            self.sem.release()
 
-    def _check_pending(self):
-        for pending_write in self.pending[:]:
-            if pending_write.complete:
-                continue
+    def _wait(self):
+        while not self.sem.acquire(SBP_FILEIO_TIMEOUT):
             tnow = time.time()
-            if tnow - pending_write.time > SBP_FILEIO_TIMEOUT:
-                if pending_write.tries >= 3:
-                    raise Exception('Timed out')
-                pending_write.tries += 1
-                self.retry_total += 1
-                pending_write.time = tnow
-                self.link(pending_write.message)
-
-    def _wait_window_available(self):
-        while not self._window_available():
-            self._check_pending()
-            if not self._window_available():
-                time.sleep(0.01)
+            for seq in self.window.keys():
+                try:
+                    msg, sent_time, tries = self.window[seq]
+                except: # noqa
+                    continue
+                if tnow - sent_time > SBP_FILEIO_TIMEOUT:
+                    if tries >= 3:
+                        raise Exception('Timed out')
+                    tries += 1
+                    self.window[seq] = (msg, tnow, tries)
+                    self.link(msg)
 
     def send(self, msg):
-        self._wait_window_available()
-        self._fetch_pending_write(msg)
+        self._wait()
+        self.window[msg.sequence] = msg, time.time(), 0
         self.link(msg)
 
     def flush(self):
-        while len(self.pending) > 0:
-            self._check_pending()
-            time.sleep(0.01)
+        while self.window:
+            self._wait()
 
 
 class FileIO(object):
@@ -238,10 +218,6 @@ class FileIO(object):
         chunksize = MAX_PAYLOAD_SIZE - len(filename) - 9
         current_index = 0
 
-        report_time = time.time()
-        send_count = 0
-        send_total = 0
-
         with SelectiveRepeater(self.link, SBP_MSG_FILEIO_WRITE_RESP) as sr:
             while offset < len(data):
                 seq = self.next_seq()
@@ -250,23 +226,13 @@ class FileIO(object):
                     end_index = len(data)
                 # print "going from {0} to {1} in array for chunksize {2}".format(offset, end_index, chunksize)
                 chunk = data[offset:offset + chunksize - 1]
-                #print("len is {0}".format(len(chunk)))
+                # print "len is {0}".format(len(chunk))
                 msg = MsgFileioWriteReq(
                     sequence=seq,
                     filename=(filename + '\0' + chunk),
                     offset=offset,
                     data='')
                 sr.send(msg)
-                send_count += len(chunk)
-                send_total += len(chunk)
-                now = time.time()
-                if now - report_time >= 1:
-                    throughput = send_count / (now-report_time) / 1024
-                    sys.stdout.write("\r%02.02f kB/s (%d retries, rtt avg %02.02f, rtt max %02.02f, packets %d, bytes sent %d)"
-                                     % (throughput, sr.retry_total, sr.packet_avg_rtt, sr.packet_max_rtt, sr.packet_count, send_total))
-                    sys.stdout.flush()
-                    report_time = now
-                    send_count = 0
                 offset += len(chunk)
                 if progress_cb is not None:
                     progress_cb(offset)
@@ -280,7 +246,7 @@ def hexdump(data):
     Parameters
     ----------
     data : indexable
-        Datalto display dump of, can be anything that supports length and index
+        Data to display dump of, can be anything that supports length and index
         operations.
     """
     ret = ''
@@ -374,8 +340,9 @@ def main():
     # Driver with context
     with selected_driver as driver:
         # Handler with context
-        with Handler(Framer(driver, args.verbose)) as link:
+        with Handler(Framer(driver.read, driver.write, args.verbose)) as link:
             f = FileIO(link)
+
             try:
                 if args.write:
                     f.write(args.write[0], open(args.write[0]).read())

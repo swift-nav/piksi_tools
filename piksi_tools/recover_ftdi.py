@@ -61,7 +61,7 @@ def main():
     # Driver with context
     with serial_link.get_driver(args.ftdi, port, baud) as driver:
         # Handler with context
-        with Handler(Framer(driver)) as link:
+        with Handler(Framer(driver.read, driver.write)) as link:
             print("Resetting mask to 0xff")
             send_setting(link, "uart_ftdi", "sbp_message_mask", "65535")
             time.sleep(0.5)

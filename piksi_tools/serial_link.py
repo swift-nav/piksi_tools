@@ -383,7 +383,7 @@ def main(args):
     use_broker = args.broker
     # Driver with context
     driver = get_base_args_driver(args)
-    with Handler(Framer(driver, args.verbose)) as link:
+    with Handler(Framer(driver.read, driver.write, args.verbose)) as link:
         # Logger with context
         with get_logger(args.log, log_filename, args.expand_json) as logger:
             with get_append_logger(append_log_filename, tags) as append_logger:
@@ -395,7 +395,7 @@ def main(args):
                     device_id = get_uuid(channel, serial_id)
                     with HTTPDriver(str(device_id), base) as http:
                         with Handler(
-                                Framer(http,
+                                Framer(http.read, http.write,
                                        args.verbose)) as slink:
                             Forwarder(slink, swriter(link)).start()
                             run(args, link)

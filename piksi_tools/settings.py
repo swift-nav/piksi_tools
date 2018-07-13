@@ -360,7 +360,7 @@ def main():
     command = args.command
     return_code = 0
     driver = serial_link.get_base_args_driver(args)
-    with Handler(Framer(driver)) as link:
+    with Handler(Framer(driver.read, driver.write)) as link:
         settings = Settings(link)
         with settings:
             if command == 'write':
