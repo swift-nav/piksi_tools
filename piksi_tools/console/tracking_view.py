@@ -28,7 +28,7 @@ from piksi_tools.console.utils import (SUPPORTED_CODES,
                                        code_is_glo,
                                        code_is_gps,
                                        code_is_sbas,
-                                       code_is_bds2,
+                                       code_is_bds,
                                        code_is_galileo,
                                        code_is_qzss,
                                        code_to_str)
@@ -107,7 +107,7 @@ def get_label(key, extra):
             lbl += ' R{slot:02d}'.format(slot=extra[ch])
     elif code_is_sbas(code):
         lbl += 'S{sat:3d}'.format(sat=sat)
-    elif code_is_bds2(code):
+    elif code_is_bds(code):
         lbl += 'C{sat:02d}'.format(sat=sat)
     elif code_is_qzss(code):
         lbl += 'J{sat:3d}'.format(sat=sat)
