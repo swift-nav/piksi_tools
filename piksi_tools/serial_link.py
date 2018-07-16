@@ -354,7 +354,7 @@ def get_base_args_driver(args):
         try:
             host, port = args.port.split(':')
             driver = TCPDriver(host, int(port))
-        except: # noqa
+        except:  # noqa
             import traceback
             raise Exception('Invalid host and/or port: {0}'.format(traceback.format_exc()))
     else:

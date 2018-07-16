@@ -80,7 +80,6 @@ CODE_GAL_E5Q = 25
 CODE_GAL_E5X = 26
 CODE_AUX_GAL = 61
 
-
 CODE_QZS_L1CA = 31
 CODE_QZS_L1CI = 32
 CODE_QZS_L1CQ = 33
@@ -94,74 +93,6 @@ CODE_QZS_L5X = 40
 CODE_AUX_QZS = 62
 
 SUPPORTED_CODES = [
-  CODE_GPS_L1CA,
-  CODE_GPS_L2CM,
-  CODE_GPS_L2CL,
-  CODE_GPS_L2CX,
-  CODE_GPS_L1P,
-  CODE_GPS_L2P,
-  CODE_GPS_L5I,
-  CODE_GPS_L5Q,
-  CODE_GPS_L5X,
-  CODE_GPS_L1CI,
-  CODE_GPS_L1CQ,
-  CODE_GPS_L1CX,
-  CODE_AUX_GPS,
-
-  CODE_GLO_L1OF,
-  CODE_GLO_L2OF,
-  CODE_GLO_L1P,
-  CODE_GLO_L2P,
-
-  CODE_SBAS_L1CA,
-  CODE_SBAS_L5I,
-  CODE_SBAS_L5Q,
-  CODE_SBAS_L5X,
-  CODE_AUX_SBAS,
-
-  CODE_BDS2_B1,
-  CODE_BDS2_B2,
-  CODE_BDS3_B1CI,
-  CODE_BDS3_B1CQ,
-  CODE_BDS3_B1CX,
-  CODE_BDS3_B5I,
-  CODE_BDS3_B5Q,
-  CODE_BDS3_B5X,
-  CODE_BDS3_B7I,
-  CODE_BDS3_B7Q,
-  CODE_BDS3_B7X,
-  CODE_BDS3_B3I,
-  CODE_BDS3_B3Q,
-  CODE_BDS3_B3X,
-
-  CODE_GAL_E1B,
-  CODE_GAL_E1C,
-  CODE_GAL_E1X,
-  CODE_GAL_E5I,
-  CODE_GAL_E5Q,
-  CODE_GAL_E5X,
-  CODE_GAL_E6B,
-  CODE_GAL_E6C,
-  CODE_GAL_E6X,
-  CODE_GAL_E7I,
-  CODE_GAL_E7Q,
-  CODE_GAL_E7X,
-  CODE_GAL_E8I,
-  CODE_GAL_E8Q,
-  CODE_GAL_E8X,
-  CODE_AUX_GAL,
-
-  CODE_QZS_L1CA,
-  CODE_QZS_L2CM,
-  CODE_QZS_L2CL,
-  CODE_QZS_L2CX,
-  CODE_QZS_L5I,
-  CODE_QZS_L5Q,
-  CODE_QZS_L5X,
-  CODE_AUX_QZS]
-
-GUI_CODES = {
-  'GPS': [
     CODE_GPS_L1CA,
     CODE_GPS_L2CM,
     CODE_GPS_L2CL,
@@ -174,43 +105,19 @@ GUI_CODES = {
     CODE_GPS_L1CI,
     CODE_GPS_L1CQ,
     CODE_GPS_L1CX,
-    CODE_AUX_GPS],
+    CODE_AUX_GPS,
 
-  'GLO': [
     CODE_GLO_L1OF,
     CODE_GLO_L2OF,
     CODE_GLO_L1P,
-    CODE_GLO_L2P],
+    CODE_GLO_L2P,
 
-  'GAL': [
-    CODE_GAL_E1B,
-    CODE_GAL_E1C,
-    CODE_GAL_E1X,
-    CODE_GAL_E6B,
-    CODE_GAL_E6C,
-    CODE_GAL_E6X,
-    CODE_GAL_E7I,
-    CODE_GAL_E7Q,
-    CODE_GAL_E7X,
-    CODE_GAL_E8I,
-    CODE_GAL_E8Q,
-    CODE_GAL_E8X,
-    CODE_GAL_E5I,
-    CODE_GAL_E5Q,
-    CODE_GAL_E5X,
-    CODE_AUX_GAL],
+    CODE_SBAS_L1CA,
+    CODE_SBAS_L5I,
+    CODE_SBAS_L5Q,
+    CODE_SBAS_L5X,
+    CODE_AUX_SBAS,
 
-  'QZS': [
-    CODE_QZS_L1CA,
-    CODE_QZS_L2CM,
-    CODE_QZS_L2CL,
-    CODE_QZS_L2CX,
-    CODE_QZS_L5I,
-    CODE_QZS_L5Q,
-    CODE_QZS_L5X,
-    CODE_AUX_QZS],
-
-  'BDS': [
     CODE_BDS2_B1,
     CODE_BDS2_B2,
     CODE_BDS3_B1CI,
@@ -224,14 +131,106 @@ GUI_CODES = {
     CODE_BDS3_B7X,
     CODE_BDS3_B3I,
     CODE_BDS3_B3Q,
-    CODE_BDS3_B3X],
+    CODE_BDS3_B3X,
 
-  'SBAS': [
-    CODE_SBAS_L1CA,
-    CODE_SBAS_L5I,
-    CODE_SBAS_L5Q,
-    CODE_SBAS_L5X,
-    CODE_AUX_SBAS]
+    CODE_GAL_E1B,
+    CODE_GAL_E1C,
+    CODE_GAL_E1X,
+    CODE_GAL_E5I,
+    CODE_GAL_E5Q,
+    CODE_GAL_E5X,
+    CODE_GAL_E6B,
+    CODE_GAL_E6C,
+    CODE_GAL_E6X,
+    CODE_GAL_E7I,
+    CODE_GAL_E7Q,
+    CODE_GAL_E7X,
+    CODE_GAL_E8I,
+    CODE_GAL_E8Q,
+    CODE_GAL_E8X,
+    CODE_AUX_GAL,
+
+    CODE_QZS_L1CA,
+    CODE_QZS_L2CM,
+    CODE_QZS_L2CL,
+    CODE_QZS_L2CX,
+    CODE_QZS_L5I,
+    CODE_QZS_L5Q,
+    CODE_QZS_L5X,
+    CODE_AUX_QZS]
+
+GUI_CODES = {
+    'GPS': [
+        CODE_GPS_L1CA,
+        CODE_GPS_L2CM,
+        CODE_GPS_L2CL,
+        CODE_GPS_L2CX,
+        CODE_GPS_L1P,
+        CODE_GPS_L2P,
+        CODE_GPS_L5I,
+        CODE_GPS_L5Q,
+        CODE_GPS_L5X,
+        CODE_GPS_L1CI,
+        CODE_GPS_L1CQ,
+        CODE_GPS_L1CX,
+        CODE_AUX_GPS],
+
+    'GLO': [
+        CODE_GLO_L1OF,
+        CODE_GLO_L2OF,
+        CODE_GLO_L1P,
+        CODE_GLO_L2P],
+
+    'GAL': [
+        CODE_GAL_E1B,
+        CODE_GAL_E1C,
+        CODE_GAL_E1X,
+        CODE_GAL_E6B,
+        CODE_GAL_E6C,
+        CODE_GAL_E6X,
+        CODE_GAL_E7I,
+        CODE_GAL_E7Q,
+        CODE_GAL_E7X,
+        CODE_GAL_E8I,
+        CODE_GAL_E8Q,
+        CODE_GAL_E8X,
+        CODE_GAL_E5I,
+        CODE_GAL_E5Q,
+        CODE_GAL_E5X,
+        CODE_AUX_GAL],
+
+    'QZS': [
+        CODE_QZS_L1CA,
+        CODE_QZS_L2CM,
+        CODE_QZS_L2CL,
+        CODE_QZS_L2CX,
+        CODE_QZS_L5I,
+        CODE_QZS_L5Q,
+        CODE_QZS_L5X,
+        CODE_AUX_QZS],
+
+    'BDS': [
+        CODE_BDS2_B1,
+        CODE_BDS2_B2,
+        CODE_BDS3_B1CI,
+        CODE_BDS3_B1CQ,
+        CODE_BDS3_B1CX,
+        CODE_BDS3_B5I,
+        CODE_BDS3_B5Q,
+        CODE_BDS3_B5X,
+        CODE_BDS3_B7I,
+        CODE_BDS3_B7Q,
+        CODE_BDS3_B7X,
+        CODE_BDS3_B3I,
+        CODE_BDS3_B3Q,
+        CODE_BDS3_B3X],
+
+    'SBAS': [
+        CODE_SBAS_L1CA,
+        CODE_SBAS_L5I,
+        CODE_SBAS_L5Q,
+        CODE_SBAS_L5X,
+        CODE_AUX_SBAS]
 }
 
 GPS_L1CA_STR = 'GPS L1CA'
@@ -467,16 +466,16 @@ def code_to_str(code):
 
 
 gps_codes = {
-  CODE_GPS_L1CA,
-  CODE_GPS_L2CM,
-  CODE_GPS_L2CL,
-  CODE_GPS_L2CX,
-  CODE_GPS_L1P,
-  CODE_GPS_L2P,
-  CODE_GPS_L5I,
-  CODE_GPS_L5Q,
-  CODE_GPS_L5X,
-  CODE_AUX_GPS}
+    CODE_GPS_L1CA,
+    CODE_GPS_L2CM,
+    CODE_GPS_L2CL,
+    CODE_GPS_L2CX,
+    CODE_GPS_L1P,
+    CODE_GPS_L2P,
+    CODE_GPS_L5I,
+    CODE_GPS_L5Q,
+    CODE_GPS_L5X,
+    CODE_AUX_GPS}
 
 
 def code_is_gps(code):
@@ -484,10 +483,10 @@ def code_is_gps(code):
 
 
 glo_codes = {
-  CODE_GLO_L1OF,
-  CODE_GLO_L2OF,
-  CODE_GLO_L1P,
-  CODE_GLO_L2P}
+    CODE_GLO_L1OF,
+    CODE_GLO_L2OF,
+    CODE_GLO_L1P,
+    CODE_GLO_L2P}
 
 
 def code_is_glo(code):
@@ -495,11 +494,11 @@ def code_is_glo(code):
 
 
 sbas_codes = {
-  CODE_SBAS_L1CA,
-  CODE_SBAS_L5I,
-  CODE_SBAS_L5Q,
-  CODE_SBAS_L5X,
-  CODE_AUX_SBAS}
+    CODE_SBAS_L1CA,
+    CODE_SBAS_L5I,
+    CODE_SBAS_L5Q,
+    CODE_SBAS_L5X,
+    CODE_AUX_SBAS}
 
 
 def code_is_sbas(code):
@@ -507,20 +506,20 @@ def code_is_sbas(code):
 
 
 bds_codes = {
-  CODE_BDS2_B1,
-  CODE_BDS2_B2,
-  CODE_BDS3_B1CI,
-  CODE_BDS3_B1CQ,
-  CODE_BDS3_B1CX,
-  CODE_BDS3_B5I,
-  CODE_BDS3_B5Q,
-  CODE_BDS3_B5X,
-  CODE_BDS3_B3I,
-  CODE_BDS3_B3Q,
-  CODE_BDS3_B3X,
-  CODE_BDS3_B7I,
-  CODE_BDS3_B7Q,
-  CODE_BDS3_B7X}
+    CODE_BDS2_B1,
+    CODE_BDS2_B2,
+    CODE_BDS3_B1CI,
+    CODE_BDS3_B1CQ,
+    CODE_BDS3_B1CX,
+    CODE_BDS3_B5I,
+    CODE_BDS3_B5Q,
+    CODE_BDS3_B5X,
+    CODE_BDS3_B3I,
+    CODE_BDS3_B3Q,
+    CODE_BDS3_B3X,
+    CODE_BDS3_B7I,
+    CODE_BDS3_B7Q,
+    CODE_BDS3_B7X}
 
 
 def code_is_bds(code):
@@ -528,22 +527,22 @@ def code_is_bds(code):
 
 
 gal_codes = {
-  CODE_GAL_E1B,
-  CODE_GAL_E1C,
-  CODE_GAL_E1X,
-  CODE_GAL_E6B,
-  CODE_GAL_E6C,
-  CODE_GAL_E6X,
-  CODE_GAL_E7I,
-  CODE_GAL_E7Q,
-  CODE_GAL_E7X,
-  CODE_GAL_E8I,
-  CODE_GAL_E8Q,
-  CODE_GAL_E8X,
-  CODE_GAL_E5I,
-  CODE_GAL_E5Q,
-  CODE_GAL_E5X,
-  CODE_AUX_GAL}
+    CODE_GAL_E1B,
+    CODE_GAL_E1C,
+    CODE_GAL_E1X,
+    CODE_GAL_E6B,
+    CODE_GAL_E6C,
+    CODE_GAL_E6X,
+    CODE_GAL_E7I,
+    CODE_GAL_E7Q,
+    CODE_GAL_E7X,
+    CODE_GAL_E8I,
+    CODE_GAL_E8Q,
+    CODE_GAL_E8X,
+    CODE_GAL_E5I,
+    CODE_GAL_E5Q,
+    CODE_GAL_E5X,
+    CODE_AUX_GAL}
 
 
 def code_is_galileo(code):
@@ -551,14 +550,14 @@ def code_is_galileo(code):
 
 
 qzss_codes = {
-  CODE_QZS_L1CA,
-  CODE_QZS_L2CM,
-  CODE_QZS_L2CL,
-  CODE_QZS_L2CX,
-  CODE_QZS_L5I,
-  CODE_QZS_L5Q,
-  CODE_QZS_L5X,
-  CODE_AUX_QZS}
+    CODE_QZS_L1CA,
+    CODE_QZS_L2CM,
+    CODE_QZS_L2CL,
+    CODE_QZS_L2CX,
+    CODE_QZS_L5I,
+    CODE_QZS_L5Q,
+    CODE_QZS_L5X,
+    CODE_AUX_QZS}
 
 
 def code_is_qzss(code):
