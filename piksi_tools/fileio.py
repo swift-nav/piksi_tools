@@ -13,6 +13,7 @@ from __future__ import absolute_import, print_function
 
 import random
 import time
+import threading
 
 from sbp.client import Framer, Handler
 from sbp.client.drivers.network_drivers import TCPDriver
@@ -26,10 +27,54 @@ from piksi_tools import serial_link
 MAX_PAYLOAD_SIZE = 255
 SBP_FILEIO_WINDOW_SIZE = 40
 SBP_FILEIO_TIMEOUT = 5.0
+MINIMUM_RETRIES = 3
 
 
 class PendingWrite(object):
-    __slots__ = ["message", "sequence", "time", "tries", "complete"]
+    """
+    Represents a write that is spending.
+
+    Fields
+    ----------
+    message : MsgFileioWriteReq
+      The write request that's pending
+    time : float (seconds from epoch)
+      The time the message was sent (or re-sent at)
+    tries : int
+      The number of times we've attemptted to send the write message 
+    complete : bool
+      If the message is complete
+    """
+
+    __slots__ = ["message", "time", "tries", "complete"]
+
+    def invalidate(self):
+        """
+        Mark the data in the object invalid.
+        """
+        self.message = None
+        self.time = None
+        self.tries = None
+        self.complete = None
+        return self
+
+    def track(self, pending_write, time, tries=0, complete=False):
+        """
+        Load information about the pending write so that it can be tracked.
+        """
+        self.message = pending_write
+        self.time = time
+        self.tries = 0
+        self.complete = complete
+        return self
+
+    def record_retry(self, retry_time):
+        """
+        Record a retry event, indicates that the SelectiveRepeater decided to
+        retry sending the tracked MsgFileioWriteReq message.
+        """
+        self.tries += 1
+        self.time = retry_time 
 
 
 class SelectiveRepeater(object):
@@ -41,20 +86,56 @@ class SelectiveRepeater(object):
         self.link = link
         self.msg_type = msg_type
         self.cb = cb
+        self.cb_thread = None
+        self.link_thread = None
+
+    def _verify_cb_thread(self):
+        """
+        Verify that the same (singular) thread is accessing the `self.pending`
+        and the `self.window` lists.  Only the cb thread should free window
+        space by removing (popping) from `self.pending` and appending it to the
+        `self.window` list.
+        """
+        if self.cb_thread is None:
+            self.cb_thread = threading.currentThread().ident
+        assert self.cb_thread == threading.currentThread().ident
+
+    def _verify_link_thread(self):
+        """
+        Verify that the same (singular) thread is accessing the `self.pending`
+        and the `self.window` lists.  Only the link thread should consume window
+        by removing a PendingWrite object from the `self.window` list and
+        appending it to the `self.pending` list.
+        """
+        if self.link_thread is None:
+            self.link_thread = threading.currentThread().ident
+        assert self.link_thread == threading.currentThread().ident
 
     def _return_pending_write(self, pending_write):
-        rtt = time.time() - pending_write.time
+        """
+        Increases the count of available pending writes by move a PendingWrite 
+        object from `self.pending` to `self.window`.
+
+        Threading: only the callback thread should access this function.  The
+        cb thread is the consumer of `self.pending`, and the producer of
+        `self.window`.
+        """
+        self._verify_cb_thread()
         self.pending.pop(self.pending.index(pending_write))
-        self.window.append(pending_write)
+        self.window.append(pending_write.invalidate())
 
     def _fetch_pending_write(self, msg):
-        pending_write = self.window.pop()
-        self.pending.append(pending_write)
-        pending_write.message = msg
-        pending_write.sequence = msg.sequence
-        pending_write.time = time.time()
-        pending_write.tries = 0
-        pending_write.complete = False
+        """
+        Decrease the number of available oustanding writes by popping from
+        `self.window` and appending to `self.pending`.
+
+        Threading: only the link (network) thread should access this function.
+        The link thread is the producer of `self.pending`, and the consumer of
+        `self.window`.
+        """
+        self._verify_link_thread()
+        pending_write = self.window.pop(0)
+        self.pending.append(pending_write.track(msg, time.time()))
 
     def _window_available(self):
         return len(self.window) != 0
@@ -68,7 +149,7 @@ class SelectiveRepeater(object):
 
     def _cb(self, msg, **metadata):
         for pending_write in self.pending[:]:
-            if msg.sequence == pending_write.sequence:
+            if msg.sequence == pending_write.message.sequence:
                 if self.cb:
                     self.cb(pending_write.message, msg)
                 pending_write.complete = True
@@ -80,10 +161,9 @@ class SelectiveRepeater(object):
                 continue
             tnow = time.time()
             if tnow - pending_write.time > SBP_FILEIO_TIMEOUT:
-                if pending_write.tries >= 3:
+                if pending_write.tries >= MINIMUM_RETRIES:
                     raise Exception('Timed out')
-                pending_write.tries += 1
-                pending_write.time = tnow
+                pending_write.record_retry(tnow)
                 self.link(pending_write.message)
 
     def _wait_window_available(self):
@@ -220,7 +300,7 @@ class FileIO(object):
         if trunc and offset == 0:
             self.remove(filename)
 
-        # How do we calculate this from the MsgFileioWriteRequest class?
+        # How do we calculate this from the MsgFileioWriteReq class?
         chunksize = MAX_PAYLOAD_SIZE - len(filename) - 9
         current_index = 0
 
