@@ -75,13 +75,14 @@ class PendingWrite(object):
         """
         self.tries += 1
         self.time = retry_time 
+        return self
 
 
 class SelectiveRepeater(object):
     """Selective repeater for SBP file transfers"""
 
     def __init__(self, link, msg_type, cb=None):
-        self.window = [PendingWrite() for X in range(SBP_FILEIO_WINDOW_SIZE)]
+        self.write_pool = [PendingWrite() for X in range(SBP_FILEIO_WINDOW_SIZE)]
         self.pending = []
         self.link = link
         self.msg_type = msg_type
@@ -92,9 +93,9 @@ class SelectiveRepeater(object):
     def _verify_cb_thread(self):
         """
         Verify that the same (singular) thread is accessing the `self.pending`
-        and the `self.window` lists.  Only the cb thread should free window
+        and the `self.write_pool` lists.  Only the cb thread should free window
         space by removing (popping) from `self.pending` and appending it to the
-        `self.window` list.
+        `self.write_pool` list.
         """
         if self.cb_thread is None:
             self.cb_thread = threading.currentThread().ident
@@ -103,9 +104,9 @@ class SelectiveRepeater(object):
     def _verify_link_thread(self):
         """
         Verify that the same (singular) thread is accessing the `self.pending`
-        and the `self.window` lists.  Only the link thread should consume window
-        by removing a PendingWrite object from the `self.window` list and
-        appending it to the `self.pending` list.
+        and the `self.write_pool` lists.  Only the link thread should consume
+        window by removing a PendingWrite object from the `self.write_pool`
+        list and appending it to the `self.pending` list.
         """
         if self.link_thread is None:
             self.link_thread = threading.currentThread().ident
@@ -114,31 +115,31 @@ class SelectiveRepeater(object):
     def _return_pending_write(self, pending_write):
         """
         Increases the count of available pending writes by move a PendingWrite 
-        object from `self.pending` to `self.window`.
+        object from `self.pending` to `self.write_pool`.
 
         Threading: only the callback thread should access this function.  The
         cb thread is the consumer of `self.pending`, and the producer of
-        `self.window`.
+        `self.write_pool`.
         """
         self._verify_cb_thread()
         self.pending.pop(self.pending.index(pending_write))
-        self.window.append(pending_write.invalidate())
+        self.write_pool.append(pending_write.invalidate())
 
     def _fetch_pending_write(self, msg):
         """
         Decrease the number of available oustanding writes by popping from
-        `self.window` and appending to `self.pending`.
+        `self.write_pool` and appending to `self.pending`.
 
         Threading: only the link (network) thread should access this function.
         The link thread is the producer of `self.pending`, and the consumer of
-        `self.window`.
+        `self.write_pool`.
         """
         self._verify_link_thread()
-        pending_write = self.window.pop(0)
+        pending_write = self.write_pool.pop(0)
         self.pending.append(pending_write.track(msg, time.time()))
 
     def _window_available(self):
-        return len(self.window) != 0
+        return len(self.write_pool) != 0
 
     def __enter__(self):
         self.link.add_callback(self._cb, self.msg_type)
