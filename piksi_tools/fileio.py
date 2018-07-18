@@ -41,7 +41,7 @@ class PendingWrite(object):
     time : float (seconds from epoch)
       The time the message was sent (or re-sent at)
     tries : int
-      The number of times we've attemptted to send the write message 
+      The number of times we've attemptted to send the write message
     complete : bool
       If the message is complete
     """
@@ -74,7 +74,7 @@ class PendingWrite(object):
         retry sending the tracked MsgFileioWriteReq message.
         """
         self.tries += 1
-        self.time = retry_time 
+        self.time = retry_time
         return self
 
 
@@ -114,7 +114,7 @@ class SelectiveRepeater(object):
 
     def _return_pending_write(self, pending_write):
         """
-        Increases the count of available pending writes by move a PendingWrite 
+        Increases the count of available pending writes by move a PendingWrite
         object from `self.pending` to `self.write_pool`.
 
         Threading: only the callback thread should access this function.  The
