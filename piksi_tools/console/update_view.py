@@ -633,8 +633,8 @@ class UpdateView(HasTraits):
     def manage_multi_firmware_update(self):
         # Set up progress dialog and transfer file to Piksi using SBP FileIO
         progress_dialog = PulsableProgressDialog(len(self.stm_fw.blob))
-        progress_dialog.title = "Transferring image file"
-        self._write("Transferring image file...")
+        progress_dialog.title = "Transferring file - stay on this window to progress"
+        self._write("Transferring image file - you must keep progress bar window active for the file transfer to progress")
         if not progress_dialog.open_in_gui_thread():
             self._write("Failed to open progress dialog.\n")
             return
