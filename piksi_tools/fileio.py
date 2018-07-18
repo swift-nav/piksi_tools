@@ -12,8 +12,8 @@
 from __future__ import absolute_import, print_function
 
 import random
-import threading
 import time
+import threading
 
 from sbp.client import Framer, Handler
 from sbp.client.drivers.network_drivers import TCPDriver
@@ -25,38 +25,121 @@ from sbp.file_io import (SBP_MSG_FILEIO_READ_DIR_RESP,
 from piksi_tools import serial_link
 
 MAX_PAYLOAD_SIZE = 255
-SBP_FILEIO_WINDOW_SIZE = 10
-SBP_FILEIO_TIMEOUT = 1.0
+SBP_FILEIO_WINDOW_SIZE = 40
+SBP_FILEIO_TIMEOUT = 5.0
+MINIMUM_RETRIES = 3
 
 
-class Semaphore(object):
-    """Semaphore implementation with timeout"""
+class PendingWrite(object):
+    """
+    Represents a write that is spending.
 
-    def __init__(self, n=1):
-        self.sem = threading.Semaphore(n)
-        self.ev = threading.Event()
+    Fields
+    ----------
+    message : MsgFileioWriteReq
+      The write request that's pending
+    time : float (seconds from epoch)
+      The time the message was sent (or re-sent at)
+    tries : int
+      The number of times we've attemptted to send the write message
+    complete : bool
+      If the message is complete
+    """
 
-    def acquire(self, timeout=None):
-        while not self.sem.acquire(False):
-            if not self.ev.wait(timeout):
-                return False
-        self.ev.clear()
-        return True
+    __slots__ = ["message", "time", "tries", "complete"]
 
-    def release(self):
-        self.sem.release()
-        self.ev.set()
+    def invalidate(self):
+        """
+        Mark the data in the object invalid.
+        """
+        self.message = None
+        self.time = None
+        self.tries = None
+        self.complete = None
+        return self
+
+    def track(self, pending_write, time, tries=0, complete=False):
+        """
+        Load information about the pending write so that it can be tracked.
+        """
+        self.message = pending_write
+        self.time = time
+        self.tries = 0
+        self.complete = complete
+        return self
+
+    def record_retry(self, retry_time):
+        """
+        Record a retry event, indicates that the SelectiveRepeater decided to
+        retry sending the tracked MsgFileioWriteReq message.
+        """
+        self.tries += 1
+        self.time = retry_time
+        return self
 
 
 class SelectiveRepeater(object):
     """Selective repeater for SBP file transfers"""
 
     def __init__(self, link, msg_type, cb=None):
-        self.sem = Semaphore(SBP_FILEIO_WINDOW_SIZE)
-        self.window = {}
+        self.write_pool = [PendingWrite() for X in range(SBP_FILEIO_WINDOW_SIZE)]
+        self.pending = []
         self.link = link
         self.msg_type = msg_type
         self.cb = cb
+        self.cb_thread = None
+        self.link_thread = None
+
+    def _verify_cb_thread(self):
+        """
+        Verify that the same (singular) thread is accessing the `self.pending`
+        and the `self.write_pool` lists.  Only the cb thread should free window
+        space by removing (popping) from `self.pending` and appending it to the
+        `self.write_pool` list.
+        """
+        if self.cb_thread is None:
+            self.cb_thread = threading.currentThread().ident
+        assert self.cb_thread == threading.currentThread().ident
+
+    def _verify_link_thread(self):
+        """
+        Verify that the same (singular) thread is accessing the `self.pending`
+        and the `self.write_pool` lists.  Only the link thread should consume
+        window by removing a PendingWrite object from the `self.write_pool`
+        list and appending it to the `self.pending` list.
+        """
+        if self.link_thread is None:
+            self.link_thread = threading.currentThread().ident
+        assert self.link_thread == threading.currentThread().ident
+
+    def _return_pending_write(self, pending_write):
+        """
+        Increases the count of available pending writes by move a PendingWrite
+        object from `self.pending` to `self.write_pool`.
+
+        Threading: only the callback thread should access this function.  The
+        cb thread is the consumer of `self.pending`, and the producer of
+        `self.write_pool`.
+        """
+        self._verify_cb_thread()
+        self.pending.pop(self.pending.index(pending_write))
+        self.write_pool.append(pending_write.invalidate())
+
+    def _fetch_pending_write(self, msg):
+        """
+        Decrease the number of available oustanding writes by popping from
+        `self.write_pool` and appending to `self.pending`.
+
+        Threading: only the link (network) thread should access this function.
+        The link thread is the producer of `self.pending`, and the consumer of
+        `self.write_pool`.
+        """
+        self._verify_link_thread()
+        pending_write = self.write_pool.pop(0)
+        self.pending.append(pending_write.track(msg, time.time()))
+
+    def _window_available(self):
+        return len(self.write_pool) != 0
 
     def __enter__(self):
         self.link.add_callback(self._cb, self.msg_type)
@@ -66,35 +149,39 @@ class SelectiveRepeater(object):
         self.link.remove_callback(self._cb, self.msg_type)
 
     def _cb(self, msg, **metadata):
-        if msg.sequence in self.window.keys():
-            if self.cb:
-                self.cb(self.window[msg.sequence][0], msg)
-            del self.window[msg.sequence]
-            self.sem.release()
+        for pending_write in self.pending[:]:
+            if msg.sequence == pending_write.message.sequence:
+                if self.cb:
+                    self.cb(pending_write.message, msg)
+                pending_write.complete = True
+                self._return_pending_write(pending_write)
 
-    def _wait(self):
-        while not self.sem.acquire(SBP_FILEIO_TIMEOUT):
+    def _check_pending(self):
+        for pending_write in self.pending[:]:
+            if pending_write.complete:
+                continue
             tnow = time.time()
-            for seq in self.window.keys():
-                try:
-                    msg, sent_time, tries = self.window[seq]
-                except: # noqa
-                    continue
-                if tnow - sent_time > SBP_FILEIO_TIMEOUT:
-                    if tries >= 3:
-                        raise Exception('Timed out')
-                    tries += 1
-                    self.window[seq] = (msg, tnow, tries)
-                    self.link(msg)
+            if tnow - pending_write.time > SBP_FILEIO_TIMEOUT:
+                if pending_write.tries >= MINIMUM_RETRIES:
+                    raise Exception('Timed out')
+                pending_write.record_retry(tnow)
+                self.link(pending_write.message)
+
+    def _wait_window_available(self):
+        while not self._window_available():
+            self._check_pending()
+            if not self._window_available():
+                time.sleep(0.01)
 
     def send(self, msg):
-        self._wait()
-        self.window[msg.sequence] = msg, time.time(), 0
+        self._wait_window_available()
+        self._fetch_pending_write(msg)
         self.link(msg)
 
     def flush(self):
-        while self.window:
-            self._wait()
+        while len(self.pending) > 0:
+            self._check_pending()
+            time.sleep(0.01)
 
 
 class FileIO(object):
@@ -214,7 +301,7 @@ class FileIO(object):
         if trunc and offset == 0:
             self.remove(filename)
 
-        # How do we calculate this from the MsgFileioWriteRequest class?
+        # How do we calculate this from the MsgFileioWriteReq class?
         chunksize = MAX_PAYLOAD_SIZE - len(filename) - 9
         current_index = 0
 
@@ -224,9 +311,7 @@ class FileIO(object):
                 end_index = offset + chunksize - 1
                 if end_index > len(data):
                     end_index = len(data)
-                # print "going from {0} to {1} in array for chunksize {2}".format(offset, end_index, chunksize)
                 chunk = data[offset:offset + chunksize - 1]
-                # print "len is {0}".format(len(chunk))
                 msg = MsgFileioWriteReq(
                     sequence=seq,
                     filename=(filename + '\0' + chunk),
