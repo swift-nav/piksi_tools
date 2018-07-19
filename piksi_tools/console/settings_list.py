@@ -70,6 +70,6 @@ class SettingsList():
             print("Loaded settings yaml file from path " + resource_filename('console/settings.yaml'))
             print("Number of settings loaded {0}".format(
                 len(self.list_of_dicts)))
-        except: # noqa
+        except:  # noqa
             import traceback
             traceback.print_exc()

@@ -188,7 +188,7 @@ class StoreToRINEX(object):
                     else:
                         f.write("\n")
                     last_t = t
-        except: # noqa
+        except:  # noqa
             import traceback
             print(traceback.format_exc())
         finally:
