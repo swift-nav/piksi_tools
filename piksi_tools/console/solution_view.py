@@ -29,8 +29,8 @@ from sbp.navigation import (
     SBP_MSG_VEL_NED_DEP_A, MsgAgeCorrections, MsgDops, MsgDopsDepA, MsgGPSTime,
     MsgGPSTimeDepA, MsgPosLLH, MsgPosLLHDepA, MsgUtcTime, MsgVelNED,
     MsgVelNEDDepA)
-from traits.api import Bool, Dict, File, HasTraits, Instance, Int, Float, List, Str, \
-    Enum
+from traits.api import (Bool, Dict, File, HasTraits, Instance, Int, Float, List,
+                        Str, Enum)
 from traitsui.api import (HGroup, HSplit, Item, TabularEditor, TextEditor,
                           VGroup, View)
 from traitsui.tabular_adapter import TabularAdapter
@@ -368,26 +368,60 @@ class SolutionView(HasTraits):
     def _last_plot_update_time_changed(self):
         self._solution_draw()
 
+    def _display_units_changed(self):
+        self.recenter = True
+        self.prev_extents = (self.plot.index_range.low_setting,
+                             self.plot.index_range.high_setting,
+                             self.plot.value_range.low_setting,
+                             self.plot.value_range.high_setting)
+        self.prev_offsets = (self.offset[0], self.offset[1])
+        self.prev_sfs = (self.sf[0], self.sf[1])
+
+        if self.display_units == "meters":
+            self.offset = (np.mean(self.lats[~(np.equal(self.modes, 0))]),
+                           np.mean(self.lngs[~(np.equal(self.modes, 0))]),
+                           np.mean(self.alts[~(np.equal(self.modes, 0))]))
+            if not self.meters_per_lat:
+                (self.meters_per_lat, self.meters_per_lon) = meters_per_deg(
+                    np.mean(self.lats[~(np.equal(self.modes, 0))]))
+            self.sf = (self.meters_per_lat, self.meters_per_lon)
+            self.plot.value_axis.title = 'Latitude (meters)'
+            self.plot.index_axis.title = 'Longitude (meters)'
+        else:
+            self.offset = (0, 0, 0)
+            self.sf = (1, 1)
+            self.plot.value_axis.title = 'Latitude (degrees)'
+            self.plot.index_axis.title = 'Longitude (degrees)'
+
+    def rescale_for_units_change(self):
+        # Chaco scales view automatically when 'auto' is stored
+        if self.prev_extents[0] != 'auto':
+            # Otherwise use has used mousewheel zoom and we need to transform
+            if self.display_units == 'meters':
+                new_scaling = (
+                    (self.prev_extents[0] - self.offset[1]) * self.sf[1],
+                    (self.prev_extents[1] - self.offset[1]) * self.sf[1],
+                    (self.prev_extents[2] - self.offset[0]) * self.sf[0],
+                    (self.prev_extents[3] - self.offset[0]) * self.sf[0])
+            else:
+                new_scaling = (
+                    self.prev_extents[0] / self.prev_sfs[1] + self.prev_offsets[1],
+                    self.prev_extents[1] / self.prev_sfs[1] + self.prev_offsets[1],
+                    self.prev_extents[2] / self.prev_sfs[0] + self.prev_offsets[0],
+                    self.prev_extents[3] / self.prev_sfs[0] + self.prev_offsets[0]
+                )
+
+            # set plot scaling accordingly
+            self.plot.index_range.low_setting = new_scaling[0]
+            self.plot.index_range.high_setting = new_scaling[1]
+            self.plot.value_range.low_setting = new_scaling[2]
+            self.plot.value_range.high_setting = new_scaling[3]
+
     def _solution_draw(self):
         spp_indexer, dgnss_indexer, float_indexer, fixed_indexer, sbas_indexer, dr_indexer = None, None, None, None, None, None
         soln = self.last_soln
         if np.any(self.modes):
             self.list_lock.acquire()
-            if self.display_units == "meters":
-                offset = (np.mean(self.lats[~(np.equal(self.modes, 0))]),
-                          np.mean(self.lngs[~(np.equal(self.modes, 0))]),
-                          np.mean(self.alts[~(np.equal(self.modes, 0))]))
-                if not self.meters_per_lat:
-                    (self.meters_per_lat, self.meters_per_lon) = meters_per_deg(
-                        soln.lat)
-                sf = (self.meters_per_lat, self.meters_per_lon)
-                self.plot.value_axis.title = 'Latitude (meters)'
-                self.plot.index_axis.title = 'Longitude (meters)'
-            else:
-                offset = (0, 0, 0)
-                sf = (1, 1)
-                self.plot.value_axis.title = 'Latitude (degrees)'
-                self.plot.index_axis.title = 'Longitude (degrees)'
             spp_indexer = (self.modes == SPP_MODE)
             dgnss_indexer = (self.modes == DGNSS_MODE)
             sbas_indexer = (self.modes == SBAS_MODE)
@@ -397,50 +431,50 @@ class SolutionView(HasTraits):
 
             # make sure that there is at least one true in indexer before setting
             if any(spp_indexer):
-                self.plot_data.update_data({'lat_spp': (self.lats[spp_indexer] - offset[0]) * sf[0],
-                                            'lng_spp': (self.lngs[spp_indexer] - offset[1]) * sf[1],
-                                            'alt_spp': (self.alts[spp_indexer] - offset[2])})
+                self.plot_data.update_data({'lat_spp': (self.lats[spp_indexer] - self.offset[0]) * self.sf[0],
+                                            'lng_spp': (self.lngs[spp_indexer] - self.offset[1]) * self.sf[1],
+                                            'alt_spp': (self.alts[spp_indexer] - self.offset[2])})
             else:
                 self.plot_data.update_data({'lat_spp': [],
                                             'lng_spp': [],
                                             'alt_spp': []})
             if any(dgnss_indexer):
-                self.plot_data.update_data({'lat_dgnss': (self.lats[dgnss_indexer] - offset[0]) * sf[0],
-                                            'lng_dgnss': (self.lngs[dgnss_indexer] - offset[1]) * sf[1],
-                                            'alt_dgnss': (self.alts[dgnss_indexer] - offset[2])})
+                self.plot_data.update_data({'lat_dgnss': (self.lats[dgnss_indexer] - self.offset[0]) * self.sf[0],
+                                            'lng_dgnss': (self.lngs[dgnss_indexer] - self.offset[1]) * self.sf[1],
+                                            'alt_dgnss': (self.alts[dgnss_indexer] - self.offset[2])})
             else:
                 self.plot_data.update_data({'lat_dgnss': [],
                                             'lng_dgnss': [],
                                             'alt_dgnss': []})
             if any(float_indexer):
-                self.plot_data.update_data({'lat_float': (self.lats[float_indexer] - offset[0]) * sf[0],
-                                            'lng_float': (self.lngs[float_indexer] - offset[1]) * sf[1],
-                                            'alt_float': (self.alts[float_indexer] - offset[2])})
+                self.plot_data.update_data({'lat_float': (self.lats[float_indexer] - self.offset[0]) * self.sf[0],
+                                            'lng_float': (self.lngs[float_indexer] - self.offset[1]) * self.sf[1],
+                                            'alt_float': (self.alts[float_indexer] - self.offset[2])})
             else:
                 self.plot_data.update_data({'lat_float': [],
                                             'lng_float': [],
                                             'alt_float': []})
             if any(fixed_indexer):
-                self.plot_data.update_data({'lat_fixed': (self.lats[fixed_indexer] - offset[0]) * sf[0],
-                                            'lng_fixed': (self.lngs[fixed_indexer] - offset[1]) * sf[1],
-                                            'alt_fixed': (self.alts[fixed_indexer] - offset[2])})
+                self.plot_data.update_data({'lat_fixed': (self.lats[fixed_indexer] - self.offset[0]) * self.sf[0],
+                                            'lng_fixed': (self.lngs[fixed_indexer] - self.offset[1]) * self.sf[1],
+                                            'alt_fixed': (self.alts[fixed_indexer] - self.offset[2])})
             else:
                 self.plot_data.update_data({'lat_fixed': [],
                                             'lng_fixed': [],
                                             'alt_fixed': []})
             if any(sbas_indexer):
-                self.plot_data.update_data({'lat_sbas': (self.lats[sbas_indexer] - offset[0]) * sf[0],
-                                            'lng_sbas': (self.lngs[sbas_indexer] - offset[1]) * sf[1],
-                                            'alt_sbas': (self.alts[sbas_indexer] - offset[2])})
+                self.plot_data.update_data({'lat_sbas': (self.lats[sbas_indexer] - self.offset[0]) * self.sf[0],
+                                            'lng_sbas': (self.lngs[sbas_indexer] - self.offset[1]) * self.sf[1],
+                                            'alt_sbas': (self.alts[sbas_indexer] - self.offset[2])})
             else:
                 self.plot_data.update_data({'lat_sbas': [],
                                             'lng_sbas': [],
                                             'alt_sbas': []})
 
             if any(dr_indexer):
-                self.plot_data.update_data({'lat_dr': (self.lats[dr_indexer] - offset[0]) * sf[0],
-                                            'lng_dr': (self.lngs[dr_indexer] - offset[1]) * sf[1],
-                                            'alt_dr': (self.alts[dr_indexer] - offset[2])})
+                self.plot_data.update_data({'lat_dr': (self.lats[dr_indexer] - self.offset[0]) * self.sf[0],
+                                            'lng_dr': (self.lngs[dr_indexer] - self.offset[1]) * self.sf[1],
+                                            'alt_dr': (self.alts[dr_indexer] - self.offset[2])})
             else:
                 self.plot_data.update_data({'lat_dr': [],
                                             'lng_dr': [],
@@ -449,46 +483,55 @@ class SolutionView(HasTraits):
             # update our "current solution" icon
             if self.last_pos_mode == SPP_MODE:
                 self._reset_remove_current()
-                self.plot_data.update_data({'cur_lat_spp': [(soln.lat - offset[0]) * sf[0]],
-                                            'cur_lng_spp': [(soln.lon - offset[1]) * sf[1]]})
+                self.plot_data.update_data(
+                    {'cur_lat_spp': [(soln.lat - self.offset[0]) * self.sf[0]], 'cur_lng_spp': [(soln.lon - self.offset[1]) * self.sf[1]]})
             elif self.last_pos_mode == DGNSS_MODE:
                 self._reset_remove_current()
-                self.plot_data.update_data({'cur_lat_dgnss': [(soln.lat - offset[0]) * sf[0]],
-                                            'cur_lng_dgnss': [(soln.lon - offset[1]) * sf[1]]})
+                self.plot_data.update_data({'cur_lat_dgnss': [(soln.lat - self.offset[0]) * self.sf[0]],
+                                            'cur_lng_dgnss': [(soln.lon - self.offset[1]) * self.sf[1]]})
             elif self.last_pos_mode == FLOAT_MODE:
                 self._reset_remove_current()
-                self.plot_data.update_data({'cur_lat_float': [(soln.lat - offset[0]) * sf[0]],
-                                            'cur_lng_float': [(soln.lon - offset[1]) * sf[1]]})
+                self.plot_data.update_data({'cur_lat_float': [(soln.lat - self.offset[0]) * self.sf[0]],
+                                            'cur_lng_float': [(soln.lon - self.offset[1]) * self.sf[1]]})
             elif self.last_pos_mode == FIXED_MODE:
                 self._reset_remove_current()
-                self.plot_data.update_data({'cur_lat_fixed': [(soln.lat - offset[0]) * sf[0]],
-                                            'cur_lng_fixed': [(soln.lon - offset[1]) * sf[1]]})
+                self.plot_data.update_data({'cur_lat_fixed': [(soln.lat - self.offset[0]) * self.sf[0]],
+                                            'cur_lng_fixed': [(soln.lon - self.offset[1]) * self.sf[1]]})
             elif self.last_pos_mode == SBAS_MODE:
                 self._reset_remove_current()
-                self.plot_data.update_data({'cur_lat_sbas': [(soln.lat - offset[0]) * sf[0]],
-                                            'cur_lng_sbas': [(soln.lon - offset[1]) * sf[1]]})
+                self.plot_data.update_data({'cur_lat_sbas': [(soln.lat - self.offset[0]) * self.sf[0]],
+                                            'cur_lng_sbas': [(soln.lon - self.offset[1]) * self.sf[1]]})
             elif self.last_pos_mode == DR_MODE:
                 self._reset_remove_current()
-                self.plot_data.update_data({'cur_lat_dr': [(soln.lat - offset[0]) * sf[0]],
-                                            'cur_lng_dr': [(soln.lon - offset[1]) * sf[1]]})
+                self.plot_data.update_data({'cur_lat_dr': [(soln.lat - self.offset[0]) * self.sf[0]],
+                                            'cur_lng_dr': [(soln.lon - self.offset[1]) * self.sf[1]]})
             else:
                 pass
 
             if not self.zoomall and self.position_centered:
-                d = (self.plot.index_range.high - self.plot.index_range.low) / 2.
+                d = (
+                    self.plot.index_range.high - self.plot.index_range.low) / 2.
                 self.plot.index_range.set_bounds(
-                    (soln.lon - offset[1]) * sf[1] - d,
-                    (soln.lon - offset[1]) * sf[1] + d)
-                d = (self.plot.value_range.high - self.plot.value_range.low) / 2.
+                    (soln.lon - self.offset[1]) * self.sf[1] - d,
+                    (soln.lon - self.offset[1]) * self.sf[1] + d)
+                d = (
+                    self.plot.value_range.high - self.plot.value_range.low) / 2.
                 self.plot.value_range.set_bounds(
-                    (soln.lat - offset[0]) * sf[0] - d,
-                    (soln.lat - offset[0]) * sf[0] + d)
+                    (soln.lat - self.offset[0]) * self.sf[0] - d,
+                    (soln.lat - self.offset[0]) * self.sf[0] + d)
             if self.zoomall:
+                self.recenter = False
                 plot_square_axes(self.plot,
                                  ('lng_spp', 'lng_dgnss', 'lng_float',
                                   'lng_fixed', 'lng_sbas', 'lng_dr'),
                                  ('lat_spp', 'lat_dgnss', 'lat_float',
                                   'lat_fixed', 'lat_sbas', 'lat_dr'))
+            if self.recenter:
+                try:
+                    self.rescale_for_units_change()
+                    self.recenter = False
+                except AttributeError:
+                    pass
 
     def dops_callback(self, sbp_msg, **metadata):
         flags = 0
@@ -601,6 +644,9 @@ class SolutionView(HasTraits):
 
     def __init__(self, link, dirname=''):
         super(SolutionView, self).__init__()
+        self.recenter = False
+        self.offset = (0, 0, 0)
+        self.sf = (1, 1)
         self.list_lock = threading.Lock()
         self.lats = np.zeros(self.plot_history_max)
         self.lngs = np.zeros(self.plot_history_max)
@@ -815,17 +861,12 @@ class SolutionView(HasTraits):
         self.plot.overlays.append(zt)
 
         self.link = link
-        self.link.add_callback(self.pos_llh_callback,
-                               [SBP_MSG_POS_LLH_DEP_A, SBP_MSG_POS_LLH])
-        self.link.add_callback(self.vel_ned_callback,
-                               [SBP_MSG_VEL_NED_DEP_A, SBP_MSG_VEL_NED])
-        self.link.add_callback(self.dops_callback,
-                               [SBP_MSG_DOPS_DEP_A, SBP_MSG_DOPS])
-        self.link.add_callback(self.gps_time_callback,
-                               [SBP_MSG_GPS_TIME_DEP_A, SBP_MSG_GPS_TIME])
+        self.link.add_callback(self.pos_llh_callback, [SBP_MSG_POS_LLH_DEP_A, SBP_MSG_POS_LLH])
+        self.link.add_callback(self.vel_ned_callback, [SBP_MSG_VEL_NED_DEP_A, SBP_MSG_VEL_NED])
+        self.link.add_callback(self.dops_callback, [SBP_MSG_DOPS_DEP_A, SBP_MSG_DOPS])
+        self.link.add_callback(self.gps_time_callback, [SBP_MSG_GPS_TIME_DEP_A, SBP_MSG_GPS_TIME])
         self.link.add_callback(self.utc_time_callback, [SBP_MSG_UTC_TIME])
-        self.link.add_callback(self.age_corrections_callback,
-                               SBP_MSG_AGE_CORRECTIONS)
+        self.link.add_callback(self.age_corrections_callback, SBP_MSG_AGE_CORRECTIONS)
         self.week = None
         self.utc_time = None
         self.age_corrections = None
