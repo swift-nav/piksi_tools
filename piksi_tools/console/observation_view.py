@@ -23,7 +23,7 @@ from traitsui.tabular_adapter import TabularAdapter
 
 from piksi_tools.console.gui_utils import CodeFiltered
 from piksi_tools.console.utils import (
-    EMPTY_STR, SUPPORTED_CODES, code_is_gps, code_to_str)
+    EMPTY_STR, GUI_CODES, SUPPORTED_CODES, code_is_gps, code_to_str)
 from piksi_tools.console.gui_utils import GUI_UPDATE_PERIOD
 
 
@@ -53,70 +53,74 @@ class ObservationView(CodeFiltered):
 
     def trait_view(self, view):
         info = HGroup(
-            Spring(width=4, springy=False),
+            Spring(width=4, springy=False, height=-1),
             Item(
                 'Label',
                 label='Week:',
                 style='readonly',
                 emphasized=True,
-                width=-1, padding=-1, style_sheet='*{font-size:1px}',
+                width=-1, padding=-1, height=-1, style_sheet='*{font-size:1px}',
                 tooltip='GPS Week Number (since 1980'),
             Item('gps_week', style='readonly', show_label=False),
             Item(
                 'Label',
                 label='  TOW:',
                 style='readonly',
-                width=-1, padding=-1, style_sheet='*{font-size:1px}',
+                width=-1, padding=-1, height=-1, style_sheet='*{font-size:1px}',
                 emphasized=True,
                 tooltip='GPS milliseconds in week'),
             Item(
                 'gps_tow',
                 style='readonly',
                 show_label=False,
+                height=-1,
                 format_str='%.3f'),
             Item(
                 'Label',
                 label='  Total:',
                 style='readonly',
                 emphasized=True,
-                width=-1, padding=-1, style_sheet='*{font-size:1px}',
+                width=-1, height=-1, padding=-1, style_sheet='*{font-size:1px}',
                 tooltip='Total observation count'),
             Item('obs_count', style='readonly', show_label=False),
+            padding=0, springy=False
         )
-
-        for code in SUPPORTED_CODES:
-            code_str = code_to_str(code)
-            info.content.append(
-                Item(
-                    'Label',
-                    label='  {}'.format(code_str),
-                    style='readonly',
-                    emphasized=True,
-                    tooltip='{} observation count'.format(code_str),
-                    visible_when="{} in received_codes".format(code),
-                    width=-1, padding=-1, style_sheet='*{font-size:1px}'
-                ),
-            )
-            info.content.append(
-                UItem(
-                    'count_{}'.format(code),
-                    style='readonly',
-                    visible_when="{} in received_codes".format(code),
-
+        filters = HGroup(padding=0, springy=False)
+        for prefix, code_list in sorted(
+                GUI_CODES.items(), key=lambda x: x[1][0] if x[0] != 'SBAS' else 100):
+            vgroup1 = VGroup()  # two groups are needed to combat silly spacing in Traitsui
+            vgroup2 = VGroup()
+            for code in code_list:
+                code_str = code_to_str(code)
+                vgroup1.content.append(
+                    Item('count_{}'.format(code),
+                         label='{}:'.format(code_str),
+                         style='readonly',
+                         tooltip='{} observation count'.format(code_str),
+                         visible_when="{} in received_codes".format(code)
+                         )
                 )
-            )
-
+                vgroup2.content.append(
+                    UItem(
+                        'show_{}'.format(code),
+                        tooltip='show {} observations'.format(code_str),
+                        visible_when="{} in received_codes".format(code),
+                        height=-16  # this make GUI align better
+                    ),
+                )
+            filters.content.append(vgroup1)
+            filters.content.append(vgroup2)
         return View(
             VGroup(
                 info,
-                CodeFiltered.get_filter_group(),
-                HGroup(
-                    Item(
-                        '_obs_table_list',
-                        style='readonly',
-                        editor=TabularEditor(adapter=SimpleAdapter()),
-                        show_label=False), ),
+                filters,
+                Item(
+                    '_obs_table_list',
+                    style='readonly',
+                    editor=TabularEditor(adapter=SimpleAdapter()),
+                    show_label=False),
                 label=self.name,
+                padding=0,
                 show_border=True))
 
     def update_obs(self):
@@ -201,7 +205,8 @@ class ObservationView(CodeFiltered):
 
             cp = float(o.L.i) + float(o.L.f) / (1 << 8)
 
-            # Compute time difference of carrier phase for display, but only if carrier phase is valid
+            # Compute time difference of carrier phase for display, but only if
+            # carrier phase is valid
             if ocp != 0 and ((sbp_msg.msg_type in [
                 SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C
             ]) or (flags & 0x3) == 0x3):
