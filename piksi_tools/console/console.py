@@ -64,6 +64,8 @@ from piksi_tools.console.utils import (EMPTY_STR, pos_mode_dict,
 
 HEARTBEAT_CHECK_PERIOD_SECONDS = 1.2
 
+warnings.filterwarnings("ignore", ".*No message found for msg_type.")
+
 
 class ArgumentParserError(Exception):
     pass
