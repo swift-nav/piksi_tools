@@ -60,6 +60,8 @@ from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
                                        ins_error_dict, resource_filename, icon,
                                        swift_path, DR_MODE, DIFFERENTIAL_MODES)
 
+warnings.filterwarnings("ignore", ".*No message found for msg_type.")
+
 
 class ArgumentParserError(Exception):
     pass
