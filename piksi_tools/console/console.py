@@ -18,7 +18,6 @@ import os
 import signal
 import sys
 import time
-# Shut chaco up for now
 import warnings
 
 import sbp.client as sbpc
@@ -59,6 +58,8 @@ from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
                                        get_mode, mode_dict, resource_filename,
                                        icon, swift_path, DR_MODE, DIFFERENTIAL_MODES)
 from piksi_tools.console.skylark_view import SkylarkView
+
+warnings.filterwarnings("ignore", ".*No message found for msg_type.")
 
 
 class ArgumentParserError(Exception):
