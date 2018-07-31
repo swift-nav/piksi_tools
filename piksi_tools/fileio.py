@@ -11,6 +11,7 @@
 
 from __future__ import absolute_import, print_function
 
+import copy
 import random
 import time
 import threading
@@ -51,12 +52,34 @@ class PendingWrite(object):
     def invalidate(self):
         """
         Mark the data in the object invalid.
+
+        Data here is set such that operations on the `time` and `tries` fields
+        will succeed even if the object is invalidated.  The methods
+        `_write_cb` and `_return_pending_write` can race on individual fields
+        in the object.
+
+        The field `self.message` is not cleared so that it can still be
+        referenced in `_write_cb`.
+
+        The result of this racy-ness is that the time-out check is not entirely
+        consistent.  Occasionally, a message may be retried even if it was
+        completed and we may decide that a file-transfer has timed out if the
+        write completion event and the pending check occur around the same
+        time.
         """
-        self.message = None
-        self.time = None
-        self.tries = None
         self.complete = None
+        self.tries = 0
         return self
+
+    def is_pending(self):
+        """
+        Return true if this object is still pending.
+        """
+        if self.complete is None:
+            return False
+        if self.complete:
+            return False
+        return True
 
     def track(self, pending_write, time, tries=0, complete=False):
         """
@@ -142,13 +165,13 @@ class SelectiveRepeater(object):
         return len(self.write_pool) != 0
 
     def __enter__(self):
-        self.link.add_callback(self._cb, self.msg_type)
+        self.link.add_callback(self._write_cb, self.msg_type)
         return self
 
     def __exit__(self, type, value, traceback):
-        self.link.remove_callback(self._cb, self.msg_type)
+        self.link.remove_callback(self._write_cb, self.msg_type)
 
-    def _cb(self, msg, **metadata):
+    def _write_cb(self, msg, **metadata):
         for pending_write in self.pending[:]:
             if msg.sequence == pending_write.message.sequence:
                 if self.cb:
@@ -157,15 +180,19 @@ class SelectiveRepeater(object):
                 self._return_pending_write(pending_write)
 
     def _check_pending(self):
-        for pending_write in self.pending[:]:
-            if pending_write.complete:
+        # Get a copy of all the records so they won't change while we're
+        #   checking for a time-out.
+        pending_writes = ((P, copy.copy(P)) for P in self.pending[:])
+        for pending_write, pending_write_copy in pending_writes:
+            if not pending_write_copy.is_pending():
                 continue
             tnow = time.time()
-            if tnow - pending_write.time > SBP_FILEIO_TIMEOUT:
-                if pending_write.tries >= MINIMUM_RETRIES:
+            if tnow - pending_write_copy.time > SBP_FILEIO_TIMEOUT:
+                if pending_write_copy.tries >= MINIMUM_RETRIES:
                     raise Exception('Timed out')
+                # Update the live record
                 pending_write.record_retry(tnow)
-                self.link(pending_write.message)
+                self.link(pending_write_copy.message)
 
     def _wait_window_available(self):
         while not self._window_available():
@@ -427,7 +454,6 @@ def main():
         # Handler with context
         with Handler(Framer(driver.read, driver.write, args.verbose)) as link:
             f = FileIO(link)
-
             try:
                 if args.write:
                     f.write(args.write[0], open(args.write[0]).read())
