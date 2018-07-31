@@ -688,8 +688,10 @@ class SettingsView(HasTraits):
             old = settings_list[2]
             setting.revert_to_prior_value(setting.name, old, new)
             return
-        # Write accepted.  Use confirmed value in display.
+        # Write accepted.  Use confirmed value in display without sending settings write.
+        setting.revert_in_progress = True
         setting.value = settings_list[2]
+        setting.revert_in_progress = False
         setting.confirmed_set = True
 
     def settings_read_by_index_callback(self, sbp_msg, **metadata):
