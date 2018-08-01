@@ -403,15 +403,20 @@ class SbpRelayView(HasTraits):
     def _network_callback(self, m, **metadata):
         txstr = sizeof_fmt(m.tx_bytes),
         rxstr = sizeof_fmt(m.rx_bytes)
-        print(m.interface_name)
         if m.interface_name.startswith('ppp0'):  # Hack for ppp tx and rx which doesn't work
             txstr = "---"
             rxstr = "---"
         elif m.interface_name.startswith('lo') or m.interface_name.startswith('sit0'):
             return
-        self._network_info.append(
-            (m.interface_name, ip_bytes_to_string(m.ipv4_address),
-             ((m.flags & (1 << 6)) != 0), txstr, rxstr))
+        table_row = ((m.interface_name, ip_bytes_to_string(m.ipv4_address),
+                     ((m.flags & (1 << 6)) != 0), txstr, rxstr))
+        exists = False
+        for i, each in enumerate(self._network_info):
+            if each[0][0] == table_row[0][0]:
+                self._network_info[i] = table_row
+                exists = True
+        if not exists:
+            self._network_info.append(table_row)
 
     def __init__(self,
                  link,
