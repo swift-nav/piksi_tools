@@ -70,6 +70,11 @@ class OutputStream(HasTraits):
     # String that holds text written while self.paused is True.
     _paused_buffer = Str
 
+    def scrollback_write(self, s):
+        # Removes and replaces last line with a new line (assumes \n deliminated buffer)
+        prior_line_beginning = self.text.rfind('\n', 0, self.text.rfind('\n'))  # get last line
+        self.text = self.text[:prior_line_beginning] + '\n' + s + '\n'  # replace last line with s
+
     def write(self, s):
         if self.paused:
             self._paused_buffer = self._truncated_concat(
