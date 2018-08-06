@@ -39,9 +39,8 @@ def get_args():
     """
     Get and parse arguments.
     """
-    import argparse
     parser = serial_link.base_cl_options()
-    parser.description='Piksi Bootloader'
+    parser.description = 'Piksi Bootloader'
     parser.add_argument("file", help="the image set file to write to flash.")
     return parser.parse_args()
 
