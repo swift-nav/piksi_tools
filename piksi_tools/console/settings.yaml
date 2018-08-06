@@ -845,7 +845,7 @@
 
     "NMEA OUT" has no effect for a UDP server.
 
-    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033 and 1230 RTCMv3 messages and will not receive any other messages.
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not receive any other messages.
 
 - group: udp_server0
   name: enabled_sbp_messages
@@ -881,7 +881,7 @@
 
     "NMEA OUT" has no effect for a UDP server.
 
-    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033 and 1230 RTCMv3 messages and will not receive any other messages.
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not receive any other messages.
 
 - group: udp_server1
   name: enabled_sbp_messages
@@ -933,7 +933,7 @@
 
     "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
 
-    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033 and 1230 RTCMv3 messages and will not transmit or receive any other messages.
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
 
 - group: uart1
   name: baudrate
@@ -971,7 +971,7 @@
 
     "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
 
-    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033 and 1230 RTCMv3 messages and will not transmit or receive any other messages.
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
 
 - group: uart1
   name: enabled_sbp_messages
@@ -1025,7 +1025,7 @@
 
     "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
 
-    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033 and 1230 RTCMv3 messages and will not transmit or receive any other messages.
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
 
 - group: uart0
   name: enabled_sbp_messages
@@ -1439,7 +1439,7 @@
   default value: 'False'
   readonly: false
   enumerated possible values: True,False
-  Description: Enable NTRIP client. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033 and 1230 RTCMv3 messages and will not transmit or receive any other messages.
+  Description: Enable NTRIP client. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
   Notes: If True, NTRIP client will be used.
 
 - group: ntrip
@@ -1692,7 +1692,7 @@
 
     "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
 
-    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033 and 1230 RTCMv3 messages and will not transmit or receive any other messages.
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
 
     The connection is bi-directional so these modes behave the same as the UART modes.
 
@@ -1736,7 +1736,7 @@
 
     "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
 
-    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033 and 1230 RTCMv3 messages and will not transmit or receive any other messages.
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
 
     The connection is bi-directional so these modes behave the same as the UART modes.
 
@@ -1780,7 +1780,7 @@
 
     "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
 
-    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033 and 1230 RTCMv3 messages and will not transmit or receive any other messages.
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
 
     The connection is bi-directional so these modes behave the same as the UART modes.
 
@@ -1825,7 +1825,7 @@
 
     "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
 
-    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033 and 1230 RTCMv3 messages and will not transmit or receive any other messages.
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
 
     The connection is bi-directional so these modes behave the same as the UART modes.
 
