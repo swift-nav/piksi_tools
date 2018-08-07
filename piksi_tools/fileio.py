@@ -31,6 +31,7 @@ SBP_FILEIO_TIMEOUT = 5.0
 MINIMUM_RETRIES = 3
 PROGRESS_CB_REDUCTION_FACTOR = 100
 
+
 class PendingWrite(object):
     """
     Represents a write that is spending.
