@@ -69,9 +69,9 @@ class MagView(HasTraits):
 
     def mag_raw_callback(self, sbp_msg, **metadata):
         self.mag[:-1, :] = self.mag[1:, :]
-        self.mag[-1] = (sbp_msg.mag_x / 16.0,
-                        sbp_msg.mag_y / 16.0,
-                        sbp_msg.mag_z / 16.0)
+        self.mag[-1] = (sbp_msg.mag_x,
+                        sbp_msg.mag_y,
+                        sbp_msg.mag_z)
         if time.time() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
             self.mag_set_data()
 
