@@ -299,7 +299,7 @@ class UpdateView(HasTraits):
         self.stm_fw = FirmwareFileDialog(self.download_directory)
         self.stm_fw.on_trait_change(self._manage_enables, 'status')
         self.stream = OutputStream()
-        self.stream.max_len = 600
+        self.stream.max_len = 1000
         self.last_call_fw_version = None
         self.link.add_callback(self.log_cb, SBP_MSG_LOG)
 
