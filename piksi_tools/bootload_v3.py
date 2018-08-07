@@ -39,26 +39,9 @@ def get_args():
     """
     Get and parse arguments.
     """
-    import argparse
-    parser = argparse.ArgumentParser(description='Piksi Bootloader')
+    parser = serial_link.base_cl_options()
+    parser.description = 'Piksi Bootloader'
     parser.add_argument("file", help="the image set file to write to flash.")
-    parser.add_argument(
-        '-p',
-        '--port',
-        default=[serial_link.SERIAL_PORT],
-        nargs=1,
-        help='specify the serial port to use.')
-    parser.add_argument(
-        "-b",
-        "--baud",
-        default=[serial_link.SERIAL_BAUD],
-        nargs=1,
-        help="specify the baud rate to use.")
-    parser.add_argument(
-        "-f",
-        "--ftdi",
-        help="use pylibftdi instead of pyserial.",
-        action="store_true")
     return parser.parse_args()
 
 
@@ -92,34 +75,31 @@ def main():
     Get configuration, get driver, and build handler and start it.
     """
     args = get_args()
-    port = args.port[0]
-    baud = args.baud[0]
-    use_ftdi = args.ftdi
+    driver = serial_link.get_base_args_driver(args)
     # Driver with context
-    with serial_link.get_driver(use_ftdi, port, baud) as driver:
-        # Handler with context
-        with Handler(Framer(driver.read, driver.write)) as link:
-            link.add_callback(serial_link.log_printer, SBP_MSG_LOG)
-            link.add_callback(serial_link.printer, SBP_MSG_PRINT_DEP)
+    # Handler with context
+    with Handler(Framer(driver.read, driver.write)) as link:
+        link.add_callback(serial_link.log_printer, SBP_MSG_LOG)
+        link.add_callback(serial_link.printer, SBP_MSG_PRINT_DEP)
 
-            data = open(args.file, 'rb').read()
+        data = open(args.file, 'rb').read()
 
-            def progress_cb(size):
-                sys.stdout.write("\rProgress: %d%%    \r" %
-                                 (100 * size / len(data)))
-                sys.stdout.flush()
+        def progress_cb(size):
+            sys.stdout.write("\rProgress: %d%%    \r" %
+                             (100 * size / len(data)))
+            sys.stdout.flush()
 
-            print('Transferring image file...')
-            FileIO(link).write(
-                "upgrade.image_set.bin", data, progress_cb=progress_cb)
-            print('Committing file to flash...')
-            code = shell_command(link, "upgrade_tool upgrade.image_set.bin",
-                                 300)
-            if code != 0:
-                print('Failed to perform upgrade (code = %d)' % code)
-                return
-            print('Resetting Piksi...')
-            link(MsgReset(flags=0))
+        print('Transferring image file...')
+        FileIO(link).write(
+            "upgrade.image_set.bin", data, progress_cb=progress_cb)
+        print('Committing file to flash...')
+        code = shell_command(link, "upgrade_tool upgrade.image_set.bin",
+                             300)
+        if code != 0:
+            print('Failed to perform upgrade (code = %d)' % code)
+            return
+        print('Resetting Piksi...')
+        link(MsgReset(flags=0))
 
 
 if __name__ == "__main__":
