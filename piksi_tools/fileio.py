@@ -29,6 +29,7 @@ MAX_PAYLOAD_SIZE = 255
 SBP_FILEIO_WINDOW_SIZE = 40
 SBP_FILEIO_TIMEOUT = 5.0
 MINIMUM_RETRIES = 3
+PROGRESS_CB_REDUCTION_FACTOR = 100
 
 
 class PendingWrite(object):
@@ -346,7 +347,7 @@ class FileIO(object):
                     data='')
                 sr.send(msg)
                 offset += len(chunk)
-                if progress_cb is not None:
+                if progress_cb is not None and seq % PROGRESS_CB_REDUCTION_FACTOR == 0:
                     progress_cb(offset)
             sr.flush()
 
