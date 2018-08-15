@@ -13,6 +13,7 @@ from __future__ import absolute_import, print_function
 
 import os
 import errno
+import re
 
 from threading import Thread
 from time import sleep
@@ -41,9 +42,13 @@ HW_REV_LOOKUP = {
     'piksi_2.3.1': 'piksi_v2.3.1',
 }
 
+UPGRADE_WHITELIST = [
+    "ok", "writing.*", "erasing.*", "\s*[0-9]* % complete",
+    "Error.*", "error.*", ".*Image.*", ".*upgrade.*",
+    "Warning:*", ".*install.*", "upgrade completed successfully"]
+
 
 def parse_version(version):
-    comp_string = version
     if version[0] == 'v':
         version = version[1:]
     return pkparse_version(version.replace(
@@ -289,12 +294,14 @@ class UpdateView(HasTraits):
         self.download_directory = download_dir
         try:
             self.update_dl = UpdateDownloader(root_dir=self.download_directory)
-        except RuntimeError as e:
+        except RuntimeError:
             self.update_dl = None
         self.stm_fw = FirmwareFileDialog(self.download_directory)
         self.stm_fw.on_trait_change(self._manage_enables, 'status')
         self.stream = OutputStream()
+        self.stream.max_len = 1000
         self.last_call_fw_version = None
+        self.link.add_callback(self.log_cb, SBP_MSG_LOG)
 
     def _choose_dir_fired(self):
         dialog = DirectoryDialog(
@@ -332,6 +339,9 @@ class UpdateView(HasTraits):
     def _downloading_changed(self):
         """ Handles self.downloading trait being changed. """
         self._manage_enables()
+
+    def _clear_stream(self):
+        self.stream.reset()
 
     def _write(self, text):
         """
@@ -630,52 +640,51 @@ class UpdateView(HasTraits):
                 % INDEX_URL)
             return
 
+    def file_transfer_progress_cb(self, arg):
+        new_pcent = float(arg) / float(self.blob_size) * 100
+        if new_pcent - self.pcent_complete > 0.1:
+            self.pcent_complete = new_pcent
+            self.stream.scrollback_write("{:2.1f} % of {:2.1f} MB transferred.".format(self.pcent_complete, self.blob_size * 1e-6))
+
+    def log_cb(self, msg, **kwargs):
+        for regex in UPGRADE_WHITELIST:
+            if re.match(regex, msg.text):
+                self.stream.scrollback_write(msg.text.split("\n")[-1])
+
     def manage_multi_firmware_update(self):
+        self.blob_size = float(len(self.stm_fw.blob))
+        self.pcent_complete = 0
         # Set up progress dialog and transfer file to Piksi using SBP FileIO
-        progress_dialog = PulsableProgressDialog(len(self.stm_fw.blob))
-        progress_dialog.title = "Transferring file - stay on this window to progress"
-        self._write("Transferring image file - you must keep progress bar window active for the file transfer to progress")
-        if not progress_dialog.open_in_gui_thread():
-            self._write("Failed to open progress dialog.\n")
-            return
+        self._clear_stream()
+        self._write("Transferring image to device...\n\n00.0 of {:2.1f} MB trasnferred".format(self.blob_size * 1e-6))
         try:
             FileIO(self.link).write(
                 "upgrade.image_set.bin",
                 self.stm_fw.blob,
-                progress_cb=progress_dialog.progress)
+                progress_cb=self.file_transfer_progress_cb)
         except Exception as e:
             self._write("Failed to transfer image file to Piksi: %s\n" % e)
-            progress_dialog.close()
-            return
-        try:
-            progress_dialog.close()
-        except AttributeError:
-            pass
+            self._write("Upgrade Aborted.")
+            import traceback
+            print(traceback.format_exc())
+            return -1
 
+        self.stream.scrollback_write("Image transfer complete: {:2.1f} MB transferred.\n".format(self.blob_size * 1e-6))
         # Setup up pulsed progress dialog and commit to flash
-        progress_dialog = PulsableProgressDialog(100, True)
-        progress_dialog.title = "Committing to flash"
-        if not progress_dialog.open_in_gui_thread():
-            self._write("Failed to open progress dialog.\n")
-            return
-
-        def log_cb(msg, **kwargs):
-            self._write(msg.text)
-
-        self.link.add_callback(log_cb, SBP_MSG_LOG)
+        self._write("Committing file to Flash...\n")
+        self.link.add_callback(self.log_cb, SBP_MSG_LOG)
         code = shell_command(
             self.link,
             "upgrade_tool upgrade.image_set.bin",
-            600,
-            progress_cb=progress_dialog.progress)
-        self.link.remove_callback(log_cb, SBP_MSG_LOG)
-        progress_dialog.close()
+            200)
+        self.link.remove_callback(self.log_cb, SBP_MSG_LOG)
 
         if code != 0:
             self._write('Failed to perform upgrade (code = %d)' % code)
             if code == -255:
                 self._write('Shell command timed out.  Please try again.')
             return
+        self._write("Upgrade Complete.")
         self._write('Resetting Piksi...')
         self.link(MsgReset(flags=0))
 
