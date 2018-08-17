@@ -179,7 +179,7 @@ class UpdateView(HasTraits):
     newest_console_vers = String('Downloading Latest Console info...')
     download_directory_label = String('Firmware Download Directory:')
 
-    update_stm_firmware = Button(label='Update FW')
+    update_stm_firmware = Button(label='Update Firmware')
 
     updating = Bool(False)
     update_stm_en = Bool(False)
