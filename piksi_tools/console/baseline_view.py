@@ -40,7 +40,7 @@ from piksi_tools.utils import sopen
 from .utils import resource_filename
 from .gui_utils import GUI_UPDATE_PERIOD
 
-NUMPOINTS = 1000
+PLOT_HISTORY_MAX = 1000
 
 mode_string_dict = {2: 'dgnss', 3: 'float', 4: 'fixed'}
 
@@ -155,7 +155,7 @@ class BaselineView(HasTraits):
         pending_update = {'n_' + mode_string: self.slns['n_' + mode_string],
                           'e_' + mode_string: self.slns['e_' + mode_string]}
         current = {}
-        if len(self.slns['n_'+mode_string]) != 0:
+        if len(self.slns['n_' + mode_string]) != 0:
             current = {'cur_n_' + mode_string: [self.slns['n_' + mode_string][-1]],
                        'cur_e_' + mode_string: [self.slns['e_' + mode_string][-1]]}
         pending_update.update(self._get_update_current(current))
@@ -373,15 +373,15 @@ class BaselineView(HasTraits):
         self.last_btime_update = 0
         self.last_soln = None
         self.last_mode = 0
-        self.slns = {'n_fixed': deque(maxlen=NUMPOINTS),
-                     'e_fixed': deque(maxlen=NUMPOINTS),
-                     'd_fixed': deque(maxlen=NUMPOINTS),
-                     'n_float': deque(maxlen=NUMPOINTS),
-                     'e_float': deque(maxlen=NUMPOINTS),
-                     'd_float': deque(maxlen=NUMPOINTS),
-                     'n_dgnss': deque(maxlen=NUMPOINTS),
-                     'e_dgnss': deque(maxlen=NUMPOINTS),
-                     'd_dgnss': deque(maxlen=NUMPOINTS)}
+        self.slns = {'n_fixed': deque(maxlen=PLOT_HISTORY_MAX),
+                     'e_fixed': deque(maxlen=PLOT_HISTORY_MAX),
+                     'd_fixed': deque(maxlen=PLOT_HISTORY_MAX),
+                     'n_float': deque(maxlen=PLOT_HISTORY_MAX),
+                     'e_float': deque(maxlen=PLOT_HISTORY_MAX),
+                     'd_float': deque(maxlen=PLOT_HISTORY_MAX),
+                     'n_dgnss': deque(maxlen=PLOT_HISTORY_MAX),
+                     'e_dgnss': deque(maxlen=PLOT_HISTORY_MAX),
+                     'd_dgnss': deque(maxlen=PLOT_HISTORY_MAX)}
         self.plot_data = ArrayPlotData(
             n_fixed=[],
             e_fixed=[],

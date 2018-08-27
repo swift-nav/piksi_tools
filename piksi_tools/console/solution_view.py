@@ -46,7 +46,7 @@ from piksi_tools.utils import sopen
 from .utils import resource_filename
 from .gui_utils import GUI_UPDATE_PERIOD
 
-NUM_POINTS = 1000
+PLOT_HISTORY_MAX = 1000
 
 mode_string_dict = {1: 'spp',
                     2: 'dgnss',
@@ -213,7 +213,7 @@ class SolutionView(HasTraits):
         pending_update = {'lat_' + mode_string: self.slns['lat_' + mode_string],
                           'lng_' + mode_string: self.slns['lng_' + mode_string]}
         current = {}
-        if len(self.slns['lat_'+mode_string]) != 0:
+        if len(self.slns['lat_' + mode_string]) != 0:
             current = {'cur_lat_' + mode_string: [self.slns['lat_' + mode_string][-1]],
                        'cur_lng_' + mode_string: [self.slns['lng_' + mode_string][-1]]}
         pending_update.update(self._get_update_current(current))
@@ -427,12 +427,12 @@ class SolutionView(HasTraits):
             if self.display_units == "meters":
                 self.slns[each_array] = deque((np.array(self.slns[each_array]) -
                                               self.offset[index]) * self.sf[index],
-                                              maxlen=NUM_POINTS)
+                                              maxlen=PLOT_HISTORY_MAX)
             # going from degrees to meters; do inverse scaling with former offset and sf
             if self.display_units == "degrees":
-                self.slns[each_array] = deque(np.array(self.slns[each_array]) / self.prev_sfs[index] + 
+                self.slns[each_array] = deque(np.array(self.slns[each_array]) / self.prev_sfs[index] +
                                               self.prev_offsets[index],
-                                              maxlen=NUM_POINTS)
+                                              maxlen=PLOT_HISTORY_MAX)
 
     def rescale_for_units_change(self):
         # Chaco scales view automatically when 'auto' is stored
@@ -609,29 +609,29 @@ class SolutionView(HasTraits):
         self.sf = (1, 1)
         self.list_lock = threading.Lock()
         self.scaling_lock = threading.Lock()
-        self.slns = {'lat_spp': deque(maxlen=NUM_POINTS),
-                     'lng_spp': deque(maxlen=NUM_POINTS),
-                     'alt_spp': deque(maxlen=NUM_POINTS),
-                     'lat_dgnss': deque(maxlen=NUM_POINTS),
-                     'lng_dgnss': deque(maxlen=NUM_POINTS),
-                     'alt_dgnss': deque(maxlen=NUM_POINTS),
-                     'lat_float': deque(maxlen=NUM_POINTS),
-                     'lng_float': deque(maxlen=NUM_POINTS),
-                     'alt_float': deque(maxlen=NUM_POINTS),
-                     'lat_fixed': deque(maxlen=NUM_POINTS),
-                     'lng_fixed': deque(maxlen=NUM_POINTS),
-                     'alt_fixed': deque(maxlen=NUM_POINTS),
-                     'lat_sbas': deque(maxlen=NUM_POINTS),
-                     'lng_sbas': deque(maxlen=NUM_POINTS),
-                     'alt_sbas': deque(maxlen=NUM_POINTS),
-                     'lat_dr': deque(maxlen=NUM_POINTS),
-                     'lng_dr': deque(maxlen=NUM_POINTS),
-                     'alt_dr': deque(maxlen=NUM_POINTS)}
-        self.lats = deque(maxlen=NUM_POINTS)
-        self.lngs = deque(maxlen=NUM_POINTS)
-        self.alts = deque(maxlen=NUM_POINTS)
-        self.tows = deque(maxlen=NUM_POINTS)
-        self.modes = deque(maxlen=NUM_POINTS)
+        self.slns = {'lat_spp': deque(maxlen=PLOT_HISTORY_MAX),
+                     'lng_spp': deque(maxlen=PLOT_HISTORY_MAX),
+                     'alt_spp': deque(maxlen=PLOT_HISTORY_MAX),
+                     'lat_dgnss': deque(maxlen=PLOT_HISTORY_MAX),
+                     'lng_dgnss': deque(maxlen=PLOT_HISTORY_MAX),
+                     'alt_dgnss': deque(maxlen=PLOT_HISTORY_MAX),
+                     'lat_float': deque(maxlen=PLOT_HISTORY_MAX),
+                     'lng_float': deque(maxlen=PLOT_HISTORY_MAX),
+                     'alt_float': deque(maxlen=PLOT_HISTORY_MAX),
+                     'lat_fixed': deque(maxlen=PLOT_HISTORY_MAX),
+                     'lng_fixed': deque(maxlen=PLOT_HISTORY_MAX),
+                     'alt_fixed': deque(maxlen=PLOT_HISTORY_MAX),
+                     'lat_sbas': deque(maxlen=PLOT_HISTORY_MAX),
+                     'lng_sbas': deque(maxlen=PLOT_HISTORY_MAX),
+                     'alt_sbas': deque(maxlen=PLOT_HISTORY_MAX),
+                     'lat_dr': deque(maxlen=PLOT_HISTORY_MAX),
+                     'lng_dr': deque(maxlen=PLOT_HISTORY_MAX),
+                     'alt_dr': deque(maxlen=PLOT_HISTORY_MAX)}
+        self.lats = deque(maxlen=PLOT_HISTORY_MAX)
+        self.lngs = deque(maxlen=PLOT_HISTORY_MAX)
+        self.alts = deque(maxlen=PLOT_HISTORY_MAX)
+        self.tows = deque(maxlen=PLOT_HISTORY_MAX)
+        self.modes = deque(maxlen=PLOT_HISTORY_MAX)
         self.log_file = None
         self.directory_name_v = dirname
         self.directory_name_p = dirname
