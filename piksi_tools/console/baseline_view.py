@@ -13,8 +13,10 @@ import math
 import os
 import time
 import threading
+from collections import deque
 
 import numpy as np
+from pyface.api import GUI
 from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import PanTool, ZoomTool
 from enable.api import ComponentEditor
@@ -25,7 +27,7 @@ from sbp.navigation import (
     SBP_MSG_UTC_TIME, MsgAgeCorrections, MsgBaselineNEDDepA, MsgGPSTime,
     MsgGPSTimeDepA, MsgUtcTime)
 from sbp.orientation import SBP_MSG_BASELINE_HEADING, MsgBaselineHeading
-from sbp.piksi import SBP_MSG_IAR_STATE, MsgResetFilters
+from sbp.piksi import MsgResetFilters
 from traits.api import Bool, Button, Float, Dict, File, HasTraits, Instance, List
 from traitsui.api import HGroup, HSplit, Item, TabularEditor, VGroup, View
 from traitsui.tabular_adapter import TabularAdapter
@@ -37,6 +39,10 @@ from piksi_tools.console.utils import (
 from piksi_tools.utils import sopen
 from .utils import resource_filename
 from .gui_utils import GUI_UPDATE_PERIOD
+
+PLOT_HISTORY_MAX = 1000
+
+mode_string_dict = {2: 'dgnss', 3: 'float', 4: 'fixed'}
 
 
 class SimpleAdapter(TabularAdapter):
@@ -129,40 +135,63 @@ class BaselineView(HasTraits):
     def _reset_button_fired(self):
         self.link(MsgResetFilters(filter=0))
 
+    def _get_update_current(self, current_dict={}):
+        out_dict = {'cur_n_fixed': [],
+                    'cur_e_fixed': [],
+                    'cur_d_fixed': [],
+                    'cur_n_float': [],
+                    'cur_e_float': [],
+                    'cur_d_float': [],
+                    'cur_n_dgnss': [],
+                    'cur_e_dgnss': [],
+                    'cur_d_dgnss': []
+                    }
+        out_dict.update(current_dict)
+        return out_dict
+
+    def _synchronize_plot_data_by_mode(self, mode_string):
+        # do all required plot_data updates for a single
+        # new solution with mode defined by mode_string
+        pending_update = {'n_' + mode_string: self.slns['n_' + mode_string],
+                          'e_' + mode_string: self.slns['e_' + mode_string]}
+        current = {}
+        if len(self.slns['n_' + mode_string]) != 0:
+            current = {'cur_n_' + mode_string: [self.slns['n_' + mode_string][-1]],
+                       'cur_e_' + mode_string: [self.slns['e_' + mode_string][-1]]}
+        pending_update.update(self._get_update_current(current))
+        self.plot_data.update_data(pending_update)
+
+    def _update_sln_data_by_mode(self, soln, mode_string):
+        # do backend deque updates for a new solution of type
+        # mode string
+        self.slns['n_' + mode_string].append(soln.n)
+        self.slns['e_' + mode_string].append(soln.e)
+
+    def _clr_sln_data(self):
+        for each in self.slns:
+            self.slns[each].clear()
+
     def _reset_remove_current(self):
-        self.plot_data.update_data({'cur_fixed_n': [],
-                                    'cur_fixed_e': [],
-                                    'cur_fixed_d': [],
-                                    'cur_float_n': [],
-                                    'cur_float_e': [],
-                                    'cur_float_d': [],
-                                    'cur_dgnss_n': [],
-                                    'cur_dgnss_e': [],
-                                    'cur_dgnss_d': []})
+        self.plot_data.update_data(self._get_update_current())
 
     def _clear_history(self):
-        self.plot_data.set_data('n_fixed', [])
-        self.plot_data.set_data('e_fixed', [])
-        self.plot_data.set_data('d_fixed', [])
-        self.plot_data.set_data('n_float', [])
-        self.plot_data.set_data('e_float', [])
-        self.plot_data.set_data('d_float', [])
-        self.plot_data.set_data('n_dgnss', [])
-        self.plot_data.set_data('e_dgnss', [])
-        self.plot_data.set_data('d_dgnss', [])
+        for each in self.slns:
+            self.slns[each].clear()
+        pending_update = {'fixed_n': [],
+                          'fixed_e': [],
+                          'fixed_d': [],
+                          'float_n': [],
+                          'float_e': [],
+                          'float_d': [],
+                          'dgnss_n': [],
+                          'dgnss_e': [],
+                          'dgnss_d': []
+                          }
+        pending_update.update(self._get_update_current())
+        self.plot_data.update(pending_update)
 
     def _clear_button_fired(self):
-        self.n[:] = np.NAN
-        self.e[:] = np.NAN
-        self.d[:] = np.NAN
-        self.mode[:] = np.NAN
-        self.plot_data.set_data('t', [])
         self._clear_history()
-        self._reset_remove_current()
-
-    def iar_state_callback(self, sbp_msg, **metadata):
-        self.num_hyps = sbp_msg.num_hyps
-        self.last_hyp_update = time.time()
 
     def age_corrections_callback(self, sbp_msg, **metadata):
         age_msg = MsgAgeCorrections(sbp_msg)
@@ -260,7 +289,7 @@ class BaselineView(HasTraits):
 
         self.last_mode = get_mode(soln)
         if time.time() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
-            self.last_plot_update_time = time.time()
+            GUI.invoke_later(self._solution_draw)
 
         if self.last_mode < 1:
             table.append(('GPS Week', EMPTY_STR))
@@ -307,78 +336,23 @@ class BaselineView(HasTraits):
         if self.age_corrections is not None:
             table.append(('Corr. Age [s]', self.age_corrections))
         self.table = table
-        self.list_lock.acquire()
-        # Rotate array, deleting oldest entries to maintain
-        # no more than N in plot
-        self.n[1:] = self.n[:-1]
-        self.e[1:] = self.e[:-1]
-        self.d[1:] = self.d[:-1]
-        self.mode[1:] = self.mode[:-1]
 
-        # Insert latest position
-        if self.last_mode > 1:
-            self.n[0], self.e[0], self.d[0] = soln.n, soln.e, soln.d
-        else:
-            self.n[0], self.e[0], self.d[0] = [np.NAN, np.NAN, np.NAN]
-        self.mode[0] = self.last_mode
-        self.list_lock.release()
-
-    def _last_plot_update_time_changed(self):
-        self._solution_draw()
+        if self.last_mode != 0:
+            mode_string = mode_string_dict[self.last_mode]
+            self.pending_draw_modes.append(mode_string)
+            self.list_lock.acquire()
+            self._update_sln_data_by_mode(soln, mode_string)
+            self.list_lock.release()
 
     def _solution_draw(self):
+        self.last_plot_update_time = time.time()
         soln = self.last_soln
-        if np.any(self.mode):
-            self.list_lock.acquire()
-            float_indexer = (self.mode == FLOAT_MODE)
-            fixed_indexer = (self.mode == FIXED_MODE)
-            dgnss_indexer = (self.mode == DGNSS_MODE)
-            if np.any(fixed_indexer):
-                self.plot_data.update_data({'n_fixed': self.n[fixed_indexer],
-                                            'e_fixed': self.e[fixed_indexer],
-                                            'd_fixed': self.d[fixed_indexer]})
-            else:
-                self.plot_data.update_data({'n_fixed': [],
-                                            'e_fixed': [],
-                                            'd_fixed': []})
-            if np.any(float_indexer):
-                self.plot_data.update_data({'n_float': self.n[float_indexer],
-                                            'e_float': self.e[float_indexer],
-                                            'd_float': self.d[float_indexer]})
-            else:
-                self.plot_data.update_data({'n_float': [],
-                                            'e_float': [],
-                                            'd_float': []})
-            if np.any(dgnss_indexer):
-                self.plot_data.update_data({'n_dgnss': self.n[dgnss_indexer],
-                                            'e_dgnss': self.e[dgnss_indexer],
-                                            'd_dgnss': self.d[dgnss_indexer]})
-            else:
-                self.plot_data.update_data({'n_dgnss': [],
-                                            'e_dgnss': [],
-                                            'd_dgnss': []})
-            self.list_lock.release()
-            # Update our last solution icon
-            if self.last_mode == FIXED_MODE:
-                self._reset_remove_current()
-                self.plot_data.update_data({'cur_fixed_n': [soln.n],
-                                            'cur_fixed_e': [soln.e],
-                                            'cur_fixed_d': [soln.d]})
-            elif self.last_mode == FLOAT_MODE:
-                self._reset_remove_current()
-                self.plot_data.update_data({'cur_float_n': [soln.n],
-                                            'cur_float_e': [soln.e],
-                                            'cur_float_d': [soln.d]})
-            elif self.last_mode == DGNSS_MODE:
-                self._reset_remove_current()
-                self.plot_data.update_data({'cur_dgnss_n': [soln.n],
-                                            'cur_dgnss_e': [soln.e],
-                                            'cur_dgnss_d': [soln.d]})
-            else:
-                pass
-        # make the zoomall win over the position centered button
-        # position centered button has no effect when zoom all enabled
+        # update our "current solution" icon
+        for mode_string in list(self.pending_draw_modes):
+            self._synchronize_plot_data_by_mode(mode_string)
+            self.pending_draw_modes.remove(mode_string)
 
+        # make the zoomall win over the position centered button
         if not self.zoomall and self.position_centered:
             d = (self.plot.index_range.high - self.plot.index_range.low) / 2.
             self.plot.index_range.set_bounds(soln.e - d, soln.e + d)
@@ -391,6 +365,7 @@ class BaselineView(HasTraits):
 
     def __init__(self, link, plot_history_max=1000, dirname=''):
         super(BaselineView, self).__init__()
+        self.pending_draw_modes = []
         self.log_file = None
         self.directory_name_b = dirname
         self.num_hyps = 0
@@ -398,38 +373,33 @@ class BaselineView(HasTraits):
         self.last_btime_update = 0
         self.last_soln = None
         self.last_mode = 0
+        self.slns = {'n_fixed': deque(maxlen=PLOT_HISTORY_MAX),
+                     'e_fixed': deque(maxlen=PLOT_HISTORY_MAX),
+                     'd_fixed': deque(maxlen=PLOT_HISTORY_MAX),
+                     'n_float': deque(maxlen=PLOT_HISTORY_MAX),
+                     'e_float': deque(maxlen=PLOT_HISTORY_MAX),
+                     'd_float': deque(maxlen=PLOT_HISTORY_MAX),
+                     'n_dgnss': deque(maxlen=PLOT_HISTORY_MAX),
+                     'e_dgnss': deque(maxlen=PLOT_HISTORY_MAX),
+                     'd_dgnss': deque(maxlen=PLOT_HISTORY_MAX)}
         self.plot_data = ArrayPlotData(
-            n_fixed=[0.0],
-            e_fixed=[0.0],
-            d_fixed=[0.0],
-            n_float=[0.0],
-            e_float=[0.0],
-            d_float=[0.0],
-            n_dgnss=[0.0],
-            e_dgnss=[0.0],
-            d_dgnss=[0.0],
+            n_fixed=[],
+            e_fixed=[],
+            n_float=[],
+            e_float=[],
+            n_dgnss=[],
+            e_dgnss=[],
             t=[0.0],
             ref_n=[0.0],
             ref_e=[0.0],
-            ref_d=[0.0],
-            cur_fixed_e=[],
-            cur_fixed_n=[],
-            cur_fixed_d=[],
-            cur_float_e=[],
-            cur_float_n=[],
-            cur_float_d=[],
-            cur_dgnss_e=[],
-            cur_dgnss_n=[],
-            cur_dgnss_d=[])
+            cur_e_fixed=[],
+            cur_n_fixed=[],
+            cur_e_float=[],
+            cur_n_float=[],
+            cur_e_dgnss=[],
+            cur_n_dgnss=[])
 
         self.list_lock = threading.Lock()
-        self.plot_history_max = plot_history_max
-        self.n = np.zeros(plot_history_max)
-        self.e = np.zeros(plot_history_max)
-        self.d = np.zeros(plot_history_max)
-        self.mode = np.zeros(plot_history_max)
-        self.last_plot_update_time = 0
-
         self.plot = Plot(self.plot_data)
         pts_float = self.plot.plot(
             ('e_float', 'n_float'),
@@ -460,21 +430,21 @@ class BaselineView(HasTraits):
             marker_size=5,
             line_width=1.5)
         cur_fixed = self.plot.plot(
-            ('cur_fixed_e', 'cur_fixed_n'),
+            ('cur_e_fixed', 'cur_n_fixed'),
             type='scatter',
             color=color_dict[FIXED_MODE],
             marker='plus',
             marker_size=5,
             line_width=1.5)
         cur_float = self.plot.plot(
-            ('cur_float_e', 'cur_float_n'),
+            ('cur_e_float', 'cur_n_float'),
             type='scatter',
             color=color_dict[FLOAT_MODE],
             marker='plus',
             marker_size=5,
             line_width=1.5)
         cur_dgnss = self.plot.plot(
-            ('cur_dgnss_e', 'cur_dgnss_n'),
+            ('cur_e_dgnss', 'cur_n_dgnss'),
             type='scatter',
             color=color_dict[DGNSS_MODE],
             marker='plus',
@@ -516,7 +486,6 @@ class BaselineView(HasTraits):
         ])
         self.link.add_callback(self.baseline_heading_callback,
                                [SBP_MSG_BASELINE_HEADING])
-        self.link.add_callback(self.iar_state_callback, SBP_MSG_IAR_STATE)
         self.link.add_callback(self.gps_time_callback,
                                [SBP_MSG_GPS_TIME, SBP_MSG_GPS_TIME_DEP_A])
         self.link.add_callback(self.utc_time_callback, [SBP_MSG_UTC_TIME])
