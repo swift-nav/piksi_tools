@@ -58,7 +58,8 @@ def get_args():
 
 def main():
     args = get_args()
-    with open(args.file, 'r') as fd:
+    open_args = 'rb' if args.format == 'bin' else 'r'
+    with open(args.file, open_args) as fd:
         if args.format == 'json':
             iterator = JSONLogIterator(fd)
         elif args.format == 'bin':
