@@ -414,7 +414,7 @@ if __name__ == '__main__':
             if args.binary:
                 infile = open(args.filename[0], 'rb')
                 driver = FileDriver(infile)
-                iterator = Framer(driver.read, driver.write, True)
+                iterator = Framer(driver.read, driver.write, verbose=False)
             else:
                 infile = open(args.filename[0], 'r')
                 iterator = JSONLogIterator(infile).next()
