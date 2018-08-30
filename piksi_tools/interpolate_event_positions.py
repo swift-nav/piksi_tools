@@ -411,11 +411,12 @@ if __name__ == '__main__':
     args = get_args()
     if args.type[0] == 'MsgBaselineNED' or args.type[0] == 'MsgPosECEF' or args.type[0] == 'MsgPosLLH' or args.type[0] == 'MsgBaselineECEF':
         if args.filename[0]:
-            infile = open(args.filename[0], 'r')
             if args.binary:
+                infile = open(args.filename[0], 'rb')
                 driver = FileDriver(infile)
                 iterator = Framer(driver.read, driver.write, True)
             else:
+                infile = open(args.filename[0], 'r')
                 iterator = JSONLogIterator(infile).next()
             a, b, c, d, e, f, g, h = collect_positions(iterator, args.type[0], args.debouncetime[0])
             display_data(a, b, c, d, e, f, g, h, args.type[0], args.outfile[0])
