@@ -403,6 +403,11 @@ def get_args():
         default=[1000],
         nargs=1,
         help='Specify the debounce time for trigger in ms.')
+    parser.add_argument(
+        '-v',
+        '--verbose',
+        action="store_true",
+        help="Flag to indicate that the SBP file is a binary sbp file. Default format is sbp json")
     args = parser.parse_args()
     return args
 
@@ -414,7 +419,7 @@ if __name__ == '__main__':
             if args.binary:
                 infile = open(args.filename[0], 'rb')
                 driver = FileDriver(infile)
-                iterator = Framer(driver.read, driver.write, verbose=False)
+                iterator = Framer(driver.read, driver.write, args.verbose)
             else:
                 infile = open(args.filename[0], 'r')
                 iterator = JSONLogIterator(infile).next()
