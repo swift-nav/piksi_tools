@@ -426,10 +426,11 @@ class UpdateView(HasTraits):
                     actions=[prompt.close_button, prompt.ok_button],
                     callback=self._replace_with_version_2)
                 confirm_prompt.text = "\n" \
-                                      + "    Before it is possible to update beyond v2.0.0, it is necessary        \n" \
-                                      + "    to first update to version v2.0.0.                                    \n" \
+                                      + "    Upgrading to firmware v2.1.0 or later requires that the device be     \n" \
+                                      + "    running firmware v2.0.0 or later. Please upgrade to firmware          \n" \
+                                      + "    version 2.0.0.                                                        \n" \
                                       + "                                                                          \n" \
-                                      + "    Would you like to download v2.0.0 now?                                \n" \
+                                      + "    Would you like to download firmware version v2.0.0 now?               \n" \
                                       + "                                                                          \n" 
                 confirm_prompt.run(block=False)
                 return
