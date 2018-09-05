@@ -402,7 +402,7 @@ class UpdateView(HasTraits):
     def _replace_with_version_2(self):
         self.downloading = True
         self._write('Downloading Multi firmware v2.0.0')
-        filepath = self.update_dl._download_file_from_url(V2_LINK) 
+        filepath = self.update_dl._download_file_from_url(V2_LINK)
         self._write('Saved file to %s' % filepath)
         self.stm_fw.load_bin(filepath)
         self.downloading = False
@@ -419,21 +419,20 @@ class UpdateView(HasTraits):
         intended_version = parse_version(re_result.group(1))
         # If the current firmware is not yet beyond 2.0.0, and we are loading beyond 2.0.0
         # warn the user that this upgrade is not possible
-        if (current_fw_version < pkparse_version("v2.0.0") and
-            intended_version > pkparse_version("v2.0.0")):
-                confirm_prompt = prompt.CallbackPrompt(
-                    title="Update to v2.0.0",
-                    actions=[prompt.close_button, prompt.ok_button],
-                    callback=self._replace_with_version_2)
-                confirm_prompt.text = "\n" \
-                                      + "    Upgrading to firmware v2.1.0 or later requires that the device be     \n" \
-                                      + "    running firmware v2.0.0 or later. Please upgrade to firmware          \n" \
-                                      + "    version 2.0.0.                                                        \n" \
-                                      + "                                                                          \n" \
-                                      + "    Would you like to download firmware version v2.0.0 now?               \n" \
-                                      + "                                                                          \n" 
-                confirm_prompt.run(block=False)
-                return
+        if (current_fw_version < pkparse_version("v2.0.0") and intended_version > pkparse_version("v2.0.0")):
+            confirm_prompt = prompt.CallbackPrompt(
+                title="Update to v2.0.0",
+                actions=[prompt.close_button, prompt.ok_button],
+                callback=self._replace_with_version_2)
+            confirm_prompt.text = "\n" \
+                                  + "    Upgrading to firmware v2.1.0 or later requires that the device be     \n" \
+                                  + "    running firmware v2.0.0 or later. Please upgrade to firmware          \n" \
+                                  + "    version 2.0.0.                                                        \n" \
+                                  + "                                                                          \n" \
+                                  + "    Would you like to download firmware version v2.0.0 now?               \n" \
+                                  + "                                                                          \n"
+            confirm_prompt.run(block=False)
+            return
         self._firmware_update_thread = Thread(
             target=self.manage_firmware_updates, args=("STM",))
         self._firmware_update_thread.start()
