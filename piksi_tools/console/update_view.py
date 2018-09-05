@@ -47,6 +47,8 @@ UPGRADE_WHITELIST = [
     "Error.*", "error.*", ".*Image.*", ".*upgrade.*",
     "Warning:*", ".*install.*", "upgrade completed successfully"]
 
+V2_LINK = "https://www.swiftnav.com/resource-files/Piksi%20Multi/v2.0.0/Firmware/PiksiMulti-v2.0.0.bin"
+
 
 def parse_version(version):
     if version[0] == 'v':
@@ -397,6 +399,14 @@ class UpdateView(HasTraits):
         else:
             self._update_stm_firmware_fn()
 
+    def _replace_with_version_2(self):
+        self.downloading = True
+        self._write('Downloading Multi firmware v2.0.0')
+        filepath = self.update_dl._download_file_from_url(V2_LINK)
+        self._write('Saved file to %s' % filepath)
+        self.stm_fw.load_bin(filepath)
+        self.downloading = False
+
     def _update_stm_firmware_fn(self):
         try:
             if self._firmware_update_thread.is_alive():
@@ -404,6 +414,25 @@ class UpdateView(HasTraits):
         except AttributeError:
             pass
 
+        current_fw_version = parse_version(self.piksi_stm_vers)
+        re_result = re.search('[a-zA-Z0-9]*-(v[0-9]*\.[0-9]*\.[0-9])', self.stm_fw.status)
+        intended_version = parse_version(re_result.group(1))
+        # If the current firmware is not yet beyond 2.0.0, and we are loading beyond 2.0.0
+        # warn the user that this upgrade is not possible
+        if (current_fw_version < pkparse_version("v2.0.0") and intended_version > pkparse_version("v2.0.0")):
+            confirm_prompt = prompt.CallbackPrompt(
+                title="Update to v2.0.0",
+                actions=[prompt.close_button, prompt.ok_button],
+                callback=self._replace_with_version_2)
+            confirm_prompt.text = "\n" \
+                                  + "    Upgrading to firmware v2.1.0 or later requires that the device be     \n" \
+                                  + "    running firmware v2.0.0 or later. Please upgrade to firmware          \n" \
+                                  + "    version 2.0.0.                                                        \n" \
+                                  + "                                                                          \n" \
+                                  + "    Would you like to download firmware version v2.0.0 now?               \n" \
+                                  + "                                                                          \n"
+            confirm_prompt.run(block=False)
+            return
         self._firmware_update_thread = Thread(
             target=self.manage_firmware_updates, args=("STM",))
         self._firmware_update_thread.start()
