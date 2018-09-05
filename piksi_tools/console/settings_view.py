@@ -196,7 +196,9 @@ class Setting(SettingBase):
                     hint_thread = threading.Thread(
                         target=self.settings._display_ins_settings_hint)
                     hint_thread.start()
-                    # todo update when setting name changes
+                # regardless of which way setting is going, a restart is required
+                else:
+                    self.settings.display_ins_output_hint()
 
 
 class EnumSetting(Setting):
@@ -443,6 +445,10 @@ class SettingsView(HasTraits):
             while (confirm_prompt.thread.is_alive()):
                 # Wait until first popup is closed before opening second popup
                 time.sleep(1)
+        # even if we didn't need to change any settings, we still have to save settings and restart
+        self.display_ins_output_hint()
+
+    def display_ins_output_hint(self):
         confirm_prompt2 = prompt.CallbackPrompt(
             title="Restart Device?",
             actions=[prompt.close_button, prompt.ok_button],
