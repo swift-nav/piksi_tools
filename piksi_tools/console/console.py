@@ -57,7 +57,7 @@ from piksi_tools.console.tracking_view import TrackingView
 from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
                                        get_mode, mode_dict, resource_filename,
-                                       icon, swift_path)
+                                       icon, swift_path, DR_MODE)
 from piksi_tools.console.skylark_view import SkylarkView
 
 
@@ -471,18 +471,18 @@ class SwiftConsole(HasTraits):
         view = None
         if self.baseline_view and self.solution_view:
             # If we have a recent baseline update, we use the baseline info
-            if time.time() - self.baseline_view.last_btime_update < 10:
+            if time.time() - self.baseline_view.last_btime_update < 1:
                 view = self.baseline_view
             # Otherwise, if we have a recent SPP update, we use the SPP
-            elif time.time() - self.solution_view.last_stime_update < 10:
+            else:
                 view = self.solution_view
             if view:
                 if view.last_soln:
+                    mode_enum = get_mode(view.last_soln)
                     # if all is well we update state
-                    temp_mode = mode_dict.get(
-                        get_mode(view.last_soln), EMPTY_STR)
+                    temp_mode = mode_dict.get(mode_enum, EMPTY_STR)
                     temp_num_sats = view.last_soln.n_sats
-                if getattr(view, 'ins_used', False):
+                if getattr(view, 'ins_used', False) and mode_enum != DR_MODE:
                     temp_mode += "+INS"
 
         self.mode = temp_mode
