@@ -484,9 +484,8 @@ class SettingsView(HasTraits):
         self.ordering_counter = 0   # helps make deterministic order of settings
         self.setup_pending = True   # guards against receipt of multiple "done" msgs
         # queue up BATCH_WINDOW settings indices to read
-        while (self.enumindex < BATCH_WINDOW):
-            self.pending_settings.append(self.enumindex)
-            self.enumindex += 1
+        self.pending_settings = range(self.enumindex, self.enumindex + BATCH_WINDOW)
+        self.enumindex += BATCH_WINDOW
         self._send_pending_settings_by_index()
         # start a thread that will resend any read indexes that haven't come
         self._restart_retry_thread()
@@ -779,10 +778,8 @@ class SettingsView(HasTraits):
         if sbp_msg.index in self.pending_settings:
             self.pending_settings.remove(sbp_msg.index)
         if len(self.pending_settings) == 0:
-            start = self.enumindex
-            while (self.enumindex < start + BATCH_WINDOW):
-                self.pending_settings.append(self.enumindex)
-                self.enumindex += 1
+            self.pending_settings = range(self.enumindex, self.enumindex + BATCH_WINDOW)
+            self.enumindex += BATCH_WINDOW
             self._send_pending_settings_by_index()
             self._restart_retry_thread()
 
