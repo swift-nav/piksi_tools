@@ -2184,7 +2184,7 @@
   expert: true
   type: double
   units: seconds
-  default value: 3.0
+  default value: '3.0'
   readonly: false
   Description: (ALPHA) Time constant for low-pass filtering of position trajectory.
   Notes: Has no effect unless the vehicle dynamics filter is active.
@@ -2194,7 +2194,7 @@
   expert: true
   type: double
   units: meters per second squared 
-  default value: 3.0
+  default value: '3.0'
   readonly: false
   Description: (ALPHA) Maximum possible linear acceleration of vehicle.
   Notes: Has no effect unless the vehicle dynamics filter is active.
