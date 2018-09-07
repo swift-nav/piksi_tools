@@ -556,7 +556,7 @@
 
 - group: system_info
   name: hw_revision
-  expert: False
+  expert: True
   type: string
   units: N/A
   default value: N/A
@@ -578,7 +578,7 @@
 
 - group: system_info
   name: hw_variant
-  expert: False
+  expert: True
   type: string
   units: N/A
   default value: N/A
@@ -586,6 +586,17 @@
   enumerated possible values:
   Description: Hardware Product Variant
   Notes: This is a read only setting that corresponds to the variant of the current hardware revision that is connected to the console.
+
+- group: system_info
+  name: product_id
+  expert: False
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: True
+  enumerated possible values:
+  Description: Product ID
+  Notes: This is a read only setting that displays the product id of the device.
 
 - group: system_info
   name: imageset_build_id
