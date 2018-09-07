@@ -743,14 +743,15 @@ class SettingsView(HasTraits):
         if section not in self.settings:
             self.settings[section] = {}
         # setting exists, we won't reinitilize it but rather update existing setting
-        if self.settings[section].get(setting, False):
-            self._prevent_revert_thread = True
-            self.settings[section][setting].value = value
-            self._prevent_revert_thread = False
-            self.settings[section][setting].ordering = self.ordering_counter
+        dict_setting = self.settings[section].get(setting, False)
+        if dict_setting:
+            dict_setting._prevent_revert_thread = True
+            dict_setting.value = value
+            dict_setting._prevent_revert_thread = False
+            dict_setting.ordering = self.ordering_counter
             if format_type is not None and setting_type == 'enum':
                 enum_values = setting_format.split(',')
-                self.settings[section][setting].enum_values = enum_values
+                dict_setting.enum_values = enum_values
         else:
             if format_type is None:
                 # Plain old setting, no format information
