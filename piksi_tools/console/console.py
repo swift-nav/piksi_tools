@@ -57,7 +57,7 @@ from piksi_tools.console.tracking_view import TrackingView
 from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
                                        get_mode, mode_dict, resource_filename,
-                                       icon, swift_path)
+                                       icon, swift_path, DR_MODE, DIFFERENTIAL_MODES)
 from piksi_tools.console.skylark_view import SkylarkView
 
 
@@ -466,27 +466,30 @@ class SwiftConsole(HasTraits):
     def update_on_heartbeat(self, sbp_msg, **metadata):
         self.heartbeat_count += 1
         # First initialize the state to nothing, if we can't update, it will be none
-        temp_mode = "None"
-        temp_num_sats = 0
-        view = None
+        display_mode = "None"
+        num_sats = 0
         if self.baseline_view and self.solution_view:
-            # If we have a recent baseline update, we use the baseline info
-            if time.time() - self.baseline_view.last_btime_update < 10:
-                view = self.baseline_view
-            # Otherwise, if we have a recent SPP update, we use the SPP
-            elif time.time() - self.solution_view.last_stime_update < 10:
-                view = self.solution_view
-            if view:
-                if view.last_soln:
-                    # if all is well we update state
-                    temp_mode = mode_dict.get(
-                        get_mode(view.last_soln), EMPTY_STR)
-                    temp_num_sats = view.last_soln.n_sats
-                if getattr(view, 'ins_used', False):
-                    temp_mode += "+INS"
-
-        self.mode = temp_mode
-        self.num_sats = temp_num_sats
+            last_baseline_soln = self.baseline_view.last_soln
+            last_llh_soln = self.solution_view.last_soln
+            # if we have a recent llh solution, use that mode
+            if last_llh_soln and (self.last_status_update_time != self.solution_view.last_stime_update):
+                llh_mode_enum = get_mode(last_llh_soln)
+                display_mode = mode_dict.get(llh_mode_enum, EMPTY_STR)
+                num_sats = last_llh_soln.n_sats
+                if getattr(self.solution_view, 'ins_used', False) and llh_mode_enum != DR_MODE:
+                        display_mode += "+INS"
+                self.last_status_update_time = self.solution_view.last_stime_update
+            # If we have a recent baseline update that has higher mode, we use the baseline soln info instead
+            if last_baseline_soln and self.last_status_update_time != self.baseline_view.last_btime_update:
+                baseline_mode_enum = get_mode(last_baseline_soln)
+                # if the baseline is "higher" mode than llh or llh is missing, use baseline for mode and num_sats
+                if baseline_mode_enum in DIFFERENTIAL_MODES and (last_llh_soln and
+                   get_mode(last_llh_soln) not in DIFFERENTIAL_MODES or not last_llh_soln):
+                    display_mode = mode_dict.get(baseline_mode_enum, EMPTY_STR)
+                    num_sats = last_baseline_soln.n_sats
+                    self.last_status_update_time = self.baseline_view.last_btime_update
+        self.mode = display_mode
+        self.num_sats = num_sats
 
         if self.settings_view:  # for auto populating surveyed fields
             self.settings_view.lat = self.solution_view.latitude
@@ -601,6 +604,7 @@ class SwiftConsole(HasTraits):
         self.expand_json = expand_json
         # if we have passed a logfile, we set our directory to it
         override_filename = override_filename
+        self.last_status_update_time = 0
 
         if log_dirname:
             self.directory_name = log_dirname
