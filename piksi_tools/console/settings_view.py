@@ -13,7 +13,6 @@ from __future__ import absolute_import, print_function
 
 import threading
 import time
-import copy
 import configparser
 
 from pyface.api import GUI
@@ -39,6 +38,8 @@ from .settings_list import SettingsList
 from .utils import resource_filename
 
 SETTINGS_REVERT_TIMEOUT = 5
+SETTINGS_RETRY_TIMEOUT = 10
+BATCH_WINDOW = 10
 
 if ETSConfig.toolkit != 'null':
     from enable.savage.trait_defs.ui.svg_button import SVGButton
@@ -80,7 +81,6 @@ class SettingBase(HasTraits):
     value = Str(Undefined)
     ordering = Float(0)
     default_value = Str()
-
     traits_view = View()
 
     def __repr__(self):
@@ -127,13 +127,16 @@ class Setting(SettingBase):
             label='Setting', ), )
 
     def __init__(self, name, section, value, ordering=0, settings=None):
+        # _prevent_revert_thread attribute is a guard against starting any timed
+        # revert thread. It should be True when .value changes due to initialization
+        # or updating of GUI without any physical setting change commanded on device
+        self._prevent_revert_thread = True
         self.name = name
         self.section = section
         self.full_name = "%s.%s" % (section, name)
         self.value = value
         self.ordering = ordering
         self.settings = settings
-        self.revert_in_progress = False
         self.timed_revert_thread = None
         self.confirmed_set = True
         # flag on each setting to indicate a write failure if the revert thread has run on the setting
@@ -150,6 +153,7 @@ class Setting(SettingBase):
             # get_field returns empty string if field missing, so I need this check to assign bool to traits bool
             if readonly:
                 self.readonly = True
+        self._prevent_revert_thread = False
 
     def revert_to_prior_value(self, name, old, new):
         '''Revert setting to old value in the case we can't confirm new value'''
@@ -157,9 +161,9 @@ class Setting(SettingBase):
         if self.readonly:
             return
 
-        self.revert_in_progress = True
+        self._prevent_revert_thread = True
         self.value = old
-        self.revert_in_progress = False
+        self._prevent_revert_thread = False
         # reset confirmed_set to make sure setting is editable again
         self.confirmed_set = True
         self.write_failure = True
@@ -175,12 +179,11 @@ class Setting(SettingBase):
     def _value_changed(self, name, old, new):
         '''When a user changes a value, kick off a timed revert thread to revert it in GUI if no confirmation
             that the change was successful is received.'''
-        if getattr(self, 'settings', None):
-            if (old != new and old is not Undefined and new is not Undefined):
-                if type(self.value) == unicode:
-                    self.value = self.value.encode('ascii', 'replace')
-                # Revert_in_progress is a guard to prevent this from running when the revert function changes the value
-                if not self.revert_in_progress:
+        if not self._prevent_revert_thread:
+            if getattr(self, 'settings', None):
+                if (old != new and old is not Undefined and new is not Undefined):
+                    if type(self.value) == unicode:
+                        self.value = self.value.encode('ascii', 'replace')
                     self.confirmed_set = False
                     self.timed_revert_thread = TimedDelayStoppableThread(
                         SETTINGS_REVERT_TIMEOUT,
@@ -188,17 +191,17 @@ class Setting(SettingBase):
                         args=(name, old, new))
                     self.settings.set(self.section, self.name, self.value)
                     self.timed_revert_thread.start()
-            # If we have toggled the Inertial Nav enable setting (currently "output mode")
-            # we display some helpful hints for the user
-            if (self.section == "ins" and self.name == "output_mode" and
-                    old is not None and self.settings is not None):
-                if new in ['GNSS and INS', 'INS Only', 'Loosely Coupled', 'LC + GNSS']:
-                    hint_thread = threading.Thread(
-                        target=self.settings._display_ins_settings_hint)
-                    hint_thread.start()
-                # regardless of which way setting is going, a restart is required
-                else:
-                    self.settings.display_ins_output_hint()
+                # If we have toggled the Inertial Nav enable setting (currently "output mode")
+                # we display some helpful hints for the user
+                if (self.section == "ins" and self.name == "output_mode" and
+                        old is not None and self.settings is not None):
+                    if new in ['GNSS and INS', 'INS Only', 'Loosely Coupled', 'LC + GNSS']:
+                        hint_thread = threading.Thread(
+                            target=self.settings._display_ins_settings_hint)
+                        hint_thread.start()
+                    # regardless of which way setting is going, a restart is required
+                    else:
+                        self.settings.display_ins_output_hint()
 
 
 class EnumSetting(Setting):
@@ -233,8 +236,8 @@ class EnumSetting(Setting):
             label='Setting', ), )
 
     def __init__(self, name, section, value, values, **kwargs):
-        Setting.__init__(self, name, section, value, **kwargs)
         self.values = values
+        Setting.__init__(self, name, section, value, **kwargs)
 
 
 class SectionHeading(SettingBase):
@@ -463,10 +466,33 @@ class SettingsView(HasTraits):
 
         confirm_prompt2.run(block=False)
 
+    def _send_pending_settings_by_index(self):
+        for eachindex in self.pending_settings:
+            self.link(MsgSettingsReadByIndexReq(index=eachindex))
+
+    def _restart_retry_thread(self):
+        if self.retry_pending_read_index_thread:
+            self.retry_pending_read_index_thread.stop()
+        self.retry_pending_read_index_thread = TimedDelayStoppableThread(
+            SETTINGS_RETRY_TIMEOUT,
+            target=self._send_pending_settings_by_index, args=[])
+        self.retry_pending_read_index_thread.start()
+
+    def _settings_read_by_index(self):
+        self.enumindex = 0          # next index to ask for
+        self.pending_settings = []  # list of settings idices we've asked for
+        self.ordering_counter = 0   # helps make deterministic order of settings
+        self.setup_pending = True   # guards against receipt of multiple "done" msgs
+        # queue up BATCH_WINDOW settings indices to read
+        self.pending_settings = range(self.enumindex, self.enumindex + BATCH_WINDOW)
+        self.enumindex += BATCH_WINDOW
+        self._send_pending_settings_by_index()
+        # start a thread that will resend any read indexes that haven't come
+        self._restart_retry_thread()
+
     def _settings_read_button_fired(self):
-        self.enumindex = 0
-        self.ordering_counter = 0
-        self.link(MsgSettingsReadByIndexReq(index=self.enumindex))
+        self.settings.clear()
+        self._settings_read_by_index()
 
     def _settings_save_button_fired(self):
         self.link(MsgSettingsSave())
@@ -497,9 +523,10 @@ class SettingsView(HasTraits):
         if is_ok == OK:
             print('Exporting settings to local path {0}'.format(file.path))
             # copy settings so we can modify dict in place to write for configparser
-            settings_out = copy.deepcopy(self.settings)
+            settings_out = {}
             # iterate over nested dict and set inner value to a bare string rather than dict
-            for section in settings_out:
+            for section in self.settings:
+                settings_out[section] = {}
                 for setting, inner_dict in self.settings[section].iteritems():
                     settings_out[section][setting] = str(inner_dict.value)
             # write out with config parser
@@ -645,7 +672,12 @@ class SettingsView(HasTraits):
                     cb()
 
     def settings_read_by_index_done_callback(self, sbp_msg, **metadata):
-        self.settings_display_setup()
+        if self.retry_pending_read_index_thread:
+            self.retry_pending_read_index_thread.stop()
+        # we should only setup the display once per iteration to avoid races
+        if self.setup_pending:
+            self.settings_display_setup()
+            self.setup_pending = False
 
     def settings_read_resp_callback(self, sbp_msg, **metadata):
         confirmed_set = True
@@ -695,9 +727,9 @@ class SettingsView(HasTraits):
             setting.revert_to_prior_value(setting.name, old, new)
             return
         # Write accepted.  Use confirmed value in display without sending settings write.
-        setting.revert_in_progress = True
+        setting._prevent_revert_thread = True
         setting.value = settings_list[2]
-        setting.revert_in_progress = False
+        setting._prevent_revert_thread = False
         setting.confirmed_set = True
 
     def settings_read_by_index_callback(self, sbp_msg, **metadata):
@@ -710,35 +742,50 @@ class SettingsView(HasTraits):
             setting_type, setting_format = format_type.split(':')
         if section not in self.settings:
             self.settings[section] = {}
-        if format_type is None:
-            # Plain old setting, no format information
-            self.settings[section][setting] = Setting(
-                setting,
-                section,
-                value,
-                ordering=self.ordering_counter,
-                settings=self)
-        else:
-            if setting_type == 'enum':
+        # setting exists, we won't reinitilize it but rather update existing setting
+        dict_setting = self.settings[section].get(setting, False)
+        if dict_setting:
+            dict_setting._prevent_revert_thread = True
+            dict_setting.value = value
+            dict_setting._prevent_revert_thread = False
+            dict_setting.ordering = self.ordering_counter
+            if format_type is not None and setting_type == 'enum':
                 enum_values = setting_format.split(',')
-                self.settings[section][setting] = EnumSetting(
+                dict_setting.enum_values = enum_values
+        else:
+            if format_type is None:
+                # Plain old setting, no format information
+                self.settings[section][setting] = Setting(
                     setting,
                     section,
                     value,
-                    enum_values,
                     ordering=self.ordering_counter,
                     settings=self)
             else:
-                # Unknown type, just treat is as a string
-                self.settings[section][setting] = Setting(
-                    setting, section, value, settings=self)
-        if self.enumindex == sbp_msg.index:
-            self.enumindex += 1
-            self.link(MsgSettingsReadByIndexReq(index=self.enumindex))
+                if setting_type == 'enum':
+                    enum_values = setting_format.split(',')
+                    self.settings[section][setting] = EnumSetting(
+                        setting,
+                        section,
+                        value,
+                        enum_values,
+                        ordering=self.ordering_counter,
+                        settings=self)
+                else:
+                    # Unknown type, just treat is as a string
+                    self.settings[section][setting] = Setting(
+                        setting, section, value, settings=self, ordering=self.ordering_counter)
+        # remove index from list of pending items
+        if sbp_msg.index in self.pending_settings:
+            self.pending_settings.remove(sbp_msg.index)
+        if len(self.pending_settings) == 0:
+            self.pending_settings = range(self.enumindex, self.enumindex + BATCH_WINDOW)
+            self.enumindex += BATCH_WINDOW
+            self._send_pending_settings_by_index()
+            self._restart_retry_thread()
 
     def piksi_startup_callback(self, sbp_msg, **metadata):
-        self.settings.clear()
-        self._settings_read_button_fired()
+        self._settings_read_by_index()
 
     def set(self, section, name, value):
         self.link(
@@ -792,12 +839,15 @@ class SettingsView(HasTraits):
         # No support for arguments currently.
         self.read_finished_functions = read_finished_functions
         self.setting_detail = SettingBase()
+        self.pending_settings = []
+        self.retry_pending_read_index_thread = None
+        self.setup_pending = False
         if not skip:
             try:
-                self._settings_read_button_fired()
+                self._settings_read_by_index()
             except IOError:
                 print(
-                    "IOError in settings_view startup call of _settings_read_button_fired."
+                    "IOError in settings_view startup call of _settings_read_by_index."
                 )
                 print("Verify that write permissions exist on the port.")
         self.python_console_cmds = {'settings': self}
