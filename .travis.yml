@@ -42,7 +42,7 @@ script:
 
 addons:
   artifacts:
-    debug: false 
+    debug: true 
     paths:
       - $(ls ./dist/swift_console* | tr "\n" ":")
       - $(ls ./dist/cmd_line | tr "\n" ":")
