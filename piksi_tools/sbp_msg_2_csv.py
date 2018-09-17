@@ -46,7 +46,7 @@ def get_args():
                         help="specify the SBP JSON/binary file for which to dump fields to CSV.")
     parser.add_argument("-o", "--outfile", default="out.csv",
                         help="Output .csv file postfix")
-    parser.add_argument("-t", "--type", default="MsgBaselineNED",
+    parser.add_argument("-t", "--type", default=None,
                         help="Message Type to csvify (classname)")
     parser.add_argument("-i", "--id", default=None,
                         help="Message ID to csvify")
