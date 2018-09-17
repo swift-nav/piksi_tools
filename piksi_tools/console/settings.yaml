@@ -1902,7 +1902,7 @@
   name: gyro_range
   expert: false
   type: enum
-  default value: '250'
+  default value: '125'
   readonly: false
   enumerated possible values: 125,250,500,1000,2000
   units: deg/s
