@@ -30,14 +30,13 @@ class MsgExtractor(object):
         self.outfile.write(",".join(self.columns) + "\n")
 
     def _callback(self, msg, data):
+        outstringlist = []
         for each in self.columns:
             try:
-                self.outfile.write("{0},".format(getattr(msg, each)))
+                outstringlist.append("{0}".format(getattr(msg, each)))
             except AttributeError:
-                print(data)
-                self.outfile.write("{0},".format(data[each]))
-        self.outfile.write("\n")
-
+                outstringlist.append("{0}".format(data[each]))
+        self.outfile.write(",".join(outstringlist) + "\n")
 
 def get_args():
     import argparse
