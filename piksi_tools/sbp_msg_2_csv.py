@@ -67,13 +67,13 @@ def main():
         else:
             raise Exception(
                 "Usage Error: Unknown input format. Valid input formats for -f arg are bin and json.")
-        with open(args.type + "_" + args.outfile, 'w+') as outfile:
-            msg_class = None
-            for my_id, my_class in _SBP_TABLE.iteritems():
-                if my_class.__name__ == args.type or (args.id and my_id == args.id):
-                    print("Extracing class {} with msg_id {}".format(my_class, my_id))
-                    msg_class = my_class
-            assert msg_class is not None, "Invalid message type specified"
+        msg_class = None
+        for my_id, my_class in _SBP_TABLE.iteritems():
+            if my_class.__name__ == args.type or (args.id and my_id == int(args.id)):
+                print("Extracing class {} with msg_id {}".format(my_class, my_id))
+                msg_class = my_class
+        assert msg_class is not None, "Invalid message type specified"
+        with open(msg_class.__name__ + "_" + args.outfile, 'w+') as outfile:
             conv = MsgExtractor(outfile, msg_class, metadata=(args.format == 'json'))
             if args.format == 'json':
                 iterator = iterator.next()
