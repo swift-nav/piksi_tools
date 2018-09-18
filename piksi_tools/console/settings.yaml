@@ -10,10 +10,10 @@
   enumerated possible values: True,False
   Description: Broadcast surveyed base station position.
   Notes: This flag ultimately determines whether the SBP message with identifier
-    MSG_BASE_POS_ECEF will be calculated and sent.  Logically, setting this attribute to
+    MSG_BASE_POS_ECEF will be calculated and sent. Logically, setting this attribute to
     "true" sets the Local receiver as a base station and configures the unit to send
     its surveyed position coordinates to the other receiver(s) with which the base
-    station is communicating.  If "true", the remote receiver that receives the
+    station is communicating. If "true", the remote receiver that receives the
     surveyed position will calculate and communicate a pseudo absolute
     RTK position based upon the received position.
 
@@ -51,7 +51,7 @@
     communicated to remote receivers for use in calculating their pseudo-absolute
     RTK position. The value should be as accurate as possible and should have
     precision to at least 7 digits following the decimal point. For reference,
-    1e-7 degrees of longitude at 35 degree latitude is about 1 cm.  Any
+    1e-7 degrees of longitude at 35 degree latitude is about 1 cm. Any
     errors in the surveyed position will directly affect the pseudo-absolute
     RTK position measurement reported by the remote receiver.
 
@@ -105,8 +105,8 @@
   Description: Enable/Disable External Clock Input.
   Notes: This setting toggles the hardware switch for Piksi Multi 10Mhz clock source. 
     When true, Piksi Multi will be configured to use an external clock source rather 
-    than its onboard oscillator.  It is only available on Piksi Multi hardware versions 
-    greater than or equal to 5.1 (00108-05 rev 1).  The external clock input signal can 
+    than its onboard oscillator. It is only available on Piksi Multi hardware versions 
+    greater than or equal to 5.1 (00108-05 rev 1). The external clock input signal can 
     be provided on the Piksi Multi evaluation board through a labeled SMA connector. 
     It is not exposed on Duro.
 
@@ -120,11 +120,11 @@
   enumerated possible values:
   Description: Determines the maximum message length for raw observation sbp messages.
   Notes: This parameter is useful for tuning observation messages for compatibility
-    with radio modems.  Some serial modems will internally split serial packets for
+    with radio modems. Some serial modems will internally split serial packets for
     their protocol and this parameter allows the size of the message to be reduced
     as to prevent the modem from sending multiple packets. If the parameter exceeds
     255 bytes (the maximum size of an SBP message), the receiver firmware will ignore
-    the parameter and use 255 bytes.  If the parameter is set smaller than the size
+    the parameter and use 255 bytes. If the parameter is set smaller than the size
     of one observation, the firmware will ignore the parameter and use the size
     of one observation as the maximum message size.
 
@@ -366,8 +366,8 @@
   readonly: false
   enumerated possible values: Fixed,Float
   Description: Determines the type of carrier phase ambiguity resolution that the receiver will attempt to achieve.
-  Notes: If "fixed", the receiver will output a integer fixed ambiguity estimate.  If
-    no fixed solution is available, it will revert to the float solution.  If "float",
+  Notes: If "fixed", the receiver will output a integer fixed ambiguity estimate. If
+    no fixed solution is available, it will revert to the float solution. If "float",
     the device will only output the float ambiguity estimate.
 
 - group: solution
@@ -781,9 +781,9 @@
   Notes: The enabled sbp messages settings is a list of message types
     and rate divisors that will be sent out of the interface. If left blank, all
     messages will be sent. If not blank, a comma separated list of
-    SBP message IDs in base 10 integer format should be provided.  Optionally,
-    a divisor can be specified after the / character for each id.  For example, an entry of
-    3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For Ethernet,
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
     the default value is optimal for logging and communication with the console.
 
 - group: udp_client0
@@ -824,9 +824,9 @@
   Notes: The enabled sbp messages settings is a list of message types
     and rate divisors that will be sent out of the interface. If left blank, all
     messages will be sent. If not blank, a comma separated list of
-    SBP message IDs in base 10 integer format should be provided.  Optionally,
-    a divisor can be specified after the / character for each id.  For example, an entry of
-    3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For Ethernet,
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
     the default value is optimal for logging and communication with the console.
 
 - group: udp_client1
@@ -923,9 +923,9 @@
   Notes: The enabled sbp messages settings is a list of message types
     and rate divisors that will be sent out of the interface. If left blank, all
     messages will be sent. If not blank, a comma separated list of
-    SBP message IDs in base 10 integer format should be provided.  Optionally,
-    a divisor can be specified after the / character for each id.  For example, an entry of
-    3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For uart1,
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For uart1,
     the default value is optimal for logging and communication with the console.
 
 - group: usb0
@@ -993,9 +993,9 @@
   Notes: The enabled sbp messages settings is a list of message types
     and rate divisors that will be sent out of the interface. If left blank, all
     messages will be sent. If not blank, a comma separated list of
-    SBP message IDs in base 10 integer format should be provided.  Optionally,
-    a divisor can be specified after the / character for each id.  For example, an entry of
-    3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For uart1,
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For uart1,
     the default value is optimal for logging and communication with the console.
 
 - group: uart0
@@ -1047,9 +1047,9 @@
   Notes: The enabled sbp messages settings is a list of message types
     and rate divisors that will be sent out of the interface. If left blank, all
     messages will be sent. If not blank, a comma separated list of
-    SBP message IDs in base 10 integer format should be provided.  Optionally,
-    a divisor can be specified after the / character for each id.  For example, an entry of
-    3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For uart1,
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For uart1,
     the default value is optimal for logging and communication with the console.
 
 - group: ext_event_a
@@ -1062,7 +1062,7 @@
   enumerated possible values: None,Rising,Falling,Both
   Description: Select edges to trigger timestamped event capture.
   Notes: You can use this to record the exact time that some external
-    event in your system occurred, e.g. camera shutter time.  Upon
+    event in your system occurred, e.g. camera shutter time. Upon
     detecting the event, receiver will generate a MSG_EXT_EVENT message
     reporting the event, including a timestamp accurate to better than
     a microsecond.
@@ -1088,7 +1088,7 @@
   enumerated possible values: None,Rising,Falling,Both
   Description: Duro only. Select edges to trigger timestamped event capture.
   Notes: You can use this to record the exact time that some external
-    event in your system occurred, e.g. camera shutter time.  Upon
+    event in your system occurred, e.g. camera shutter time. Upon
     detecting the event, receiver will generate a MSG_EXT_EVENT message
     reporting the event, including a timestamp accurate to better than
     a microsecond.
@@ -1114,7 +1114,7 @@
   enumerated possible values: None,Rising,Falling,Both
   Description: Duro only. Select edges to trigger timestamped event capture.
   Notes: You can use this to record the exact time that some external
-    event in your system occurred, e.g. camera shutter time.  Upon
+    event in your system occurred, e.g. camera shutter time. Upon
     detecting the event, receiver will generate a MSG_EXT_EVENT message
     reporting the event, including a timestamp accurate to better than
     a microsecond.
@@ -1355,7 +1355,7 @@
   default value: '10'
   readonly: false
   Description: Number of Solution Periods between GSV NMEA messages being sent.
-  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz. If this setting is 0, the msg will be suppressed.
 
 - group: nmea
   name: gpgga_msg_rate
@@ -1365,7 +1365,7 @@
   default value: '1'
   readonly: false
   Description: Number of Solution Periods between GGA NMEA messages being sent.
-  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz. If this setting is 0, the msg will be suppressed.
 
 - group: nmea
   name: gphdt_msg_rate
@@ -1375,7 +1375,7 @@
   default value: '1'
   readonly: false
   Description: Number of Solution Periods between HDT NMEA messages being sent.
-  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz. If this setting is 0, the msg will be suppressed.
 
 - group: nmea
   name: gprmc_msg_rate
@@ -1385,7 +1385,7 @@
   default value: '10'
   readonly: false
   Description: Number of Solution Periods between RMC NMEA messages being sent.
-  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz. If this setting is 0, the msg will be suppressed.
 
 - group: nmea
   name: gpvtg_msg_rate
@@ -1395,7 +1395,7 @@
   default value: '1'
   readonly: false
   Description: Number of Solution Periods between VTG NMEA messages being sent.
-  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz. If this setting is 0, the msg will be suppressed.
 
 - group: nmea
   name: gpgll_msg_rate
@@ -1405,7 +1405,7 @@
   default value: '10'
   readonly: false
   Description: Number of Solution Periods between GLL NMEA messages being sent.
-  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz. If this setting is 0, the msg will be suppressed.
 
 - group: nmea
   name: gpzda_msg_rate
@@ -1416,7 +1416,7 @@
   readonly: false
   enumerated possible values:
   Description: Number of Solution Periods between ZDA NMEA messages being sent.
-  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz. If this setting is 0, the msg will be suppressed.
 
 - group: nmea
   name: gsa_msg_rate
@@ -1427,7 +1427,7 @@
   readonly: false
   enumerated possible values:
   Description: Number of Solution Periods between GSA NMEA messages being sent.
-  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz.  If this setting is 0, the msg will be suppressed.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz. If this setting is 0, the msg will be suppressed.
 
 - group: nmea
   name: gpgsa_msg_rate
@@ -1495,7 +1495,7 @@
   enumerated possible values:
   Description: Interval at which the NMEA GGA sentence is uploaded to the NTRIP server
   Notes: The interval (in seconds) at which the NMEA GGA sentence is uploaded to
-     the specified NTRIP server.  The default of 0 disables the GGA sentence upload.
+     the specified NTRIP server. The default of 0 disables the GGA sentence upload.
 
 - group: ntrip
   name: gga_out_rev1
@@ -1508,7 +1508,7 @@
   Description: If True, the NTRIP client will use an NTRIP 1.0 formatted GGA sentence.
   Notes: |
     By default, the NTRIP client will use an NTRIP 2.0 formatted GGA sentence,
-    which prefixes the GGA sentence with "Ntrip-GGA: ".  If this option is
+    which prefixes the GGA sentence with "Ntrip-GGA: ". If this option is
     enabled, the prefix will be dropped.
 
 - group: ntrip
@@ -1716,9 +1716,9 @@
   Notes: The enabled sbp messages settings is a list of message types
     and rate divisors that will be sent out of the interface. If left blank, all
     messages will be sent. If not blank, a comma separated list of
-    SBP message IDs in base 10 integer format should be provided.  Optionally,
-    a divisor can be specified after the / character for each id.  For example, an entry of
-    3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For Ethernet,
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
     the default value is optimal for logging and communication with the console.
 
 - group: tcp_server0
@@ -1760,9 +1760,9 @@
   Notes: The enabled sbp messages settings is a list of message types
     and rate divisors that will be sent out of the interface. If left blank, all
     messages will be sent. If not blank, a comma separated list of
-    SBP message IDs in base 10 integer format should be provided.  Optionally,
-    a divisor can be specified after the / character for each id.  For example, an entry of
-    3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For Ethernet,
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
     the default value is optimal for logging and communication with the console.
 
 - group: tcp_server1
@@ -1804,9 +1804,9 @@
   Notes: The enabled sbp messages settings is a list of message types
     and rate divisors that will be sent out of the interface. If left blank, all
     messages will be sent. If not blank, a comma separated list of
-    SBP message IDs in base 10 integer format should be provided.  Optionally,
-    a divisor can be specified after the / character for each id.  For example, an entry of
-    3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For Ethernet,
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
     the default value is optimal for logging and communication with the console.
 
 - group: tcp_client0
@@ -1849,9 +1849,9 @@
   Notes: The enabled sbp messages settings is a list of message types
     and rate divisors that will be sent out of the interface. If left blank, all
     messages will be sent. If not blank, a comma separated list of
-    SBP message IDs in base 10 integer format should be provided.  Optionally,
-    a divisor can be specified after the / character for each id.  For example, an entry of
-    3456/10 would provide message with ID 3456 at 1/10th the normal rate.  For Ethernet,
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
     the default value is optimal for logging and communication with the console.
 
 - group: tcp_client1
@@ -2116,7 +2116,7 @@
   Description: Configure the file-system used for standalone logging (SD card only).
   Notes: Configures the file-system used for standalone logging.
          Setting this to F2FS will reparition and the reformat any SD card
-         that is not formatted with F2FS upon system reboot.  Settings must
+         that is not formatted with F2FS upon system reboot. Settings must
          be persisted for this to take effect.
 
 - group: standalone_logging
@@ -2208,3 +2208,192 @@
   Description: (ALPHA) Maximum possible linear acceleration of vehicle.
   Notes: Has no effect unless the vehicle dynamics filter is active.
 
+- group: ins
+  name: output_mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'disabled'
+  readonly: false
+  enumerated possible values: Disabled, Loosely Coupled, LC + GNSS
+  Description: Determines output mode of the inertial navigation outputs. 
+  Notes: Loosely Coupled will output a loosely coupled GNSS and inertial solution.
+         LC + GNSS configures a testing mode that simultaneously outputs both GNSS only and the loosely coupled inertial solution.
+         In LC + GNSS mode, there are two sets of solution messages with identical times. The "ins flags" indicate which messages are GNSS only solutions and which include are the loosely coupled inertial solution.
+         Disabled configures device to output GNSS only solutions.
+
+- group: ins
+  name: odometry_noise_1
+  expert: true
+  type: double
+  units: m/s
+  default value: '0.28'
+  readonly: false
+  Description: Noise parameter for odometry source 1
+
+- group: ins
+  name: odometry_noise_2
+  expert: true
+  type: double
+  units: m/s
+  default value: '0.28'
+  readonly: false
+  Description: Noise parameter for odometry source 2
+
+- group: ins
+  name: odometry_noise_3
+  expert: true
+  type: double
+  units: m/s
+  default value: '0.28'
+  readonly: false
+  Description: Noise parameter for odometry source 3
+
+- group: ins
+  name: odometry_noise_4
+  expert: true
+  type: double
+  units: m/s
+  default value: '0.28'
+  readonly: false
+  Description: Noise parameter for odometry source 4
+
+- group: ins
+  name: vehicle_frame_roll
+  expert: false
+  type: double
+  units: degrees
+  default value: '0'
+  readonly: false
+  Description: Roll angle representing rotation from vehicle frame to device frame. 
+  Notes:       The euler angles are applied extrinsically in order roll, pitch, then yaw
+               about the defined vehicle axes to describe how the vehicle should rotate to align
+               with the device frame as mounted in the vehicle. These rotations directly affect
+               body velocities, attitude outputs, and the "Constrain Vehicle Sideslip" feature.
+
+- group: ins
+  name: vehicle_frame_pitch
+  expert: false
+  type: double
+  units: degrees
+  default value: '0'
+  readonly: false
+  Description: Pitch angle representing rotation from vehicle frame to device frame. 
+  Notes:       The euler angles are applied extrinsically in order roll, pitch, then yaw
+               about the defined vehicle axes to describe how the vehicle should rotate to align
+               with the device frame as mounted in the vehicle. These rotations directly affect
+               body velocities, attitude outputs, and the "Constrain Vehicle Sideslip" feature.
+
+- group: ins
+  name: vehicle_frame_yaw
+  expert: false
+  type: double
+  units: degrees
+  default value: '0'
+  readonly: false
+  Description: Yaw angle representing rotation from vehicle frame to device frame. 
+  Notes:       The euler angles are applied extrinsically in order roll, pitch, then yaw
+               about the defined vehicle axes to describe how the vehicle should rotate to align
+               with the device frame as mounted in the vehicle. These rotations directly affect
+               body velocities, attitude outputs, and the "Constrain Vehicle Sideslip" feature.
+
+- group: ins
+  name: antenna_offset_x
+  expert: false
+  type: double
+  units: meters
+  default value: '0'
+  readonly: false
+  Description: X component of vector from device frame to antenna phase center  
+  Notes:       The vector is measured in the device frame according to the markings on the device.
+
+- group: ins
+  name: antenna_offset_y
+  expert: false
+  type: double
+  units: meters
+  default value: '0'
+  readonly: false
+  Description: Y component of vector from device frame to antenna phase center 
+  Notes:       The vector is measured in the device frame according to the markings on the device.
+
+- group: ins
+  name: antenna_offset_z
+  expert: false
+  type: double
+  units: meters
+  default value: '-0.12674'
+  readonly: false
+  Description: Z component of vector from device frame to antenna phase center  
+  Notes:       The vector is measured in the device frame according to the markings on the device. The default
+               value represents the offset from the Duro Device Frame to the antenna phase center when the antenna
+               mounting bracket shipped with Duro is in use.
+
+- group: ins
+  name: vehicle_frame_offset_x
+  expert: false
+  type: double
+  units: meters
+  default value: '0'
+  readonly: false
+  Description: X component of vector from device frame to vehicle frame origin in which inertial outputs are provided  
+  Notes: The vector is measured in the device frame according to the markings on the device. In order to output inertial solutions at the antenna phase center, this should be the same value (both sign and magnitude) as antenna_offset_x setting. 
+
+- group: ins
+  name: vehicle_frame_offset_y
+  expert: false
+  type: double
+  units: meters
+  default value: '0'
+  readonly: false
+  Description: Y component of vector from device frame to vehicle frame origin in which inertial outputs are provided  
+  Notes: The vector is measured in the device frame according to the markings on the device. In order to output inertial solutions at the antenna phase center, this should be the same value (both sign and magnitude) as antenna_offset_x setting. 
+
+- group: ins
+  name: vehicle_frame_offset_z
+  expert: false
+  type: double
+  units: meters
+  default value: '-0.12674'
+  readonly: false
+  Description: Z component of vector from device frame to vehicle frame origin in which inertial outputs are provided  
+  Notes: The vector is measured in the device frame according to the markings on the device. In order to output inertial solutions at the antenna phase center, this should be the same value (both sign and magnitude) as antenna_offset_x setting. 
+         The default value represents vehicle outpus at the antenna phase center when the Duro antenna mounting bracket is in use.
+
+- group: ins
+  name: constrain_vehicle_sideslip
+  expert: true
+  type: boolean
+  units: N/A
+  default value: false
+  readonly: false
+  Description: Enables or disables the non-holonomic constraint feature that allows inertial system to make assumptions about vehicle dynamics 
+  Notes:       This settings should only be enabled provided the vehicle frame Euler angles are measured precisely and are correct. It assumes a vehicle can have no velocity in the direction aligned with the vehicle "y" axis (i.e no sideslip). This is a reasonable assumption for passenger vehicles and many tractors.
+
+- group: ins
+  name: dr_duration_max
+  expert: true
+  type: double
+  units: seconds
+  default value: '10'
+  readonly: false
+  Description: Indicates the maximum duration in seconds for which the inertial system will dead reckon
+  Notes:       The default value of 10 seconds was chosen as the expected duration for which the Duro Inertial solution can maintain sub-meter accuracy.
+
+- group: ins
+  name: build_name
+  expert: true
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: true
+  Description: inertial navigation system build name
+
+- group: ins
+  name: build_date
+  expert: true
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: true
+  Description: inertial navigation system build date
