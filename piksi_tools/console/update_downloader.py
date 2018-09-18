@@ -61,15 +61,29 @@ class UpdateDownloader:
                 "Error downloading firmware: URL not present in index")
         return filepath
 
-    def _download_file_from_url(self, url):
+    def download_console(self, hwrev, path=None):
+        import sys
+        platform = sys.platform
+        url = self.index[hwrev]['console'][platform+'_url']
+        return self._download_file_from_url(url, path)
+
+    def _download_file_from_url(self, url, path=None):
         if not os.path.exists(self.root_dir):
             raise RuntimeError("Path to download file {0} to does not exist.".format(self.root_dir))
             return
         filename = os.path.split(urlparse(url).path)[1]
-        filename = os.path.join(self.root_dir, filename)
+        if path is None:
+            path = self.root_dir
+        filename = os.path.join(path, filename)
         requests_response = requests.get(url)
         requests_response.raise_for_status()
         blob = requests_response.content
         with sopen(filename, 'wb') as f:
             f.write(blob)
         return os.path.abspath(filename)
+
+
+def test():
+    a = UpdateDownloader()
+    a.download_multi_firmware('piksi_multi')
+    a.download_console('piksi_multi')

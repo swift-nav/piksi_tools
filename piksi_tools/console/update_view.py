@@ -97,6 +97,7 @@ class FirmwareFileDialog(HasTraits):
             label='Choose Firmware File',
             action='open',
             default_directory=self.default_dir,
+            default_path=self.default_dir,
             wildcard=self.file_wildcard)
         dialog.open()
         if dialog.return_code == OK:
@@ -183,6 +184,9 @@ class UpdateView(HasTraits):
     download_directory_label = String('Firmware Download Directory:')
 
     update_stm_firmware = Button(label='Update Firmware')
+    download_console = Button(label='Download Latest Console')
+    console_directory = Unicode()
+    choose_console_dir = Button(label='...', padding=-1)
 
     updating = Bool(False)
     update_stm_en = Bool(False)
@@ -242,7 +246,11 @@ class UpdateView(HasTraits):
                         'newest_console_vers',
                         label='Latest',
                         editor_args={'enabled': False}),
-                    label="Swift Console Version",
+                    Spring(''),
+                    Item(
+                        'download_console',
+                        show_label=False),
+                    label="Swift Console",
                     show_border=True), ),
             HGroup(
                 VGroup(
@@ -250,6 +258,7 @@ class UpdateView(HasTraits):
                         Item('download_directory', label="Directory", resizable=True),
                         UItem('choose_dir', width=-0.1),
                     ),
+                    Spring(),
                     HGroup(
                         Spring(width=50, springy=False),
                         Item('download_firmware', enabled_when='download_fw_en',
@@ -300,6 +309,40 @@ class UpdateView(HasTraits):
         self.stream.max_len = 1000
         self.last_call_fw_version = None
         self.link.add_callback(self.log_cb, SBP_MSG_LOG)
+        # get the latest version info even if we can't read settings
+        # assume we have piksi_multi
+        self._get_latest_version_info()
+
+    def _download_console_fired(self):
+        path = None
+        dialog = DirectoryDialog(
+            label='Choose Download location',
+            action='open',
+            default_path=self.download_directory,
+            default_direcotry=self.download_directory)
+        dialog.open()
+        if dialog.return_code == OK:
+            path = dialog.path
+        else:
+            self._write('Error while selecting console download location')
+            return
+
+        try:
+            if self._download_console_thread.is_alive():
+                return
+        except AttributeError:
+            pass
+        self._download_console_thread = Thread(target=self._download_console, args=[path])
+        self._download_console_thread.start()
+
+        def download_status():
+            while self._download_console_thread.is_alive():
+                sleep(1.0)
+                if self._download_console_thread.is_alive():
+                    self.stream.write(".")
+
+        status_thread = Thread(target=download_status)
+        status_thread.start()
 
     def _choose_dir_fired(self):
         dialog = DirectoryDialog(
@@ -497,6 +540,57 @@ class UpdateView(HasTraits):
                 )
             self.downloading = False
             return
+        """ Download latest firmware from swiftnav.com. """
+        self._write('')
+
+        # Check that we received the index file from the website.
+        if self.update_dl is None or self.update_dl.index is None:
+            self._write("Error: Can't download firmware files")
+            return
+
+        self.downloading = True
+        status = 'Downloading Latest Firmware...'
+        self.stm_fw.clear(status)
+        self._write(status)
+
+    def _download_console(self, path):
+        """ Download latest firmware from swiftnav.com. """
+        self._write('')
+
+        # Check that we received the index file from the website.
+        if self.update_dl is None or self.update_dl.index is None:
+            self._write("Error: Can't download firmware files")
+            return
+
+        status = 'Downloading Latest Console to {}'.format(path)
+        self._write(status)
+
+        # Get console files from Swift Nav's website for correct platform
+        if 'console' in self.update_dl.index[self.piksi_hw_rev]:
+            try:
+                filepath = self.update_dl.download_console(
+                    self.piksi_hw_rev, str(path))
+                self._write('\nSaved file to %s' % filepath)
+            except AttributeError:
+                self._write(
+                    "Error downloading firmware: index file not downloaded yet"
+                )
+            except RuntimeError as e:
+                self._write(
+                    "RunTimeError: unable to download console to path {0}: {1}".format(path, e))
+            except IOError as e:
+                if e.errno == errno.EACCES or e.errno == errno.EPERM:
+                    self._write("IOError: unable to write to path %s. "
+                                "Verify that the path is writable." %
+                                path)
+                else:
+                    raise (e)
+            except KeyError:
+                self._write("Error downloading Console: URL not present in index")
+            except URLError:
+                self.nap_fw.clear("Error downloading console")
+                self._write("Error: Failed to download latest console from Swift Navigation's website")
+            return
 
     def _download_firmware_fired(self):
         """
@@ -577,18 +671,19 @@ class UpdateView(HasTraits):
                     console_outdated_prompt = \
                         prompt.CallbackPrompt(
                             title="Swift Console Outdated",
-                            actions=[prompt.close_button],
+                            actions=[prompt.close_button, prompt.ok_button],
+                            callback=self._download_console
                         )
                     console_outdated_prompt.text = \
                         "Your console is out of date and may be incompatible\n" + \
                         "with current firmware. We highly recommend upgrading to\n" + \
                         "ensure proper behavior.\n\n" + \
-                        "Please visit http://support.swiftnav.com to\n" + \
-                        "download the latest version.\n\n" + \
+                        "Download and installation instructions are available at http://support.swiftnav.com to\n\n" + \
                         "Local Console Version :\n\t" + \
                         CONSOLE_VERSION + \
                         "\nLatest Console Version :\n\t" + \
-                        self.update_dl.index[self.piksi_hw_rev]['console']['version'] + "\n"
+                        self.update_dl.index[self.piksi_hw_rev]['console']['version'] + "\n" \
+                        "\n\nWould you like to download the latest console for your platform now to the\n" + self.download_directory + " path?"
                 else:
                     console_outdated_prompt = \
                         prompt.CallbackPrompt(
