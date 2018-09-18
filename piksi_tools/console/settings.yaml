@@ -1878,7 +1878,7 @@
   name: imu_rate
   expert: false
   type: enum
-  default value: '50'
+  default value: '100'
   readonly: false
   enumerated possible values: 25,50,100,200
   units: Hz
@@ -1902,7 +1902,7 @@
   name: gyro_range
   expert: false
   type: enum
-  default value: '1000'
+  default value: '125'
   readonly: false
   enumerated possible values: 125,250,500,1000,2000
   units: deg/s
