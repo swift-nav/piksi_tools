@@ -402,7 +402,7 @@ class SettingsView(HasTraits):
         """
 
         recommended_settings = {'imu_raw_output': Setting('imu_raw_output', 'imu', 'True'),
-                                'gyro_range': Setting('gyro_range', 'imu', '1000'),
+                                'gyro_range': Setting('gyro_range', 'imu', '125'),
                                 'acc_range': Setting('acc_range', 'imu', '8g'),
                                 'imu_rate': Setting('imu_rate', 'imu', '100')
                                 }
