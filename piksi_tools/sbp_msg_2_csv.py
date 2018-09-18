@@ -38,6 +38,7 @@ class MsgExtractor(object):
                 outstringlist.append("{0}".format(data[each]))
         self.outfile.write(",".join(outstringlist) + "\n")
 
+
 def get_args():
     import argparse
     parser = argparse.ArgumentParser(
