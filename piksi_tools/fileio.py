@@ -15,6 +15,7 @@ import copy
 import random
 import time
 import threading
+import sys
 
 from sbp.client import Framer, Handler
 from sbp.client.drivers.network_drivers import TCPDriver
@@ -470,21 +471,15 @@ def main():
                 if args.write:
                     f.write(args.write[1], open(args.write[0]).read())
                 elif args.read:
-                    assert len(args.read) <= 2, "Only one source and one destination accepted for sbp fileio read."
-
+                    if len(args.read) not in [1, 2]:
+                        sys.stderr.write("Error: fileio read requires either 1 or 2 arguments, SOURCE and optionally DEST.")
+                        sys.exit(1)
                     data = f.read(args.read[0])
-                    if args.hex:
-                        if len(args.read) == 2:
-                            with open(args.read[1], 'w') as fd:
-                                fd.write(hexdump(data))
-                        else:
-                            print(hexdump(data))
+                    if len(args.read) == 2:
+                        with open(args.read[1], ('wb' if args.hex else 'w')) as fd:
+                            fd.write(hexdump(data) if args.hex else data)
                     else:
-                        if len(args.read) == 2:
-                            with open(args.read[1], 'w') as fd:
-                                fd.write(data)
-                        else:
-                            print(data)
+                        print(hexdump(data) if args.hex else data)
                 elif args.delete:
                     f.remove(args.delete[0])
                 elif args.list is not None:
