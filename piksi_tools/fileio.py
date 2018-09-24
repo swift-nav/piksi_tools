@@ -15,6 +15,7 @@ import copy
 import random
 import time
 import threading
+import sys
 
 from sbp.client import Framer, Handler
 from sbp.client.drivers.network_drivers import TCPDriver
@@ -365,14 +366,16 @@ def hexdump(data):
     ret = ''
     ofs = 0
     while data:
+        # get 16 bytes from byte array and store in "chunk"
         chunk = data[:16]
+        # remove bytes from data
         data = data[16:]
         s = "%08X  " % ofs
-        s += " ".join("%02X" % ord(c) for c in chunk[:8]) + "  "
-        s += " ".join("%02X" % ord(c) for c in chunk[8:])
+        s += " ".join("%02X" % c for c in chunk[:8]) + "  "
+        s += " ".join("%02X" % c for c in chunk[8:])
         s += "".join(" " for i in range(60 - len(s))) + "|"
         for c in chunk:
-            s += c if 32 <= ord(c) < 128 else '.'
+            s += chr(c) if 32 <= c < 128 else '.'
         s += '|\n'
         ofs += 16
         ret += s
@@ -398,10 +401,19 @@ def get_args():
     """
     import argparse
     parser = argparse.ArgumentParser(description='Swift Nav File I/O Utility.')
-    parser.add_argument('-w', '--write', nargs=1, help='write a file')
-    parser.add_argument('-r', '--read', nargs=1, help='read a file')
     parser.add_argument(
-        '-l', '--list', default=None, nargs=1, help='list a directory')
+        '-w',
+        '--write',
+        nargs=2,
+        help='Write a file from local SOURCE to remote destination DEST',
+        metavar=('SOURCE', 'DEST'))
+    parser.add_argument(
+        '-r',
+        '--read',
+        nargs='+',
+        help='read a file from remote SOURCE to local DEST. If no DEST is provided, file is read to stdout.',
+        metavar=('SOURCE', 'DEST'))
+    parser.add_argument('-l', '--list', default=None, nargs=1, help='list a directory')
     parser.add_argument('-d', '--delete', nargs=1, help='delete a file')
     parser.add_argument(
         '-p',
@@ -457,13 +469,17 @@ def main():
             f = FileIO(link)
             try:
                 if args.write:
-                    f.write(args.write[0], open(args.write[0]).read())
+                    f.write(args.write[1], open(args.write[0]).read())
                 elif args.read:
+                    if len(args.read) not in [1, 2]:
+                        sys.stderr.write("Error: fileio read requires either 1 or 2 arguments, SOURCE and optionally DEST.")
+                        sys.exit(1)
                     data = f.read(args.read[0])
-                    if args.hex:
-                        print(hexdump(data))
+                    if len(args.read) == 2:
+                        with open(args.read[1], ('wb' if args.hex else 'w')) as fd:
+                            fd.write(hexdump(data) if args.hex else data)
                     else:
-                        print(data)
+                        print(hexdump(data) if args.hex else data)
                 elif args.delete:
                     f.remove(args.delete[0])
                 elif args.list is not None:
