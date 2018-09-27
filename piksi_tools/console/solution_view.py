@@ -272,10 +272,10 @@ class SolutionView(HasTraits):
         self.table = self.pos_table + self.vel_table + self.dops_table
 
     def auto_survey(self):
-        if len(self.latitude_list) != 0:
+        if len(self.lats) != 0:
             self.latitude = sum(self.lats) / len(self.lats)
             self.altitude = sum(self.alts) / len(self.alts)
-            self.longitude = sum(self.lngs) / len(self.lng)
+            self.longitude = sum(self.lngs) / len(self.lngs)
 
     def pos_llh_callback(self, sbp_msg, **metadata):
         if sbp_msg.msg_type == SBP_MSG_POS_LLH_DEP_A:
@@ -640,9 +640,6 @@ class SolutionView(HasTraits):
         self.last_soln = None
 
         self.counter = 0
-        self.latitude_list = []
-        self.longitude_list = []
-        self.altitude_list = []
         self.altitude = 0
         self.longitude = 0
         self.latitude = 0
