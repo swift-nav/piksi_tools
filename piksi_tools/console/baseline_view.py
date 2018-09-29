@@ -175,17 +175,16 @@ class BaselineView(HasTraits):
         self.plot_data.update_data(self._get_update_current())
 
     def _clear_history(self):
-        for each in self.slns:
-            self.slns[each].clear()
-        pending_update = {'fixed_n': [],
-                          'fixed_e': [],
-                          'fixed_d': [],
-                          'float_n': [],
-                          'float_e': [],
-                          'float_d': [],
-                          'dgnss_n': [],
-                          'dgnss_e': [],
-                          'dgnss_d': []
+        self._clr_sln_data()
+        pending_update = {'n_fixed': [],
+                          'e_fixed': [],
+                          'd_fixed': [],
+                          'n_float': [],
+                          'e_float': [],
+                          'd_float': [],
+                          'n_dgnss': [],
+                          'e_dgnss': [],
+                          'd_dgnss': []
                           }
         pending_update.update(self._get_update_current())
         self.plot_data.update(pending_update)
