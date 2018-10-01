@@ -339,7 +339,9 @@ class BaselineView(HasTraits):
 
         if self.last_mode != 0:
             mode_string = mode_string_dict[self.last_mode]
-            self.pending_draw_modes.append(mode_string)
+            if mode_string not in self.pending_draw_modes:
+                # if we don't already have a pending upate for that mode
+                self.pending_draw_modes.append(mode_string)
             self.list_lock.acquire()
             self._update_sln_data_by_mode(soln, mode_string)
             self.list_lock.release()
@@ -349,8 +351,10 @@ class BaselineView(HasTraits):
         soln = self.last_soln
         # update our "current solution" icon
         for mode_string in list(self.pending_draw_modes):
-            self._synchronize_plot_data_by_mode(mode_string)
-            self.pending_draw_modes.remove(mode_string)
+            if self.running:
+                # if user has not pressed the pause button, we update the plot
+                self._synchronize_plot_data_by_mode(mode_string)
+                self.pending_draw_modes.remove(mode_string)
 
         # make the zoomall win over the position centered button
         if not self.zoomall and self.position_centered:
