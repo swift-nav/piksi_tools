@@ -422,7 +422,7 @@ class SolutionView(HasTraits):
         self.scaling_lock.release()
         # now we update the existing sln deques to go from meters back to degrees or vice versa
         for each_array in self.slns:
-            index = 0 if 'lat' else 1
+            index = 0 if 'lat' in str(each_array) else 1
             # going from degrees to meters; do scaling with new offset and sf
             if self.display_units == "meters":
                 self.slns[each_array] = deque((np.array(self.slns[each_array]) -
@@ -433,7 +433,7 @@ class SolutionView(HasTraits):
                 self.slns[each_array] = deque(np.array(self.slns[each_array]) / self.prev_sfs[index] +
                                               self.prev_offsets[index],
                                               maxlen=PLOT_HISTORY_MAX)
-
+            self.pending_draw_modes = mode_string_dict.values()
     def rescale_for_units_change(self):
         # Chaco scales view automatically when 'auto' is stored
         if self.prev_extents[0] != 'auto':
