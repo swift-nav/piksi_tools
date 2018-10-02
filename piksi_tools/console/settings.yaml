@@ -2177,14 +2177,14 @@
 - group: system
   name: ota_enabled
   type: boolean
-  expert: false
+  expert: true
   default value: false
   readonly: false
   units: N/A
-  Description: Enables or disables Over-The-Air upgrade daemon.
-  Notes: OTA daemon contacts SwiftNav server once per hour and checks if the offered version is newer
-         than currently installed. If the offered version is newer, image is downloaded and upgrade
-         performed. After theupgrade, device is automatically rebooted.
+  Description: Enables or disables the Over-The-Air upgrade daemon.
+  Notes: The OTA daemon contacts the OTA server once per hour and checks if the offered version is newer
+         than currently installed. If the offered version is newer the image is downloaded and an
+         upgrade is performed. After the upgrade the device is automatically rebooted.
 
 - group: system
   name: ota_debug
@@ -2193,7 +2193,7 @@
   default value: false
   readonly: false
   units: N/A
-  Description: Enables or disables Over-The-Air upgrade daemon verbose output.
+  Description: Enables or disables the Over-The-Air upgrade daemon verbose output.
   Notes: OTA daemon must be disabled to change this setting.
 
 - group: system
@@ -2203,8 +2203,8 @@
   default value: N/A
   readonly: false
   units: N/A
-  Description: Set Over-The-Air upgrade daemon server address. If empty, daemon's internal default
-               address is used.
+  Description: Set the Over-The-Air upgrade daemon server address. If empty, the daemon's internal
+               default address is used.
   Notes: OTA daemon must be disabled to change this setting.
 
 - group: vehicle_dynamics_filter
