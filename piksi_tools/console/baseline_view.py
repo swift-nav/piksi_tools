@@ -305,6 +305,8 @@ class BaselineView(HasTraits):
             table.append(('Sats Used', EMPTY_STR))
             table.append(('Flags', EMPTY_STR))
             table.append(('Mode', EMPTY_STR))
+            table.append(('Heading', EMPTY_STR))
+            table.append(('Corr. Age [s]', EMPTY_STR))
         else:
             self.last_btime_update = time.time()
             if self.week is not None:
@@ -328,12 +330,14 @@ class BaselineView(HasTraits):
 
             table.append(('Sats Used', soln.n_sats))
 
-        table.append(('Flags', '0x%02x' % soln.flags))
-        table.append(('Mode', mode_dict[self.last_mode]))
-        if self.heading is not None:
-            table.append(('Heading', self.heading))
-        if self.age_corrections is not None:
-            table.append(('Corr. Age [s]', self.age_corrections))
+            table.append(('Flags', '0x%02x' % soln.flags))
+            table.append(('Mode', mode_dict[self.last_mode]))
+            if self.heading is not None:
+                table.append(('Heading', self.heading))
+            if self.age_corrections is not None:
+                table.append(('Corr. Age [s]', self.age_corrections))
+            else:
+                table.append(('Corr. Age [s]', EMPTY_STR))
         self.table = table
 
         if self.last_mode != 0:
