@@ -5,6 +5,9 @@ sudo: required
 python:
   - "2.7"
 
+git:
+  depth: false
+
 cache:
   directories:
   - $HOME/.cache/pip/
