@@ -584,7 +584,7 @@ class SolutionView(HasTraits):
         tmsg = MsgUtcTime(sbp_msg)
         seconds = math.floor(tmsg.seconds)
         microseconds = int(tmsg.ns / 1000.00)
-        if tmsg.flags & 0x1 == 1:
+        if tmsg.flags & 0x7 != 0:
             dt = datetime.datetime(tmsg.year, tmsg.month, tmsg.day, tmsg.hours,
                                    tmsg.minutes, tmsg.seconds, microseconds)
             self.utc_time = dt
