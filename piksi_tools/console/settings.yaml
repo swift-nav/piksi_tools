@@ -2205,7 +2205,7 @@
   units: N/A
   Description: Set the URL of the Over-The-Air upgrade server. If empty, an internal
                default address is used.
-  Notes: OTA daemon must be disabled to change this setting.
+  Notes: The OTA daemon must be disabled in order to change this setting.
 
 - group: vehicle_dynamics_filter
   name: mode
