@@ -435,7 +435,7 @@ class SolutionView(HasTraits):
                                               self.prev_offsets[index],
                                               maxlen=PLOT_HISTORY_MAX)
             self.pending_draw_modes = mode_string_dict.values()
-    
+
     def rescale_for_units_change(self):
         # Chaco scales view automatically when 'auto' is stored
         if self.prev_extents[0] != 'auto':
@@ -557,7 +557,7 @@ class SolutionView(HasTraits):
                  math.sqrt(vel_ned.n * vel_ned.n + vel_ned.e * vel_ned.e
                            ) * 1e-3, flags, vel_ned.n_sats))
             self.vel_log_file.flush()
-        if flags != 0:
+        if (flags & 0x7) != 0:
             self.vel_table = [
                 ('Vel. N', '% 8.4f' % (vel_ned.n * 1e-3)),
                 ('Vel. E', '% 8.4f' % (vel_ned.e * 1e-3)),
