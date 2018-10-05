@@ -72,6 +72,14 @@ function install_dev_libs(){
       qt4-dev-tools \
       x11-apps
 }
+
+function bionic_like() {
+  # Ubuntu 18.04 -> bionic
+  # Mint 19 -> tara
+  [[ $(lsb_release -c -s) == "bionic" ]] || \
+    [[ $(lsb_release -c -s) == "tara" ]]
+}
+
 function all_dependencies_debian () {
     sudo apt-get install git \
          build-essential \
@@ -89,7 +97,7 @@ function all_dependencies_debian () {
          python-sip \
          python-qt4-gl \
          libgtk2.0-0
-    if [[ $(lsb_release -c -s) != "bionic" ]]; then
+    if bionic_like; then
         sudo apt-get install \
             python-software-properties \
             python-vtk \
