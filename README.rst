@@ -14,7 +14,14 @@ utilities (firmware bootloader, serial port data logging, etc.).
 Setup
 -----
 
-It is advised to install ``piksi_tools`` inside a virtualenv to avoid modifying global system state.
+It is advised to install ``piksi_tools`` inside a virtualenv to avoid modifying global system state.  To create a virtualenv, run::
+
+  virtualenv py2
+  source py2/bin/activate
+
+Or, on Linux Mint, run::
+  virtualenv py2 --system-site-packages
+  source py2/bin/activate
 
 To install the dependencies for the basic tools: ``pip install -r requirements.txt``
 
