@@ -97,7 +97,7 @@ function all_dependencies_debian () {
          python-sip \
          python-qt4-gl \
          libgtk2.0-0
-    if bionic_like; then
+    if ! bionic_like; then
         sudo apt-get install \
             python-software-properties \
             python-vtk \
