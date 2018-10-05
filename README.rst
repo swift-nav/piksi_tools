@@ -20,6 +20,7 @@ It is advised to install ``piksi_tools`` inside a virtualenv to avoid modifying 
   source py2/bin/activate
 
 Or, on Linux Mint, run::
+
   virtualenv py2 --system-site-packages
   source py2/bin/activate
 
