@@ -296,10 +296,10 @@ class SolutionView(HasTraits):
             soln = MsgPosLLHDepA(sbp_msg)
         else:
             soln = MsgPosLLH(sbp_msg)
-        self.last_soln = soln
 
         self.last_pos_mode = get_mode(soln)
         if self.last_pos_mode != 0:
+            self.last_soln = soln
             mode_string = mode_string_dict[self.last_pos_mode]
             if mode_string not in self.pending_draw_modes:
                 # this list allows us to tell GUI thread which solutions to update
@@ -498,7 +498,7 @@ class SolutionView(HasTraits):
                     self.pending_draw_modes.remove(mode_string)
 
         self.list_lock.release()
-        if not self.zoomall and self.position_centered:
+        if not self.zoomall and self.position_centered and self.running:
             d = (
                 self.plot.index_range.high - self.plot.index_range.low) / 2.
             self.plot.index_range.set_bounds(
