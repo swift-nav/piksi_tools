@@ -2174,6 +2174,39 @@
   Notes: If a connectivity check fails, this settings controls the frequency at which a new
          connectivity check is performed.
 
+- group: system
+  name: ota_enabled
+  type: boolean
+  expert: true
+  default value: false
+  readonly: false
+  units: N/A
+  Description: Enables or disables the Over-The-Air upgrade daemon.
+  Notes: The OTA daemon contacts the OTA server once per hour and checks if the offered version is newer
+         than currently installed. If the offered version is newer, then the image is downloaded and an
+         upgrade is performed. After the upgrade the device is automatically rebooted.
+
+- group: system
+  name: ota_debug
+  type: boolean
+  expert: true
+  default value: false
+  readonly: false
+  units: N/A
+  Description: Enables or disables the Over-The-Air upgrade daemon's verbose output.
+  Notes: The OTA daemon must be disabled in order to change this setting.
+
+- group: system
+  name: ota_url
+  type: string
+  expert: true
+  default value: N/A
+  readonly: false
+  units: N/A
+  Description: Set the URL of the Over-The-Air upgrade server. If empty, an internal
+               default address is used.
+  Notes: The OTA daemon must be disabled in order to change this setting.
+
 - group: vehicle_dynamics_filter
   name: mode
   expert: true
