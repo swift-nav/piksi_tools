@@ -55,12 +55,28 @@ function piksi_splash_linux () {
     "
 }
 
+
+function install_dev_libs(){
+    sudo apt-get install \
+      build-essential \
+      cmake \
+      libgl1-mesa-dev \
+      libgl1-mesa-glx \
+      libgl1-mesa-dri \
+      libglu1-mesa-dev \
+      libx11-dev \
+      python2.7-dev \
+      pyqt4-dev-tools \
+      qt4-qmake \
+      qt4-default \
+      qt4-dev-tools \
+      x11-apps
+}
 function all_dependencies_debian () {
     sudo apt-get install git \
          build-essential \
          python \
          python-setuptools \
-         python-pip \
          python-virtualenv \
          swig
     sudo apt-get install git \
@@ -69,13 +85,25 @@ function all_dependencies_debian () {
          libffi-dev \
          libssl-dev \
          python-chaco \
-         python-vtk \
-         python-wxgtk2.8 \
          python-qt4-dev \
          python-sip \
          python-qt4-gl \
-         python-software-properties \
          libgtk2.0-0
+    if [[ $(lsb_release -c -s) != "bionic" ]]; then
+        sudo apt-get install \
+            python-software-properties \
+            python-vtk \
+            python-pip \
+            python-wxgtk2.8
+    else
+        sudo apt-get install \
+            software-properties-common \
+            python-wxgtk3.0 \
+            python-vtk6
+        sudo apt-get purge python-pip
+	sudo python -m easy_install pip
+    fi
+    install_dev_libs
     pip install --upgrade pip
     pip install -r ../requirements.txt
     pip install -r ../requirements_gui.txt
