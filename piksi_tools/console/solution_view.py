@@ -435,7 +435,7 @@ class SolutionView(HasTraits):
                                               self.prev_offsets[index],
                                               maxlen=PLOT_HISTORY_MAX)
             self.pending_draw_modes = mode_string_dict.values()
-    
+
     def rescale_for_units_change(self):
         # Chaco scales view automatically when 'auto' is stored
         if self.prev_extents[0] != 'auto':
