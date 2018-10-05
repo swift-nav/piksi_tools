@@ -74,10 +74,10 @@ function install_dev_libs(){
 }
 
 function bionic_like() {
-  # Ubuntu 18.04 -> bionic
-  # Mint 19 -> tara
-  [[ $(lsb_release -c -s) == "bionic" ]] || \
-    [[ $(lsb_release -c -s) == "tara" ]]
+    # Ubuntu 18.04 -> bionic
+    # Mint 19 -> tara
+    [[ $(lsb_release -c -s) == "bionic" ]] || \
+        [[ $(lsb_release -c -s) == "tara" ]]
 }
 
 function all_dependencies_debian () {
@@ -109,7 +109,7 @@ function all_dependencies_debian () {
             python-wxgtk3.0 \
             python-vtk6
         sudo apt-get purge python-pip
-	sudo python -m easy_install pip
+        sudo python -m easy_install pip
     fi
     install_dev_libs
     pip install --upgrade pip
