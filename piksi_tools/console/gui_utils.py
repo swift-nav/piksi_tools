@@ -15,6 +15,7 @@ from traitsui.api import HGroup, VGroup, Item, TextEditor
 from piksi_tools.console.utils import SUPPORTED_CODES, GUI_CODES, code_to_str
 
 GUI_UPDATE_PERIOD = 0.2
+STALE_DATA_PERIOD = 0.8
 
 
 class MultilineTextEditor(TextEditor):
