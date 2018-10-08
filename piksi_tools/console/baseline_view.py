@@ -9,7 +9,6 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 import datetime
-import math
 import os
 import time
 import threading
@@ -38,7 +37,7 @@ from piksi_tools.console.utils import (
     datetime_2_str, get_mode, log_time_strings, mode_dict)
 from piksi_tools.utils import sopen
 from .utils import resource_filename
-from .gui_utils import GUI_UPDATE_PERIOD
+from .gui_utils import GUI_UPDATE_PERIOD, STALE_DATA_PERIOD
 
 PLOT_HISTORY_MAX = 1000
 
@@ -58,6 +57,7 @@ class BaselineView(HasTraits):
 
     python_console_cmds = Dict()
     last_plot_update_time = Float()
+    last_stale_update_time = Float()
 
     table = List()
 
@@ -149,23 +149,35 @@ class BaselineView(HasTraits):
         out_dict.update(current_dict)
         return out_dict
 
-    def _synchronize_plot_data_by_mode(self, mode_string):
+    def _synchronize_plot_data_by_mode(self, mode_string, update_current=False):
         # do all required plot_data updates for a single
         # new solution with mode defined by mode_string
-        pending_update = {'n_' + mode_string: self.slns['n_' + mode_string],
-                          'e_' + mode_string: self.slns['e_' + mode_string]}
-        current = {}
-        if len(self.slns['n_' + mode_string]) != 0:
-            current = {'cur_n_' + mode_string: [self.slns['n_' + mode_string][-1]],
-                       'cur_e_' + mode_string: [self.slns['e_' + mode_string][-1]]}
-        pending_update.update(self._get_update_current(current))
+        pending_update = {'n_' + mode_string: [n for n in self.slns['n_' + mode_string] if not np.isnan(n)],
+                          'e_' + mode_string: [e for e in self.slns['e_' + mode_string] if not np.isnan(e)]}
+        if update_current:
+            current = {}
+            if len(pending_update['n_' + mode_string]) != 0:
+                current = {'cur_n_' + mode_string: [pending_update['n_' + mode_string][-1]],
+                           'cur_e_' + mode_string: [pending_update['e_' + mode_string][-1]]}
+            else:
+                current = {'cur_n_' + mode_string: [],
+                           'cur_e_' + mode_string: []}
+            pending_update.update(self._get_update_current(current))
         self.plot_data.update_data(pending_update)
+
+    def _append_empty_sln_data(self, exclude_mode=None):
+        for each_mode in mode_string_dict.values():
+            if exclude_mode is None or each_mode != exclude_mode:
+                self.slns['n_' + each_mode].append(np.nan)
+                self.slns['e_' + each_mode].append(np.nan)
 
     def _update_sln_data_by_mode(self, soln, mode_string):
         # do backend deque updates for a new solution of type
         # mode string
         self.slns['n_' + mode_string].append(soln.n)
         self.slns['e_' + mode_string].append(soln.e)
+        # Rotate old data out by appending to deque
+        self._append_empty_sln_data(exclude_mode=mode_string)
 
     def _clr_sln_data(self):
         for each in self.slns:
@@ -212,7 +224,6 @@ class BaselineView(HasTraits):
 
     def utc_time_callback(self, sbp_msg, **metadata):
         tmsg = MsgUtcTime(sbp_msg)
-        seconds = math.floor(tmsg.seconds)
         microseconds = int(tmsg.ns / 1000.00)
         if tmsg.flags & 0x1 == 1:
             dt = datetime.datetime(tmsg.year, tmsg.month, tmsg.day, tmsg.hours,
@@ -240,7 +251,6 @@ class BaselineView(HasTraits):
 
     def baseline_callback(self, sbp_msg, **metadata):
         soln = MsgBaselineNEDDepA(sbp_msg)
-        self.last_soln = soln
         table = []
 
         soln.n = soln.n * 1e-3
@@ -287,8 +297,6 @@ class BaselineView(HasTraits):
             self.log_file.flush()
 
         self.last_mode = get_mode(soln)
-        if time.time() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
-            GUI.invoke_later(self._solution_draw)
 
         if self.last_mode < 1:
             table.append(('GPS Week', EMPTY_STR))
@@ -341,6 +349,7 @@ class BaselineView(HasTraits):
         self.table = table
 
         if self.last_mode != 0:
+            self.last_soln = soln
             mode_string = mode_string_dict[self.last_mode]
             if mode_string not in self.pending_draw_modes:
                 # if we don't already have a pending upate for that mode
@@ -348,23 +357,39 @@ class BaselineView(HasTraits):
             self.list_lock.acquire()
             self._update_sln_data_by_mode(soln, mode_string)
             self.list_lock.release()
+        else:
+            self.list_lock.acquire()
+            self._append_empty_sln_data(soln)
+            self.list_lock.release()
+
+        if time.time() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
+            GUI.invoke_later(self._solution_draw)
 
     def _solution_draw(self):
-        self.last_plot_update_time = time.time()
-        soln = self.last_soln
-        # update our "current solution" icon
-        for mode_string in list(self.pending_draw_modes):
+        self.list_lock.acquire()
+        current_time = time.time()
+        self.last_plot_update_time = current_time
+        pending_draw_modes = self.pending_draw_modes
+        current_mode = pending_draw_modes[-1] if len(pending_draw_modes) > 0 else None
+        # Periodically, we make sure to redraw older data to expire old plot data
+        if current_time - self.last_stale_update_time > STALE_DATA_PERIOD:
+            # we don't update old solution modes every timestep to try and save CPU
+            pending_draw_modes = mode_string_dict.values()
+            self.last_stale_update_time = current_time
+        for mode_string in pending_draw_modes:
             if self.running:
-                # if user has not pressed the pause button, we update the plot
-                self._synchronize_plot_data_by_mode(mode_string)
-                self.pending_draw_modes.remove(mode_string)
+                update_current = mode_string == current_mode if current_mode else True
+                self._synchronize_plot_data_by_mode(mode_string, update_current)
+                if mode_string in self.pending_draw_modes:
+                    self.pending_draw_modes.remove(mode_string)
 
+        self.list_lock.release()
         # make the zoomall win over the position centered button
-        if not self.zoomall and self.position_centered:
+        if not self.zoomall and self.position_centered and self.running:
             d = (self.plot.index_range.high - self.plot.index_range.low) / 2.
-            self.plot.index_range.set_bounds(soln.e - d, soln.e + d)
+            self.plot.index_range.set_bounds(self.last_soln.e - d, self.last_soln.e + d)
             d = (self.plot.value_range.high - self.plot.value_range.low) / 2.
-            self.plot.value_range.set_bounds(soln.n - d, soln.n + d)
+            self.plot.value_range.set_bounds(self.last_soln.n - d, self.last_soln.n + d)
 
         if self.zoomall:
             plot_square_axes(self.plot, ('e_fixed', 'e_float', 'e_dgnss'),
@@ -380,6 +405,8 @@ class BaselineView(HasTraits):
         self.last_btime_update = 0
         self.last_soln = None
         self.last_mode = 0
+        self.last_plot_update_time = 0
+        self.last_stale_update_time = 0
         self.slns = {'n_fixed': deque(maxlen=PLOT_HISTORY_MAX),
                      'e_fixed': deque(maxlen=PLOT_HISTORY_MAX),
                      'd_fixed': deque(maxlen=PLOT_HISTORY_MAX),
@@ -408,7 +435,7 @@ class BaselineView(HasTraits):
 
         self.list_lock = threading.Lock()
         self.plot = Plot(self.plot_data)
-        pts_float = self.plot.plot(
+        pts_float = self.plot.plot(  # noqa: F841
             ('e_float', 'n_float'),
             type='scatter',
             color=color_dict[FLOAT_MODE],

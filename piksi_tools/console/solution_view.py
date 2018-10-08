@@ -44,7 +44,7 @@ from piksi_tools.console.utils import (
     mode_dict)
 from piksi_tools.utils import sopen
 from .utils import resource_filename
-from .gui_utils import GUI_UPDATE_PERIOD
+from .gui_utils import GUI_UPDATE_PERIOD, STALE_DATA_PERIOD
 
 PLOT_HISTORY_MAX = 1000
 
@@ -92,6 +92,7 @@ class SolutionView(HasTraits):
   """
     plot_history_max = Int(1000)
     last_plot_update_time = Float()
+    last_stale_update_time = Float()
     logging_v = Bool(False)
     display_units = Enum(["degrees", "meters"])
     directory_name_v = File
@@ -207,17 +208,28 @@ class SolutionView(HasTraits):
         out_dict.update(current_dict)
         return out_dict
 
-    def _synchronize_plot_data_by_mode(self, mode_string):
+    def _synchronize_plot_data_by_mode(self, mode_string, update_current=False):
         # do all required plot_data updates for a single
         # new solution with mode defined by mode_string
-        pending_update = {'lat_' + mode_string: self.slns['lat_' + mode_string],
-                          'lng_' + mode_string: self.slns['lng_' + mode_string]}
-        current = {}
-        if len(self.slns['lat_' + mode_string]) != 0:
-            current = {'cur_lat_' + mode_string: [self.slns['lat_' + mode_string][-1]],
-                       'cur_lng_' + mode_string: [self.slns['lng_' + mode_string][-1]]}
-        pending_update.update(self._get_update_current(current))
+        pending_update = {'lat_' + mode_string: [x for x in self.slns['lat_' + mode_string] if not np.isnan(x)],
+
+                          'lng_' + mode_string: [y for y in self.slns['lng_' + mode_string] if not np.isnan(y)]}
+        if update_current:
+            current = {}
+            if len(pending_update['lat_' + mode_string]) != 0:
+                current = {'cur_lat_' + mode_string: [pending_update['lat_' + mode_string][-1]],
+                           'cur_lng_' + mode_string: [pending_update['lng_' + mode_string][-1]]}
+            else:
+                current = {'cur_lat_' + mode_string: [],
+                           'cur_lng_' + mode_string: []}
+            pending_update.update(self._get_update_current(current))
         self.plot_data.update_data(pending_update)
+
+    def _append_empty_sln_data(self, exclude_mode=None):
+        for each_mode in mode_string_dict.values():
+            if exclude_mode is None or each_mode != exclude_mode:
+                self.slns['lat_' + each_mode].append(np.nan)
+                self.slns['lng_' + each_mode].append(np.nan)
 
     def _update_sln_data_by_mode(self, soln, mode_string):
         # do backend deque updates for a new solution of type
@@ -225,9 +237,11 @@ class SolutionView(HasTraits):
         self.scaling_lock.acquire()
         lat = (soln.lat - self.offset[0]) * self.sf[0]
         lng = (soln.lon - self.offset[1]) * self.sf[1]
+        self.scaling_lock.release()
         self.slns['lat_' + mode_string].append(lat)
         self.slns['lng_' + mode_string].append(lng)
-        self.scaling_lock.release()
+        # Rotate old data out by appending to deque
+        self._append_empty_sln_data(exclude_mode=mode_string)
 
     def _clr_sln_data(self):
         for each in self.slns:
@@ -282,19 +296,22 @@ class SolutionView(HasTraits):
             soln = MsgPosLLHDepA(sbp_msg)
         else:
             soln = MsgPosLLH(sbp_msg)
-        self.last_soln = soln
 
         self.last_pos_mode = get_mode(soln)
-        # this list allows us to tell GUI thread which solutions to update
-        # (if we decide not to update at full data rate)
-        # we move into using short strings for each solution mode instead of
-        # numbers for developer friendliness
         if self.last_pos_mode != 0:
+            self.last_soln = soln
             mode_string = mode_string_dict[self.last_pos_mode]
             if mode_string not in self.pending_draw_modes:
+                # this list allows us to tell GUI thread which solutions to update
+                # (if we decide not to update at full data rate)
+                # we use short strings to identify each solution mode
                 self.pending_draw_modes.append(mode_string)
             self.list_lock.acquire()
             self._update_sln_data_by_mode(soln, mode_string)
+            self.list_lock.release()
+        else:
+            self.list_lock.acquire()
+            self._append_empty_sln_data()
             self.list_lock.release()
         self.ins_used = ((soln.flags & 0x8) >> 3) == 1
         pos_table = []
@@ -397,15 +414,15 @@ class SolutionView(HasTraits):
             GUI.invoke_later(self._solution_draw)
 
     def _display_units_changed(self):
-        self.recenter = True  # recenter flag tells _solution_draw to update view extents
         # we store current extents of plot and current scalefactlrs
+        self.scaling_lock.acquire()
+        self.recenter = True  # recenter flag tells _solution_draw to update view extents
         self.prev_extents = (self.plot.index_range.low_setting,
                              self.plot.index_range.high_setting,
                              self.plot.value_range.low_setting,
                              self.plot.value_range.high_setting)
         self.prev_offsets = (self.offset[0], self.offset[1])
         self.prev_sfs = (self.sf[0], self.sf[1])
-        self.scaling_lock.acquire()
         if self.display_units == "meters":
             self.offset = (np.mean(np.array(self.lats)[~(np.equal(np.array(self.modes), 0))]),
                            np.mean(np.array(self.lngs)[~(np.equal(np.array(self.modes), 0))]),
@@ -421,20 +438,22 @@ class SolutionView(HasTraits):
             self.plot.value_axis.title = 'Latitude (degrees)'
             self.plot.index_axis.title = 'Longitude (degrees)'
         self.scaling_lock.release()
+        self.list_lock.acquire()
         # now we update the existing sln deques to go from meters back to degrees or vice versa
         for each_array in self.slns:
             index = 0 if 'lat' in str(each_array) else 1
             # going from degrees to meters; do scaling with new offset and sf
             if self.display_units == "meters":
                 self.slns[each_array] = deque((np.array(self.slns[each_array]) -
-                                              self.offset[index]) * self.sf[index],
+                                               self.offset[index]) * self.sf[index],
                                               maxlen=PLOT_HISTORY_MAX)
             # going from degrees to meters; do inverse scaling with former offset and sf
             if self.display_units == "degrees":
                 self.slns[each_array] = deque(np.array(self.slns[each_array]) / self.prev_sfs[index] +
                                               self.prev_offsets[index],
                                               maxlen=PLOT_HISTORY_MAX)
-            self.pending_draw_modes = mode_string_dict.values()
+        self.pending_draw_modes = mode_string_dict.values()
+        self.list_lock.release()
 
     def rescale_for_units_change(self):
         # Chaco scales view automatically when 'auto' is stored
@@ -461,16 +480,25 @@ class SolutionView(HasTraits):
             self.plot.value_range.high_setting = new_scaling[3]
 
     def _solution_draw(self):
-        self.last_plot_update_time = time.time()
         self.list_lock.acquire()
-        # update our "current solution" icon
-        for mode_string in list(self.pending_draw_modes):
+        current_time = time.time()
+        self.last_plot_update_time = current_time
+        pending_draw_modes = self.pending_draw_modes
+        current_mode = pending_draw_modes[-1] if len(pending_draw_modes) > 0 else None
+        # Periodically, we make sure to redraw older data to expire old plot data
+        if current_time - self.last_stale_update_time > STALE_DATA_PERIOD:
+            # we don't update old solution modes every timestep to try and save CPU
+            pending_draw_modes = mode_string_dict.values()
+            self.last_stale_update_time = current_time
+        for mode_string in pending_draw_modes:
             if self.running:
-                self._synchronize_plot_data_by_mode(mode_string)
-                self.pending_draw_modes.remove(mode_string)
+                update_current = mode_string == current_mode if current_mode else True
+                self._synchronize_plot_data_by_mode(mode_string, update_current=update_current)
+                if mode_string in self.pending_draw_modes:
+                    self.pending_draw_modes.remove(mode_string)
 
         self.list_lock.release()
-        if not self.zoomall and self.position_centered:
+        if not self.zoomall and self.position_centered and self.running:
             d = (
                 self.plot.index_range.high - self.plot.index_range.low) / 2.
             self.plot.index_range.set_bounds(
@@ -585,7 +613,6 @@ class SolutionView(HasTraits):
 
     def utc_time_callback(self, sbp_msg, **metadata):
         tmsg = MsgUtcTime(sbp_msg)
-        seconds = math.floor(tmsg.seconds)
         microseconds = int(tmsg.ns / 1000.00)
         if tmsg.flags & 0x7 != 0:
             dt = datetime.datetime(tmsg.year, tmsg.month, tmsg.day, tmsg.hours,
@@ -642,13 +669,13 @@ class SolutionView(HasTraits):
         self.last_stime_update = 0
         self.last_soln = None
 
-        self.counter = 0
         self.altitude = 0
         self.longitude = 0
         self.latitude = 0
         self.last_pos_mode = 0
         self.ins_used = False
         self.last_plot_update_time = 0
+        self.last_stale_update_time = 0
 
         self.plot_data = ArrayPlotData(
             lat_spp=[],
