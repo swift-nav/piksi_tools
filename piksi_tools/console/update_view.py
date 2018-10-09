@@ -54,7 +54,7 @@ def parse_version(version):
     if version[0] == 'v':
         version = version[1:]
     return pkparse_version(version.replace(
-        "dirty",
+        "-dirty",
         "", ))
 
 
