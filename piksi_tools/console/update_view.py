@@ -678,7 +678,14 @@ class UpdateView(HasTraits):
     def log_cb(self, msg, **kwargs):
         for regex in UPGRADE_WHITELIST:
             if re.match(regex, msg.text):
-                self.stream.scrollback_write(msg.text.split("\n")[-1])
+                text = msg.text.replace("\r", "\n").strip().split("\n")
+                if len(text) > 1:
+                    # upgrade tool deliminates lines in stoud with \r, we want penultimate line that is complete to show
+                    text = text[-2]
+                else:
+                    # If there is only one line, we show that 
+                    text = text[-1]
+                self.stream.scrollback_write(text)
 
     def manage_multi_firmware_update(self):
         self.blob_size = float(len(self.stm_fw.blob))
