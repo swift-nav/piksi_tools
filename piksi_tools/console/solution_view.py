@@ -298,8 +298,8 @@ class SolutionView(HasTraits):
             soln = MsgPosLLH(sbp_msg)
 
         self.last_pos_mode = get_mode(soln)
+        self.last_soln = soln
         if self.last_pos_mode != 0:
-            self.last_soln = soln
             mode_string = mode_string_dict[self.last_pos_mode]
             if mode_string not in self.pending_draw_modes:
                 # this list allows us to tell GUI thread which solutions to update
@@ -402,6 +402,7 @@ class SolutionView(HasTraits):
             self.alts.append(soln.height)
             self.tows.append(soln.tow)
             self.modes.append(self.last_pos_mode)
+            self.last_valid_soln = soln
         self.auto_survey()
 
         # set-up table variables
@@ -498,17 +499,17 @@ class SolutionView(HasTraits):
                     self.pending_draw_modes.remove(mode_string)
 
         self.list_lock.release()
-        if not self.zoomall and self.position_centered and self.running:
+        if not self.zoomall and self.position_centered and self.running and self.last_valid_soln:
             d = (
                 self.plot.index_range.high - self.plot.index_range.low) / 2.
             self.plot.index_range.set_bounds(
-                (self.last_soln.lon - self.offset[1]) * self.sf[1] - d,
-                (self.last_soln.lon - self.offset[1]) * self.sf[1] + d)
+                (self.last_valid_soln.lon - self.offset[1]) * self.sf[1] - d,
+                (self.last_valid_soln.lon - self.offset[1]) * self.sf[1] + d)
             d = (
                 self.plot.value_range.high - self.plot.value_range.low) / 2.
             self.plot.value_range.set_bounds(
-                (self.last_soln.lat - self.offset[0]) * self.sf[0] - d,
-                (self.last_soln.lat - self.offset[0]) * self.sf[0] + d)
+                (self.last_valid_soln.lat - self.offset[0]) * self.sf[0] - d,
+                (self.last_valid_soln.lat - self.offset[0]) * self.sf[0] + d)
         if self.zoomall:
             self.recenter = False
             plot_square_axes(self.plot,
@@ -668,6 +669,7 @@ class SolutionView(HasTraits):
         self.vel_log_file = None
         self.last_stime_update = 0
         self.last_soln = None
+        self.last_valid_soln = None
 
         self.altitude = 0
         self.longitude = 0
