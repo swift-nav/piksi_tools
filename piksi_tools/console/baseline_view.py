@@ -252,8 +252,8 @@ class BaselineView(HasTraits):
     def baseline_callback(self, sbp_msg, **metadata):
         soln = MsgBaselineNEDDepA(sbp_msg)
         table = []
-        self.last_soln = soln
         self.last_btime_update = time.time() # used to drive status bar logic
+        self.last_soln = soln
 
         soln.n = soln.n * 1e-3
         soln.e = soln.e * 1e-3
@@ -350,6 +350,7 @@ class BaselineView(HasTraits):
         self.table = table
 
         if self.last_mode != 0:
+            self.last_valid_soln = soln
             mode_string = mode_string_dict[self.last_mode]
             if mode_string not in self.pending_draw_modes:
                 # if we don't already have a pending upate for that mode
@@ -385,11 +386,11 @@ class BaselineView(HasTraits):
 
         self.list_lock.release()
         # make the zoomall win over the position centered button
-        if not self.zoomall and self.position_centered and self.running:
+        if not self.zoomall and self.position_centered and self.running and self.last_valid_soln:
             d = (self.plot.index_range.high - self.plot.index_range.low) / 2.
-            self.plot.index_range.set_bounds(self.last_soln.e - d, self.last_soln.e + d)
+            self.plot.index_range.set_bounds(self.last_valid_soln.e - d, self.last_valid_soln.e + d)
             d = (self.plot.value_range.high - self.plot.value_range.low) / 2.
-            self.plot.value_range.set_bounds(self.last_soln.n - d, self.last_soln.n + d)
+            self.plot.value_range.set_bounds(self.last_valid_soln.n - d, self.last_valid_soln.n + d)
 
         if self.zoomall:
             plot_square_axes(self.plot, ('e_fixed', 'e_float', 'e_dgnss'),
@@ -404,6 +405,7 @@ class BaselineView(HasTraits):
         self.last_hyp_update = 0
         self.last_btime_update = 0
         self.last_soln = None
+        self.last_valid_soln = None
         self.last_mode = 0
         self.last_plot_update_time = 0
         self.last_stale_update_time = 0
