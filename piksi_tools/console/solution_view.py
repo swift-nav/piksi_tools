@@ -296,7 +296,8 @@ class SolutionView(HasTraits):
             soln = MsgPosLLHDepA(sbp_msg)
         else:
             soln = MsgPosLLH(sbp_msg)
-
+        self.last_stime_update = time.time() # Used to drive status bar logic
+        self.last_soln = soln
         self.last_pos_mode = get_mode(soln)
         if self.last_pos_mode != 0:
             self.last_soln = soln
@@ -365,8 +366,6 @@ class SolutionView(HasTraits):
             pos_table.append(('Horiz Acc', EMPTY_STR))
             pos_table.append(('Vert Acc', EMPTY_STR))
         else:
-            self.last_stime_update = time.time()
-
             if self.week is not None:
                 pos_table.append(('GPS Week', str(self.week)))
             pos_table.append(('GPS TOW', "{:.3f}".format(tow)))

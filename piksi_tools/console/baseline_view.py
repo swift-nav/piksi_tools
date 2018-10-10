@@ -252,6 +252,8 @@ class BaselineView(HasTraits):
     def baseline_callback(self, sbp_msg, **metadata):
         soln = MsgBaselineNEDDepA(sbp_msg)
         table = []
+        self.last_soln = soln
+        self.last_btime_update = time.time() # used to drive status bar logic
 
         soln.n = soln.n * 1e-3
         soln.e = soln.e * 1e-3
@@ -316,7 +318,6 @@ class BaselineView(HasTraits):
             table.append(('Heading', EMPTY_STR))
             table.append(('Corr. Age [s]', EMPTY_STR))
         else:
-            self.last_btime_update = time.time()
             if self.week is not None:
                 table.append(('GPS Week', str(self.week)))
             table.append(('GPS TOW', "{:.3f}".format(tow)))
@@ -349,7 +350,6 @@ class BaselineView(HasTraits):
         self.table = table
 
         if self.last_mode != 0:
-            self.last_soln = soln
             mode_string = mode_string_dict[self.last_mode]
             if mode_string not in self.pending_draw_modes:
                 # if we don't already have a pending upate for that mode

@@ -471,23 +471,26 @@ class SwiftConsole(HasTraits):
         if self.baseline_view and self.solution_view:
             last_baseline_soln = self.baseline_view.last_soln
             last_llh_soln = self.solution_view.last_soln
-            # if we have a recent llh solution, use that mode
-            if last_llh_soln and (self.last_status_update_time != self.solution_view.last_stime_update):
-                llh_mode_enum = get_mode(last_llh_soln)
-                display_mode = mode_dict.get(llh_mode_enum, EMPTY_STR)
-                num_sats = last_llh_soln.n_sats
-                if getattr(self.solution_view, 'ins_used', False) and llh_mode_enum != DR_MODE:
-                        display_mode += "+INS"
-                self.last_status_update_time = self.solution_view.last_stime_update
-            # If we have a recent baseline update that has higher mode, we use the baseline soln info instead
-            if last_baseline_soln and self.last_status_update_time != self.baseline_view.last_btime_update:
-                baseline_mode_enum = get_mode(last_baseline_soln)
-                # if the baseline is "higher" mode than llh or llh is missing, use baseline for mode and num_sats
-                if baseline_mode_enum in DIFFERENTIAL_MODES and (last_llh_soln and
-                   get_mode(last_llh_soln) not in DIFFERENTIAL_MODES or not last_llh_soln):
-                    display_mode = mode_dict.get(baseline_mode_enum, EMPTY_STR)
-                    num_sats = last_baseline_soln.n_sats
-                    self.last_status_update_time = self.baseline_view.last_btime_update
+            # If either of solution or baseline plots are not "stale"
+            if (self.last_status_update_time < self.solution_view.last_stime_update or
+                    self.last_status_update_time < self.baseline_view.last_btime_update):
+                # if we have a recent llh solution, use that mode
+                if last_llh_soln:
+                    llh_mode_enum = get_mode(last_llh_soln)
+                    display_mode = mode_dict.get(llh_mode_enum, EMPTY_STR)
+                    num_sats = last_llh_soln.n_sats
+                    if getattr(self.solution_view, 'ins_used', False) and llh_mode_enum != DR_MODE:
+                            display_mode += "+INS"
+                    self.last_status_update_time = self.solution_view.last_stime_update
+                # If we have a recent baseline update that has higher mode we use the baseline soln info instead
+                if last_baseline_soln:
+                    baseline_mode_enum = get_mode(last_baseline_soln)
+                    # if the baseline is "higher" mode than llh or llh is missing, use baseline for mode and num_sats
+                    if baseline_mode_enum in DIFFERENTIAL_MODES and (last_llh_soln and 
+                        get_mode(last_llh_soln) not in DIFFERENTIAL_MODES or not last_llh_soln):
+                        display_mode = mode_dict.get(baseline_mode_enum, EMPTY_STR)
+                        num_sats = last_baseline_soln.n_sats
+                        self.last_status_update_time = self.baseline_view.last_btime_update
         self.mode = display_mode
         self.num_sats = num_sats
 
