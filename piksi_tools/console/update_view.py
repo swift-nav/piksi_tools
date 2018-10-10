@@ -683,7 +683,7 @@ class UpdateView(HasTraits):
                     # upgrade tool deliminates lines in stoud with \r, we want penultimate line that is complete to show
                     text = text[-2]
                 else:
-                    # If there is only one line, we show that 
+                    # If there is only one line, we show that
                     text = text[-1]
                 self.stream.scrollback_write(text)
 
