@@ -2207,40 +2207,6 @@
                default address is used.
   Notes: The OTA daemon must be disabled in order to change this setting.
 
-- group: vehicle_dynamics_filter
-  name: mode
-  expert: true
-  type: enum
-  units: N/A
-  default value: 'None'
-  readonly: false
-  enumerated possible values: None, Tractor
-  Description: (ALPHA) Selects the type of vehicle dynamics filter.
-  Notes: The vehicle dynamics filter allows additional filtering to be imposed on top
-         of the raw GNSS solution. Different vehicle types allow certain assumptions to be made
-         about the dynamics of the trajectory, and these can be incorporated via the additional
-         filtering step.
-
-- group: vehicle_dynamics_filter
-  name: lowpass_time_constant
-  expert: true
-  type: double
-  units: seconds
-  default value: '3.0'
-  readonly: false
-  Description: (ALPHA) Time constant for low-pass filtering of position trajectory.
-  Notes: Has no effect unless the vehicle dynamics filter is active.
-
-- group: vehicle_dynamics_filter
-  name: max_acceleration 
-  expert: true
-  type: double
-  units: meters per second squared 
-  default value: '3.0'
-  readonly: false
-  Description: (ALPHA) Maximum possible linear acceleration of vehicle.
-  Notes: Has no effect unless the vehicle dynamics filter is active.
-
 - group: ins
   name: output_mode
   expert: false
