@@ -110,6 +110,18 @@
     be provided on the Piksi Multi evaluation board through a labeled SMA connector. 
     It is not exposed on Duro.
 
+- group: rtcm_out
+  name: output_messages
+  expert: true
+  type: enum
+  units: N/A
+  default value: 'MSM5'
+  readonly: false
+  enumerated possible values: RTCMv3.1, MSM4, MSM5
+  Description: Selects the format of RTCM observation messages for the RTCMv3 OUT protocol
+  Notes: RTCMv3.1 outputs the legacy 1004 & 1012 observation messages (GPS&GLO only). The
+    MSM4 and MSM5 support all constellations.
+
 - group: sbp
   name: obs_msg_max_size
   expert: true
