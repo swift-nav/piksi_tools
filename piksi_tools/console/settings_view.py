@@ -155,7 +155,7 @@ class Setting(SettingBase):
                 self.readonly = True
         self._prevent_revert_thread = False
 
-    def revert_to_prior_value(self, name, old, new):
+    def revert_to_prior_value(self, name, old, new, error_value=1):
         '''Revert setting to old value in the case we can't confirm new value'''
 
         if self.readonly:
@@ -173,7 +173,8 @@ class Setting(SettingBase):
         invalid_setting_prompt.text = \
             ("\n   Unable to confirm that {0} was set to {1}.\n"
              "   Ensure the range and formatting of the entry are correct.\n"
-             "   Ensure that the new setting value did not interrupt console communication.").format(self.name, new)
+             "   Ensure that the new setting value did not interrupt console communication.\n"
+             "   Error Value: {2}").format(self.name, new, error_value)
         invalid_setting_prompt.run()
 
     def _value_changed(self, name, old, new):
@@ -719,12 +720,12 @@ class SettingsView(HasTraits):
             return
         if setting.timed_revert_thread:
             setting.timed_revert_thread.stop()
-        if sbp_msg.status == 1:
+        if sbp_msg.status > 0:
             # Value was rejected.  Inform the user and revert display to the
             # old value.
             new = setting.value
             old = settings_list[2]
-            setting.revert_to_prior_value(setting.name, old, new)
+            setting.revert_to_prior_value(setting.name, old, new, sbp_msg.status)
             return
         # Write accepted.  Use confirmed value in display without sending settings write.
         setting._prevent_revert_thread = True
