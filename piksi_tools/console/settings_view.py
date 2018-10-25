@@ -155,7 +155,7 @@ class Setting(SettingBase):
                 self.readonly = True
         self._prevent_revert_thread = False
 
-    def revert_to_prior_value(self, name, old, new, error_value=1):
+    def revert_to_prior_value(self, name, old, new, error_value=-1):
         '''Revert setting to old value in the case we can't confirm new value'''
 
         if self.readonly:
@@ -170,30 +170,35 @@ class Setting(SettingBase):
         invalid_setting_prompt = prompt.CallbackPrompt(
             title="Settings Write Error",
             actions=[prompt.close_button], )
-        if error_value == 1:    # SBP_WRITE_STATUS_VALUE_REJECTED
+        if error_value == -1:       # Timed Out
             invalid_setting_prompt.text = \
                 ("\n   Unable to confirm that {0} was set to {1}.\n"
-                 "   Ensure the range and formatting of the entry are correct.\n"
+                 "   Message timed out.\n"
                  "   Ensure that the new setting value did not interrupt console communication.\n"
                  "   Error Value: {2}")
-        elif error_value == 2:  # SBP_WRITE_STATUS_SETTING_REJECTED
+        elif error_value == 1:      # SBP_WRITE_STATUS_VALUE_REJECTED
             invalid_setting_prompt.text = \
-                ("\n   Unable to confirm that {0} was set to {1}.\n"
-                 "   Unknown setting.\n"
+                ("\n   Unable to set {0} to {1}.\n"
+                 "   Ensure the range and formatting of the entry are correct.\n"
                  "   Error Value: {2}")
-        elif error_value == 3:  # SBP_WRITE_STATUS_PARSE_FAILED
+        elif error_value == 2:      # SBP_WRITE_STATUS_SETTING_REJECTED
             invalid_setting_prompt.text = \
-                ("\n   Unable to confirm that {0} was set to {1}.\n"
-                 "   Value not parseable.\n"
+                ("\n   Unable to set {0} to {1}.\n"
+                 "   {0} is not a valid setting.\n"
                  "   Error Value: {2}")
-        elif error_value == 4:  # SBP_WRITE_STATUS_VALUE_READ_ONLY
+        elif error_value == 3:      # SBP_WRITE_STATUS_PARSE_FAILED
             invalid_setting_prompt.text = \
-                ("\n   Unable to confirm that {0} was set to {1}.\n"
-                 "   Setting is read-only.\n"
+                ("\n   Unable to set {0} to {1}.\n"
+                 "   Could not parse value: {1}.\n"
+                 "   Error Value: {2}")
+        elif error_value == 4:      # SBP_WRITE_STATUS_VALUE_READ_ONLY
+            invalid_setting_prompt.text = \
+                ("\n   Unable to set {0} to {1}.\n"
+                 "   {0} is read-only.\n"
                  "   Error Value: {2}")
         else:
             invalid_setting_prompt.text = \
-                ("\n   Unable to confirm that {0} was set to {1}.\n"
+                ("\n   Unable to set {0} to {1}.\n"
                  "   Unknown Error.\n"
                  "   Error Value: {2}")
         invalid_setting_prompt.text = invalid_setting_prompt.text.format(self.name, new, error_value)
