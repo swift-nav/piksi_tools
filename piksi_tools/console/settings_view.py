@@ -53,7 +53,8 @@ class SBP_WRITE_STATUS(IntEnum):
     VALUE_REJECTED      = 1
     SETTING_REJECTED    = 2
     PARSE_FAILED        = 3
-    VALUE_READ_ONLY     = 4
+    READ_ONLY           = 4
+    MODIFY_DISABLED     = 5
 
 class TimedDelayStoppableThread(threading.Thread):
     """Thread class with a stop() method. The thread itself has to check
@@ -199,10 +200,15 @@ class Setting(SettingBase):
                 ("\n   Unable to set {0} to {1}.\n"
                  "   Could not parse value: {1}.\n"
                  "   Error Value: {2}")
-        elif error_value == SBP_WRITE_STATUS.VALUE_READ_ONLY:
+        elif error_value == SBP_WRITE_STATUS.READ_ONLY:
             invalid_setting_prompt.text = \
                 ("\n   Unable to set {0} to {1}.\n"
                  "   {0} is read-only.\n"
+                 "   Error Value: {2}")
+        elif error_value == SBP_WRITE_STATUS.MODIFY_DISABLED:
+            invalid_setting_prompt.text = \
+                ("\n   Unable to set {0} to {1}.\n"
+                 "   Modifying {0} is currently disabled.\n"
                  "   Error Value: {2}")
         else:
             invalid_setting_prompt.text = \
