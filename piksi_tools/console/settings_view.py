@@ -186,40 +186,37 @@ class Setting(SettingBase):
                  "   Message timed out.\n"
                  "   Ensure that the new setting value did not interrupt console communication.\n"
                  "   Error Value: {2}")
-        elif error_value == SBP_WRITE_STATUS.VALUE_REJECTED:
-            invalid_setting_prompt.text = \
-                ("\n   Unable to set {0} to {1}.\n"
-                 "   Ensure the range and formatting of the entry are correct.\n"
-                 "   Error Value: {2}")
-        elif error_value == SBP_WRITE_STATUS.SETTING_REJECTED:
-            invalid_setting_prompt.text = \
-                ("\n   Unable to set {0} to {1}.\n"
-                 "   {0} is not a valid setting.\n"
-                 "   Error Value: {2}")
-        elif error_value == SBP_WRITE_STATUS.PARSE_FAILED:
-            invalid_setting_prompt.text = \
-                ("\n   Unable to set {0} to {1}.\n"
-                 "   Could not parse value: {1}.\n"
-                 "   Error Value: {2}")
-        elif error_value == SBP_WRITE_STATUS.READ_ONLY:
-            invalid_setting_prompt.text = \
-                ("\n   Unable to set {0} to {1}.\n"
-                 "   {0} is read-only.\n"
-                 "   Error Value: {2}")
-        elif error_value == SBP_WRITE_STATUS.MODIFY_DISABLED:
-            invalid_setting_prompt.text = \
-                ("\n   Unable to set {0} to {1}.\n"
-                 "   Modifying {0} is currently disabled.\n"
-                 "   Error Value: {2}")
-        elif error_value == SBP_WRITE_STATUS.SERVICE_FAILED:
-            invalid_setting_prompt.text = \
-                ("\n   Unable to set {0} to {1}.\n"
-                 "   Service failed while changing setting. See logs.\n"
-                 "   Error Value: {2}")
         else:
             invalid_setting_prompt.text = \
-                ("\n   Unable to set {0} to {1}.\n"
-                 "   Unknown Error.\n"
+                ("\n   Unable to set {0} to {1}.\n")
+
+        if error_value == SBP_WRITE_STATUS.VALUE_REJECTED:
+            invalid_setting_prompt.text += \
+                ("   Ensure the range and formatting of the entry are correct.\n"
+                 "   Error Value: {2}")
+        elif error_value == SBP_WRITE_STATUS.SETTING_REJECTED:
+            invalid_setting_prompt.text += \
+                ("   {0} is not a valid setting.\n"
+                 "   Error Value: {2}")
+        elif error_value == SBP_WRITE_STATUS.PARSE_FAILED:
+            invalid_setting_prompt.text += \
+                ("   Could not parse value: {1}.\n"
+                 "   Error Value: {2}")
+        elif error_value == SBP_WRITE_STATUS.READ_ONLY:
+            invalid_setting_prompt.text += \
+                ("   {0} is read-only.\n"
+                 "   Error Value: {2}")
+        elif error_value == SBP_WRITE_STATUS.MODIFY_DISABLED:
+            invalid_setting_prompt.text += \
+                ("   Modifying {0} is currently disabled.\n"
+                 "   Error Value: {2}")
+        elif error_value == SBP_WRITE_STATUS.SERVICE_FAILED:
+            invalid_setting_prompt.text += \
+                ("   Service failed while changing setting. See logs.\n"
+                 "   Error Value: {2}")
+        else:
+            invalid_setting_prompt.text += \
+                ("   Unknown Error.\n"
                  "   Error Value: {2}")
         invalid_setting_prompt.text = invalid_setting_prompt.text.format(self.name, new, error_value)
         invalid_setting_prompt.run()
