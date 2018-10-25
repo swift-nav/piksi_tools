@@ -55,6 +55,7 @@ class SBP_WRITE_STATUS(IntEnum):
     PARSE_FAILED        = 3
     READ_ONLY           = 4
     MODIFY_DISABLED     = 5
+    SERVICE_FAILED      = 6
 
 class TimedDelayStoppableThread(threading.Thread):
     """Thread class with a stop() method. The thread itself has to check
@@ -209,6 +210,11 @@ class Setting(SettingBase):
             invalid_setting_prompt.text = \
                 ("\n   Unable to set {0} to {1}.\n"
                  "   Modifying {0} is currently disabled.\n"
+                 "   Error Value: {2}")
+        elif error_value == SBP_WRITE_STATUS.SERVICE_FAILED:
+            invalid_setting_prompt.text = \
+                ("\n   Unable to set {0} to {1}.\n"
+                 "   Service failed while changing setting. See logs.\n"
                  "   Error Value: {2}")
         else:
             invalid_setting_prompt.text = \
