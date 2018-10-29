@@ -47,15 +47,17 @@ if ETSConfig.toolkit != 'null':
 else:
     SVGButton = dict
 
+
 @unique
 class SBP_WRITE_STATUS(IntEnum):
-    TIMED_OUT           = -1
-    VALUE_REJECTED      = 1
-    SETTING_REJECTED    = 2
-    PARSE_FAILED        = 3
-    READ_ONLY           = 4
-    MODIFY_DISABLED     = 5
-    SERVICE_FAILED      = 6
+    TIMED_OUT = -1
+    VALUE_REJECTED = 1
+    SETTING_REJECTED = 2
+    PARSE_FAILED = 3
+    READ_ONLY = 4
+    MODIFY_DISABLED = 5
+    SERVICE_FAILED = 6
+
 
 class TimedDelayStoppableThread(threading.Thread):
     """Thread class with a stop() method. The thread itself has to check
