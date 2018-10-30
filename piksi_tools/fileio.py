@@ -12,6 +12,7 @@
 from __future__ import absolute_import, print_function
 
 import copy
+import itertools
 import random
 import time
 import threading
@@ -238,27 +239,31 @@ class FileIO(object):
         """
         offset = 0
         chunksize = MAX_PAYLOAD_SIZE - 4
-        closure = {'done': False, 'buf': []}
+        closure = {'mostly_done': False, 'done': False, 'buf': {}, 'pending':set()}
 
         def cb(req, resp):
-            if len(closure['buf']) < req.offset:
-                closure['buf'] += [0] * (req.offset - len(closure['buf']))
-            closure['buf'][req.offset:
-                           req.offset + len(resp.contents)] = resp.contents
+            closure['pending'].remove(req.offset)
+            closure['buf'][req.offset] = resp.contents
             if req.chunk_size != len(resp.contents):
+                closure['mostly_done'] = True
+            if closure['mostly_done'] and len(closure['pending']) == 0:
                 closure['done'] = True
 
         with SelectiveRepeater(self.link, SBP_MSG_FILEIO_READ_RESP, cb) as sr:
-            while not closure['done']:
+            while not closure['mostly_done']:
                 seq = self.next_seq()
                 msg = MsgFileioReadReq(
                     sequence=seq,
                     offset=offset,
                     chunk_size=chunksize,
                     filename=filename)
+                closure['pending'].add(offset)
                 sr.send(msg)
                 offset += chunksize
-            return bytearray(closure['buf'])
+            while not closure['done']:
+                time.sleep(0.01)
+            sorted_buffers = sorted(closure['buf'].items(), key=lambda kv: kv[0])
+            return bytearray(itertools.chain.from_iterable(kv[1] for kv in sorted_buffers))
 
     def readdir(self, dirname='.'):
         """
@@ -286,7 +291,7 @@ class FileIO(object):
             # Why isn't this already decoded?
             reply = MsgFileioReadDirResp(reply)
             if reply.sequence != seq:
-                raise Exception("Reply FILEIO_READ_DIR doesn't match request")
+                raise Exception("Reply FILEIO_READ_DIR doesn't match request (%d vs %d)" % (reply.sequence, seq))
             chunk = str(bytearray(reply.contents)).rstrip('\0')
             if len(chunk) == 0:
                 return files
