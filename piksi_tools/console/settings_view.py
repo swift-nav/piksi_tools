@@ -14,6 +14,7 @@ from __future__ import absolute_import, print_function
 import threading
 import time
 import configparser
+from enum import IntEnum, unique
 
 from pyface.api import GUI
 from sbp.piksi import MsgReset
@@ -45,6 +46,17 @@ if ETSConfig.toolkit != 'null':
     from enable.savage.trait_defs.ui.svg_button import SVGButton
 else:
     SVGButton = dict
+
+
+@unique
+class SBP_WRITE_STATUS(IntEnum):
+    TIMED_OUT = -1
+    VALUE_REJECTED = 1
+    SETTING_REJECTED = 2
+    PARSE_FAILED = 3
+    READ_ONLY = 4
+    MODIFY_DISABLED = 5
+    SERVICE_FAILED = 6
 
 
 class TimedDelayStoppableThread(threading.Thread):
@@ -155,7 +167,7 @@ class Setting(SettingBase):
                 self.readonly = True
         self._prevent_revert_thread = False
 
-    def revert_to_prior_value(self, name, old, new):
+    def revert_to_prior_value(self, name, old, new, error_value=SBP_WRITE_STATUS.TIMED_OUT):
         '''Revert setting to old value in the case we can't confirm new value'''
 
         if self.readonly:
@@ -170,10 +182,45 @@ class Setting(SettingBase):
         invalid_setting_prompt = prompt.CallbackPrompt(
             title="Settings Write Error",
             actions=[prompt.close_button], )
-        invalid_setting_prompt.text = \
-            ("\n   Unable to confirm that {0} was set to {1}.\n"
-             "   Ensure the range and formatting of the entry are correct.\n"
-             "   Ensure that the new setting value did not interrupt console communication.").format(self.name, new)
+        if error_value == SBP_WRITE_STATUS.TIMED_OUT:
+            invalid_setting_prompt.text = \
+                ("\n   Unable to confirm that {0} was set to {1}.\n"
+                 "   Message timed out.\n"
+                 "   Ensure that the new setting value did not interrupt console communication.\n"
+                 "   Error Value: {2}")
+        else:
+            invalid_setting_prompt.text = \
+                ("\n   Unable to set {0} to {1}.\n")
+
+        if error_value == SBP_WRITE_STATUS.VALUE_REJECTED:
+            invalid_setting_prompt.text += \
+                ("   Ensure the range and formatting of the entry are correct.\n"
+                 "   Error Value: {2}")
+        elif error_value == SBP_WRITE_STATUS.SETTING_REJECTED:
+            invalid_setting_prompt.text += \
+                ("   {0} is not a valid setting.\n"
+                 "   Error Value: {2}")
+        elif error_value == SBP_WRITE_STATUS.PARSE_FAILED:
+            invalid_setting_prompt.text += \
+                ("   Could not parse value: {1}.\n"
+                 "   Error Value: {2}")
+        elif error_value == SBP_WRITE_STATUS.READ_ONLY:
+            invalid_setting_prompt.text += \
+                ("   {0} is read-only.\n"
+                 "   Error Value: {2}")
+        elif error_value == SBP_WRITE_STATUS.MODIFY_DISABLED:
+            invalid_setting_prompt.text += \
+                ("   Modifying {0} is currently disabled.\n"
+                 "   Error Value: {2}")
+        elif error_value == SBP_WRITE_STATUS.SERVICE_FAILED:
+            invalid_setting_prompt.text += \
+                ("   Service failed while changing setting. See logs.\n"
+                 "   Error Value: {2}")
+        else:
+            invalid_setting_prompt.text += \
+                ("   Unknown Error.\n"
+                 "   Error Value: {2}")
+        invalid_setting_prompt.text = invalid_setting_prompt.text.format(self.name, new, error_value)
         invalid_setting_prompt.run()
 
     def _value_changed(self, name, old, new):
@@ -719,12 +766,12 @@ class SettingsView(HasTraits):
             return
         if setting.timed_revert_thread:
             setting.timed_revert_thread.stop()
-        if sbp_msg.status == 1:
+        if sbp_msg.status > 0:
             # Value was rejected.  Inform the user and revert display to the
             # old value.
             new = setting.value
             old = settings_list[2]
-            setting.revert_to_prior_value(setting.name, old, new)
+            setting.revert_to_prior_value(setting.name, old, new, sbp_msg.status)
             return
         # Write accepted.  Use confirmed value in display without sending settings write.
         setting._prevent_revert_thread = True
