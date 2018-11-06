@@ -98,7 +98,7 @@ class SBR:
 
 
 class SBRH(SBR):
-  HEADER = bytearray([0xA3, 0x95, 0xE5])
+  HEADER = bytearray([0xA3, 0x95, 0xE9])
   LABELS = "TimeUS,msg_flag,1,2,3,4,5,6"
   FORMAT_HEADER = 'QHHBBBB'  # Data format before binary message
   # Original FORMAT_HEADER = 'QQ' but msg_flag is a 8-bytes flag
@@ -142,7 +142,7 @@ class SBRH(SBR):
 
 
 class SBRM(SBR):
-  HEADER = bytearray([0xA3, 0x95, 0xE6])
+  HEADER = bytearray([0xA3, 0x95, 0xEA])
   LABELS = "TimeUS,msg_flag,1,2,3,4,5,6,7,8,9,10,11,12,13"
   FORMAT_HEADER = 'QHHBBBB'  # Data format before binary message
   # Original FORMAT_HEADER = 'QQ' but msg_flag is a 8-bytes flag
@@ -219,8 +219,10 @@ class GPS:
 def get_first_gps_message(filename):
   with open(filename, "rb") as log:
     last_gps = None
+    headers = [GPS.HEADER, GPS.HEADER2]
     while True:
-      search_binary_key(log, [GPS.HEADER, GPS.HEADER2])
+      key = search_binary_key(log, headers)
+      headers = [key]
       binary = log.read(GPS.SIZE)
       gps = GPS(binary)
       if last_gps and last_gps.gwk and gps.gwk and last_gps.gwk == gps.gwk:
@@ -300,11 +302,12 @@ def extract_sbp(filename):
       else:
         break
 
-      if m.sender_id in extractors.keys():
-        extractors[m.sender_id].treat_message(m)
-      else:
-        extractors[m.sender_id] = SBPExtractor(m.sender_id, gps)
-        extractors[m.sender_id].treat_message(m)
+      if m.msg_len:
+        if m.sender_id in extractors.keys():
+          extractors[m.sender_id].treat_message(m)
+        else:
+          extractors[m.sender_id] = SBPExtractor(m.sender_id, gps)
+          extractors[m.sender_id].treat_message(m)
 
     extracted_data = {}
     for sender_id, extractor in extractors.iteritems():
