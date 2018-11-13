@@ -14,6 +14,9 @@ from __future__ import print_function
 import errno
 import os
 
+from sbp.client.drivers.network_drivers import TCPDriver
+import socket
+
 
 def wrap_sbp_dict(data_dict, timestamp):
     return {'data': data_dict, 'time': timestamp}
@@ -38,3 +41,21 @@ def sopen(path, mode):
     '''
     mkdir_p(os.path.dirname(path))
     return open(path, mode)
+
+
+def get_tcp_driver(host, port=None):
+    ''' Factory method helper for opening TCPDriver from host and port
+    '''
+    try:
+        if port is None:
+            host, port = host.split(':')
+        return TCPDriver(host,
+                         int(port),
+                         raise_initial_timeout=True)
+    except ValueError:
+        raise Exception('Invalid format (use ip_address:port): {}'.format(host))
+    except socket.timeout:
+        raise Exception('TCP connection timed out. Check host: {}'.format(host))
+    except Exception as e:
+        import traceback
+        raise Exception('Invalid host and/or port: {0}'.format(traceback.format_exc()))
