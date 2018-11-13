@@ -24,7 +24,6 @@ import warnings
 import sbp.client as sbpc
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.image_resource import ImageResource
-from sbp.client.drivers.network_drivers import TCPDriver
 from sbp.ext_events import SBP_MSG_EXT_EVENT, MsgExtEvent
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
 from sbp.navigation import SBP_MSG_POS_LLH
@@ -39,6 +38,7 @@ from traitsui.api import (EnumEditor, Handler, HGroup, HTMLEditor, ImageEditor,
                           Tabbed, UItem, VGroup, View, VSplit)
 
 import piksi_tools.serial_link as s
+from piksi_tools.utils import get_tcp_driver
 from piksi_tools import __version__ as CONSOLE_VERSION
 from piksi_tools.console.baseline_view import BaselineView
 from piksi_tools.console.callback_prompt import CallbackPrompt, ok_button
@@ -936,8 +936,7 @@ def main():
     if port and args.tcp:
         # Use the TPC driver and interpret port arg as host:port
         try:
-            host, ip_port = port.split(':')
-            selected_driver = TCPDriver(host, int(ip_port))
+            selected_driver = get_tcp_driver(port)
             connection_description = port
             cnx_info['mode'] = 'TCP/IP'
         except:  # noqa
@@ -972,7 +971,7 @@ def main():
                 print("Using TCP/IP at address %s and port %d" % (ip_address,
                                                                   ip_port))
                 cnx_info['mode'] = cnx_type_list[1]
-                selected_driver = TCPDriver(ip_address, int(ip_port))
+                selected_driver = get_tcp_driver(ip_address, ip_port)
                 connection_description = ip_address + ":" + str(ip_port)
             else:
                 cnx_info['mode'] = cnx_type_list[0]

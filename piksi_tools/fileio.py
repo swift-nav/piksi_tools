@@ -19,7 +19,7 @@ import threading
 import sys
 
 from sbp.client import Framer, Handler
-from sbp.client.drivers.network_drivers import TCPDriver
+from piksi_tools.utils import get_tcp_driver
 from sbp.file_io import (SBP_MSG_FILEIO_READ_DIR_RESP,
                          SBP_MSG_FILEIO_READ_RESP, SBP_MSG_FILEIO_WRITE_RESP,
                          MsgFileioReadDirReq, MsgFileioReadDirResp,
@@ -459,11 +459,7 @@ def main():
     port = args.port[0]
     baud = args.baud[0]
     if args.tcp:
-        try:
-            host, port = port.split(':')
-            selected_driver = TCPDriver(host, int(port))
-        except:  # noqa
-            raise Exception('Invalid host and/or port')
+        selected_driver = get_tcp_driver(port)
     else:
         selected_driver = serial_link.get_driver(args.ftdi, port, baud)
 
