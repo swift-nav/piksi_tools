@@ -2213,14 +2213,14 @@
   expert: false
   type: enum
   units: N/A
-  default value: 'disabled'
+  default value: 'Disabled'
   readonly: false
-  enumerated possible values: Disabled, Loosely Coupled, LC + GNSS
+  enumerated possible values: Disabled, Loosely Coupled, Debug
   Description: Determines output mode of the inertial navigation outputs. 
-  Notes: Loosely Coupled will output a loosely coupled GNSS and inertial solution.
-         LC + GNSS configures a testing mode that simultaneously outputs both GNSS only and the loosely coupled inertial solution.
-         In LC + GNSS mode, there are two sets of solution messages with identical times. The "ins flags" indicate which messages are GNSS only solutions and which include are the loosely coupled inertial solution.
-         Disabled configures device to output GNSS only solutions.
+  Notes: |
+         Disabled - output GNSS-only solutions.
+         Loosely Coupled - output loosely coupled solutions, utilizing GNSS and inertial data.
+         Debug - output both GNSS-only and loosely coupled solutions, with identical timestamps. The "Inertial Navigation Mode" flags differentiate between GNSS-only and loosley coupled messages.
 
 - group: ins
   name: odometry_noise_1
@@ -2367,7 +2367,7 @@
   units: N/A
   default value: false
   readonly: false
-  Description: Enables or disables the non-holonomic constraint feature that allows inertial system to make assumptions about vehicle dynamics 
+  Description: Experimental non-holonomic constraint feature that allows inertial system to make assumptions about vehicle dynamics 
   Notes:       This settings should only be enabled provided the vehicle frame Euler angles are measured precisely and are correct. It assumes a vehicle can have no velocity in the direction aligned with the vehicle "y" axis (i.e no sideslip). This is a reasonable assumption for passenger vehicles and many tractors.
 
 - group: ins
