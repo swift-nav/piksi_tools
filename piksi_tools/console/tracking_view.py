@@ -10,7 +10,6 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-import sys
 import time
 from collections import defaultdict, deque
 import threading
@@ -226,17 +225,13 @@ class TrackingView(CodeFiltered):
             for each in list(self.plot.plots.keys()):
                 if each not in [str(a) for a in self.CN0_dict.keys()] and each != 't':
                     try:
-                        sys.stderr.write("Deleting plot: {}\n".format(each))
                         self.plot.delplot(each)
                     except KeyError:
-                        sys.stderr.write("Key error while deleting plot: {}\n".format(each))
-                        # pass
+                        pass
                     try:
-                        sys.stderr.write("Deleting plot data: {}\n".format(each))
                         self.plot_data.del_data(each)
                     except KeyError:
-                        sys.stderr.write("Key error while deleting plot data: {}\n".format(each))
-                        # pass
+                        pass
             # add/remove plot as neccesary and build legend
             for k, cno_array in self.CN0_dict.items():
                 key = str(k)
@@ -255,9 +250,6 @@ class TrackingView(CodeFiltered):
                         self.plot.delplot(key)
             plots = dict(list(zip(plot_labels, plots)))
             self.plot.legend.plots = plots
-            sys.stderr.write("{} {}\n".format(len(self.plot_data.list_data()), len(self.plot.plots)))
-            sys.stderr.write("{}\n".format(sum(len(self.plot_data.get_data(K)) for K in self.plot_data.list_data())))
-            sys.stderr.flush()
 
     def _legend_visible_changed(self):
         if self.plot:
