@@ -10,6 +10,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+import sys
 import time
 from collections import defaultdict, deque
 import threading
@@ -133,104 +134,130 @@ class TrackingView(CodeFiltered):
                 Item('legend_visible', label="Show Legend:"),
                 CodeFiltered.get_filter_group(), )))
 
+    def clean_cn0(self, t):
+        assert self.CN0_lock.locked()
+        for k in list(self.CN0_dict.keys()):
+            if self.CN0_age[k] < self.time[0]:
+                del self.CN0_dict[k]
+                del self.CN0_age[k]
+
     def measurement_state_callback(self, sbp_msg, **metadata):
-        codes_that_came = []
-        t = time.time() - self.t_init
-        self.time.append(t)
-        self.CN0_lock.acquire()
-        # first we loop over all the SIDs / channel keys we have stored and set 0 in for CN0
-        for i, s in enumerate(sbp_msg.states):
-            if code_is_glo(s.mesid.code):
-                # for Glonass satellites, store in two dictionaries FCN and SLOT
-                # so that they can both be retrieved when displaying the channel
-                if (s.mesid.sat > 90):
-                    self.glo_fcn_dict[i] = s.mesid.sat - 100
+        with self.CN0_lock:
+            codes_that_came = []
+            t = time.time() - self.t_init
+            self.time.append(t)
+            # first we loop over all the SIDs / channel keys we have stored and set 0 in for CN0
+            for i, s in enumerate(sbp_msg.states):
+                if code_is_glo(s.mesid.code):
+                    # for Glonass satellites, store in two dictionaries FCN and SLOT
+                    # so that they can both be retrieved when displaying the channel
+                    if (s.mesid.sat > 90):
+                        self.glo_fcn_dict[i] = s.mesid.sat - 100
+                    else:
+                        self.glo_slot_dict[i] = s.mesid.sat
+                    sat = self.glo_fcn_dict.get(i, 0)
                 else:
-                    self.glo_slot_dict[i] = s.mesid.sat
-                sat = self.glo_fcn_dict.get(i, 0)
-            else:
-                sat = s.mesid.sat
-            key = (s.mesid.code, sat, i)
-            codes_that_came.append(key)
-            if s.cn0 != 0:
-                self.CN0_dict[key].append(s.cn0 / 4.0)
-            received_code_list = getattr(self, "received_codes", [])
-            if s.mesid.code not in received_code_list:
-                received_code_list.append(s.mesid.code)
-                self.received_codes = received_code_list
-        for key, cno_array in self.CN0_dict.items():
-            if key not in codes_that_came:
-                cno_array.append(0)
-        self.CN0_lock.release()
+                    sat = s.mesid.sat
+                key = (s.mesid.code, sat, i)
+                codes_that_came.append(key)
+                if s.cn0 != 0:
+                    self.CN0_dict[key].append(s.cn0 / 4.0)
+                    self.CN0_age[key] = t
+                received_code_list = getattr(self, "received_codes", [])
+                if s.mesid.code not in received_code_list:
+                    received_code_list.append(s.mesid.code)
+                    self.received_codes = received_code_list
+            for key, cno_array in list(self.CN0_dict.items()):
+                if key not in codes_that_came:
+                    cno_array.append(0)
+            self.clean_cn0(t)
+            if self.update_scheduled:
+                return
+            self.update_scheduled = True
         GUI.invoke_later(self.update_plot)
 
     def tracking_state_callback(self, sbp_msg, **metadata):
-        codes_that_came = []
-        self.CN0_lock.acquire()
-        t = time.time() - self.t_init
-        self.time.append(t)
-        # first we loop over all the SIDs / channel keys we have stored and set 0 in for CN0
-        # for each SID, an array of size MAX PLOT with the history of CN0's stored
-        # If there is no CN0 or not tracking for an epoch, 0 will be used
-        # each array can be plotted against host_time, t
-        for i, s in enumerate(sbp_msg.states):
-            if code_is_glo(s.sid.code):
-                sat = s.fcn - GLO_FCN_OFFSET
-                self.glo_slot_dict[i] = s.sid.sat
-            else:
-                sat = s.sid.sat
-            key = (s.sid.code, sat, i)
-            codes_that_came.append(key)
-            if s.cn0 != 0:
-                self.CN0_dict[key].append(s.cn0 / 4.0)
-            received_code_list = getattr(self, "received_codes", [])
-            if s.sid.code not in received_code_list:
-                received_code_list.append(s.sid.code)
-                self.received_codes = received_code_list
-        for key, cno_array in self.CN0_dict.items():
-            if key not in codes_that_came:
-                cno_array.append(0)
-        self.CN0_lock.release()
+        with self.CN0_lock:
+            codes_that_came = []
+            t = time.time() - self.t_init
+            self.time.append(t)
+            # first we loop over all the SIDs / channel keys we have stored and set 0 in for CN0
+            # for each SID, an array of size MAX PLOT with the history of CN0's stored
+            # If there is no CN0 or not tracking for an epoch, 0 will be used
+            # each array can be plotted against host_time, t
+            for i, s in enumerate(sbp_msg.states):
+                if code_is_glo(s.sid.code):
+                    sat = s.fcn - GLO_FCN_OFFSET
+                    self.glo_slot_dict[i] = s.sid.sat
+                else:
+                    sat = s.sid.sat
+                key = (s.sid.code, sat, i)
+                codes_that_came.append(key)
+                if s.cn0 != 0:
+                    self.CN0_dict[key].append(s.cn0 / 4.0)
+                    self.CN0_age[key] = t
+                received_code_list = getattr(self, "received_codes", [])
+                if s.sid.code not in received_code_list:
+                    received_code_list.append(s.sid.code)
+                    self.received_codes = received_code_list
+            for key, cno_array in list(self.CN0_dict.items()):
+                if key not in codes_that_came:
+                    cno_array.append(0)
+            self.clean_cn0(t)
+            if self.update_scheduled:
+                return
+            self.update_scheduled = True
         GUI.invoke_later(self.update_plot)
 
     def update_plot(self):
-        self.CN0_lock.acquire()
-        plot_labels = []
-        plots = []
-        # Update the underlying plot data from the CN0_dict for selected items
-        new_plot_data = {'t': self.time}
-        for k, cno_array in self.CN0_dict.items():
-            key = str(k)
-            # set plot data
-            if (getattr(self, 'show_{}'.format(int(k[0])), True)):
-                new_plot_data[key] = cno_array
-        self.plot_data.update_data(new_plot_data)
-        # Remove any stale plots that got removed from the dictionary
-        for each in self.plot.plots.keys():
-            if each not in [str(a) for a in self.CN0_dict.keys()] and each != 't':
-                try:
-                    self.plot.delplot(each)
-                except KeyError:
-                    pass
-        # add/remove plot as neccesary and build legend
-        for k, cno_array in self.CN0_dict.items():
-            key = str(k)
-            if (getattr(self, 'show_{}'.format(int(k[0])), True) and
-               not cno_array.count(0) == NUM_POINTS):
-                if key not in self.plot.plots.keys():
-                    pl = self.plot.plot(('t', key), type='line',
-                                        color=get_color(k), name=key)
+        with self.CN0_lock:
+            self.update_scheduled = False
+            plot_labels = []
+            plots = []
+            # Update the underlying plot data from the CN0_dict for selected items
+            new_plot_data = {'t': self.time}
+            for k, cno_array in self.CN0_dict.items():
+                key = str(k)
+                # set plot data
+                if (getattr(self, 'show_{}'.format(int(k[0])), True)):
+                    new_plot_data[key] = cno_array
+            self.plot_data.update_data(new_plot_data)
+            # Remove any stale plots that got removed from the dictionary
+            for each in list(self.plot.plots.keys()):
+                if each not in [str(a) for a in self.CN0_dict.keys()] and each != 't':
+                    try:
+                        sys.stderr.write("Deleting plot: {}\n".format(each))
+                        self.plot.delplot(each)
+                    except KeyError:
+                        sys.stderr.write("Key error while deleting plot: {}\n".format(each))
+                        # pass
+                    try:
+                        sys.stderr.write("Deleting plot data: {}\n".format(each))
+                        self.plot_data.del_data(each)
+                    except KeyError:
+                        sys.stderr.write("Key error while deleting plot data: {}\n".format(each))
+                        # pass
+            # add/remove plot as neccesary and build legend
+            for k, cno_array in self.CN0_dict.items():
+                key = str(k)
+                if (getattr(self, 'show_{}'.format(int(k[0])), True) and
+                   not cno_array.count(0) == NUM_POINTS):
+                    if key not in self.plot.plots.keys():
+                        pl = self.plot.plot(('t', key), type='line',
+                                            color=get_color(k), name=key)
+                    else:
+                        pl = self.plot.plots[key]
+                    plots.append(pl)
+                    plot_labels.append(get_label(k, self.glo_slot_dict))
+                # if not selected or all 0, remove
                 else:
-                    pl = self.plot.plots[key]
-                plots.append(pl)
-                plot_labels.append(get_label(k, self.glo_slot_dict))
-            # if not selected or all 0, remove
-            else:
-                if key in self.plot.plots.keys():
-                    self.plot.delplot(key)
-        plots = dict(zip(plot_labels, plots))
-        self.plot.legend.plots = plots
-        self.CN0_lock.release()
+                    if key in list(self.plot.plots.keys()):
+                        self.plot.delplot(key)
+            plots = dict(list(zip(plot_labels, plots)))
+            self.plot.legend.plots = plots
+            sys.stderr.write("{} {}\n".format(len(self.plot_data.list_data()), len(self.plot.plots)))
+            sys.stderr.write("{}\n".format(sum(len(self.plot_data.get_data(K)) for K in self.plot_data.list_data())))
+            sys.stderr.flush()
 
     def _legend_visible_changed(self):
         if self.plot:
@@ -247,6 +274,7 @@ class TrackingView(CodeFiltered):
         self.time = deque([x * 1 / TRK_RATE for x in range(-NUM_POINTS, 0, 1)], maxlen=NUM_POINTS)
         self.CN0_lock = threading.Lock()
         self.CN0_dict = defaultdict(lambda: deque([0] * NUM_POINTS, maxlen=NUM_POINTS))
+        self.CN0_age = defaultdict(lambda: -1)
         self.glo_fcn_dict = {}
         self.glo_slot_dict = {}
         self.n_channels = None
@@ -278,3 +306,4 @@ class TrackingView(CodeFiltered):
         self.link.add_callback(self.tracking_state_callback,
                                SBP_MSG_TRACKING_STATE)
         self.python_console_cmds = {'track': self}
+        self.update_scheduled = False
