@@ -9,7 +9,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from __future__ import print_function
+
 
 import argparse
 # Logging
@@ -175,7 +175,7 @@ class SwiftConsole(HasTraits):
     imu_view = Instance(IMUView)
     mag_view = Instance(MagView)
     spectrum_analyzer_view = Instance(SpectrumAnalyzerView)
-    log_level_filter = Enum(list(SYSLOG_LEVELS.itervalues()))
+    log_level_filter = Enum(list(SYSLOG_LEVELS.values()))
     """"
   mode : baseline and solution view - SPP, Fixed or Float
   num_sat : baseline and solution view - number of satellites
@@ -413,7 +413,7 @@ class SwiftConsole(HasTraits):
             print("Error encoding msg_print: {}".format(e))
 
     def log_message_callback(self, sbp_msg, **metadata):
-        encoded = sbp_msg.text
+        encoded = sbp_msg.text.decode('utf8')
         for eachline in reversed(encoded.split('\n')):
             self.console_output.write_level(eachline, sbp_msg.level)
 
@@ -958,12 +958,6 @@ def main():
                     expand_json=args.expand_json) as console:
 
                 console.configure_traits()
-
-    # Force exit, even if threads haven't joined
-    try:
-        os._exit(0)
-    except:  # noqa
-        pass
 
 
 if __name__ == "__main__":

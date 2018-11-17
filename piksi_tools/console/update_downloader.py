@@ -11,7 +11,7 @@
 
 import os
 import requests
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 from piksi_tools.utils import sopen
 from piksi_tools.console.utils import swift_path
