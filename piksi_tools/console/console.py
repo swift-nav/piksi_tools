@@ -177,7 +177,7 @@ class SwiftConsole(HasTraits):
     mag_view = Instance(MagView)
     spectrum_analyzer_view = Instance(SpectrumAnalyzerView)
     skylark_view = Instance(SkylarkView)
-    log_level_filter = Enum(list(SYSLOG_LEVELS.itervalues()))
+    log_level_filter = Enum(list(SYSLOG_LEVELS.values()))
     """"
   mode : baseline and solution view - SPP, Fixed or Float
   num_sat : baseline and solution view - number of satellites
