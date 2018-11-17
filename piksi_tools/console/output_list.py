@@ -67,7 +67,7 @@ ALL_LOG_LEVELS = SYSLOG_LEVELS.copy()
 ALL_LOG_LEVELS.update(UNMASKABLE_LEVELS)
 
 SYSLOG_LEVELS_INVERSE = {}
-for key, value in SYSLOG_LEVELS.iteritems():
+for key, value in list(SYSLOG_LEVELS.items()):
     SYSLOG_LEVELS_INVERSE[value.lower()] = key
 # Set default filter level
 DEFAULT_LOG_LEVEL_FILTER = "WARNING"
@@ -188,7 +188,7 @@ class OutputList(HasTraits):
     # filtered set of messages
     filtered_list = List(LogItem)
     # state of fiter on messages
-    log_level_filter = Enum(list(SYSLOG_LEVELS.iterkeys()))
+    log_level_filter = Enum(list(SYSLOG_LEVELS.keys()))
     # The maximum allowed length of self.text (and self._paused_buffer).
     max_len = Trait(DEFAULT_MAX_LEN, None, Int)
 

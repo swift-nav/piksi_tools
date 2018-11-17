@@ -10,7 +10,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from __future__ import print_function
+
 
 import datetime
 import time
@@ -87,7 +87,7 @@ class ObservationView(CodeFiltered):
         )
         filters = HGroup(padding=0, springy=False)
         for prefix, code_list in sorted(
-                GUI_CODES.items(), key=lambda x: x[1][0] if x[0] != 'SBAS' else 100):
+                list(GUI_CODES.items()), key=lambda x: x[1][0] if x[0] != 'SBAS' else 100):
             vgroup1 = VGroup()  # two groups are needed to combat silly spacing in Traitsui
             vgroup2 = VGroup()
             for code in code_list:
@@ -133,7 +133,7 @@ class ObservationView(CodeFiltered):
 
         for code in SUPPORTED_CODES:
             setattr(self, 'count_{}'.format(code),
-                    len([key for key in self.obs.keys() if key[1] == code]))
+                    len([key for key in list(self.obs.keys()) if key[1] == code]))
             if getattr(self, 'count_{}'.format(code)) != 0 and code not in self.received_codes:
                 self.received_codes.append(code)
 
