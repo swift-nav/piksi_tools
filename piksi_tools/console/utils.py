@@ -1,9 +1,11 @@
-from __future__ import print_function
+"""Console Utilities"""
 
 import datetime
 import pkg_resources
 import time
 import os
+import gc
+import threading
 
 from functools import partial
 from threading import Event, Thread
@@ -630,7 +632,10 @@ def call_repeatedly(interval, func, *args):
             func(*args)
             time.sleep(interval)
 
-    Thread(target=loop).start()
+    thread = Thread(target=loop)
+    thread.daemon = True
+    thread.start()
+
     return stopped.set
 
 
@@ -639,3 +644,15 @@ resource_stream = partial(pkg_resources.resource_stream, 'piksi_tools')
 icon = ImageResource(resource_filename('console/images/icon.png'))
 
 swift_path = os.path.normpath(os.path.join(os.path.expanduser("~"), 'SwiftNav'))
+
+GARBAGE_COLLECT_INTERVAL_SEC = 60
+
+
+def start_gc_collect_thread():
+    def loop():
+        while True:
+            time.sleep(GARBAGE_COLLECT_INTERVAL_SEC)
+            gc.collect()
+    thread = Thread(target=loop)
+    thread.daemon = True
+    thread.start()

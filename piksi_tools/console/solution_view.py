@@ -9,7 +9,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from __future__ import absolute_import
+
 
 import datetime
 import math
@@ -226,7 +226,7 @@ class SolutionView(HasTraits):
         self.plot_data.update_data(pending_update)
 
     def _append_empty_sln_data(self, exclude_mode=None):
-        for each_mode in mode_string_dict.values():
+        for each_mode in list(mode_string_dict.values()):
             if exclude_mode is None or each_mode != exclude_mode:
                 self.slns['lat_' + each_mode].append(np.nan)
                 self.slns['lng_' + each_mode].append(np.nan)
@@ -452,7 +452,7 @@ class SolutionView(HasTraits):
                 self.slns[each_array] = deque(np.array(self.slns[each_array]) / self.prev_sfs[index] +
                                               self.prev_offsets[index],
                                               maxlen=PLOT_HISTORY_MAX)
-        self.pending_draw_modes = mode_string_dict.values()
+        self.pending_draw_modes = list(mode_string_dict.values())
         self.list_lock.release()
 
     def rescale_for_units_change(self):
@@ -488,7 +488,7 @@ class SolutionView(HasTraits):
         # Periodically, we make sure to redraw older data to expire old plot data
         if current_time - self.last_stale_update_time > STALE_DATA_PERIOD:
             # we don't update old solution modes every timestep to try and save CPU
-            pending_draw_modes = mode_string_dict.values()
+            pending_draw_modes = list(mode_string_dict.values())
             self.last_stale_update_time = current_time
         for mode_string in pending_draw_modes:
             if self.running:
@@ -844,7 +844,7 @@ class SolutionView(HasTraits):
             marker_size=5.0)
         plot_labels = ['SPP', 'SBAS', 'DGPS', 'RTK float', 'RTK fixed', 'DR']
         plots_legend = dict(
-            zip(plot_labels, [spp, sbas, dgnss, rtkfloat, rtkfix, dr]))
+            list(zip(plot_labels, [spp, sbas, dgnss, rtkfloat, rtkfix, dr])))
         self.plot.legend.plots = plots_legend
         self.plot.legend.labels = plot_labels  # sets order
         self.plot.legend.visible = True

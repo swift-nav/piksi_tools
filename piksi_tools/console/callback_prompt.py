@@ -9,10 +9,9 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from __future__ import print_function
-from __future__ import absolute_import
 
-from new import instancemethod
+
+
 from threading import Thread
 from time import sleep
 
@@ -56,8 +55,8 @@ class CallbackHandler(Handler):
         for a in actions:
             # Add instancemethod to self for Action.action.
             handler = globals()[a.action]
-            self.__dict__[a.action] = instancemethod(handler, self,
-                                                     CallbackHandler)
+            # Replacement for new.instancemethod in Python 3
+            self.__dict__[a.action] = handler.__get__(self, CallbackHandler)
 
     # X button was pressed.
     def close(self, info, is_ok):

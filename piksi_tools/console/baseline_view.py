@@ -166,7 +166,7 @@ class BaselineView(HasTraits):
         self.plot_data.update_data(pending_update)
 
     def _append_empty_sln_data(self, exclude_mode=None):
-        for each_mode in mode_string_dict.values():
+        for each_mode in list(mode_string_dict.values()):
             if exclude_mode is None or each_mode != exclude_mode:
                 self.slns['n_' + each_mode].append(np.nan)
                 self.slns['e_' + each_mode].append(np.nan)
@@ -374,7 +374,7 @@ class BaselineView(HasTraits):
         # Periodically, we make sure to redraw older data to expire old plot data
         if current_time - self.last_stale_update_time > STALE_DATA_PERIOD:
             # we don't update old solution modes every timestep to try and save CPU
-            pending_draw_modes = mode_string_dict.values()
+            pending_draw_modes = list(mode_string_dict.values())
             self.last_stale_update_time = current_time
         for mode_string in pending_draw_modes:
             if self.running:
@@ -486,7 +486,7 @@ class BaselineView(HasTraits):
             marker_size=5)
         plot_labels = [' Base Position', 'DGPS', 'RTK Float', 'RTK Fixed']
         plots_legend = dict(
-            zip(plot_labels, [ref, cur_dgnss, cur_float, cur_fixed]))
+            list(zip(plot_labels, [ref, cur_dgnss, cur_float, cur_fixed])))
         self.plot.legend.plots = plots_legend
         self.plot.legend.labels = plot_labels  # sets order
         self.plot.legend.visible = True

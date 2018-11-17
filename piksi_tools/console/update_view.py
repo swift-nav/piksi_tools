@@ -9,7 +9,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from __future__ import absolute_import, print_function
+
 
 import os
 import errno
@@ -17,7 +17,7 @@ import re
 
 from threading import Thread
 from time import sleep
-from urllib2 import URLError
+from urllib.error import URLError
 
 from piksi_tools.console.GitVersion import parse as gitversion_parse
 from pyface.api import GUI, OK, FileDialog, DirectoryDialog, ProgressDialog
@@ -691,7 +691,7 @@ class UpdateView(HasTraits):
 
     def log_cb(self, msg, **kwargs):
         for regex in UPGRADE_WHITELIST:
-            if re.match(regex, msg.text):
+            if re.match(regex, msg.text.decode('utf8')):
                 text = msg.text.replace("\r", "\n").strip().split("\n")
                 if len(text) > 1:
                     # upgrade tool deliminates lines in stoud with \r, we want penultimate line that is complete to show
