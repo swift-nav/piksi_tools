@@ -239,7 +239,7 @@ class FileIO(object):
         """
         offset = 0
         chunksize = MAX_PAYLOAD_SIZE - 4
-        closure = {'mostly_done': False, 'done': False, 'buf': {}, 'pending':set()}
+        closure = {'mostly_done': False, 'done': False, 'buf': {}, 'pending': set()}
 
         def cb(req, resp):
             closure['pending'].remove(req.offset)
