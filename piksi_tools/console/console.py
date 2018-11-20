@@ -60,6 +60,15 @@ from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
                                        icon, swift_path, DR_MODE, DIFFERENTIAL_MODES)
 from piksi_tools.console.skylark_view import SkylarkView
 
+import tracemalloc
+import datetime
+
+MEM_TRACE_LOG = open('/tmp/console_memory_trace.txt', 'a')
+
+
+def time_prefix():
+    return datetime.datetime.now().strftime('%Y%m%d_%H:%M:%S - ')
+
 
 class ArgumentParserError(Exception):
     pass
@@ -123,6 +132,21 @@ def get_args():
 CONSOLE_TITLE = 'Swift Console v' + CONSOLE_VERSION
 BAUD_LIST = [57600, 115200, 230400, 921600, 1000000]
 
+_snap_last = None
+
+def start_gc_collect_thread():
+    import gc
+    from threading import Thread
+    def loop():
+        global _snap_last
+        while True:
+            time.sleep(60)
+            gc.collect()
+#            _snap_last = tracemalloc.take_snapshot()
+    thread = Thread(target=loop)
+    thread.daemon = True
+    thread.start()
+
 
 class ConsoleHandler(Handler):
     """
@@ -142,6 +166,53 @@ class ConsoleHandler(Handler):
         if info.initialized:
             info.ui.title = (info.object.dev_id +
                              "(" + info.object.device_serial + ") " + CONSOLE_TITLE)
+
+    def init(self, info):
+        r = Handler.init(self, info)
+#        tracemalloc.start(30)
+#        MEM_TRACE_LOG.write(time_prefix() + "Console window is initializing, starting memory trace...\n")
+#        MEM_TRACE_LOG.flush()
+        return r
+
+    def close(self, info, ok):
+        r = Handler.close(self, info, ok)
+#        MEM_TRACE_LOG.write(time_prefix() + "Console window is starting to close...\n")
+#        MEM_TRACE_LOG.flush()
+        return r
+
+    def closed(self, info, ok):
+        r = Handler.closed(self, info, ok)
+#        MEM_TRACE_LOG.write(time_prefix() + "Console window is closed...\n")
+#        MEM_TRACE_LOG.write(time_prefix() + "Printing memory usage:\n")
+#        MEM_TRACE_LOG.flush()
+#        snapshot = tracemalloc.take_snapshot()
+#        top_stats = snapshot.statistics('lineno')
+#        MEM_TRACE_LOG.write(time_prefix() + "[ Top 50 ]\n")
+#        for stat in top_stats[:50]:
+#            MEM_TRACE_LOG.write(time_prefix() + str(stat) + "\n")
+#            MEM_TRACE_LOG.flush()
+#        top_stats = snapshot.statistics('lineno', cumulative=True)
+#        MEM_TRACE_LOG.write(time_prefix() + "[ Top 50 (Cum) ]\n")
+#        for stat in top_stats[:50]:
+#            MEM_TRACE_LOG.write(time_prefix() + str(stat) + "\n")
+#            MEM_TRACE_LOG.flush()
+#        if _snap_last is not None:
+#            MEM_TRACE_LOG.write(time_prefix() + "[ Top 50 (Last) ]\n")
+#            top_stats = snapshot.compare_to(_snap_last, 'lineno')
+#            for stat in top_stats[:50]:
+#                MEM_TRACE_LOG.write(time_prefix() + str(stat) + "\n")
+#                MEM_TRACE_LOG.flush()
+#            MEM_TRACE_LOG.write(time_prefix() + "[ Top 3 (Last + TB) ]\n")
+#            top_stats = snapshot.compare_to(_snap_last, 'traceback')
+#            for stat in top_stats[:3]:
+#                MEM_TRACE_LOG.write(time_prefix() + "%s memory blocks: %.1f KiB\n" % (stat.count, stat.size / 1024.0))
+#                for line in stat.traceback.format():
+#                    MEM_TRACE_LOG.write(time_prefix() + line + "\n")
+#                MEM_TRACE_LOG.flush()
+#        MEM_TRACE_LOG.write(time_prefix() + "...done\n")
+#        MEM_TRACE_LOG.flush()
+#        MEM_TRACE_LOG.close()
+        return r
 
 
 class SwiftConsole(HasTraits):
@@ -885,6 +956,7 @@ class PortChooser(HasTraits):
 
 
 def main():
+    start_gc_collect_thread()
     warnings.simplefilter(action="ignore", category=FutureWarning)
     logging.basicConfig()
     args = None
