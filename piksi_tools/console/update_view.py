@@ -364,6 +364,20 @@ class UpdateView(HasTraits):
         Handle update_stm_firmware button. Starts thread so as not to block the GUI
         thread.
         """
+        ins_upgrade_modes = set(['Disabled', 'disabled'])
+        if(self.settings['ins']['output_mode'].value not in ins_upgrade_modes):
+            ins_disable_prompt = \
+                prompt.CallbackPrompt(
+                    title="Unsupported Update Request",
+                    actions=[prompt.close_button],
+                )
+            ins_disable_prompt.text = \
+                "\n\n" + \
+                "Updating firmware is not supported when INS is active.\n\n" + \
+                "Please change the 'output mode' INS setting to 'Disabled'\n" + \
+                "before updating firmware.\n\n"
+            ins_disable_prompt.run(block=False)
+            return
 
         if self.connection_info['mode'] != 'TCP/IP':
             self._write(
