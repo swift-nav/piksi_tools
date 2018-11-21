@@ -149,7 +149,7 @@
   name: antenna_height
   expert: true
   type: double
-  units: N/A
+  units: meters
   default value: '0.0'
   readonly: false
   enumerated possible values:
