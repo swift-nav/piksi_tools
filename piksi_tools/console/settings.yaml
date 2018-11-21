@@ -122,6 +122,41 @@
   Notes: Legacy mode outputs the RTCMv3.1 1004 & 1012 observation messages (GPS&GLO only),  
     whereas the RTCMv3.2 MSM4 and MSM5 modes send observations from all constellations.
 
+- group: rtcm_out
+  name: rcv_descriptor
+  expert: true
+  type: string
+  units: N/A
+  default value: 'PIKSI'
+  readonly: false
+  enumerated possible values:
+  Description: Receiver type description to be sent out in the RTCMv3 1033 message.
+  Notes: Alphanumeric characters. Maxmimum 31 characters.
+  
+- group: rtcm_out
+  name: ant_descriptor
+  expert: true
+  type: string
+  units: N/A
+  default value: 'HXCGPS500       NONE'
+  readonly: false
+  enumerated possible values:
+  Description: Antenna description to be sent out in RTCMv3 messages 1008 and 1033.
+  Notes: Alphanumeric characters. IGS limits the number of characters to 20 at
+    this time, but this setting allows for 31 characters for future extension.
+    
+- group: rtcm_out
+  name: antenna_height
+  expert: true
+  type: double
+  units: meters
+  default value: '0.0'
+  readonly: false
+  enumerated possible values:
+  Description: Antenna height to be sent out in RTCMv3 message 1006.
+  Notes: The Antenna Height field provides the height of the Antenna Reference Point 
+    above the marker used in the survey campaign.
+
 - group: sbp
   name: obs_msg_max_size
   expert: true
