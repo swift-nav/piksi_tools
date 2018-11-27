@@ -54,7 +54,7 @@ def parse_version(version):
     if version[0] == 'v':
         version = version[1:]
     return pkparse_version(version.replace(
-        "dirty",
+        "-dirty",
         "", ))
 
 
@@ -364,6 +364,20 @@ class UpdateView(HasTraits):
         Handle update_stm_firmware button. Starts thread so as not to block the GUI
         thread.
         """
+        ins_upgrade_modes = set(['Disabled', 'disabled'])
+        if(self.settings['ins']['output_mode'].value not in ins_upgrade_modes):
+            ins_disable_prompt = \
+                prompt.CallbackPrompt(
+                    title="Unsupported Update Request",
+                    actions=[prompt.close_button],
+                )
+            ins_disable_prompt.text = \
+                "\n\n" + \
+                "Updating firmware is not supported when INS is active.\n\n" + \
+                "Please change the 'output mode' INS setting to 'Disabled'\n" + \
+                "before updating firmware.\n\n"
+            ins_disable_prompt.run(block=False)
+            return
 
         if self.connection_info['mode'] != 'TCP/IP':
             self._write(
@@ -678,7 +692,14 @@ class UpdateView(HasTraits):
     def log_cb(self, msg, **kwargs):
         for regex in UPGRADE_WHITELIST:
             if re.match(regex, msg.text):
-                self.stream.scrollback_write(msg.text.split("\n")[-1])
+                text = msg.text.replace("\r", "\n").strip().split("\n")
+                if len(text) > 1:
+                    # upgrade tool deliminates lines in stoud with \r, we want penultimate line that is complete to show
+                    text = text[-2]
+                else:
+                    # If there is only one line, we show that
+                    text = text[-1]
+                self.stream.scrollback_write(text)
 
     def manage_multi_firmware_update(self):
         self.blob_size = float(len(self.stm_fw.blob))

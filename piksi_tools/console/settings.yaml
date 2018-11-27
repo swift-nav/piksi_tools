@@ -110,6 +110,53 @@
     be provided on the Piksi Multi evaluation board through a labeled SMA connector. 
     It is not exposed on Duro.
 
+- group: rtcm_out
+  name: output_mode
+  expert: true
+  type: enum
+  units: N/A
+  default value: 'MSM5'
+  readonly: false
+  enumerated possible values: Legacy, MSM4, MSM5
+  Description: Selects the format of RTCM observation messages for the RTCMv3 OUT protocol
+  Notes: Legacy mode outputs the RTCMv3.1 1004 & 1012 observation messages (GPS&GLO only),  
+    whereas the RTCMv3.2 MSM4 and MSM5 modes send observations from all constellations.
+
+- group: rtcm_out
+  name: rcv_descriptor
+  expert: true
+  type: string
+  units: N/A
+  default value: 'PIKSI'
+  readonly: false
+  enumerated possible values:
+  Description: Receiver type description to be sent out in the RTCMv3 1033 message.
+  Notes: Alphanumeric characters. Maxmimum 31 characters.
+
+- group: rtcm_out
+  name: ant_descriptor
+  expert: true
+  type: string
+  units: N/A
+  default value: 'HXCGPS500       NONE'
+  readonly: false
+  enumerated possible values:
+  Description: Antenna description to be sent out in RTCMv3 messages 1008 and 1033.
+  Notes: Alphanumeric characters. IGS limits the number of characters to 20 at
+    this time, but this setting allows for 31 characters for future extension.
+
+- group: rtcm_out
+  name: antenna_height
+  expert: true
+  type: double
+  units: meters
+  default value: '0.0'
+  readonly: false
+  enumerated possible values:
+  Description: Antenna height to be sent out in RTCMv3 message 1006.
+  Notes: The Antenna Height field provides the height of the Antenna Reference Point 
+    above the marker used in the survey campaign.
+
 - group: sbp
   name: obs_msg_max_size
   expert: true
@@ -2174,39 +2221,38 @@
   Notes: If a connectivity check fails, this settings controls the frequency at which a new
          connectivity check is performed.
 
-- group: vehicle_dynamics_filter
-  name: mode
+- group: system
+  name: ota_enabled
+  type: boolean
   expert: true
-  type: enum
+  default value: false
+  readonly: false
   units: N/A
-  default value: 'None'
-  readonly: false
-  enumerated possible values: None, Tractor
-  Description: (ALPHA) Selects the type of vehicle dynamics filter.
-  Notes: The vehicle dynamics filter allows additional filtering to be imposed on top
-         of the raw GNSS solution. Different vehicle types allow certain assumptions to be made
-         about the dynamics of the trajectory, and these can be incorporated via the additional
-         filtering step.
+  Description: Enables or disables the Over-The-Air upgrade daemon.
+  Notes: The OTA daemon contacts the OTA server once per hour and checks if the offered version is newer
+         than currently installed. If the offered version is newer, then the image is downloaded and an
+         upgrade is performed. After the upgrade the device is automatically rebooted.
 
-- group: vehicle_dynamics_filter
-  name: lowpass_time_constant
+- group: system
+  name: ota_debug
+  type: boolean
   expert: true
-  type: double
-  units: seconds
-  default value: '3.0'
+  default value: false
   readonly: false
-  Description: (ALPHA) Time constant for low-pass filtering of position trajectory.
-  Notes: Has no effect unless the vehicle dynamics filter is active.
+  units: N/A
+  Description: Enables or disables the Over-The-Air upgrade daemon's verbose output.
+  Notes: The OTA daemon must be disabled in order to change this setting.
 
-- group: vehicle_dynamics_filter
-  name: max_acceleration 
+- group: system
+  name: ota_url
+  type: string
   expert: true
-  type: double
-  units: meters per second squared 
-  default value: '3.0'
+  default value: N/A
   readonly: false
-  Description: (ALPHA) Maximum possible linear acceleration of vehicle.
-  Notes: Has no effect unless the vehicle dynamics filter is active.
+  units: N/A
+  Description: Set the URL of the Over-The-Air upgrade server. If empty, an internal
+               default address is used.
+  Notes: The OTA daemon must be disabled in order to change this setting.
 
 - group: ins
   name: output_mode

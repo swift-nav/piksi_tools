@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Copyright (C) 2014-2015 Swift Navigation Inc.
-# Contact: Bhaskar Mookerji <mookerji@swiftnav.com>
+# Copyright (C) 2014-2018 Swift Navigation Inc.
+# Contact: Swift <dev@swiftnav.com>
 
 # This source is subject to the license found in the file 'LICENSE' which must
 # be be distributed together with this source. All other rights reserved.
@@ -26,9 +26,9 @@ function color () {
 }
 
 purple='35;1'
-red_flashing='31;5'
+red_bold='31;1'
 message_color=$purple
-error_color=$red_flashing
+error_color=$red_bold
 
 function log_info () {
     color $message_color "$@"
@@ -55,12 +55,62 @@ function piksi_splash_linux () {
     "
 }
 
+
+function install_dev_libs(){
+    sudo apt-get install \
+      build-essential \
+      cmake \
+      libgl1-mesa-dev \
+      libgl1-mesa-glx \
+      libgl1-mesa-dri \
+      libglu1-mesa-dev \
+      libx11-dev \
+      python2.7-dev \
+      pyqt4-dev-tools \
+      qt4-qmake \
+      qt4-default \
+      qt4-dev-tools \
+      x11-apps
+}
+
+function bionic_like() {
+    # Ubuntu 18.04 -> bionic
+    # Mint 19 -> tara
+    [[ $(lsb_release -c -s) == "bionic" ]] || \
+        [[ $(lsb_release -c -s) == "tara" ]]
+}
+
+function linux_mint19() {
+    [[ $(lsb_release -c -s) == "tara" ]]
+}
+
+function detect_virtualenv() {
+    python -c 'import sys; sys.exit(0) if hasattr(sys, "real_prefix") else sys.exit(1)'
+}
+
+function validate_linux_mint19() {
+    if linux_mint19 && ! detect_virtualenv; then
+        log_error "On Linux Mint, the console must be installed inside a virtualenv."
+        log_error "Create one by running:"
+        log_error $'\t'"virtualenv py2 --system-site-packages"
+        log_error $'\t'"source py2/bin/activate"
+        exit 1
+    fi
+}
+
+function install_pyside() {
+    if linux_mint19; then
+        sudo apt-get install python-pyside
+    else
+        pip install PySide==1.2.4
+    fi
+}
+
 function all_dependencies_debian () {
     sudo apt-get install git \
          build-essential \
          python \
          python-setuptools \
-         python-pip \
          python-virtualenv \
          swig
     sudo apt-get install git \
@@ -69,18 +119,31 @@ function all_dependencies_debian () {
          libffi-dev \
          libssl-dev \
          python-chaco \
-         python-vtk \
-         python-wxgtk2.8 \
          python-qt4-dev \
          python-sip \
          python-qt4-gl \
-         python-software-properties \
          libgtk2.0-0
+    if ! bionic_like; then
+        sudo apt-get install \
+            python-software-properties \
+            python-vtk \
+            python-pip \
+            python-wxgtk2.8
+    else
+        sudo apt-get install \
+            software-properties-common \
+            python-wxgtk3.0 \
+            python-vtk6
+        sudo apt-get purge python-pip
+        sudo python -m easy_install pip
+    fi
+    install_dev_libs
+    validate_linux_mint19
     pip install --upgrade pip
+    pip install PyInstaller
     pip install -r ../requirements.txt
     pip install -r ../requirements_gui.txt
-    pip install PyInstaller
-    pip install PySide==1.2.4
+    install_pyside
 }
 
 
@@ -187,7 +250,7 @@ function run_all_platforms () {
             install_swig_osx &&
             install_python_deps_osx
     else
-        log_error "This script does not support this platform. Please contact mookerji@swiftnav.com."
+        log_error "This script does not support this platform. Please contact dev@swiftnav.com."
         exit 1
     fi
     log_info "Done!"

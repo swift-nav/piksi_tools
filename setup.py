@@ -4,6 +4,13 @@ import os
 
 from setuptools import setup
 
+from setuptools_scm.git import parse as git_parse
+from setuptools_scm.git import GitWorkdir, _git_parse_describe
+from setuptools_scm.git import DEFAULT_DESCRIBE
+from setuptools_scm.config import Configuration
+from setuptools_scm.utils import do_ex, trace, has_command
+from setuptools_scm.version import meta
+
 CLASSIFIERS = [
     'Intended Audience :: Developers',
     'Intended Audience :: Science/Research',
@@ -46,6 +53,59 @@ PACKAGE_DATA = {
     ]
 }
 
+
+
+def myparse(
+        root, describe_command=DEFAULT_DESCRIBE, config=None):
+    """
+    rewriting of setuptools_scm.git.parse method to remove -branch string
+    from any tags.  This library is clearly not designed for people to adjust
+    its function so I had to lift entire function from Aug 8 master with SHA 
+    a91b40c99ea9bfc4289272285f17e1d43c243b76
+
+    """
+    if not config:
+        config = Configuration(root=root)
+
+    if not has_command("git"):
+        return
+
+    wd = GitWorkdir.from_potential_worktree(config.absolute_root)
+    if wd is None:
+        return
+
+    out, unused_err, ret = wd.do_ex(describe_command)
+    if ret:
+        # If 'git describe' failed, try to get the information otherwise.
+        rev_node = wd.node()
+        dirty = wd.is_dirty()
+
+        if rev_node is None:
+            return meta("0.0", distance=0, dirty=dirty, config=config)
+
+        return meta(
+            "0.0",
+            distance=wd.count_all_nodes(),
+            node="g" + rev_node,
+            dirty=dirty,
+            branch=wd.get_branch(),
+            config=config,
+        )
+    else:
+        tag, number, node, dirty = _git_parse_describe(out)
+        branch = wd.get_branch()
+        if number:
+            return meta(
+                tag.replace('-branch',''),
+                config=config,
+                distance=number,
+                node=node,
+                dirty=dirty,
+                branch=branch,
+            )
+        else:
+            return meta(tag.replace('-branch', ''), config=config, node=node, dirty=dirty, branch=branch)
+
 cwd = os.path.abspath(os.path.dirname(__file__))
 with open(cwd + '/README.rst') as f:
     readme = f.read()
@@ -59,6 +119,7 @@ setup(
     long_description=readme,
     use_scm_version={
         'write_to': 'piksi_tools/_version.py',
+        'parse': myparse
     },
     setup_requires=['setuptools_scm'],
     author='Swift Navigation',

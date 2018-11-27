@@ -30,13 +30,13 @@ class MsgExtractor(object):
         self.outfile.write(",".join(self.columns) + "\n")
 
     def _callback(self, msg, data):
+        outstringlist = []
         for each in self.columns:
             try:
-                self.outfile.write("{0},".format(getattr(msg, each)))
+                outstringlist.append("{0}".format(getattr(msg, each)))
             except AttributeError:
-                print(data)
-                self.outfile.write("{0},".format(data[each]))
-        self.outfile.write("\n")
+                outstringlist.append("{0}".format(data[each]))
+        self.outfile.write(",".join(outstringlist) + "\n")
 
 
 def get_args():
@@ -47,7 +47,7 @@ def get_args():
                         help="specify the SBP JSON/binary file for which to dump fields to CSV.")
     parser.add_argument("-o", "--outfile", default="out.csv",
                         help="Output .csv file postfix")
-    parser.add_argument("-t", "--type", default="MsgBaselineNED",
+    parser.add_argument("-t", "--type", default=None,
                         help="Message Type to csvify (classname)")
     parser.add_argument("-i", "--id", default=None,
                         help="Message ID to csvify")
@@ -68,13 +68,13 @@ def main():
         else:
             raise Exception(
                 "Usage Error: Unknown input format. Valid input formats for -f arg are bin and json.")
-        with open(args.type + "_" + args.outfile, 'w+') as outfile:
-            msg_class = None
-            for my_id, my_class in _SBP_TABLE.iteritems():
-                if my_class.__name__ == args.type or (args.id and my_id == args.id):
-                    print("Extracing class {} with msg_id {}".format(my_class, my_id))
-                    msg_class = my_class
-            assert msg_class is not None, "Invalid message type specified"
+        msg_class = None
+        for my_id, my_class in _SBP_TABLE.iteritems():
+            if my_class.__name__ == args.type or (args.id and my_id == int(args.id)):
+                print("Extracing class {} with msg_id {}".format(my_class, my_id))
+                msg_class = my_class
+        assert msg_class is not None, "Invalid message type specified"
+        with open(msg_class.__name__ + "_" + args.outfile, 'w+') as outfile:
             conv = MsgExtractor(outfile, msg_class, metadata=(args.format == 'json'))
             if args.format == 'json':
                 iterator = iterator.next()

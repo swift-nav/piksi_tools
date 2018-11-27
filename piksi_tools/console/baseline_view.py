@@ -252,7 +252,7 @@ class BaselineView(HasTraits):
     def baseline_callback(self, sbp_msg, **metadata):
         soln = MsgBaselineNEDDepA(sbp_msg)
         table = []
-        self.last_btime_update = time.time() # used to drive status bar logic
+        self.last_btime_update = time.time()  # used to drive status bar logic
         self.last_soln = soln
 
         soln.n = soln.n * 1e-3
