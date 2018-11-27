@@ -1508,7 +1508,7 @@
   enumerated possible values:
   Description: NTRIP URL to use.
   Notes: NTRIP must be enabled to use this setting. URLs should be HTTP URLs with a port, and a mountpoint path such as example.com:2101/BAZ_RTCM3.
-    The NTRIP daemon must be disabled in order to change this setting.
+    NTRIP 'enable' must be 'False' in order to change this setting.
 
 - group: ntrip
   name: username
@@ -2107,7 +2107,7 @@
   default value: ''
   readonly: false
   Description: Override the device used for cell modem connectivity. If left empty, uses default device discovery to determine the correct device to use.
-  Notes: The cell modem daemon must be disabled in order to change this setting.
+  Notes: Cell modem 'enable' must be 'False' in order to change this setting.
 
 - group: standalone_logging
   name: file_duration
@@ -2242,7 +2242,7 @@
   readonly: false
   units: N/A
   Description: Enables or disables the Over-The-Air upgrade daemon's verbose output.
-  Notes: The OTA daemon must be disabled in order to change this setting.
+  Notes: 'ota enabled' must be 'False' in order to change this setting.
 
 - group: system
   name: ota_url
