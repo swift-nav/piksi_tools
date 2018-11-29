@@ -1595,7 +1595,7 @@
   expert: false
   type: integer
   units: us (microseconds)
-  default value: '200000'
+  default value: '2000'
   readonly: false
   enumerated possible values:
   Description: Number of microseconds the PPS will remain active (allowed range from 1 to 999999 us).
@@ -1616,12 +1616,12 @@
   name: offset
   expert: false
   type: integer
-  units: us (microseconds)
+  units: ns (nanoseconds)
   default value: '0'
   readonly: false
   enumerated possible values:
-  Description: Offset in microseconds between GPS time and the PPS.
-  Notes:
+  Description: Offset in nanoseconds between GPS time and the PPS.
+  Notes: This setting can be used to compensate for cable delays in timing systems.
 
 - group: pps
   name: frequency
@@ -2258,7 +2258,7 @@
   name: ota_enabled
   type: boolean
   expert: true
-  default value: 'false'
+  default value: 'False'
   readonly: false
   units: N/A
   Description: Enables or disables the Over-The-Air upgrade daemon.
@@ -2270,11 +2270,11 @@
   name: ota_debug
   type: boolean
   expert: true
-  default value: 'false'
+  default value: 'False'
   readonly: false
   units: N/A
   Description: Enables or disables the Over-The-Air upgrade daemon's verbose output.
-  Notes: the "ota enabled" setting must be "False" in order to change this setting.
+  Notes: The "ota enabled" setting must be "False" in order to change this setting.
 
 - group: system
   name: ota_url
@@ -2575,3 +2575,29 @@
     3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
     the default value is optimal for logging and communication with the console.
 
+- group: pps
+  name: propagation_mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: Time Limited
+  enumerated possible values: None,Time Limited,Unlimited
+  Description: Configures the behavior of the PPS when no GNSS fix is available.
+
+- group: pps
+  name: propagation_timeout
+  expert: false
+  type: float 
+  units: seconds
+  default value: '5'
+  readonly: false
+  Description: Configures the timeout length of the PPS when using the "Time Limited" propagation mode.
+
+- group: csac
+  name: telemetry_enabled
+  expert: false
+  type: boolean
+  units: N/A
+  default value: 'false'
+  readonly: false
+  Description: Enables or disables the CSAC daemon which can communicate with Microsemi timing devices on UART0
