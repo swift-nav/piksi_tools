@@ -13,9 +13,10 @@ from __future__ import absolute_import
 
 from sbp.piksi import (SBP_MSG_NETWORK_STATE_RESP, SBP_MSG_THREAD_STATE,
                        SBP_MSG_UART_STATE, SBP_MSG_UART_STATE_DEPA,
+                       SBP_MSG_DEVICE_MONITOR,
                        MsgNetworkStateReq, MsgReset)
 from sbp.system import SBP_MSG_HEARTBEAT
-from traits.api import Dict, HasTraits, Int, List
+from traits.api import Dict, HasTraits, Int, Float, List
 from traits.etsconfig.api import ETSConfig
 from traitsui.api import HGroup, Item, TabularEditor, VGroup, View
 from traitsui.tabular_adapter import TabularAdapter
@@ -50,7 +51,10 @@ class SystemMonitorView(HasTraits):
     msg_obs_avg_period_ms = Int(0)
     msg_obs_min_period_ms = Int(0)
     msg_obs_max_period_ms = Int(0)
-    msg_obs_window_period_ms = Int(0)
+    msg_obs_window_period_ms = Float(0)
+
+    zynq_temp = Float(0)
+    fe_temp = Float(0)
 
     piksi_reset_button = SVGButton(
         label='Reset Device',
@@ -121,6 +125,20 @@ class SystemMonitorView(HasTraits):
                         label="Observation Connection Monitor"),
                     Item('piksi_reset_button', show_label=False, width=0.50)
                 ),
+                VGroup(
+                    Item(
+                        'zynq_temp',
+                        label='Zynq CPU Temp',
+                        style='readonly',
+                        format_str='%.1fC'),
+                    Item(
+                        'fe_temp',
+                        label='RF Frontend Temp',
+                        style='readonly',
+                        format_str='%.1fC'),
+                    show_border=True,
+                    label="Device Monitor",
+                ),
             ),
         )
     )
@@ -139,6 +157,10 @@ class SystemMonitorView(HasTraits):
         if self.threads != []:
             self.update_threads()
             self.threads = []
+
+    def device_callback(self, sbp_msg, **metadata):
+        self.zynq_temp = float(sbp_msg.cpu_temperature) / 100.
+        self.fe_temp = float(sbp_msg.fe_temperature) / 100.
 
     def thread_state_callback(self, sbp_msg, **metadata):
         if sbp_msg.name == '':
@@ -175,6 +197,7 @@ class SystemMonitorView(HasTraits):
         super(SystemMonitorView, self).__init__()
         self.link = link
         self.link.add_callback(self.heartbeat_callback, SBP_MSG_HEARTBEAT)
+        self.link.add_callback(self.device_callback, SBP_MSG_DEVICE_MONITOR)
         self.link.add_callback(self.thread_state_callback,
                                SBP_MSG_THREAD_STATE)
         self.link.add_callback(self.uart_state_callback,
