@@ -56,7 +56,7 @@ from piksi_tools.console.system_monitor_view import SystemMonitorView
 from piksi_tools.console.tracking_view import TrackingView
 from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
-                                       get_mode, mode_dict, resource_filename,
+                                       mode_dict, resource_filename,
                                        icon, swift_path, DR_MODE, DIFFERENTIAL_MODES)
 from piksi_tools.console.skylark_view import SkylarkView
 
@@ -465,31 +465,45 @@ class SwiftConsole(HasTraits):
 
     def update_on_heartbeat(self, sbp_msg, **metadata):
         self.heartbeat_count += 1
-        # First initialize the state to nothing, if we can't update, it will be none
-        display_mode = "None"
-        num_sats = 0
-        if self.baseline_view and self.solution_view:
-            last_baseline_soln = self.baseline_view.last_soln
-            last_llh_soln = self.solution_view.last_soln
-            # if we have a recent llh solution, use that mode
-            if last_llh_soln and (self.last_status_update_time != self.solution_view.last_stime_update):
-                llh_mode_enum = get_mode(last_llh_soln)
-                display_mode = mode_dict.get(llh_mode_enum, EMPTY_STR)
-                num_sats = last_llh_soln.n_sats
-                if getattr(self.solution_view, 'ins_used', False) and llh_mode_enum != DR_MODE:
-                        display_mode += "+INS"
-                self.last_status_update_time = self.solution_view.last_stime_update
-            # If we have a recent baseline update that has higher mode, we use the baseline soln info instead
-            if last_baseline_soln and self.last_status_update_time != self.baseline_view.last_btime_update:
-                baseline_mode_enum = get_mode(last_baseline_soln)
-                # if the baseline is "higher" mode than llh or llh is missing, use baseline for mode and num_sats
-                if baseline_mode_enum in DIFFERENTIAL_MODES and (last_llh_soln and
-                   get_mode(last_llh_soln) not in DIFFERENTIAL_MODES or not last_llh_soln):
-                    display_mode = mode_dict.get(baseline_mode_enum, EMPTY_STR)
-                    num_sats = last_baseline_soln.n_sats
-                    self.last_status_update_time = self.baseline_view.last_btime_update
-        self.mode = display_mode
-        self.num_sats = num_sats
+
+        # --- determining which mode, llh or baseline, to show in the status bar ---
+        llh_display_mode = "None"
+        llh_num_sats = 0
+        llh_is_differential = False
+
+        baseline_display_mode = "None"
+        baseline_num_sats = 0
+        baseline_is_differential = False
+
+        # determine the latest llh solution mode
+        if self.solution_view:
+            llh_solution_mode = self.solution_view.last_pos_mode
+            llh_display_mode = mode_dict.get(llh_solution_mode, EMPTY_STR)
+            if llh_solution_mode > 0 and self.solution_view.last_soln:
+                llh_num_sats = self.solution_view.last_soln.n_sats
+            llh_is_differential = (llh_solution_mode in DIFFERENTIAL_MODES)
+            if getattr(self.solution_view, 'ins_used', False) and llh_solution_mode != DR_MODE:
+                llh_display_mode += "+INS"
+
+        # determine the latest baseline solution mode
+        if self.baseline_view:
+            baseline_solution_mode = self.baseline_view.last_mode
+            baseline_display_mode = mode_dict.get(baseline_solution_mode, EMPTY_STR)
+            if baseline_solution_mode > 0 and self.baseline_view.last_soln:
+                baseline_num_sats = self.baseline_view.last_soln.n_sats
+            baseline_is_differential = (baseline_solution_mode in DIFFERENTIAL_MODES)
+
+        # select the solution mode displayed in the status bar:
+        # * baseline if it's a differential solution but llh isn't
+        # * otherwise llh (also if there is no solution, in which both are "None")
+        if baseline_is_differential and not(llh_is_differential):
+            self.mode = baseline_display_mode
+            self.num_sats = baseline_num_sats
+        else:
+            self.mode = llh_display_mode
+            self.num_sats = llh_num_sats
+
+        # --- end of status bar mode determination section ---
 
         if self.settings_view:  # for auto populating surveyed fields
             self.settings_view.lat = self.solution_view.latitude
