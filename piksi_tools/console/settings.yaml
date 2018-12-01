@@ -1210,6 +1210,16 @@
   Notes:
 
 - group: track
+  name: mode
+  expert: true
+  type: enum
+  default value: rover
+  readonly: false
+  enumerated possible values: rover,base station
+  Description: Set the tracking loop configuration
+  Notes: Base station profile should only be used in situations where the receiver is kept static. Degraded performance will be seen if the receiver is moving with base station profile enabled.
+
+- group: track
   name: iq_output_mask
   expert: true
   type: integer
@@ -2017,12 +2027,12 @@
   Description: Erase stored last fix information during boot.
 
 - group: ndb
-  name: erase_l2c_capb
+  name: erase_gnss_capb
   expert: true
   type: boolean
   default value: 'False'
   readonly: false
-  Description: Erase stored L2C capability mask during boot.
+  Description: Erase stored GNSS capability mask during boot.
 
 - group: ndb
   name: erase_utc_params
@@ -2443,3 +2453,97 @@
   default value: N/A
   readonly: true
   Description: inertial navigation system build date
+
+- group: metrics_daemon
+  name: metrics_update_interval
+  expert: true
+  type: integer
+  units: Hz
+  default value: 1
+  readonly: false
+  Description: Set metric update interval
+  Notes:
+
+- group: metrics_daemon
+  name: enable_log_to_file
+  expert: true
+  type: bool
+  units: N/A
+  default value: true
+  readonly: false
+  Description: Enable metric logging to file
+  Notes:
+
+- group: system
+  name: resource_monitor_update_interval
+  expert: true
+  type: integer
+  units: Hz
+  default value: 0
+  readonly: false
+  Description: Interval to run the resource monitor at
+  Notes: Value of 0 disables the resource monitor
+
+- group: can0
+  name: mode
+  expert: true
+  type: enum
+  units: N/A
+  default value: 'Disabled'
+  readonly: false
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 Out
+  Description: Communication protocol for CAN client 0. The client will send packets to a CAN bus.
+  Notes: |
+    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting.
+
+    "NMEA OUT" has no effect for CAN
+
+    "RTCMv3 IN" has no effect for CAN
+
+- group: can0
+  name: enabled_sbp_messages
+  expert: true
+  type: string
+  units: N/A
+  default value: '23,29,65,72,74,81,117,134,136,144,163,165, 166,167,171,175,181,185,187,188,189,190, 257,258,259,520,522,524,526,527,528,1025, 2304,2305,2306,30583,65280,65282,65535' 
+  readonly: false
+  Description: Configure which messages should be sent to the server.
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
+    the default value is optimal for logging and communication with the console.
+
+- group: can1
+  name: mode
+  expert: true
+  type: enum
+  units: N/A
+  default value: 'Disabled'
+  readonly: false
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 Out
+  Description: Communication protocol for CAN client 0. The client will send packets to a CAN bus.
+  Notes: |
+    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting.
+
+    "NMEA OUT" has no effect for CAN
+
+    "RTCMv3 IN" has no effect for CAN
+
+- group: can1
+  name: enabled_sbp_messages
+  expert: true
+  type: string
+  units: N/A
+  default value: '23,29,65,72,74,81,117,134,136,144,163,165, 166,167,171,175,181,185,187,188,189,190, 257,258,259,520,522,524,526,527,528,1025, 2304,2305,2306,30583,65280,65282,65535' 
+  readonly: false
+  Description: Configure which messages should be sent to the server.
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
+    the default value is optimal for logging and communication with the console.
