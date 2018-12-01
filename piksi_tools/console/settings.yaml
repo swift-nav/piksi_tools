@@ -2252,7 +2252,7 @@
   readonly: false
   units: N/A
   Description: Enables or disables the Over-The-Air upgrade daemon's verbose output.
-  Notes: 'ota enabled' must be 'False' in order to change this setting.
+  Notes: ota enabled must be False in order to change this setting.
 
 - group: system
   name: ota_url
@@ -2460,7 +2460,7 @@
   expert: true
   type: integer
   units: Hz
-  default value: 1
+  default value: '1'
   readonly: false
   Description: Set metric update interval
   Notes:
@@ -2470,7 +2470,7 @@
   expert: true
   type: bool
   units: N/A
-  default value: true
+  default value: 'true'
   readonly: false
   Description: Enable metric logging to file
   Notes:
@@ -2480,7 +2480,7 @@
   expert: true
   type: integer
   units: Hz
-  default value: 0
+  default value: '0'
   readonly: false
   Description: Interval to run the resource monitor at
   Notes: Value of 0 disables the resource monitor
@@ -2548,3 +2548,4 @@
     a divisor can be specified after the / character for each id. For example, an entry of
     3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
     the default value is optimal for logging and communication with the console.
+
