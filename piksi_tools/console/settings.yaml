@@ -808,7 +808,7 @@
   units: N/A
   default value: 'Disabled'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN, RTCMv3 OUT
   Description: Communication protocol for UDP client 0. The client will send packets to a server for uni-directional communications.
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting.
@@ -816,6 +816,8 @@
     "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
 
     "RTCMv3 IN" has no effect for UDP clients.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
 
 - group: udp_client0
   name: enabled_sbp_messages
@@ -851,7 +853,7 @@
   units: N/A
   default value: 'Disabled'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
   Description: Communication protocol for UDP client 1. The client will send packets to a server for uni-directional communications.
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting.
@@ -859,6 +861,8 @@
     "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
 
     "RTCMv3 IN" has no effect for UDP clients.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages
 
 - group: udp_client1
   name: enabled_sbp_messages
@@ -894,7 +898,7 @@
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
   Description: Communication protocol for UDP server 0. The server will listen for incoming packets from a client for uni-directional communications.
   Notes: |
     "SBP" configures the interface to receive incoming SBP messages.
@@ -902,6 +906,8 @@
     "NMEA OUT" has no effect for a UDP server.
 
     "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not receive any other messages.
+
+    "RTCMv3 OUT" has no effect for a UDP server.
 
 - group: udp_server0
   name: enabled_sbp_messages
@@ -930,7 +936,7 @@
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
   Description: Communication protocol for UDP server 1. The server will listen for incoming packets from a client for uni-directional communications.
   Notes: |
     "SBP" configures the interface to receive incoming SBP messages.
@@ -938,6 +944,8 @@
     "NMEA OUT" has no effect for a UDP server.
 
     "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not receive any other messages.
+
+    "RTCMv3 OUT" has no effect for a UDP server.
 
 - group: udp_server1
   name: enabled_sbp_messages
@@ -982,7 +990,7 @@
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
   Description: Communication protocol for USB0.
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
@@ -990,6 +998,8 @@
     "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
 
     "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
 
 - group: uart1
   name: baudrate
@@ -1020,7 +1030,7 @@
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
   Description: Communication protocol for UART 1.
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
@@ -1028,6 +1038,8 @@
     "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
 
     "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
 
 - group: uart1
   name: enabled_sbp_messages
@@ -1074,7 +1086,7 @@
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
   Description: Communication protocol for UART0.
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
@@ -1082,6 +1094,8 @@
     "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
 
     "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
 
 - group: uart0
   name: enabled_sbp_messages
@@ -1751,7 +1765,7 @@
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
   Description: Communication protocol for TCP server 0. The server will listen for incoming client connections and establish a bi-directional communications.
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
@@ -1759,6 +1773,8 @@
     "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
 
     "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
 
     The connection is bi-directional so these modes behave the same as the UART modes.
 
@@ -1795,7 +1811,7 @@
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
   Description: Communication protocol for TCP server 1. The server will listen for incoming client connections and establish a bi-directional communications.
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
@@ -1803,6 +1819,8 @@
     "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
 
     "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
 
     The connection is bi-directional so these modes behave the same as the UART modes.
 
@@ -1839,7 +1857,7 @@
   units: N/A
   default value: 'Disabled'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
   Description: Communication protocol for TCP client 0. The client will initiate a connection with the server and establish bi-directional communications.
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
@@ -1847,6 +1865,8 @@
     "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
 
     "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
 
     The connection is bi-directional so these modes behave the same as the UART modes.
 
@@ -1884,7 +1904,7 @@
   units: N/A
   default value: 'Disabled'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
   Description: Communication protocol for TCP client 1. The client will initiate a connection with the server and establish bi-directional communications.
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
@@ -1892,6 +1912,8 @@
     "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
 
     "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
 
     The connection is bi-directional so these modes behave the same as the UART modes.
 
@@ -2458,7 +2480,7 @@
   name: metrics_update_interval
   expert: true
   type: integer
-  units: Hz
+  units: seconds
   default value: '1'
   readonly: false
   Description: Set metric update interval
@@ -2478,7 +2500,7 @@
   name: resource_monitor_update_interval
   expert: true
   type: integer
-  units: Hz
+  units: seconds
   default value: '0'
   readonly: false
   Description: Interval to run the resource monitor at
@@ -2496,16 +2518,18 @@
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting.
 
-    "NMEA OUT" has no effect for CAN
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
 
-    "RTCMv3 IN" has no effect for CAN
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
 
 - group: can0
   name: enabled_sbp_messages
   expert: true
   type: string
   units: N/A
-  default value: '23,29,65,72,74,81,117,134,136,144,163,165, 166,167,171,175,181,185,187,188,189,190, 257,258,259,520,522,524,526,527,528,1025, 2304,2305,2306,30583,65280,65282,65535' 
+  default value: '72,74,117,522,527' 
   readonly: false
   Description: Configure which messages should be sent to the server.
   Notes: The enabled sbp messages settings is a list of message types
@@ -2528,16 +2552,18 @@
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting.
 
-    "NMEA OUT" has no effect for CAN
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
 
-    "RTCMv3 IN" has no effect for CAN
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
 
 - group: can1
   name: enabled_sbp_messages
   expert: true
   type: string
   units: N/A
-  default value: '23,29,65,72,74,81,117,134,136,144,163,165, 166,167,171,175,181,185,187,188,189,190, 257,258,259,520,522,524,526,527,528,1025, 2304,2305,2306,30583,65280,65282,65535' 
+  default value: '72,74,117,522,527' 
   readonly: false
   Description: Configure which messages should be sent to the server.
   Notes: The enabled sbp messages settings is a list of message types
