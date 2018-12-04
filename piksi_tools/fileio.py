@@ -19,13 +19,13 @@ import threading
 import sys
 
 from sbp.client import Framer, Handler
-from piksi_tools.utils import get_tcp_driver
 from sbp.file_io import (SBP_MSG_FILEIO_READ_DIR_RESP,
                          SBP_MSG_FILEIO_READ_RESP, SBP_MSG_FILEIO_WRITE_RESP,
                          MsgFileioReadDirReq, MsgFileioReadDirResp,
                          MsgFileioReadReq, MsgFileioRemove, MsgFileioWriteReq)
 
 from piksi_tools import serial_link
+from piksi_tools.utils import get_tcp_driver
 
 MAX_PAYLOAD_SIZE = 255
 SBP_FILEIO_WINDOW_SIZE = 100
