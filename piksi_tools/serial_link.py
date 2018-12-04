@@ -31,7 +31,7 @@ from sbp.client.loggers.null_logger import NullLogger
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP, MsgLog
 from sbp.piksi import MsgReset
 
-from piksi_tools.utils import (mkdir_p, get_tcp_driver)
+from piksi_tools.utils import mkdir_p, get_tcp_driver
 
 SERIAL_PORT = "/dev/ttyUSB0"
 SERIAL_BAUD = 115200
