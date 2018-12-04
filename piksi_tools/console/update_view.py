@@ -368,7 +368,8 @@ class UpdateView(HasTraits):
         ins_settings = self.settings.get('ins', None)
         ins_output_mode = None
         if ins_settings is not None:
-            ins_output_mode = ins_settings.get('output_mode')        
+            ins_output_mode = ins_settings.get('output_mode')
+     
         if (ins_output_mode is not None) and (ins_output_mode not in ins_upgrade_modes):
             ins_disable_prompt = \
                 prompt.CallbackPrompt(
