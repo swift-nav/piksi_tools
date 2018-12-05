@@ -11,7 +11,7 @@ pyparsing==2.2.0
 pygments==2.2.0
 requests==2.18.4
 six==1.10.0
-sbp==2.3.17
+sbp==2.4.3
 ruamel.yaml==0.15.31
 pre-commit==1.10.3
 setuptools_scm==3.1.0
