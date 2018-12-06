@@ -22,7 +22,7 @@ import uuid
 import serial.tools.list_ports
 from sbp.client import Forwarder, Framer, Handler
 from sbp.client.drivers.cdc_driver import CdcDriver
-from sbp.client.drivers.network_drivers import HTTPDriver, TCPDriver
+from sbp.client.drivers.network_drivers import HTTPDriver
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.file_driver import FileDriver
@@ -31,7 +31,7 @@ from sbp.client.loggers.null_logger import NullLogger
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP, MsgLog
 from sbp.piksi import MsgReset
 
-from piksi_tools.utils import mkdir_p
+from piksi_tools.utils import mkdir_p, get_tcp_driver
 
 SERIAL_PORT = "/dev/ttyUSB0"
 SERIAL_BAUD = 115200
@@ -351,12 +351,7 @@ def run(args, link):
 def get_base_args_driver(args):
     driver = None
     if args.tcp:
-        try:
-            host, port = args.port.split(':')
-            driver = TCPDriver(host, int(port))
-        except:  # noqa
-            import traceback
-            raise Exception('Invalid host and/or port: {0}'.format(traceback.format_exc()))
+        driver = get_tcp_driver(args.port)
     else:
         driver = get_driver(
             args.ftdi, args.port, args.baud, args.file, rtscts=args.rtscts)
