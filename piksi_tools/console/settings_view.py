@@ -11,6 +11,8 @@
 
 from __future__ import absolute_import, print_function
 
+from Queue import Queue
+
 import threading
 import time
 import configparser
@@ -34,11 +36,10 @@ from pyface.api import FileDialog, OK
 from .settings_list import SettingsList
 from .utils import resource_filename
 
-import sys
-sys.path.insert(0, 'lib/libsettings')
-# sys.path.insert(0, '/mnt/users/pasi/swiftnav/libsettings/python')
-
-from libsettings import Settings, settings_write_res_e   # noqa: E402
+try:
+    from ..lib.libsettings.libsettings import Settings, SettingsWriteResponseCodes
+except ImportError as error:
+    from libsettings import Settings, SettingsWriteResponseCodes
 
 if ETSConfig.toolkit != 'null':
     from enable.savage.trait_defs.ui.svg_button import SVGButton
@@ -129,7 +130,7 @@ class Setting(SettingBase):
         if readonly:
             self.readonly = True
 
-    def revert_to_prior_value(self, name, old, new, error_value=settings_write_res_e.SETTINGS_WR_TIMEOUT):
+    def revert_to_prior_value(self, name, old, new, error_value=SettingsWriteResponseCodes.SETTINGS_WR_TIMEOUT):
         '''Revert setting to old value in the case we can't confirm new value'''
 
         if self.readonly:
@@ -141,7 +142,7 @@ class Setting(SettingBase):
         invalid_setting_prompt = prompt.CallbackPrompt(
             title="Settings Write Error",
             actions=[prompt.close_button], )
-        if error_value == settings_write_res_e.SETTINGS_WR_TIMEOUT:
+        if error_value == SettingsWriteResponseCodes.SETTINGS_WR_TIMEOUT:
             invalid_setting_prompt.text = \
                 ("\n   Unable to confirm that {0} was set to {1}.\n"
                  "   Message timed out.\n"
@@ -151,27 +152,27 @@ class Setting(SettingBase):
             invalid_setting_prompt.text = \
                 ("\n   Unable to set {0} to {1}.\n")
 
-        if error_value == settings_write_res_e.SETTINGS_WR_VALUE_REJECTED:
+        if error_value == SettingsWriteResponseCodes.SETTINGS_WR_VALUE_REJECTED:
             invalid_setting_prompt.text += \
                 ("   Ensure the range and formatting of the entry are correct.\n"
                  "   Error Value: {2}")
-        elif error_value == settings_write_res_e.SETTINGS_WR_SETTING_REJECTED:
+        elif error_value == SettingsWriteResponseCodes.SETTINGS_WR_SETTING_REJECTED:
             invalid_setting_prompt.text += \
                 ("   {0} is not a valid setting.\n"
                  "   Error Value: {2}")
-        elif error_value == settings_write_res_e.SETTINGS_WR_PARSE_FAILED:
+        elif error_value == SettingsWriteResponseCodes.SETTINGS_WR_PARSE_FAILED:
             invalid_setting_prompt.text += \
                 ("   Could not parse value: {1}.\n"
                  "   Error Value: {2}")
-        elif error_value == settings_write_res_e.SETTINGS_WR_READ_ONLY:
+        elif error_value == SettingsWriteResponseCodes.SETTINGS_WR_READ_ONLY:
             invalid_setting_prompt.text += \
                 ("   {0} is read-only.\n"
                  "   Error Value: {2}")
-        elif error_value == settings_write_res_e.SETTINGS_WR_MODIFY_DISABLED:
+        elif error_value == SettingsWriteResponseCodes.SETTINGS_WR_MODIFY_DISABLED:
             invalid_setting_prompt.text += \
                 ("   Modifying {0} is currently disabled.\n"
                  "   Error Value: {2}")
-        elif error_value == settings_write_res_e.SETTINGS_WR_SERVICE_FAILED:
+        elif error_value == SettingsWriteResponseCodes.SETTINGS_WR_SERVICE_FAILED:
             invalid_setting_prompt.text += \
                 ("   Service failed while changing setting. See logs.\n"
                  "   Error Value: {2}")
@@ -189,7 +190,7 @@ class Setting(SettingBase):
                 self.value = self.value.encode('ascii', 'replace')
             self.confirmed_set = False
             res = self.settings.settings_api.write(self.section, self.name, new)
-            if res == settings_write_res_e.SETTINGS_WR_OK:
+            if res == SettingsWriteResponseCodes.SETTINGS_WR_OK:
                 self.value = new
             else:
                 self.revert_to_prior_value(self.name, old, new, res)
@@ -746,7 +747,7 @@ class SettingsView(HasTraits):
                  gui_mode=True,
                  skip=False):
         super(SettingsView, self).__init__()
-        self.settings_api = Settings(0x42, link)
+        self.settings_api = Settings(link)
         self.workqueue = WorkQueue()
         self.expert = expert
         self.show_auto_survey = False

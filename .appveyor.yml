@@ -12,6 +12,11 @@ environment:
       PYTHON_VERSION: 3.5
       PYTHON_ARCH: 32
 
+  APPVEYOR_RDP_PASSWORD: Libsettings911!
+
+init:
+  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
 
 cache:
   # Cache downloaded pip packages and built wheels.
@@ -27,10 +32,22 @@ install:
   - cinst nsis
   - SET PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
   - SET PYTHONPATH=.
+  - set PATH=C:\MinGW\bin;%PATH%
   - python --version
   # Upgrade to the latest pip.
   - '%CMD_IN_ENV% python -m pip install -U pip setuptools wheel tox'
   - powershell .\\tasks\\missing-headers.ps1
+  - md lib
+  - cd lib
+  - appveyor DownloadFile "https://raw.githubusercontent.com/swift-nav/libsettings/v0.1.3/python/libsettings-0.1.3.tar.gz"
+  - md libsettings
+  - tar -xzf libsettings-0.1.3.tar.gz -C libsettings --strip-components=1
+  - cd libsettings
+  # Hack to get rid of format specifier warnings emerging from the cythonized file
+  - C:\cygwin64\\bin\sed.exe -i 's/#define CYTHON_FORMAT_SSIZE_T "z"/#define CYTHON_FORMAT_SSIZE_T "I"/g' python/libsettings.c
+  - C:\cygwin64\\bin\sed.exe -i "s/zd /Id /g" python/libsettings.c
+  - python setup.py build_ext --inplace --compiler=mingw32
+  - cd ../..
   - '%CMD_IN_ENV% python scripts\build_release.py'
 
 build: off
