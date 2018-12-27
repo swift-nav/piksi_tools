@@ -9,7 +9,7 @@ pyserial==3.0.1
 pylibftdi==0.16.1.2
 pyparsing==2.2.0
 pygments==2.2.0
-requests==2.18.4
+requests==2.20.0
 six==1.10.0
 sbp==2.4.5
 ruamel.yaml==0.15.31
