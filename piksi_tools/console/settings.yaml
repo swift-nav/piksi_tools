@@ -1951,7 +1951,10 @@
   default value: 'False'
   readonly: false
   Description: Enable/Disable IMU raw data output from onboard Bosch BMI160 IMU.
-  Notes:  The IMU raw data can be seen in the Advanced Tab of the Swift Console
+  Notes:  The IMU raw data can be seen in the Advanced Tab of the Swift Console.
+    The following messages must be added to the whitelist setting for the
+    interface the Swift Console is connected to see data in IMU plot:
+    MsgImuRaw (2304), MsgImuAux(2305), and MsgMagRaw(2306).
 
 - group: imu
   name: imu_rate
