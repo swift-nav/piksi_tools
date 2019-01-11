@@ -824,7 +824,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '23,29,65,72,74,81,117,134,136,144,163,165, 166,167,171,181,185,187,188,189,190, 257,258,259,520,522,524,526,527,528,1025, 2304,2305,2306,30583,65280,65282,65535'
+  default value: '23,65,72,74,81,97,117,134,136,137,138,139, 144,149,163,165,166,167,171,175,181, 185,187,188,189,190,257,258,259,520, 522,524,526,527,528,1025,2304,2305, 2306,30583,65280,65282,65535'
   readonly: false
   Description: Configure which messages should be sent to the server.
   Notes: The enabled sbp messages settings is a list of message types
@@ -869,7 +869,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '23,29,65,72,74,81,117,134,136,144,163,165, 166,167,171,181,185,187,188,189,190, 257,258,259,520,522,524,526,527,528,1025, 2304,2305,2306,30583,65280,65282,65535'
+  default value: '23,65,72,74,81,97,117,134,136,137,138,139, 144,149,163,165,166,167,171,175,181, 185,187,188,189,190,257,258,259,520, 522,524,526,527,528,1025,2304,2305, 2306,30583,65280,65282,65535'
   readonly: false
   Description: Configure which messages should be sent to the server.
   Notes: The enabled sbp messages settings is a list of message types
@@ -1046,7 +1046,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '23,29,65,72,74,81,117,134,136,144,163,165, 166,167,171,175,181,185,187,188,189,190, 257,258,259,520,522,524,526,527,528,1025, 2305,2306,30583,65280,65282,65535' 
+  default value: '23,65,72,74,81,97,117,134,136,137,138,139, 144,149,163,165,166,167,171,175,181, 185,187,188,189,190,257,258,259,520, 522,524,526,527,528,1025,2305, 2306,30583,65280,65282,65535'
   readonly: false
   Description: Configure which messages should be sent on the port.
   Notes: The enabled sbp messages settings is a list of message types
@@ -1783,7 +1783,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '23,29,65,72,74,81,117,134,136,144,163,165, 166,167,171,175,181,185,187,188,189,190, 257,258,259,520,522,524,526,527,528,1025, 2304,2305,2306,30583,65280,65282,65535'
+  default value: '23,65,72,74,81,97,117,134,136,137,138,139, 144,149,163,165,166,167,171,175,181, 185,187,188,189,190,257,258,259,520, 522,524,526,527,528,1025,2304,2305, 2306,30583,65280,65282,65535'
   readonly: false
   Description: Configure which messages should be sent on the port. Does not effect which incoming messages are listened to.
   Notes: The enabled sbp messages settings is a list of message types
@@ -1829,7 +1829,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '23,29,65,72,74,81,117,134,136,144,163,165, 166,167,171,175,181,185,187,188,189,190, 257,258,259,520,522,524,526,527,528,1025, 2304,2305,2306,30583,65280,65282,65535'
+  default value: '23,65,72,74,81,97,117,134,136,137,138,139, 144,149,163,165,166,167,171,175,181, 185,187,188,189,190,257,258,259,520, 522,524,526,527,528,1025,2304,2305, 2306,30583,65280,65282,65535'
   readonly: false
   Description: Configure which messages should be sent on the port. Does not effect which incoming messages are listened to.
   Notes: The enabled sbp messages settings is a list of message types
@@ -1875,7 +1875,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '23,29,65,72,74,81,117,134,136,144,163,165, 166,167,171,181,185,187,188,189,190, 257,258,259,520,522,524,526,527,528,1025, 2304,2305,2306,30583,65280,65282,65535'
+  default value: '23,65,72,74,81,97,117,134,136,137,138,139, 144,149,163,165,166,167,171,175,181, 185,187,188,189,190,257,258,259,520, 522,524,526,527,528,1025,2304,2305, 2306,30583,65280,65282,65535'
   readonly: false
   Description: Configure which messages should be sent on the port. Does not effect which incoming messages are listened to.
   Notes: The enabled sbp messages settings is a list of message types
@@ -1922,7 +1922,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '23,29,65,72,74,81,117,134,136,144,163,165, 166,167,171,181,185,187,188,189,190, 257,258,259,520,522,524,526,527,528,1025, 2304,2305,2306,30583,65280,65282,65535'
+  default value: '23,65,72,74,81,97,117,134,136,137,138,139, 144,149,163,165,166,167,171,175,181, 185,187,188,189,190,257,258,259,520, 522,524,526,527,528,1025,2304,2305, 2306,30583,65280,65282,65535'
   readonly: false
   Description: Configure which messages should be sent on the port. Does not effect which incoming messages are listened to.
   Notes: The enabled sbp messages settings is a list of message types
@@ -1951,7 +1951,7 @@
   default value: 'False'
   readonly: false
   Description: Enable/Disable IMU raw data output from onboard Bosch BMI160 IMU.
-  Notes:  The IMU raw data can be seen in the Advanced Tab of the Swift Console
+  Notes:  The IMU raw data can be seen in the Advanced Tab of the Swift Console.
 
 - group: imu
   name: imu_rate
@@ -2530,7 +2530,7 @@
   expert: true
   type: string
   units: N/A
-  default value: '72,74,117,522,527' 
+  default value: '72,74,117,522,527'
   readonly: false
   Description: Configure which messages should be sent to the server.
   Notes: The enabled sbp messages settings is a list of message types
@@ -2564,7 +2564,7 @@
   expert: true
   type: string
   units: N/A
-  default value: '72,74,117,522,527' 
+  default value: '72,74,117,522,527'
   readonly: false
   Description: Configure which messages should be sent to the server.
   Notes: The enabled sbp messages settings is a list of message types
