@@ -262,45 +262,45 @@ def main():
         with Handler(Framer(driver.read, driver.write, args.verbose)) as link:
             # Logger with context
             with sl.get_logger(args.log, log_filename) as logger:
-                    # print out SBP_MSG_PRINT_DEP messages
-                    link.add_callback(sl.printer, SBP_MSG_PRINT_DEP)
-                    link.add_callback(sl.log_printer, SBP_MSG_LOG)
-                    # add logger callback
-                    Forwarder(link, logger).start()
-                    try:
-                        # Get device info
-                        # Diagnostics reads out the device settings and resets the Piksi
-                        piksi_diag = ptd.Diagnostics(link)
-                        while not piksi_diag.heartbeat_received:
-                            time.sleep(0.1)
-                        # add Teststates and associated callbacks
-                        with DropSatsState(
-                                link,
-                                piksi_diag.sbp_version,
-                                interval,
-                                minsats,
-                                debug=args.verbose) as drop:
-                            link.add_callback(drop.process_message)
+                # print out SBP_MSG_PRINT_DEP messages
+                link.add_callback(sl.printer, SBP_MSG_PRINT_DEP)
+                link.add_callback(sl.log_printer, SBP_MSG_LOG)
+                # add logger callback
+                Forwarder(link, logger).start()
+                try:
+                    # Get device info
+                    # Diagnostics reads out the device settings and resets the Piksi
+                    piksi_diag = ptd.Diagnostics(link)
+                    while not piksi_diag.heartbeat_received:
+                        time.sleep(0.1)
+                    # add Teststates and associated callbacks
+                    with DropSatsState(
+                            link,
+                            piksi_diag.sbp_version,
+                            interval,
+                            minsats,
+                            debug=args.verbose) as drop:
+                        link.add_callback(drop.process_message)
 
-                            if timeout is not None:
-                                expire = time.time() + float(args.timeout[0])
+                        if timeout is not None:
+                            expire = time.time() + float(args.timeout[0])
 
-                            while True:
-                                if timeout is None or time.time() < expire:
-                                    # Wait forever until the user presses Ctrl-C
-                                    time.sleep(1)
-                                else:
-                                    print("Timer expired!")
-                                    break
-                                if not link.is_alive():
-                                    sys.stderr.write("ERROR: Thread died!")
-                                    sys.exit(1)
-                    except KeyboardInterrupt:
-                        # Callbacks call thread.interrupt_main(), which throw a KeyboardInterrupt
-                        # exception. To get the proper error condition, return exit code
-                        # of 1. Note that the finally block does get caught since exit
-                        # itself throws a SystemExit exception.
-                        sys.exit(1)
+                        while True:
+                            if timeout is None or time.time() < expire:
+                                # Wait forever until the user presses Ctrl-C
+                                time.sleep(1)
+                            else:
+                                print("Timer expired!")
+                                break
+                            if not link.is_alive():
+                                sys.stderr.write("ERROR: Thread died!")
+                                sys.exit(1)
+                except KeyboardInterrupt:
+                    # Callbacks call thread.interrupt_main(), which throw a KeyboardInterrupt
+                    # exception. To get the proper error condition, return exit code
+                    # of 1. Note that the finally block does get caught since exit
+                    # itself throws a SystemExit exception.
+                    sys.exit(1)
 
 
 if __name__ == "__main__":

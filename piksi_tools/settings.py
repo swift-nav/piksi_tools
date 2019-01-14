@@ -319,7 +319,7 @@ def get_args():
         "--timeout",
         type=float,
         default=DEFAULT_TIMEOUT_SECS,
-        help="timeout for settings calls in s (default: %.1f)." % DEFAULT_TIMEOUT_SECS)
+        help="timeout for settings calls in seconds (default: %.1f)." % DEFAULT_TIMEOUT_SECS)
     parser.add_argument(
         '-s',
         '--save_after_write',
@@ -331,7 +331,7 @@ def get_args():
         'save', help='save all the current settings to flash.')
 
     reset = subparsers.add_parser(
-        'reset', help='reset the device to default settings.')
+        'reset', help='reset settings to factory defaults.')
 
     read = subparsers.add_parser('read', help='read the current setting.')
     read.add_argument("section", help="the setting section.")
