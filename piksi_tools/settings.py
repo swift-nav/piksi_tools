@@ -317,8 +317,9 @@ def get_args():
                      "  2: Improper usage")
     parser.add_argument(
         "--timeout",
+        type=float,
         default=DEFAULT_TIMEOUT_SECS,
-        help="specify the timeout for settings reads.")
+        help="timeout for settings calls in s (default: %.1f)." % DEFAULT_TIMEOUT_SECS)
     parser.add_argument(
         '-s',
         '--save_after_write',
@@ -330,7 +331,7 @@ def get_args():
         'save', help='save all the current settings to flash.')
 
     reset = subparsers.add_parser(
-        'reset', help='reset the device after the action.')
+        'reset', help='reset the device to default settings.')
 
     read = subparsers.add_parser('read', help='read the current setting.')
     read.add_argument("section", help="the setting section.")
@@ -361,7 +362,7 @@ def main():
     return_code = 0
     driver = serial_link.get_base_args_driver(args)
     with Handler(Framer(driver.read, driver.write)) as link:
-        settings = Settings(link)
+        settings = Settings(link, timeout=args.timeout)
         with settings:
             if command == 'write':
                 settings.write(args.section, args.setting, args.value, verbose=args.verbose)

@@ -433,6 +433,7 @@ def get_args():
         nargs=1,
         help="specify the baud rate to use.")
     parser.add_argument(
+        "-t",
         "--tcp",
         action="store_true",
         default=False,

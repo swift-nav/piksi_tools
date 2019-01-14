@@ -75,7 +75,8 @@ def get_args():
     Get and parse arguments.
     """
     parser = s.base_cl_options(
-        override_arg_parse=ConsoleArgumentParser, add_help=False)
+        override_arg_parse=ConsoleArgumentParser, add_help=False,
+        add_log_args=True, add_reset_arg=True)
     parser.description = 'Swift Console'
     parser.add_argument(
         "-i",

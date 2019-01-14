@@ -226,7 +226,7 @@ def get_args():
     """
     Get and parse arguments.
     """
-    parser = sl.base_cl_options()
+    parser = sl.base_cl_options(add_log_args=True)
     parser.add_argument(
         "-i",
         "--interval",
@@ -253,8 +253,6 @@ def main():
     baud = args.baud
     timeout = args.timeout[0]
     log_filename = args.log_filename[0]
-    append_log_filename = args.append_log_filename[0]
-    tags = args.tags[0]
     interval = int(args.interval[0])
     minsats = int(args.minsats[0])
 
@@ -264,16 +262,11 @@ def main():
         with Handler(Framer(driver.read, driver.write, args.verbose)) as link:
             # Logger with context
             with sl.get_logger(args.log, log_filename) as logger:
-                # Append logger iwth context
-                with sl.get_append_logger(append_log_filename,
-                                          tags) as append_logger:
                     # print out SBP_MSG_PRINT_DEP messages
                     link.add_callback(sl.printer, SBP_MSG_PRINT_DEP)
                     link.add_callback(sl.log_printer, SBP_MSG_LOG)
                     # add logger callback
                     Forwarder(link, logger).start()
-                    # ad append logger callback
-                    Forwarder(link, append_logger).start()
                     try:
                         # Get device info
                         # Diagnostics reads out the device settings and resets the Piksi
