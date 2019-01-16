@@ -400,7 +400,7 @@ def print_dir_listing(files):
         List of file names in the directory.
     """
     for f in files:
-        print(f.decode(TEXT_ENCODING, 'replace'))
+        print(printable_text_from_device(f))
 
 
 def get_args():
@@ -468,6 +468,15 @@ def raw_filename(str_filename):
     return bytes(str_filename, sys.getfilesystemencoding(), 'surrogateescape')
 
 
+def printable_text_from_device(data):
+    """Takes text data from the device as bytes and returns a string where any
+       characters incompatible with stdout have been replaced with '?'"""
+    str = data.decode(TEXT_ENCODING, 'replace')\
+              .encode(sys.stdout.encoding, 'replace')\
+              .decode(sys.stdout.encoding)
+    return str
+
+
 def main():
     args = get_args()
     port = args.port[0]
@@ -496,7 +505,7 @@ def main():
                     elif args.hex:
                         print(hexdump(data))
                     else:
-                        print(data.decode(TEXT_ENCODING, 'replace'))
+                        print(printable_text_from_device(data))
                 elif args.delete:
                     f.remove(raw_filename(args.delete[0]))
                 elif args.list is not None:
