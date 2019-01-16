@@ -33,6 +33,7 @@ SBP_FILEIO_WINDOW_SIZE = 100
 SBP_FILEIO_TIMEOUT = 5.0
 MINIMUM_RETRIES = 3
 PROGRESS_CB_REDUCTION_FACTOR = 100
+TEXT_ENCODING = 'utf-8'  # used for printing out directory listings and files
 
 
 class PendingWrite(object):
@@ -399,7 +400,7 @@ def print_dir_listing(files):
         List of file names in the directory.
     """
     for f in files:
-        print(f.decode('ascii', 'replace'))
+        print(f.decode(TEXT_ENCODING, 'replace'))
 
 
 def get_args():
@@ -461,6 +462,9 @@ def raw_filename(str_filename):
     """Return a filename in raw bytes from a command line option string."""
     # Non-unicode characters/bytes in the command line options are decoded by
     # using 'surrogateescape' and file system encoding, and this reverts that.
+    # References:
+    # https://www.python.org/dev/peps/pep-0383/
+    # https://docs.python.org/3/library/os.html#file-names-command-line-arguments-and-environment-variables
     return bytes(str_filename, sys.getfilesystemencoding(), 'surrogateescape')
 
 
@@ -492,7 +496,7 @@ def main():
                     elif args.hex:
                         print(hexdump(data))
                     else:
-                        print(data.decode('ascii', 'replace'))
+                        print(data.decode(TEXT_ENCODING, 'replace'))
                 elif args.delete:
                     f.remove(raw_filename(args.delete[0]))
                 elif args.list is not None:
