@@ -368,8 +368,8 @@ class UpdateView(HasTraits):
         ins_output_mode = None
         if ins_settings is not None:
             ins_output_mode = ins_settings.get('output_mode').value
-        if (ins_output_mode is not None) and not (ins_output_mode.startswith('Disabled') 
-                                                  or ins_output_mode.startswith('disabled')):
+        if (ins_output_mode is not None) and not (ins_output_mode.startswith('Disabled') or
+                                                  ins_output_mode.startswith('disabled')):
             ins_disable_prompt = \
                 prompt.CallbackPrompt(
                     title="Unsupported Update Request",
