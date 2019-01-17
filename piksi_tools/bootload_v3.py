@@ -79,10 +79,7 @@ def main():
     # Driver with context
     # Handler with context
     with Handler(Framer(driver.read, driver.write)) as link:
-        link.add_callback(serial_link.log_printer, SBP_MSG_LOG)
-        link.add_callback(serial_link.printer, SBP_MSG_PRINT_DEP)
-
-        data = open(args.file, 'rb').read()
+        data = bytearray(open(args.file, 'rb').read())
 
         def progress_cb(size):
             sys.stdout.write("\rProgress: %d%%    \r" %
@@ -91,10 +88,12 @@ def main():
 
         print('Transferring image file...')
         FileIO(link).write(
-            "upgrade.image_set.bin", data, progress_cb=progress_cb)
+            b"upgrade.image_set.bin", data, progress_cb=progress_cb)
         print('Committing file to flash...')
-        code = shell_command(link, "upgrade_tool upgrade.image_set.bin",
-                             300)
+        link.add_callback(serial_link.log_printer, SBP_MSG_LOG)
+        link.add_callback(serial_link.printer, SBP_MSG_PRINT_DEP)
+
+        code = shell_command(link, b"upgrade_tool upgrade.image_set.bin", 300)
         if code != 0:
             print('Failed to perform upgrade (code = %d)' % code)
             return

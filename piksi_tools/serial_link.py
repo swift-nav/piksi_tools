@@ -218,7 +218,7 @@ def printer(sbp_msg, **metadata):
     sbp_msg: SBP
       SBP Message to print out.
     """
-    print(sbp_msg.payload, end=' ')
+    print(sbp_msg.payload.decode('ascii', 'replace'), end=' ')
 
 
 def log_printer(sbp_msg, **metadata):
@@ -241,7 +241,7 @@ def log_printer(sbp_msg, **metadata):
         7: 'DEBUG'
     }
     m = MsgLog(sbp_msg)
-    print(levels[m.level], m.text)
+    print(levels[m.level], m.text.decode('ascii', 'replace'))
 
 
 def swriter(link):

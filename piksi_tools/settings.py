@@ -59,6 +59,9 @@ DEFAULT_CONFIRM_RETRIES = 2
 DEFAULT_WRITE_RETRIES = 5
 DEFAULT_TIMEOUT_SECS = 0.5
 
+KEY_ENCODING = 'ascii'    # encoding for settings sections and keys
+VALUE_ENCODING = 'ascii'  # encoding for settings values
+
 
 class Settings(object):
     """
@@ -120,7 +123,7 @@ class Settings(object):
         for section in self.settings_list:
             if verbose:
                 print('%s:' % section)
-            for setting, value in self.settings_list[section].iteritems():
+            for setting, value in iter(self.settings_list[section].items()):
                 if verbose:
                     print('- %s = %s' % (setting, value))
         return self.settings_list
@@ -145,7 +148,8 @@ class Settings(object):
         while response is False and attempts < retries:
             if verbose:
                 print("Attempting to read:section={}|setting={}".format(section, setting))
-            self.link(MsgSettingsReadReq(setting='%s\0%s\0' % (section, setting)))
+            self.link(MsgSettingsReadReq(setting=b'%s\0%s\0'
+                      % (section.encode(KEY_ENCODING), setting.encode(KEY_ENCODING))))
             time.sleep(self.timeout)
             response = self.read_response_wait_dict[(section, setting)]
             attempts += 1
@@ -187,7 +191,9 @@ class Settings(object):
                 reply['status'] = msg.status
 
             self.link.add_callback(cb, SBP_MSG_SETTINGS_WRITE_RESP)
-            self.link(MsgSettingsWrite(setting='%s\0%s\0%s\0' % (section, setting, str(value))))
+            self.link(MsgSettingsWrite(setting=b'%s\0%s\0%s\0'
+                      % (section.encode(KEY_ENCODING), setting.encode(KEY_ENCODING),
+                         value.encode(VALUE_ENCODING))))
             if self._confirm_write(section, setting, value, verbose=verbose, retries=confirm_retries):
                 self.link.remove_callback(cb, SBP_MSG_SETTINGS_WRITE_RESP)
                 return
@@ -239,16 +245,18 @@ class Settings(object):
         return
 
     def _print_callback(self, msg, **metadata):
-        print(msg.text)
+        print(msg.text.decode('ascii'))
 
     def _settings_callback(self, sbp_msg, **metadata):
-        section, setting, value, format_type = sbp_msg.payload.split(
-            '\0')[:4]
-        self.read_response_wait_dict[(section, setting)] = value
+        section, setting, value, format_type = sbp_msg.payload.split(b'\0')[:4]
+        self.read_response_wait_dict[(
+            section.decode(KEY_ENCODING), setting.decode(KEY_ENCODING))] = value.decode(VALUE_ENCODING)
 
     def _settings_list_callback(self, sbp_msg, **metadata):
-        section, setting, value, format_type = sbp_msg.payload[2:].split(
-            '\0')[:4]
+        section_b, setting_b, value_b, format_type_b = sbp_msg.payload[2:].split(b'\0')[:4]
+        section = section_b.decode(KEY_ENCODING)
+        setting = setting_b.decode(KEY_ENCODING)
+        value = value_b.decode(VALUE_ENCODING)
         if section not in self.settings_list:
             self.settings_list[section] = {}
         self.settings_list[section][setting] = value
