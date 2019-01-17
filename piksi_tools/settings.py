@@ -44,7 +44,6 @@ import configparser
 from collections import OrderedDict
 
 from sbp.client import Framer, Handler
-from sbp.logging import SBP_MSG_LOG
 from sbp.piksi import MsgReset
 from sbp.settings import (
     SBP_MSG_SETTINGS_READ_BY_INDEX_DONE, SBP_MSG_SETTINGS_READ_BY_INDEX_RESP,
@@ -55,12 +54,14 @@ from sbp.settings import (
 from piksi_tools import serial_link
 
 DEFAULT_READ_RETRIES = 5
-DEFAULT_CONFIRM_RETRIES = 2
-DEFAULT_WRITE_RETRIES = 5
 DEFAULT_TIMEOUT_SECS = 0.5
 
 KEY_ENCODING = 'ascii'    # encoding for settings sections and keys
 VALUE_ENCODING = 'ascii'  # encoding for settings values
+
+
+class ReadOnlySettingError(Exception):
+    pass
 
 
 class Settings(object):
@@ -77,7 +78,6 @@ class Settings(object):
                                SBP_MSG_SETTINGS_READ_BY_INDEX_RESP)
         self.link.add_callback(self._settings_done_callback,
                                SBP_MSG_SETTINGS_READ_BY_INDEX_DONE)
-        self.link.add_callback(self._print_callback, [SBP_MSG_LOG])
         return self
 
     def __exit__(self, *args):
@@ -87,7 +87,6 @@ class Settings(object):
                                   SBP_MSG_SETTINGS_READ_BY_INDEX_RESP)
         self.link.remove_callback(self._settings_done_callback,
                                   SBP_MSG_SETTINGS_READ_BY_INDEX_DONE)
-        self.link.remove_callback(self._print_callback, [SBP_MSG_LOG])
 
     def __init__(self, link, timeout=DEFAULT_TIMEOUT_SECS):
         self.link = link
@@ -95,9 +94,6 @@ class Settings(object):
         self.settings_list_received = False  # switch to indicate all settings have been read
         self.read_response_wait_dict = {}  # signaling dictionary for settings reads and timeouts
         self.timeout = timeout  # how long to wait for response from device?
-
-        # Add necessary callbacks for settings IO
-        # TODO add callback for settings_write_response
 
     def read_all(self, verbose=False):
         """Read all settings from device
@@ -163,58 +159,60 @@ class Settings(object):
             raise RuntimeError(("Unable to read setting \"{}\" in section \"{}\" after {} attempts. "
                                 "Setting may not exist.".format(setting, section, retries)))
 
-    def write(self, section, setting, value, write_retries=DEFAULT_WRITE_RETRIES,
-              confirm_retries=DEFAULT_CONFIRM_RETRIES, verbose=False):
+    def write(self, section, setting, value, verbose=False):
         """Write setting by name and confirm set
-
-        Notes: Caller does not raise an exception, but RuntimeError may be raised when write unsuccessful
 
         Args:
             section(str): string of section name
             setting(str): string of setting name
             value(str): value to set
             verbose(bool): Echo settings to sdout
-
+        Raises:
+            KeyError if the section/setting does not exist
+            ReadOnlySettingError if the section/setting is read-only
+            RuntimeError if the write was otherwise unsuccessful
         Returns:
             None
-
         """
+        if verbose:
+            print("Attempting to write: section={}|setting={}|value={}".format(section, setting, value))
 
-        attempts = 0
-        while (attempts < write_retries):
+        key = b'%s\0%s\0' % (section.encode(KEY_ENCODING), setting.encode(KEY_ENCODING))
+        request = key + b'%s\0' % value.encode(VALUE_ENCODING)
+
+        self.link(MsgSettingsWrite(setting=request))
+        reply = self.link.wait(SBP_MSG_SETTINGS_WRITE_RESP, timeout=self.timeout)
+
+        if reply is None:
+            raise RuntimeError("Settings write request {}/{} timed out"
+                               .format(section, setting))
+        if reply and not reply.setting.startswith(key):
+            raise RuntimeError("Warning: setting write response \"{}\" with "
+                               "status {} does not match the request (\"{}\")."
+                               .format(reply.setting, reply.status, request))
+
+        if reply.status == 0:  # ok
+            reply_value = reply.setting.split(b'\0')[2].decode(KEY_ENCODING)
             if verbose:
-                print("Attempting to write:section={}|setting={}|value={}".format(section, setting, value))
-            attempts += 1
-            reply = {'status': 0}
-
-            def cb(msg, **metadata):
-                reply['status'] = msg.status
-
-            self.link.add_callback(cb, SBP_MSG_SETTINGS_WRITE_RESP)
-            self.link(MsgSettingsWrite(setting=b'%s\0%s\0%s\0'
-                      % (section.encode(KEY_ENCODING), setting.encode(KEY_ENCODING),
-                         value.encode(VALUE_ENCODING))))
-            if self._confirm_write(section, setting, value, verbose=verbose, retries=confirm_retries):
-                self.link.remove_callback(cb, SBP_MSG_SETTINGS_WRITE_RESP)
-                return
-            if reply['status'] == 1:
-                raise RuntimeError("Unable to write setting \"{}\" in section \"{}\" "
-                                   "with value \"{}\": Setting value rejected.".format(setting, section,
-                                                                                       value))
-            elif reply['status'] == 2:
-                raise RuntimeError("Unable to write setting \"{}\" in section \"{}\"."
-                                   "Setting does not exist.".format(setting, section))
-            elif reply['status'] > 0:
-                raise RuntimeError("Unknown setting write status response")
-            else:
-                continue
-
-        raise RuntimeError("Unable to write setting \"{}\" in section \"{}\" "
-                           "with value \"{}\" after {} attempts. Setting "
-                           "may be read-only or the value could be out of bounds.".format(setting, section,
-                                                                                          value, write_retries))
-        self.link.remove_callback(cb, SBP_MSG_SETTINGS_WRITE_RESP)
-        return
+                print("  Wrote: section={}|setting={}|value={}"
+                      .format(section, setting, reply_value))
+        elif reply.status == 1 or reply.status == 3:
+            raise RuntimeError("Unable to write setting \"{}\" in section \"{}\" "
+                               "with value \"{}\": Setting value rejected."
+                               .format(setting, section, value))
+        elif reply.status == 2:
+            raise KeyError("Unable to write setting \"{}\" in section \"{}\": "
+                           "The setting does not exist.".format(setting, section))
+        elif reply.status == 4 or reply.status == 5:
+            raise ReadOnlySettingError("Setting \"{}\" in section \"{}\" is read-only."
+                                       .format(setting, section))
+        elif reply.status == 6:
+            raise RuntimeError("System failure when attempting to set setting "
+                               "\"{}\" in section \"{}\".".format(setting, section))
+        else:
+            raise RuntimeError("Unknown setting write status response {} when "
+                               "attempting to set setting \"{}\" in section \"{}\"."
+                               .format(reply.status, setting, section))
 
     def save(self):
         """Save settings to flash"""
@@ -241,11 +239,10 @@ class Settings(object):
             parser.read_file(f)
         for section, settings in parser.items():
             for setting, value in settings.items():
-                return_code = self.write(section, setting, value, verbose=verbose)
-        return
-
-    def _print_callback(self, msg, **metadata):
-        print(msg.text.decode('ascii'))
+                try:
+                    self.write(section, setting, value, verbose=verbose)
+                except ReadOnlySettingError as e:
+                    print(' ', e)
 
     def _settings_callback(self, sbp_msg, **metadata):
         section, setting, value, format_type = sbp_msg.payload.split(b'\0')[:4]
@@ -265,50 +262,6 @@ class Settings(object):
 
     def _settings_done_callback(self, sbp_msg, **metadata):
         self.settings_list_received = True
-
-    def _confirm_write(self, section, setting, value, retries, verbose=False):
-
-        """Confirm that a setting has been written to the value provided
-
-        Notes:
-            Right now we explicitly do a settings.read to confirm new value
-            In future we will just wait for settings_write_response
-            TODO update to wait for settings_write_resp
-
-        Args:
-            section(str): string of section name
-            setting(str): string of setting name
-            value(str): value to set
-            verbose(bool): Echo settings to stdout
-        Raises:
-            RunTimeError: if we were not able to read the setting. It may not exist or could be read only.
-        Returns:
-            True if settings read succesful
-            False if otherwise
-        """
-        attempts = 0
-        while (attempts < retries):
-            attempts += 1
-            actual_value = self.read(section, setting, verbose=verbose, retries=DEFAULT_READ_RETRIES)
-            if value != actual_value:  # value doesn't match, but could be a rounding issue
-                try:
-                    float_val = float(actual_value)
-                    float_actual_val = float(value)
-                    if abs(float_val - float_actual_val) > 0.000001:  # value doesn't match, try again
-                        continue
-                    else:  # value matches after allowing imprecision
-                        if verbose:
-                            print("Successfully set:section={}|setting={}|value={}".format(section, setting, value))
-                        return True
-                except (TypeError, ValueError):
-                    continue
-            else:  # value matches
-                if verbose:
-                    print("Successfully set:section={}|setting={}|value={}".format(section, setting, value))
-                return True
-
-                # If we get here the value has never matched
-        return False
 
 
 def get_args():
