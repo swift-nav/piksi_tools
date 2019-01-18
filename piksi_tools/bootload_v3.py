@@ -78,7 +78,7 @@ def main():
     driver = serial_link.get_base_args_driver(args)
     # Driver with context
     # Handler with context
-    with Handler(Framer(driver.read, driver.write)) as link:
+    with Handler(Framer(driver.read, driver.write, verbose=args.verbose)) as link:
         data = bytearray(open(args.file, 'rb').read())
 
         def progress_cb(size):
