@@ -37,7 +37,6 @@ class MsgExtractor(object):
                 if isinstance(attr, construct.lib.ListContainer):
                     for list_element in attr:
                       outstringlist.append("{0}".format(list_element))
-                    print("help")
                 else:
                   outstringlist.append("{0}".format(attr))
             except AttributeError:
