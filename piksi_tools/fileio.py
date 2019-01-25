@@ -12,12 +12,13 @@
 from __future__ import absolute_import, print_function
 from future.builtins import bytes  # makes python 2 bytes more similar to python 3
 
-import copy
 import itertools
 import random
 import time
 import threading
 import sys
+
+import Queue
 
 from sbp.client import Framer, Handler
 from sbp.file_io import (SBP_MSG_FILEIO_READ_DIR_RESP,
@@ -28,11 +29,19 @@ from sbp.file_io import (SBP_MSG_FILEIO_READ_DIR_RESP,
 from piksi_tools import serial_link
 
 MAX_PAYLOAD_SIZE = 255
-SBP_FILEIO_WINDOW_SIZE = 100
-SBP_FILEIO_TIMEOUT = 5.0
-MINIMUM_RETRIES = 3
+SBP_FILEIO_WINDOW_SIZE = 4096
+
+# With SBP packets at 256 bytes, about 5 will fit a max network payload of 1460 bytes
+#   given 1500 as the MTU (maximum transmission unit) for Ethernet with IP overhead
+#   at 20 bytes and TCP overhead at 20 bytes.
+SBP_FILEIO_BATCH_SIZE = 32
+
+SBP_FILEIO_TIMEOUT = 3.0
+MAXIMUM_RETRIES = 20
 PROGRESS_CB_REDUCTION_FACTOR = 100
 TEXT_ENCODING = 'utf-8'  # used for printing out directory listings and files
+
+WAIT_SLEEP = 0.001
 
 
 class PendingWrite(object):
@@ -51,7 +60,15 @@ class PendingWrite(object):
       If the message is complete
     """
 
-    __slots__ = ["message", "time", "tries", "complete"]
+    __slots__ = ["message", "time", "tries", "complete", "index"]
+
+    def __init__(self, index):
+        self.index = index
+        self.complete = None
+
+    def __repr__(self):
+        return "PendingWrite(message.offset=%r,message.sequence=%r,time=%r,tries=%r,complete=%r,index=%r" % (
+            self.message.offset, self.message.sequence, self.time, self.tries, self.complete, self.index)
 
     def invalidate(self):
         """
@@ -109,110 +126,127 @@ class SelectiveRepeater(object):
     """Selective repeater for SBP file transfers"""
 
     def __init__(self, link, msg_type, cb=None):
-        self.write_pool = [PendingWrite() for X in range(SBP_FILEIO_WINDOW_SIZE)]
-        self.pending = []
-        self.link = link
-        self.msg_type = msg_type
-        self.cb = cb
-        self.cb_thread = None
-        self.link_thread = None
+        self._write_pool = Queue.Queue(SBP_FILEIO_WINDOW_SIZE)
+        self._pending = [PendingWrite(X) for X in range(SBP_FILEIO_WINDOW_SIZE)]
+        for pending_write in self._pending:
+            self._write_pool.put(pending_write)
+        self._seqmap = {}
+        self._link = link
+        self._msg_type = msg_type
+        self._callback = cb
+        self._callback_thread = None
+        self._link_thread = None
+        self._batch_msgs = []
 
     def _verify_cb_thread(self):
         """
-        Verify that the same (singular) thread is accessing the `self.pending`
-        and the `self.write_pool` lists.  Only the cb thread should free window
-        space by removing (popping) from `self.pending` and appending it to the
-        `self.write_pool` list.
+        Verify that the same (singular) thread is accessing the `self._pending`
+        and the `self._write_pool` lists.  Only the cb thread should free window
+        space by removing (popping) from `self._pending` and appending it to the
+        `self._write_pool` list.
         """
-        if self.cb_thread is None:
-            self.cb_thread = threading.currentThread().ident
-        assert self.cb_thread == threading.currentThread().ident
+        if self._callback_thread is None:
+            self._callback_thread = threading.currentThread().ident
+        assert self._callback_thread == threading.currentThread().ident
 
     def _verify_link_thread(self):
         """
-        Verify that the same (singular) thread is accessing the `self.pending`
-        and the `self.write_pool` lists.  Only the link thread should consume
-        window by removing a PendingWrite object from the `self.write_pool`
-        list and appending it to the `self.pending` list.
+        Verify that the same (singular) thread is accessing the `self._pending`
+        and the `self._write_pool` lists.  Only the link thread should consume
+        window by removing a PendingWrite object from the `self._write_pool`
+        list and appending it to the `self._pending` list.
         """
-        if self.link_thread is None:
-            self.link_thread = threading.currentThread().ident
-        assert self.link_thread == threading.currentThread().ident
+        if self._link_thread is None:
+            self._link_thread = threading.currentThread().ident
+        assert self._link_thread == threading.currentThread().ident
 
     def _return_pending_write(self, pending_write):
         """
-        Increases the count of available pending writes by move a PendingWrite
-        object from `self.pending` to `self.write_pool`.
+        Increases the count of available pending writes by moving a PendingWrite
+        object from `self._pending` to `self._write_pool`.
 
         Threading: only the callback thread should access this function.  The
-        cb thread is the consumer of `self.pending`, and the producer of
-        `self.write_pool`.
+        cb thread is the consumer of `self._pending`, and the producer of
+        `self._write_pool`.
         """
         self._verify_cb_thread()
-        self.pending.pop(self.pending.index(pending_write))
-        self.write_pool.append(pending_write.invalidate())
+        self._write_pool.put(pending_write)
+        del self._seqmap[pending_write.message.sequence]
 
     def _fetch_pending_write(self, msg):
         """
         Decrease the number of available oustanding writes by popping from
-        `self.write_pool` and appending to `self.pending`.
+        `self._write_pool` and appending to `self._pending`.
 
         Threading: only the link (network) thread should access this function.
-        The link thread is the producer of `self.pending`, and the consumer of
-        `self.write_pool`.
+        The link thread is the producer of `self._pending`, and the consumer of
+        `self._write_pool`.
         """
         self._verify_link_thread()
-        pending_write = self.write_pool.pop(0)
-        self.pending.append(pending_write.track(msg, time.time()))
-
-    def _window_available(self):
-        return len(self.write_pool) != 0
+        pending_write = self._write_pool.get(True)
+        self._seqmap[msg.sequence] = pending_write.index
+        assert self._pending[pending_write.index].index == pending_write.index
+        self._pending[pending_write.index].track(msg, time.time())
 
     def __enter__(self):
-        self.link.add_callback(self._write_cb, self.msg_type)
+        self._link.add_callback(self._write_cb, self._msg_type)
         return self
 
     def __exit__(self, type, value, traceback):
-        self.link.remove_callback(self._write_cb, self.msg_type)
+        self._link.remove_callback(self._write_cb, self._msg_type)
 
     def _write_cb(self, msg, **metadata):
-        for pending_write in self.pending[:]:
-            if msg.sequence == pending_write.message.sequence:
-                if self.cb:
-                    self.cb(pending_write.message, msg)
-                pending_write.complete = True
-                self._return_pending_write(pending_write)
+        index = self._seqmap.get(msg.sequence)
+        if index is None:
+            return
+        pending_write = self._pending[index]
+        if pending_write.complete:
+            return
+        if self._callback:
+            self._callback(pending_write.message, msg)
+        pending_write.complete = True
+        self._return_pending_write(pending_write)
+
+    def _has_pending(self):
+        return self._write_pool.qsize() != len(self._pending)
 
     def _check_pending(self):
-        # Get a copy of all the records so they won't change while we're
-        #   checking for a time-out.
-        pending_writes = ((P, copy.copy(P)) for P in self.pending[:])
-        for pending_write, pending_write_copy in pending_writes:
-            if not pending_write_copy.is_pending():
+        for pending_write in self._pending:
+            if pending_write is None:
+                continue
+            if not pending_write.is_pending():
                 continue
             tnow = time.time()
-            if tnow - pending_write_copy.time > SBP_FILEIO_TIMEOUT:
-                if pending_write_copy.tries >= MINIMUM_RETRIES:
+            if tnow - pending_write.time > SBP_FILEIO_TIMEOUT:
+                if pending_write.tries >= MAXIMUM_RETRIES:
                     raise Exception('Timed out')
-                # Update the live record
                 pending_write.record_retry(tnow)
-                self.link(pending_write_copy.message)
+                self._link(pending_write.message)
 
-    def _wait_window_available(self):
-        while not self._window_available():
+    def _window_available(self, batch_size):
+        return self._write_pool.qsize() >= batch_size
+
+    def _wait_window_available(self, batch_size):
+        while not self._window_available(batch_size):
             self._check_pending()
-            if not self._window_available():
-                time.sleep(0.01)
+            if not self._window_available(batch_size):
+                time.sleep(WAIT_SLEEP)
 
-    def send(self, msg):
-        self._wait_window_available()
-        self._fetch_pending_write(msg)
-        self.link(msg)
+    def send(self, msg, batch_size=SBP_FILEIO_BATCH_SIZE):
+        if msg is not None:
+            self._batch_msgs.append(msg)
+        if len(self._batch_msgs) >= batch_size:
+            self._wait_window_available(batch_size)
+            for msg in self._batch_msgs:
+                self._fetch_pending_write(msg)
+            self._link(*self._batch_msgs)
+            del self._batch_msgs[:]
 
     def flush(self):
-        while len(self.pending) > 0:
+        self.send(None, batch_size=0)
+        while self._has_pending():
             self._check_pending()
-            time.sleep(0.01)
+            time.sleep(WAIT_SLEEP)
 
 
 class FileIO(object):
@@ -262,7 +296,7 @@ class FileIO(object):
                 sr.send(msg)
                 offset += chunksize
             while not closure['done']:
-                time.sleep(0.01)
+                time.sleep(WAIT_SLEEP)
             sorted_buffers = sorted(closure['buf'].items(), key=lambda kv: kv[0])
             return bytearray(itertools.chain.from_iterable(kv[1] for kv in sorted_buffers))
 
@@ -286,7 +320,7 @@ class FileIO(object):
             msg = MsgFileioReadDirReq(
                 sequence=seq, offset=len(files), dirname=dirname)
             self.link(msg)
-            reply = self.link.wait(SBP_MSG_FILEIO_READ_DIR_RESP, timeout=1.0)
+            reply = self.link.wait(SBP_MSG_FILEIO_READ_DIR_RESP, timeout=5.0)
             if not reply:
                 raise Exception("Timeout waiting for FILEIO_READ_DIR reply")
             # Why isn't this already decoded?
@@ -351,12 +385,13 @@ class FileIO(object):
                 msg = MsgFileioWriteReq(
                     sequence=seq,
                     offset=offset,
-                    filename=filename + b'\x00',
-                    data=chunk)
+                    filename=filename + b'\x00' + chunk,
+                    data=b'')
                 sr.send(msg)
                 offset += len(chunk)
                 if (progress_cb is not None and seq % PROGRESS_CB_REDUCTION_FACTOR == 0):
                     progress_cb(offset)
+            progress_cb(offset)
             sr.flush()
 
 
@@ -474,7 +509,53 @@ def printable_text_from_device(data):
     return str
 
 
+def mk_progress_cb(file_length):
+
+    time_last = [time.time()]
+    offset_last = [0]
+
+    kb_to_mb = 1024 * 1024.0
+    file_mb = file_length / kb_to_mb
+    rolling_avg_len = 20
+    rolling_avg_pts = []
+    previous_avg = [None]
+
+    def compute_rolling_average(speed_kbs):
+        removed_pt = None
+        if len(rolling_avg_pts) >= rolling_avg_len:
+            removed_pt = rolling_avg_pts.pop(0)
+        rolling_avg_pts.append(speed_kbs)
+        if removed_pt is not None:
+            assert previous_avg[0] is not None
+            new_avg_contrib = speed_kbs / rolling_avg_len
+            removed_avg_contrib = removed_pt / rolling_avg_len
+            previous_avg[0] -= removed_avg_contrib
+            previous_avg[0] += new_avg_contrib
+            return previous_avg[0]
+        else:
+            previous_avg[0] = sum(rolling_avg_pts) / len(rolling_avg_pts)
+            return previous_avg[0]
+
+    def the_callback(offset):
+        time_current = time.time()
+        offset_delta = offset - offset_last[0]
+        time_delta = time_current - time_last[0]
+        percent_done = 100 * (offset / float(file_length))
+        mb_confirmed = offset / kb_to_mb
+        speed_kbs = offset_delta / time_delta / 1024
+        rolling_avg = compute_rolling_average(speed_kbs)
+        fmt_str = "\r[{:02.02f}% ({:.02f}/{:.02f} MB) at {:.02f} kB/s]"
+        status_str = fmt_str.format(percent_done, mb_confirmed, file_mb, rolling_avg)
+        sys.stdout.write(status_str)
+        sys.stdout.flush()
+        time_last[0] = time_current
+        offset_last[0] = offset
+
+    return the_callback
+
+
 def main():
+
     args = get_args()
     selected_driver = serial_link.get_base_args_driver(args)
 
@@ -485,7 +566,10 @@ def main():
             f = FileIO(link)
             try:
                 if args.write:
-                    f.write(raw_filename(args.write[1]), bytearray(open(args.write[0], 'rb').read()))
+                    file_data = bytearray(open(args.write[0], 'rb').read())
+                    f.write(raw_filename(args.write[1]), file_data, progress_cb=mk_progress_cb(len(file_data)))
+                    sys.stdout.write("\n")
+                    sys.stdout.flush()
                 elif args.read:
                     if len(args.read) not in [1, 2]:
                         sys.stderr.write("Error: fileio read requires either 1 or 2 arguments, SOURCE and optionally DEST.")

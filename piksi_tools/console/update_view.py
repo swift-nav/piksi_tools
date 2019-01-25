@@ -713,7 +713,7 @@ class UpdateView(HasTraits):
         self._write("Transferring image to device...\n\n00.0 of {:2.1f} MB trasnferred".format(self.blob_size * 1e-6))
         try:
             FileIO(self.link).write(
-                "upgrade.image_set.bin",
+                b"upgrade.image_set.bin",
                 self.stm_fw.blob,
                 progress_cb=self.file_transfer_progress_cb)
         except Exception as e:
