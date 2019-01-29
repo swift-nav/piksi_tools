@@ -78,7 +78,7 @@ color_dict = {
 
 
 def get_color(key):
-    code, sat, ch = key
+    code, sat = key
 
     # reuse palatte for glo signals
     if code_is_glo(code):
@@ -95,13 +95,13 @@ def get_color(key):
 
 
 def get_label(key, extra):
-    code, sat, ch = key
-    lbl = 'Ch {ch:02d}: {code} '.format(ch=ch, code=code_to_str(code))
+    code, sat = key
+    lbl = '{code} '.format(code=code_to_str(code))
 
     if code_is_glo(code):
         lbl += 'F{sat:0=+3d}'.format(sat=sat)
-        if ch in extra:
-            lbl += ' R{slot:02d}'.format(slot=extra[ch])
+        if sat in extra:
+            lbl += ' R{slot:02d}'.format(slot=extra[sat])
     elif code_is_sbas(code):
         lbl += 'S{sat:3d}'.format(sat=sat)
     elif code_is_bds(code):
@@ -153,12 +153,12 @@ class TrackingView(CodeFiltered):
                     # so that they can both be retrieved when displaying the channel
                     if (s.mesid.sat > 90):
                         self.glo_fcn_dict[i] = s.mesid.sat - 100
-                    else:
-                        self.glo_slot_dict[i] = s.mesid.sat
                     sat = self.glo_fcn_dict.get(i, 0)
+                    if (s.mesid.sat <= 90):
+                        self.glo_slot_dict[sat] = s.mesid.sat
                 else:
                     sat = s.mesid.sat
-                key = (s.mesid.code, sat, i)
+                key = (s.mesid.code, sat)
                 codes_that_came.append(key)
                 if s.cn0 != 0:
                     self.CN0_dict[key].append(s.cn0 / 4.0)
@@ -187,11 +187,14 @@ class TrackingView(CodeFiltered):
             # each array can be plotted against host_time, t
             for i, s in enumerate(sbp_msg.states):
                 if code_is_glo(s.sid.code):
-                    sat = s.fcn - GLO_FCN_OFFSET
-                    self.glo_slot_dict[i] = s.sid.sat
+                    if (s.sid.sat > 90):
+                        sat = s.sid.sat - 100
+                    else:
+                        sat = s.fcn - GLO_FCN_OFFSET
+                    self.glo_slot_dict[sat] = s.sid.sat
                 else:
                     sat = s.sid.sat
-                key = (s.sid.code, sat, i)
+                key = (s.sid.code, sat)
                 codes_that_came.append(key)
                 if s.cn0 != 0:
                     self.CN0_dict[key].append(s.cn0 / 4.0)
@@ -226,17 +229,13 @@ class TrackingView(CodeFiltered):
             for each in list(self.plot.plots.keys()):
                 if each not in [str(a) for a in self.CN0_dict.keys()] and each != 't':
                     try:
-                        sys.stderr.write("Deleting plot: {}\n".format(each))
                         self.plot.delplot(each)
                     except KeyError:
-                        sys.stderr.write("Key error while deleting plot: {}\n".format(each))
-                        # pass
+                        pass
                     try:
-                        sys.stderr.write("Deleting plot data: {}\n".format(each))
                         self.plot_data.del_data(each)
                     except KeyError:
-                        sys.stderr.write("Key error while deleting plot data: {}\n".format(each))
-                        # pass
+                        pass
             # add/remove plot as neccesary and build legend
             for k, cno_array in self.CN0_dict.items():
                 key = str(k)
@@ -255,9 +254,6 @@ class TrackingView(CodeFiltered):
                         self.plot.delplot(key)
             plots = dict(list(zip(plot_labels, plots)))
             self.plot.legend.plots = plots
-            sys.stderr.write("{} {}\n".format(len(self.plot_data.list_data()), len(self.plot.plots)))
-            sys.stderr.write("{}\n".format(sum(len(self.plot_data.get_data(K)) for K in self.plot_data.list_data())))
-            sys.stderr.flush()
 
     def _legend_visible_changed(self):
         if self.plot:

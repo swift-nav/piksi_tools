@@ -13,7 +13,7 @@ from sbp.client.loggers.json_logger import JSONLogIterator
 from sbp.client import Framer
 from sbp.client.drivers.file_driver import FileDriver
 from sbp.table import _SBP_TABLE
-
+import construct
 
 def get_list_of_columns(msgClass, metadata):
     if metadata:
@@ -33,7 +33,12 @@ class MsgExtractor(object):
         outstringlist = []
         for each in self.columns:
             try:
-                outstringlist.append("{0}".format(getattr(msg, each)))
+                attr = getattr(msg, each)
+                if isinstance(attr, construct.lib.ListContainer):
+                    for list_element in attr:
+                      outstringlist.append("{0}".format(list_element))
+                else:
+                  outstringlist.append("{0}".format(attr))
             except AttributeError:
                 outstringlist.append("{0}".format(data[each]))
         self.outfile.write(",".join(outstringlist) + "\n")

@@ -10,6 +10,7 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 from __future__ import absolute_import, print_function
+from future.builtins import bytes  # makes python 2 bytes more similar to python 3
 
 import copy
 import itertools
@@ -19,19 +20,20 @@ import threading
 import sys
 
 from sbp.client import Framer, Handler
-from sbp.client.drivers.network_drivers import TCPDriver
 from sbp.file_io import (SBP_MSG_FILEIO_READ_DIR_RESP,
                          SBP_MSG_FILEIO_READ_RESP, SBP_MSG_FILEIO_WRITE_RESP,
                          MsgFileioReadDirReq, MsgFileioReadDirResp,
                          MsgFileioReadReq, MsgFileioRemove, MsgFileioWriteReq)
 
 from piksi_tools import serial_link
+from piksi_tools.utils import get_tcp_driver
 
 MAX_PAYLOAD_SIZE = 255
 SBP_FILEIO_WINDOW_SIZE = 100
 SBP_FILEIO_TIMEOUT = 5.0
 MINIMUM_RETRIES = 3
 PROGRESS_CB_REDUCTION_FACTOR = 100
+TEXT_ENCODING = 'utf-8'  # used for printing out directory listings and files
 
 
 class PendingWrite(object):
@@ -229,17 +231,17 @@ class FileIO(object):
 
         Parameters
         ----------
-        filename : str
+        filename : bytes
             Name of the file to read.
 
         Returns
         -------
-        out : str
+        out : bytearray
             Contents of the file.
         """
         offset = 0
         chunksize = MAX_PAYLOAD_SIZE - 4
-        closure = {'mostly_done': False, 'done': False, 'buf': {}, 'pending':set()}
+        closure = {'mostly_done': False, 'done': False, 'buf': {}, 'pending': set()}
 
         def cb(req, resp):
             closure['pending'].remove(req.offset)
@@ -265,18 +267,18 @@ class FileIO(object):
             sorted_buffers = sorted(closure['buf'].items(), key=lambda kv: kv[0])
             return bytearray(itertools.chain.from_iterable(kv[1] for kv in sorted_buffers))
 
-    def readdir(self, dirname='.'):
+    def readdir(self, dirname=b'.'):
         """
         List the files in a directory.
 
         Parameters
         ----------
-        dirname : str (optional)
+        dirname : bytes (optional)
             Name of the directory to list. Defaults to the root directory.
 
         Returns
         -------
-        out : [str]
+        out : [bytes]
             List of file names.
         """
         files = []
@@ -292,10 +294,11 @@ class FileIO(object):
             reply = MsgFileioReadDirResp(reply)
             if reply.sequence != seq:
                 raise Exception("Reply FILEIO_READ_DIR doesn't match request (%d vs %d)" % (reply.sequence, seq))
-            chunk = str(bytearray(reply.contents)).rstrip('\0')
+            chunk = bytes(reply.contents).rstrip(b'\0')
+
             if len(chunk) == 0:
                 return files
-            files += chunk.split('\0')
+            files += chunk.split(b'\0')
 
     def remove(self, filename):
         """
@@ -303,7 +306,7 @@ class FileIO(object):
 
         Parameters
         ----------
-        filename : str
+        filename : bytes
             Name of the file to delete.
         """
         msg = MsgFileioRemove(filename=filename)
@@ -315,9 +318,9 @@ class FileIO(object):
 
         Parameters
         ----------
-        filename : str
+        filename : bytes
             Name of the file to write to.
-        data : str
+        data : bytearray
             Data to write
         offset : int (optional)
             Offset into the file at which to start writing in bytes.
@@ -348,9 +351,9 @@ class FileIO(object):
                 chunk = data[offset:offset + chunksize - 1]
                 msg = MsgFileioWriteReq(
                     sequence=seq,
-                    filename=(filename + '\0' + chunk),
                     offset=offset,
-                    data='')
+                    filename=filename + b'\x00',
+                    data=chunk)
                 sr.send(msg)
                 offset += len(chunk)
                 if (progress_cb is not None and seq % PROGRESS_CB_REDUCTION_FACTOR == 0):
@@ -393,11 +396,11 @@ def print_dir_listing(files):
 
     Parameters
     ----------
-    files : [str]
+    files : [bytes]
         List of file names in the directory.
     """
     for f in files:
-        print(f)
+        print(printable_text_from_device(f))
 
 
 def get_args():
@@ -433,6 +436,7 @@ def get_args():
         nargs=1,
         help="specify the baud rate to use.")
     parser.add_argument(
+        "-t",
         "--tcp",
         action="store_true",
         default=False,
@@ -454,16 +458,31 @@ def get_args():
     return parser.parse_args()
 
 
+def raw_filename(str_filename):
+    """Return a filename in raw bytes from a command line option string."""
+    # Non-unicode characters/bytes in the command line options are decoded by
+    # using 'surrogateescape' and file system encoding, and this reverts that.
+    # References:
+    # https://www.python.org/dev/peps/pep-0383/
+    # https://docs.python.org/3/library/os.html#file-names-command-line-arguments-and-environment-variables
+    return bytes(str_filename, sys.getfilesystemencoding(), 'surrogateescape')
+
+
+def printable_text_from_device(data):
+    """Takes text data from the device as bytes and returns a string where any
+       characters incompatible with stdout have been replaced with '?'"""
+    str = data.decode(TEXT_ENCODING, 'replace')\
+              .encode(sys.stdout.encoding, 'replace')\
+              .decode(sys.stdout.encoding)
+    return str
+
+
 def main():
     args = get_args()
     port = args.port[0]
     baud = args.baud[0]
     if args.tcp:
-        try:
-            host, port = port.split(':')
-            selected_driver = TCPDriver(host, int(port))
-        except:  # noqa
-            raise Exception('Invalid host and/or port')
+        selected_driver = get_tcp_driver(port)
     else:
         selected_driver = serial_link.get_driver(args.ftdi, port, baud)
 
@@ -474,21 +493,23 @@ def main():
             f = FileIO(link)
             try:
                 if args.write:
-                    f.write(args.write[1], open(args.write[0]).read())
+                    f.write(raw_filename(args.write[1]), bytearray(open(args.write[0], 'rb').read()))
                 elif args.read:
                     if len(args.read) not in [1, 2]:
                         sys.stderr.write("Error: fileio read requires either 1 or 2 arguments, SOURCE and optionally DEST.")
                         sys.exit(1)
-                    data = f.read(args.read[0])
+                    data = f.read(raw_filename(args.read[0]))
                     if len(args.read) == 2:
-                        with open(args.read[1], ('wb' if args.hex else 'w')) as fd:
+                        with open(args.read[1], ('w' if args.hex else 'wb')) as fd:
                             fd.write(hexdump(data) if args.hex else data)
+                    elif args.hex:
+                        print(hexdump(data))
                     else:
-                        print(hexdump(data) if args.hex else data)
+                        print(printable_text_from_device(data))
                 elif args.delete:
-                    f.remove(args.delete[0])
+                    f.remove(raw_filename(args.delete[0]))
                 elif args.list is not None:
-                    print_dir_listing(f.readdir(args.list[0]))
+                    print_dir_listing(f.readdir(raw_filename(args.list[0])))
                 else:
                     print("No command given, listing root directory:")
                     print_dir_listing(f.readdir())

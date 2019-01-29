@@ -20,6 +20,7 @@ def build(env='pyinstaller'):
 
     # https://bugs.python.org/issue18920
     v = "unknown"
+    print("Running {} to determine its version.".format(str(exe)))
     try:
       v = check_output([str(exe), '-V'], stderr=subprocess.STDOUT)
       v = v.strip().split()[-1]

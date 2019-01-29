@@ -3,6 +3,7 @@ cython
 pytest
 configparser
 tox
+future
 futures
 pep8
 pyserial

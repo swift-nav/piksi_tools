@@ -84,14 +84,14 @@ class IMUView(HasTraits):
         self.acc[-1] = (sbp_msg.acc_x, sbp_msg.acc_y, sbp_msg.acc_z)
         self.gyro[-1] = (sbp_msg.gyr_x, sbp_msg.gyr_y, sbp_msg.gyr_z)
 
-        if self.imu_conf is not None:
-            acc_range = self.imu_conf & 0xF
-            sf = 2. ** (acc_range + 1) / 2. ** 15
-            self.rms_acc_x = sf * np.sqrt(np.mean(np.square(self.acc[:, 0])))
-            self.rms_acc_y = sf * np.sqrt(np.mean(np.square(self.acc[:, 1])))
-            self.rms_acc_z = sf * np.sqrt(np.mean(np.square(self.acc[:, 2])))
         if time.time() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
             self.imu_set_data()
+            if self.imu_conf is not None:
+                acc_range = self.imu_conf & 0xF
+                sf = 2. ** (acc_range + 1) / 2. ** 15
+                self.rms_acc_x = sf * np.sqrt(np.mean(np.square(self.acc[:, 0])))
+                self.rms_acc_y = sf * np.sqrt(np.mean(np.square(self.acc[:, 1])))
+                self.rms_acc_z = sf * np.sqrt(np.mean(np.square(self.acc[:, 2])))
 
     def __init__(self, link):
         super(IMUView, self).__init__()

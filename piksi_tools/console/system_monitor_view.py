@@ -11,16 +11,16 @@
 
 
 
-from sbp.piksi import (SBP_MSG_NETWORK_STATE_RESP, SBP_MSG_THREAD_STATE,
+from sbp.piksi import (SBP_MSG_THREAD_STATE,
                        SBP_MSG_UART_STATE, SBP_MSG_UART_STATE_DEPA,
-                       MsgNetworkStateReq, MsgReset)
-from sbp.system import SBP_MSG_HEARTBEAT
-from traits.api import Dict, HasTraits, Int, List
+                       SBP_MSG_DEVICE_MONITOR, MsgReset)
+from sbp.system import SBP_MSG_HEARTBEAT, SBP_MSG_CSAC_TELEMETRY, SBP_MSG_CSAC_TELEMETRY_LABELS
+from traits.api import Dict, HasTraits, Int, Float, List, Bool
 from traits.etsconfig.api import ETSConfig
 from traitsui.api import HGroup, Item, TabularEditor, VGroup, View
 from traitsui.tabular_adapter import TabularAdapter
 
-from .utils import resource_filename, sizeof_fmt
+from .utils import resource_filename
 
 if ETSConfig.toolkit != 'null':
     from enable.savage.trait_defs.ui.svg_button import SVGButton
@@ -34,13 +34,17 @@ class SimpleAdapter(TabularAdapter):
     columns = [('Thread Name', 0), ('CPU %', 1), ('Stack Free', 2)]
 
 
+class SimpleCSACAdapter(TabularAdapter):
+    columns = [('Metric Name', 0), ('Value', 1)]
+
+
 class SystemMonitorView(HasTraits):
     python_console_cmds = Dict()
 
     _threads_table_list = List()
+    _csac_telem_list = List()
+    _csac_received = Bool(False)
     threads = List()
-
-    _network_info = List()
 
     msg_obs_avg_latency_ms = Int(0)
     msg_obs_min_latency_ms = Int(0)
@@ -50,7 +54,10 @@ class SystemMonitorView(HasTraits):
     msg_obs_avg_period_ms = Int(0)
     msg_obs_min_period_ms = Int(0)
     msg_obs_max_period_ms = Int(0)
-    msg_obs_window_period_ms = Int(0)
+    msg_obs_window_period_ms = Float(0)
+
+    zynq_temp = Float(0)
+    fe_temp = Float(0)
 
     piksi_reset_button = SVGButton(
         label='Reset Device',
@@ -116,13 +123,38 @@ class SystemMonitorView(HasTraits):
                                 style='readonly',
                                 format_str='%dms'),
                             label='Period',
-                            show_border=True, ),
+                            show_border=True
+                        ),
                         show_border=True,
                         label="Observation Connection Monitor"),
                     Item('piksi_reset_button', show_label=False, width=0.50)
                 ),
-            ),
-        )
+                VGroup(
+                    Item(
+                        'zynq_temp',
+                        label='Zynq CPU Temp',
+                        style='readonly',
+                        format_str='%.1fC'),
+                    Item(
+                        'fe_temp',
+                        label='RF Frontend Temp',
+                        style='readonly',
+                        format_str='%.1fC'),
+                    show_border=True,
+                    label="Device Monitor",
+                ),
+                VGroup(
+                    Item(
+                        '_csac_telem_list',
+                        style='readonly',
+                        editor=TabularEditor(adapter=SimpleCSACAdapter()),
+                        show_label=False),
+                    show_border=True,
+                    label="Metrics",
+                    visible_when='_csac_received'
+                )
+            )
+        ),
     )
 
     def update_threads(self):
@@ -140,27 +172,35 @@ class SystemMonitorView(HasTraits):
             self.update_threads()
             self.threads = []
 
+    def device_callback(self, sbp_msg, **metadata):
+        self.zynq_temp = float(sbp_msg.cpu_temperature) / 100.
+        self.fe_temp = float(sbp_msg.fe_temperature) / 100.
+
     def thread_state_callback(self, sbp_msg, **metadata):
         if sbp_msg.name == '':
             sbp_msg.name = '(no name)'
         sbp_msg.cpu /= 10.
         self.threads.append((sbp_msg.name, sbp_msg))
 
+    def csac_header_callback(self, sbp_msg, **metadata):
+        self.headers = sbp_msg.telemetry_labels.split(',')
+        self.telem_header_index = sbp_msg.id
+
+    def csac_telem_callback(self, sbp_msg, **metadata):
+        self._csac_telem_list = []
+        if self.telem_header_index is not None:
+            if sbp_msg.id == self.telem_header_index:
+                self._csac_received = True
+                metrics_of_interest = ['Status', 'Alarm', 'Mode', 'Phase', 'DiscOK']
+                telems = sbp_msg.telemetry.split(',')
+                for i, each in enumerate(self.headers):
+                    if each in metrics_of_interest:
+                        self._csac_telem_list.append((each, telems[i]))
+
     def _piksi_reset_button_fired(self):
         self.link(MsgReset(flags=0))
 
-    def _network_refresh_button_fired(self):
-        self._network_info = []
-        self.link(MsgNetworkStateReq())
-
-    def _network_callback(self, m, **metadata):
-        self._network_info.append(
-            (m.interface_name, ip_bytes_to_string(m.ipv4_address),
-             ((m.flags & (1 << 6)) != 0),
-             sizeof_fmt(m.tx_bytes), sizeof_fmt(m.rx_bytes)))
-
     def uart_state_callback(self, m, **metadata):
-
         self.msg_obs_avg_latency_ms = m.latency.avg
         self.msg_obs_min_latency_ms = m.latency.lmin
         self.msg_obs_max_latency_ms = m.latency.lmax
@@ -174,12 +214,16 @@ class SystemMonitorView(HasTraits):
     def __init__(self, link):
         super(SystemMonitorView, self).__init__()
         self.link = link
+        self.telem_header_index = None
         self.link.add_callback(self.heartbeat_callback, SBP_MSG_HEARTBEAT)
+        self.link.add_callback(self.device_callback, SBP_MSG_DEVICE_MONITOR)
         self.link.add_callback(self.thread_state_callback,
                                SBP_MSG_THREAD_STATE)
         self.link.add_callback(self.uart_state_callback,
                                [SBP_MSG_UART_STATE, SBP_MSG_UART_STATE_DEPA])
-        self.link.add_callback(self._network_callback,
-                               SBP_MSG_NETWORK_STATE_RESP)
+        self.link.add_callback(self.csac_telem_callback,
+                               SBP_MSG_CSAC_TELEMETRY)
+        self.link.add_callback(self.csac_header_callback,
+                               SBP_MSG_CSAC_TELEMETRY_LABELS)
 
         self.python_console_cmds = {'mon': self}
