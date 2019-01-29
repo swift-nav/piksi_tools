@@ -1,13 +1,6 @@
 # chaco 4.6.1 and enable 4.6.2 have a regression which make the solution plot look weird.
-chaco
-enable
-#https://github.com/enthought/enable/archive/aa33701123bb2f6e4d12b0192285d8732500a0dd.zip
-#https://github.com/enthought/chaco/archive/d7e9b5aa4a12fd7343e49c0c6de63b9996b8470e.zip
-
-traits
-traitsui
-#pyface
-#pyside==1.2.2 
-#sip (required but installed through apt / brew)
-#qt4 (required but installed through apt / brew)
 pyqt5
+traits
+git+https://github.com/swift-nav/chaco@60f64a269625b8d59f56bcd36fe314e19e1a83d8#egg=chaco
+git+https://github.com/swift-nav/enable@68c0866c2596ccdbc2c9b85f9f86d24c3249bd93#egg=enable
+git+https://github.com/swift-nav/traitsui@68c0866c2596ccdbc2c9b85f9f86d24c3249bd93#egg=traitsui
