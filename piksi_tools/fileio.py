@@ -26,7 +26,6 @@ from sbp.file_io import (SBP_MSG_FILEIO_READ_DIR_RESP,
                          MsgFileioReadReq, MsgFileioRemove, MsgFileioWriteReq)
 
 from piksi_tools import serial_link
-from piksi_tools.utils import get_tcp_driver
 
 MAX_PAYLOAD_SIZE = 255
 SBP_FILEIO_WINDOW_SIZE = 100
@@ -426,14 +425,12 @@ def get_args():
     parser.add_argument(
         '-p',
         '--port',
-        default=[serial_link.SERIAL_PORT],
-        nargs=1,
+        default=serial_link.SERIAL_PORT,
         help='specify the serial port to use.')
     parser.add_argument(
         "-b",
         "--baud",
-        default=[serial_link.SERIAL_BAUD],
-        nargs=1,
+        default=serial_link.SERIAL_BAUD,
         help="specify the baud rate to use.")
     parser.add_argument(
         "-t",
@@ -479,12 +476,7 @@ def printable_text_from_device(data):
 
 def main():
     args = get_args()
-    port = args.port[0]
-    baud = args.baud[0]
-    if args.tcp:
-        selected_driver = get_tcp_driver(port)
-    else:
-        selected_driver = serial_link.get_driver(args.ftdi, port, baud)
+    selected_driver = serial_link.get_base_args_driver(args)
 
     # Driver with context
     with selected_driver as driver:
