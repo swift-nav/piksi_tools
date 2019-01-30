@@ -35,10 +35,9 @@ from traits.api import (Bool, Dict, Directory, Enum, HasTraits, Instance, Int,
 from traits.etsconfig.api import ETSConfig
 from traitsui.api import (EnumEditor, Handler, HGroup, HTMLEditor, ImageEditor,
                           InstanceEditor, Item, Label, Spring,
-                          Tabbed, UItem, VGroup, View, VSplit)
+                          Tabbed, TextEditor, UItem, VGroup, View, VSplit)
 
 import piksi_tools.serial_link as s
-from piksi_tools.utils import get_tcp_driver
 from piksi_tools import __version__ as CONSOLE_VERSION
 from piksi_tools.console.baseline_view import BaselineView
 from piksi_tools.console.callback_prompt import CallbackPrompt, ok_button
@@ -787,6 +786,37 @@ class ShowUsage(HasTraits):
             self.usage_str = "<pre>" + usage + "</pre>"
 
 
+class ShowConnectionError(HasTraits):
+    error_str = Str()
+    traits_view = View(
+        VGroup(
+            Spring(height=4, springy=True),
+            HGroup(
+                Spring(springy=True),
+                Item('error_str',
+                     style='readonly',
+                     editor=TextEditor(),
+                     show_label=False),
+                Spring(springy=True),
+            ),
+            Spring(springy=True),
+        ),
+        buttons=['OK', 'Cancel'],
+        default_button='OK',
+        close_result=False,
+        resizable=True,
+        icon=icon,
+        title="Swift Console Encountered An Error",
+    )
+
+    def __init__(self, error_message=None, e=None):
+        self.error_str = (error_message
+                          if error_message is not None
+                          else 'Unhandled Error')
+        if e is not None:
+            self.error_str += '\n\n{}'.format(e)
+
+
 # If using a device connected to an actual port, then invoke the
 # regular console dialog for port selection
 flow_control_options_list = ['None', 'Hardware RTS/CTS']
@@ -899,16 +929,127 @@ class PortChooser(HasTraits):
         self.baudrate = baudrate
 
 
+def get_args_from_port_chooser(args):
+    # Use the gui to get our driver args
+    port_chooser = PortChooser(baudrate=int(args.baud))
+    is_ok = port_chooser.configure_traits()
+    ip_address = port_chooser.ip_address
+    ip_port = port_chooser.ip_port
+    mode = port_chooser.mode
+    args.port = port_chooser.port
+    args.baud = port_chooser.baudrate
+    args.rtscts = port_chooser.flow_control == flow_control_options_list[1]
+
+    # if the user pressed cancel or didn't select anything
+    if not (args.port or (ip_address and ip_port)) or not is_ok:
+        print("No Interface selected!")
+        return None
+
+    # Use TCP/IP if selected from gui
+    if mode == cnx_type_list[1]:
+        args.tcp = True
+        args.port = ip_address + ":" + str(ip_port)
+        print("Using TCP/IP at address %s and port %d" % (ip_address, ip_port))
+    else:
+        args.tcp = False
+
+    return args
+
+
+class ConnectionData(object):
+    '''Data class for connection information.'''
+    def __init__(self, driver=None, description="", mode=None,
+                 connection_info={}):
+        self.driver = driver
+        self.description = description
+        self.connection_info = connection_info
+        if mode is not None:
+            self.set_connection_mode(mode)
+
+    def set_connection_mode(self, mode):
+        self.connection_info['mode'] = mode
+
+
+def connection_from_args(args):
+    cnx_data = None
+    connect_error = None
+    description = ''
+    mode = ''
+    port = getattr(args, 'port', None)
+    baud = getattr(args, 'baud', None)
+
+    if port is not None:
+        if args.tcp:
+            # Use the TPC driver and interpret port arg as host:port
+            description = port
+            mode = 'TCP/IP'
+        elif args.file:
+            # Use file and interpret port arg as the file
+            print("Using file '%s'" % port)
+            description = os.path.split(port)[-1]
+            mode = 'file'
+        else:
+            if args.rtscts:
+                print("using flow control")
+            # Use the port passed and assume serial connection
+            print("Using serial device '%s'" % port)
+            description = os.path.split(port)[-1]
+            description += (" @" + str(baud)) if baud else ""
+            mode = 'serial'
+
+        try:
+            driver = s.get_base_args_driver(args)
+        except Exception as e:  # noqa
+            connect_error = e
+        else:
+            cnx_data = ConnectionData(
+                driver=driver,
+                description=description,
+                mode=mode
+            )
+    return (cnx_data, connect_error)
+
+
+def port_chooser_retry_logic(args):
+    cnx_data = None
+    retry_connection = True
+    while retry_connection:
+        args = get_args_from_port_chooser(args)
+        # if the user pressed cancel or didn't select anything we get None
+        if args is None:
+            print("No Interface selected!")
+            return None
+
+        cnx_data, cnx_error = connection_from_args(args)
+        if cnx_data is not None:
+            break
+        if cnx_error is not None:
+            error = ShowConnectionError('Connection Failed', cnx_error)
+            retry_connection = error.configure_traits()
+    return cnx_data
+
+
+def do_connection(args):
+    '''Attempt to connect based on CLI args'''
+    # try connection from args first, no initial port arg determines retry
+    cnx_data, cnx_err = connection_from_args(args)
+
+    # do retry logic if applicable
+    if cnx_data is None:
+        if cnx_err is None:  # didn't try connection, likely no args
+            cnx_data = port_chooser_retry_logic(args)
+        else:
+            print("Failed to Connect: {}".format(cnx_err))
+    return cnx_data
+
+
 def main():
     warnings.simplefilter(action="ignore", category=FutureWarning)
     logging.basicConfig()
     args = None
     parser = get_args()
-    cnx_info = {}
     try:
         args = parser.parse_args()
-        port = args.port
-        baud = args.baud
         show_usage = args.help
         error_str = ""
     except (ArgumentParserError, argparse.ArgumentError,
@@ -932,63 +1073,13 @@ def main():
         usage.configure_traits()
         sys.exit(1)
 
-    selected_driver = None
-    connection_description = ""
-    if port and args.tcp:
-        # Use the TPC driver and interpret port arg as host:port
-        try:
-            selected_driver = get_tcp_driver(port)
-            connection_description = port
-            cnx_info['mode'] = 'TCP/IP'
-        except:  # noqa
-            raise Exception('Invalid host and/or port')
-            sys.exit(1)
-    elif port and args.file:
-        # Use file and interpret port arg as the file
-        print("Using file '%s'" % port)
-        cnx_info['mode'] = 'file'
-        selected_driver = s.get_driver(args.ftdi, port, baud, args.file)
-        connection_description = os.path.split(port)[-1]
-    elif not port:
-        # Use the gui to get our driver
-        port_chooser = PortChooser(baudrate=int(args.baud))
-        is_ok = port_chooser.configure_traits()
-        ip_address = port_chooser.ip_address
-        ip_port = port_chooser.ip_port
-        port = port_chooser.port
-        baud = port_chooser.baudrate
-        mode = port_chooser.mode
-        # todo, update for sfw flow control if ever enabled
-        rtscts = port_chooser.flow_control == flow_control_options_list[1]
-        if rtscts:
-            print("using flow control")
-        # if the user pressed cancel or didn't select anything
-        if not (port or (ip_address and ip_port)) or not is_ok:
-            print("No Interface selected!")
-            sys.exit(1)
-        else:
-            # Use either TCP/IP or serial selected from gui
-            if mode == cnx_type_list[1]:
-                print("Using TCP/IP at address %s and port %d" % (ip_address,
-                                                                  ip_port))
-                cnx_info['mode'] = cnx_type_list[1]
-                selected_driver = get_tcp_driver(ip_address, ip_port)
-                connection_description = ip_address + ":" + str(ip_port)
-            else:
-                cnx_info['mode'] = cnx_type_list[0]
-                print("Using serial device '%s'" % port)
-                selected_driver = s.get_driver(
-                    args.ftdi, port, baud, args.file, rtscts=rtscts)
-                connection_description = os.path.split(port)[-1] + " @" + str(baud)
-    else:
-        # Use the port passed and assume serial connection
-        print("Using serial device '%s'" % port)
-        selected_driver = s.get_driver(
-            args.ftdi, port, baud, args.file, rtscts=args.rtscts)
-        connection_description = os.path.split(port)[-1] + " @" + str(baud)
-        cnx_info['mode'] = 'serial'
+    # fail out if connection failed to initialize
+    cnx_data = do_connection(args)
+    if cnx_data is None:
+        print('Unable to Initialize Connection. Exiting...')
+        sys.exit(1)
 
-    with selected_driver as driver:
+    with cnx_data.driver as driver:
         with sbpc.Handler(
                 sbpc.Framer(driver.read, driver.write, args.verbose)) as link:
             if args.reset:
@@ -1000,14 +1091,14 @@ def main():
                     link,
                     args.update,
                     log_filter,
-                    cnx_desc=connection_description,
+                    cnx_desc=cnx_data.description,
                     error=args.error,
                     json_logging=args.log,
                     log_dirname=args.log_dirname,
                     override_filename=args.logfilename,
                     log_console=args.log_console,
                     networking=args.networking,
-                    connection_info=cnx_info,
+                    connection_info=cnx_data.connection_info,
                     expand_json=args.expand_json) as console:
 
                 console.configure_traits()
