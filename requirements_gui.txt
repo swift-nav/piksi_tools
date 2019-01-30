@@ -1,7 +1,7 @@
 # Needs to be installed manually?
 PySide2
--e ./vendor/traits
--e ./vendor/traitsui
--e ./vendor/enable
--e ./vendor/pyface
--e ./vendor/chaco
+git+https://github.com/enthought/traits@a666592aa762cea2a6746645371a7414dc3135f4#egg=traits
+git+https://github.com/swift-nav/traitsui@ebd1d2e87dbdb38f02dba753ab59ed0ed039a84d#egg=traitsui
+git+https://github.com/swift-nav/enable@953f2ef7f5ab58a53878f5b3f92a406fe56c9334#egg=enable
+git+https://github.com/enthought/pyface@0a66dc71bcdee9799c66098154637306dd222d48#egg=pyface
+git+https://github.com/swift-nav/chaco@60f64a269625b8d59f56bcd36fe314e19e1a83d8#egg=chaco
