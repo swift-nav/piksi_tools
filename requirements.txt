@@ -12,7 +12,7 @@ pyparsing==2.3.0
 Pygments==2.2.0
 requests==2.19.1
 six==1.11.0
-git+https://github.com/swift-nav/libsbp@14ebde8608e72c0f69eefd59f929c1db9e215604#egg=sbp&subdirectory=python
+-e ./vendor/libsbp/python
 ruamel.yaml==0.15.71
 pre-commit==1.12.0
 setuptools-scm==3.1.0

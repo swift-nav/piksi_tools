@@ -1,3 +1,25 @@
 [submodule "piksi_tools/testing/gdb_chibios"]
 	path = piksi_tools/testing/gdb_chibios
 	url = https://github.com/gsmcmullin/gdb_chibios.git
+[submodule "vendor/chaco"]
+	path = vendor/chaco
+	url = git@github.com:swift-nav/chaco.git
+	branch = swift-2019.01
+[submodule "vendor/enable"]
+	path = vendor/enable
+	url = git@github.com:swift-nav/enable.git
+	branch = swift-2019.01
+[submodule "vendor/traitsui"]
+	path = vendor/traitsui
+	url = git@github.com:swift-nav/traitsui.git
+	branch = swift-2019.01
+[submodule "vendor/pyface"]
+	path = vendor/pyface
+	url = git@github.com:enthought/pyface.git
+[submodule "vendor/traits"]
+	path = vendor/traits
+	url = git@github.com:enthought/traits.git
+[submodule "vendor/libsbp"]
+	path = vendor/libsbp
+	url = git@github.com:swift-nav/libsbp.git
+	branch = silverjam/py3
