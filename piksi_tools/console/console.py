@@ -30,17 +30,18 @@ from sbp.navigation import SBP_MSG_POS_LLH
 from sbp.piksi import SBP_MSG_COMMAND_RESP, MsgCommandResp, MsgReset
 from sbp.system import SBP_MSG_HEARTBEAT
 from traits.api import (Bool, Dict, Directory, Enum, HasTraits, Instance, Int,
-                        List, Str)
+                        Str)
 # Toolkit
 from traits.etsconfig.api import ETSConfig
-from traitsui.api import (EnumEditor, Handler, HGroup, HTMLEditor, ImageEditor,
-                          InstanceEditor, Item, Label, Spring,
+from traitsui.api import (Handler, HGroup, HTMLEditor, ImageEditor,
+                          InstanceEditor, Item, Spring,
                           Tabbed, TextEditor, UItem, VGroup, View, VSplit)
 
 import piksi_tools.serial_link as s
 from piksi_tools import __version__ as CONSOLE_VERSION
 from piksi_tools.console.baseline_view import BaselineView
 from piksi_tools.console.callback_prompt import CallbackPrompt, ok_button
+from piksi_tools.console.port_chooser import get_args_from_port_chooser
 from piksi_tools.console.deprecated import DeprecatedMessageHandler
 from piksi_tools.console.imu_view import IMUView
 from piksi_tools.console.mag_view import MagView
@@ -121,7 +122,6 @@ def get_args():
 
 
 CONSOLE_TITLE = 'Swift Console v' + CONSOLE_VERSION
-BAUD_LIST = [57600, 115200, 230400, 921600, 1000000]
 
 
 class ConsoleHandler(Handler):
@@ -815,145 +815,6 @@ class ShowConnectionError(HasTraits):
                           else 'Unhandled Error')
         if e is not None:
             self.error_str += '\n\n{}'.format(e)
-
-
-# If using a device connected to an actual port, then invoke the
-# regular console dialog for port selection
-flow_control_options_list = ['None', 'Hardware RTS/CTS']
-cnx_type_list = ['Serial/USB', 'TCP/IP']
-
-
-class PortChooser(HasTraits):
-    port = Str(None)
-    ports = List()
-    mode = Enum(cnx_type_list)
-    flow_control = Enum(flow_control_options_list)
-    ip_port = Int(55555)
-    ip_address = Str('192.168.0.222')
-    choose_baud = Bool(True)
-    baudrate = Int()
-    refresh_ports_button = SVGButton(label='',
-                                     tooltip='Refresh Port List',
-                                     filename=resource_filename('console/images/fontawesome/refresh_blue.svg'),
-                                     allow_clipping=False,
-                                     width_padding=4, height_padding=4
-                                     )
-
-    traits_view = View(
-        VGroup(
-            Spring(height=8),
-            HGroup(
-                Spring(width=-2, springy=False),
-                Item(
-                    'mode',
-                    style='custom',
-                    editor=EnumEditor(
-                        values=cnx_type_list, cols=2, format_str='%s'),
-                    show_label=False)),
-            HGroup(
-                VGroup(
-                    Label('Serial Device:'),
-                    HGroup(
-                        Item('port', editor=EnumEditor(name='ports'), show_label=False, springy=True),
-                        Item('refresh_ports_button', show_label=False, padding=0, height=-20, width=-20),
-                    ),
-                ),
-                VGroup(
-                    Label('Baudrate:'),
-                    Item(
-                        'baudrate',
-                        editor=EnumEditor(values=BAUD_LIST),
-                        show_label=False,
-                        visible_when='choose_baud'),
-                    Item(
-                        'baudrate',
-                        show_label=False,
-                        visible_when='not choose_baud',
-                        style='readonly'), ),
-                VGroup(
-                    Label('Flow Control:'),
-                    Item(
-                        'flow_control',
-                        editor=EnumEditor(
-                            values=flow_control_options_list, format_str='%s'),
-                        show_label=False), ),
-                visible_when="mode==\'Serial/USB\'"),
-            HGroup(
-                VGroup(
-                    Label('IP Address:'),
-                    Item(
-                        'ip_address',
-                        label="IP Address",
-                        style='simple',
-                        show_label=False,
-                        height=-24), ),
-                VGroup(
-                    Label('IP Port:'),
-                    Item(
-                        'ip_port',
-                        label="IP Port",
-                        style='simple',
-                        show_label=False,
-                        height=-24), ),
-                Spring(),
-                visible_when="mode==\'TCP/IP\'"), ),
-        buttons=['OK', 'Cancel'],
-        default_button='OK',
-        close_result=False,
-        icon=icon,
-        width=460,
-        title='Swift Console v{0} - Select Interface'.format(CONSOLE_VERSION)
-    )
-
-    def refresh_ports(self):
-        """
-        This method refreshes the port list
-        """
-        try:
-            self.ports = [p for p, _, _ in s.get_ports()]
-        except TypeError:
-            pass
-
-    def _refresh_ports_button_fired(self):
-        self.refresh_ports()
-
-    def __init__(self, baudrate=None):
-        self.refresh_ports()
-        # As default value, use the first city in the list:
-        try:
-            self.port = self.ports[0]
-        except IndexError:
-            pass
-        if baudrate not in BAUD_LIST:
-            self.choose_baud = False
-        self.baudrate = baudrate
-
-
-def get_args_from_port_chooser(args):
-    # Use the gui to get our driver args
-    port_chooser = PortChooser(baudrate=int(args.baud))
-    is_ok = port_chooser.configure_traits()
-    ip_address = port_chooser.ip_address
-    ip_port = port_chooser.ip_port
-    mode = port_chooser.mode
-    args.port = port_chooser.port
-    args.baud = port_chooser.baudrate
-    args.rtscts = port_chooser.flow_control == flow_control_options_list[1]
-
-    # if the user pressed cancel or didn't select anything
-    if not (args.port or (ip_address and ip_port)) or not is_ok:
-        print("No Interface selected!")
-        return None
-
-    # Use TCP/IP if selected from gui
-    if mode == cnx_type_list[1]:
-        args.tcp = True
-        args.port = ip_address + ":" + str(ip_port)
-        print("Using TCP/IP at address %s and port %d" % (ip_address, ip_port))
-    else:
-        args.tcp = False
-
-    return args
 
 
 class ConnectionData(object):
