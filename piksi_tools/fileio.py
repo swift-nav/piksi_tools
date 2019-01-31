@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-# Copyright (C) 2014 Swift Navigation Inc.
-# Contact: Gareth McMullin <gareth@swift-nav.com>
+
+# Copyright (C) 2014-2019 Swift Navigation Inc.
+# Contact: Swift Navigation <dev@swift-nav.com>
 #
 # This source is subject to the license found in the file 'LICENSE' which must
 # be be distributed together with this source. All other rights reserved.
@@ -10,7 +11,9 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 from __future__ import absolute_import, print_function
-from future.builtins import bytes  # makes python 2 bytes more similar to python 3
+from future.builtins import bytes  # makes python 2 `bytes()` more similar to python 3
+
+from collections import defaultdict
 
 import itertools
 import random
@@ -18,7 +21,7 @@ import time
 import threading
 import sys
 
-import Queue
+from six.moves.queue import Queue
 
 from sbp.client import Framer, Handler
 from sbp.file_io import (SBP_MSG_FILEIO_READ_DIR_RESP,
@@ -36,7 +39,7 @@ SBP_FILEIO_WINDOW_SIZE = 4096
 #   at 20 bytes and TCP overhead at 20 bytes.
 SBP_FILEIO_BATCH_SIZE = 32
 
-SBP_FILEIO_TIMEOUT = 3.0
+SBP_FILEIO_TIMEOUT = 1
 MAXIMUM_RETRIES = 20
 PROGRESS_CB_REDUCTION_FACTOR = 100
 TEXT_ENCODING = 'utf-8'  # used for printing out directory listings and files
@@ -44,92 +47,121 @@ TEXT_ENCODING = 'utf-8'  # used for printing out directory listings and files
 WAIT_SLEEP = 0.001
 
 
-class PendingWrite(object):
+class PendingRequest(object):
     """
-    Represents a write that is spending.
+    Represents a request that is pending.
 
     Fields
     ----------
-    message : MsgFileioWriteReq
-      The write request that's pending
-    time : float (seconds from epoch)
+    message : MsgFileioWriteReq, MsgFileioReadDirReq, MsgFileioReadReq
+      The request that's pending
+    time : Time
       The time the message was sent (or re-sent at)
+    time_expire : Time
+      The time the message will be considered expired (and then retried)
     tries : int
       The number of times we've attemptted to send the write message
-    complete : bool
-      If the message is complete
+    index : int
+      The index of this object into the pending write map
+    completed : bool
+      If the request is already completed
     """
 
-    __slots__ = ["message", "time", "tries", "complete", "index"]
+    __slots__ = ["message", "time", "time_expire", "tries", "index", "completed"]
 
     def __init__(self, index):
         self.index = index
-        self.complete = None
+        self.completed = None
 
     def __repr__(self):
-        return "PendingWrite(message.offset=%r,message.sequence=%r,time=%r,tries=%r,complete=%r,index=%r" % (
-            self.message.offset, self.message.sequence, self.time, self.tries, self.complete, self.index)
+        return "PendingRequest(offset=%r,seq=%r,time=%r,tries=%r,index=%r)" % (
+            self.message.offset, self.message.sequence, self.time, self.tries, self.index)
 
-    def invalidate(self):
-        """
-        Mark the data in the object invalid.
-
-        Data here is set such that operations on the `time` and `tries` fields
-        will succeed even if the object is invalidated.  The methods
-        `_write_cb` and `_return_pending_write` can race on individual fields
-        in the object.
-
-        The field `self.message` is not cleared so that it can still be
-        referenced in `_write_cb`.
-
-        The result of this racy-ness is that the time-out check is not entirely
-        consistent.  Occasionally, a message may be retried even if it was
-        completed and we may decide that a file-transfer has timed out if the
-        write completion event and the pending check occur around the same
-        time.
-        """
-        self.complete = None
-        self.tries = 0
-        return self
-
-    def is_pending(self):
-        """
-        Return true if this object is still pending.
-        """
-        if self.complete is None:
-            return False
-        if self.complete:
-            return False
-        return True
-
-    def track(self, pending_write, time, tries=0, complete=False):
+    def track(self, pending_req, time, time_expire, tries=0):
         """
         Load information about the pending write so that it can be tracked.
         """
-        self.message = pending_write
+        self.message = pending_req
         self.time = time
+        self.time_expire = time_expire
         self.tries = 0
-        self.complete = complete
+        self.completed = False
         return self
 
-    def record_retry(self, retry_time):
+    def record_retry(self, retry_time, new_expire_time):
         """
         Record a retry event, indicates that the SelectiveRepeater decided to
         retry sending the tracked MsgFileioWriteReq message.
         """
         self.tries += 1
         self.time = retry_time
+        self.time_expire = new_expire_time
         return self
 
 
+class Time(object):
+    """
+    Time object with millisecond resolution.  Used to inspect
+    request expiration times.
+    """
+
+    __slots__ = ["_seconds", "_millis"]
+
+    def __init__(self, seconds=0, millis=0):
+        self._seconds = seconds
+        self._millis = millis
+
+    @classmethod
+    def now(cls):
+        now = time.time()
+        return Time(int(now), int((now * 1000) % 1000))
+
+    @classmethod
+    def iter_since(cls, last, now):
+        """
+        Iterate time slices since the `last` time given up to (and including)
+        the `now` time but not including the `last` time.
+        """
+        increment = Time(0, 1)
+        next_time = last
+        while not next_time >= now:
+            next_time += increment
+            yield next_time
+
+    def __hash__(self):
+        return hash((self._seconds, self._millis))
+
+    def __repr__(self):
+        return "Time(s=%r,ms=%r)" % (self._seconds, self._millis)
+
+    def __add__(a, b):
+        new_time = (1000 * a._seconds) + (1000 * b._seconds) + a._millis + b._millis
+        return Time(seconds=(new_time / 1000), millis=(new_time % 1000))
+
+    def __eq__(a, b):
+        return a._seconds == b._seconds and a._millis == b._millis
+
+    def __ge__(a, b):
+        if a == b:
+            return True
+        return a > b
+
+    def __gt__(a, b):
+        if a._seconds < b._seconds:
+            return False
+        if a._seconds == b._seconds:
+            return a._millis > b._millis
+        return True
+
+
 class SelectiveRepeater(object):
-    """Selective repeater for SBP file transfers"""
+    """Selective repeater for SBP file I/O requests"""
 
     def __init__(self, link, msg_type, cb=None):
-        self._write_pool = Queue.Queue(SBP_FILEIO_WINDOW_SIZE)
-        self._pending = [PendingWrite(X) for X in range(SBP_FILEIO_WINDOW_SIZE)]
-        for pending_write in self._pending:
-            self._write_pool.put(pending_write)
+        self._request_pool = Queue(SBP_FILEIO_WINDOW_SIZE)
+        self._pending_map = [PendingRequest(X) for X in range(SBP_FILEIO_WINDOW_SIZE)]
+        for pending_req in self._pending_map:
+            self._request_pool.put(pending_req)
         self._seqmap = {}
         self._link = link
         self._msg_type = msg_type
@@ -137,13 +169,19 @@ class SelectiveRepeater(object):
         self._callback_thread = None
         self._link_thread = None
         self._batch_msgs = []
+        self._last_check_time = Time.now()
+        self._expire_map = defaultdict(dict)
+
+    def __enter__(self):
+        self._link.add_callback(self._request_cb, self._msg_type)
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self._link.remove_callback(self._request_cb, self._msg_type)
 
     def _verify_cb_thread(self):
         """
-        Verify that the same (singular) thread is accessing the `self._pending`
-        and the `self._write_pool` lists.  Only the cb thread should free window
-        space by removing (popping) from `self._pending` and appending it to the
-        `self._write_pool` list.
+        Verify that only one thread is consuming requests.
         """
         if self._callback_thread is None:
             self._callback_thread = threading.currentThread().ident
@@ -151,80 +189,82 @@ class SelectiveRepeater(object):
 
     def _verify_link_thread(self):
         """
-        Verify that the same (singular) thread is accessing the `self._pending`
-        and the `self._write_pool` lists.  Only the link thread should consume
-        window by removing a PendingWrite object from the `self._write_pool`
-        list and appending it to the `self._pending` list.
+        Verify that only one thread is producing requests.
         """
         if self._link_thread is None:
             self._link_thread = threading.currentThread().ident
         assert self._link_thread == threading.currentThread().ident
 
-    def _return_pending_write(self, pending_write):
+    def _return_pending_req(self, pending_req):
         """
-        Increases the count of available pending writes by moving a PendingWrite
-        object from `self._pending` to `self._write_pool`.
-
-        Threading: only the callback thread should access this function.  The
-        cb thread is the consumer of `self._pending`, and the producer of
-        `self._write_pool`.
         """
         self._verify_cb_thread()
-        self._write_pool.put(pending_write)
-        del self._seqmap[pending_write.message.sequence]
+        self._request_pool.put(pending_req)
+        del self._seqmap[pending_req.message.sequence]
+        del self._expire_map[pending_req.time_expire][pending_req]
+        pending_req.completed = True
 
-    def _fetch_pending_write(self, msg):
+    def _record_pending_req(self, msg, time_now, expiration_time):
         """
-        Decrease the number of available oustanding writes by popping from
-        `self._write_pool` and appending to `self._pending`.
-
-        Threading: only the link (network) thread should access this function.
-        The link thread is the producer of `self._pending`, and the consumer of
-        `self._write_pool`.
         """
         self._verify_link_thread()
-        pending_write = self._write_pool.get(True)
-        self._seqmap[msg.sequence] = pending_write.index
-        assert self._pending[pending_write.index].index == pending_write.index
-        self._pending[pending_write.index].track(msg, time.time())
+        # Queue.get will block if no requests are available
+        pending_req = self._request_pool.get(True)
+        assert self._pending_map[pending_req.index].index == pending_req.index
+        self._seqmap[msg.sequence] = pending_req.index
+        self._pending_map[pending_req.index].track(msg, time_now, expiration_time)
+        self._expire_map[expiration_time][pending_req] = pending_req
 
-    def __enter__(self):
-        self._link.add_callback(self._write_cb, self._msg_type)
-        return self
-
-    def __exit__(self, type, value, traceback):
-        self._link.remove_callback(self._write_cb, self._msg_type)
-
-    def _write_cb(self, msg, **metadata):
+    def _request_cb(self, msg, **metadata):
         index = self._seqmap.get(msg.sequence)
         if index is None:
             return
-        pending_write = self._pending[index]
-        if pending_write.complete:
-            return
+        pending_req = self._pending_map[index]
         if self._callback:
-            self._callback(pending_write.message, msg)
-        pending_write.complete = True
-        self._return_pending_write(pending_write)
+            self._callback(pending_req.message, msg)
+        self._return_pending_req(pending_req)
 
     def _has_pending(self):
-        return self._write_pool.qsize() != len(self._pending)
+        return self._request_pool.qsize() != len(self._pending_map)
+
+    def _retry_send(self, check_time, pending_req, delete_keys):
+        timeout_delta = Time(SBP_FILEIO_TIMEOUT)
+        send_time = Time.now()
+        new_expire = send_time + timeout_delta
+        pending_req.record_retry(send_time, new_expire)
+        self._expire_map[new_expire][pending_req] = pending_req
+        self._link(pending_req.message)
+        delete_keys.append(pending_req)
+
+    def _try_remove_keys(self, d, keys):
+        for key in keys:
+            try:
+                del d[key]
+            except KeyError:
+                pass
 
     def _check_pending(self):
-        for pending_write in self._pending:
-            if pending_write is None:
-                continue
-            if not pending_write.is_pending():
-                continue
-            tnow = time.time()
-            if tnow - pending_write.time > SBP_FILEIO_TIMEOUT:
-                if pending_write.tries >= MAXIMUM_RETRIES:
-                    raise Exception('Timed out')
-                pending_write.record_retry(tnow)
-                self._link(pending_write.message)
+        time_now = Time.now()
+        timeout_delta = Time(SBP_FILEIO_TIMEOUT)
+        for check_time in Time.iter_since(self._last_check_time, time_now):
+            pending_reqs = self._expire_map[check_time]
+            retried_writes = []
+            for pending_req in pending_reqs.keys():
+                time_expire = pending_req.time + timeout_delta
+                if time_now >= time_expire:
+                    if pending_req.tries >= MAXIMUM_RETRIES:
+                        raise Exception('Timed out')
+                    if not pending_req.completed:
+                        self._retry_send(check_time, pending_req, retried_writes)
+            # Pending writes can be marked completed while this function
+            #   is running, so a key error means is was marked completed
+            #   after we sent a retry (therefore _try_remove_keys ignores
+            #   key errors).
+            self._try_remove_keys(self._expire_map[check_time], retried_writes)
+        self._last_check_time = time_now
 
     def _window_available(self, batch_size):
-        return self._write_pool.qsize() >= batch_size
+        return self._request_pool.qsize() >= batch_size
 
     def _wait_window_available(self, batch_size):
         while not self._window_available(batch_size):
@@ -237,8 +277,10 @@ class SelectiveRepeater(object):
             self._batch_msgs.append(msg)
         if len(self._batch_msgs) >= batch_size:
             self._wait_window_available(batch_size)
+            time_now = Time.now()
+            expiration_time = time_now + Time(SBP_FILEIO_TIMEOUT)
             for msg in self._batch_msgs:
-                self._fetch_pending_write(msg)
+                self._record_pending_req(msg, time_now, expiration_time)
             self._link(*self._batch_msgs)
             del self._batch_msgs[:]
 
