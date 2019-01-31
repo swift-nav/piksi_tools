@@ -155,22 +155,61 @@ class Time(object):
 
 
 class SelectiveRepeater(object):
-    """Selective repeater for SBP file I/O requests"""
+    """
+    Selective repeater for SBP file I/O requests
+
+    Fields
+    ----------
+    _pending_map : list(PendingRequest)
+      List (used as a map) of PendingRequest objects, used to track
+      outstanding requests.
+    _request_pool : Queue
+      Queue of available requests (recorded by index number)
+    _seqmap : dict(int,int)
+      Dictionary mapping SBP request sequence IDs to their corresponding
+      request index.
+    _batch_msgs : list
+      Collector for a batch of messages to be sent in one
+      buffer via the link
+    _last_check_time : Time
+      The last time we checked if any packets had expired
+    _expire_map : dict(Time, dict(PendingRequest, PendingRequest))
+      Dictionary which records the future time at which a request
+      will expire.
+
+    _msg_type : int
+      The message type we're currently sending
+    _link : Handler
+      The link over which we're sending data
+
+    _callback_thread : int
+      ID of the thread that we expect callbacks from
+    _link_thread : int
+      ID of the thread that handles link writes
+    """
 
     def __init__(self, link, msg_type, cb=None):
-        self._request_pool = Queue(SBP_FILEIO_WINDOW_SIZE)
-        self._pending_map = [PendingRequest(X) for X in range(SBP_FILEIO_WINDOW_SIZE)]
-        for pending_req in self._pending_map:
-            self._request_pool.put(pending_req)
-        self._seqmap = {}
+        """
+        Args
+        ---
+        link : Handler
+          Link over which messages will be sent.
+        msg_type:
+          The type of message being sent
+        """
         self._link = link
         self._msg_type = msg_type
         self._callback = cb
-        self._callback_thread = None
-        self._link_thread = None
+        self._pending_map = [PendingRequest(X) for X in range(SBP_FILEIO_WINDOW_SIZE)]
+        self._request_pool = Queue(SBP_FILEIO_WINDOW_SIZE)
+        for pending_req in self._pending_map:
+            self._request_pool.put(pending_req)
+        self._seqmap = {}
         self._batch_msgs = []
         self._last_check_time = Time.now()
         self._expire_map = defaultdict(dict)
+        self._callback_thread = None
+        self._link_thread = None
 
     def __enter__(self):
         self._link.add_callback(self._request_cb, self._msg_type)
@@ -197,6 +236,8 @@ class SelectiveRepeater(object):
 
     def _return_pending_req(self, pending_req):
         """
+        Return a pending request to the write pool and clean any
+        entries in the expiration map.
         """
         self._verify_cb_thread()
         self._request_pool.put(pending_req)
@@ -206,6 +247,8 @@ class SelectiveRepeater(object):
 
     def _record_pending_req(self, msg, time_now, expiration_time):
         """
+        Acquire a pending request object and record it's future
+        expiration time in a map.
         """
         self._verify_link_thread()
         # Queue.get will block if no requests are available
@@ -216,6 +259,9 @@ class SelectiveRepeater(object):
         self._expire_map[expiration_time][pending_req] = pending_req
 
     def _request_cb(self, msg, **metadata):
+        """
+        Process request completions.
+        """
         index = self._seqmap.get(msg.sequence)
         if index is None:
             return
@@ -228,6 +274,10 @@ class SelectiveRepeater(object):
         return self._request_pool.qsize() != len(self._pending_map)
 
     def _retry_send(self, check_time, pending_req, delete_keys):
+        """
+        Retry a request by updating it's expire time on the object
+        itself and in the expiration map.
+        """
         timeout_delta = Time(SBP_FILEIO_TIMEOUT)
         send_time = Time.now()
         new_expire = send_time + timeout_delta
@@ -244,6 +294,11 @@ class SelectiveRepeater(object):
                 pass
 
     def _check_pending(self):
+        """
+        Scans from the last check time to the current time looking
+        for requests that are due to expire and retries them if
+        necessary.
+        """
         time_now = Time.now()
         timeout_delta = Time(SBP_FILEIO_TIMEOUT)
         for check_time in Time.iter_since(self._last_check_time, time_now):
@@ -254,6 +309,10 @@ class SelectiveRepeater(object):
                 if time_now >= time_expire:
                     if pending_req.tries >= MAXIMUM_RETRIES:
                         raise Exception('Timed out')
+                    # If the completion map becomes inconsistent (because
+                    #   things are completing at the same time they're
+                    #   being re-tried) then the `completed` field should
+                    #   prevent us from re-sending a write in this case.
                     if not pending_req.completed:
                         self._retry_send(check_time, pending_req, retried_writes)
             # Pending writes can be marked completed while this function
@@ -273,6 +332,16 @@ class SelectiveRepeater(object):
                 time.sleep(WAIT_SLEEP)
 
     def send(self, msg, batch_size=SBP_FILEIO_BATCH_SIZE):
+        """
+        Sends data via the current link, potentially batching it together.
+
+        Parameters
+        ----------
+        msg : MsgFileioReadReq, MsgFileioReadDirReq, MsgFileioWriteReq, MsgFileioRemove
+          The message to be sent via the current link
+        batch_size : int
+          The number of message to batch together before actually sending
+        """
         if msg is not None:
             self._batch_msgs.append(msg)
         if len(self._batch_msgs) >= batch_size:
@@ -285,6 +354,10 @@ class SelectiveRepeater(object):
             del self._batch_msgs[:]
 
     def flush(self):
+        """
+        Flush any pending requests (batched or otherwise) and wait for all
+        pending requests to complete.
+        """
         self.send(None, batch_size=0)
         while self._has_pending():
             self._check_pending()
