@@ -39,8 +39,8 @@ SBP_FILEIO_WINDOW_SIZE = 1024
 #   at 20 bytes and TCP overhead at 20 bytes.
 SBP_FILEIO_BATCH_SIZE = 32
 
-SBP_FILEIO_TIMEOUT = 1
-MAXIMUM_RETRIES = 20
+SBP_FILEIO_TIMEOUT = 2
+MAXIMUM_RETRIES = 10
 PROGRESS_CB_REDUCTION_FACTOR = 100
 TEXT_ENCODING = 'utf-8'  # used for printing out directory listings and files
 
