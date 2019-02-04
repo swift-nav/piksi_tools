@@ -1709,7 +1709,7 @@
   default value: 'Static'
   readonly: false
   Description: Ethernet configuration mode.
-  Notes: If DHCP is chosen the IP address will be assigned automatically. Note: The DHCP assigned IP address cannot be viewed under the Settings tab, instead use the Advanced -> Networking Tab and click on 'Refresh Network Status'.
+  Notes: "If DHCP is chosen the IP address will be assigned automatically. Note: The DHCP assigned IP address cannot be viewed under the Settings tab, instead use the Advanced -> Networking Tab and click on 'Refresh Network Status'."
 
 - group: ethernet
   name: ip_address
@@ -1719,7 +1719,7 @@
   default value: '192.168.0.222'
   readonly: false
   Description: The static IP address.
-  Notes: The configured IP address in XXX.XXX.XXX.XXX format. Note: If DHCP is used, the DHCP assigned IP address cannot be viewed under the Settings tab, instead use the Advanced -> Networking Tab and click on 'Refresh Network Status'.
+  Notes: "The configured IP address in XXX.XXX.XXX.XXX format. Note: If DHCP is used, the DHCP assigned IP address cannot be viewed under the Settings tab, instead use the Advanced -> Networking Tab and click on 'Refresh Network Status'."
 
 - group: ethernet
   name: netmask
