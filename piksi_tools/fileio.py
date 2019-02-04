@@ -210,6 +210,8 @@ class SelectiveRepeater(object):
         self._expire_map = defaultdict(dict)
         self._callback_thread = None
         self._link_thread = None
+        self._total_sends = 1.0
+        self._total_retries = 0
 
     def __enter__(self):
         self._link.add_callback(self._request_cb, self._msg_type)
@@ -278,6 +280,8 @@ class SelectiveRepeater(object):
         Retry a request by updating it's expire time on the object
         itself and in the expiration map.
         """
+        self._total_retries += 1
+        self._total_sends += 1
         timeout_delta = Time(SBP_FILEIO_TIMEOUT)
         send_time = Time.now()
         new_expire = send_time + timeout_delta
@@ -331,6 +335,14 @@ class SelectiveRepeater(object):
             if not self._window_available(batch_size):
                 time.sleep(WAIT_SLEEP)
 
+    @property
+    def total_retries(self):
+        return self._total_retries
+
+    @property
+    def total_sends(self):
+        return self._total_sends
+
     def send(self, msg, batch_size=SBP_FILEIO_BATCH_SIZE):
         """
         Sends data via the current link, potentially batching it together.
@@ -351,6 +363,7 @@ class SelectiveRepeater(object):
             for msg in self._batch_msgs:
                 self._record_pending_req(msg, time_now, expiration_time)
             self._link(*self._batch_msgs)
+            self._total_sends += len(self._batch_msgs)
             del self._batch_msgs[:]
 
     def flush(self):
@@ -505,8 +518,8 @@ class FileIO(object):
                 sr.send(msg)
                 offset += len(chunk)
                 if (progress_cb is not None and seq % PROGRESS_CB_REDUCTION_FACTOR == 0):
-                    progress_cb(offset)
-            progress_cb(offset)
+                    progress_cb(offset, sr)
+            progress_cb(offset, sr)
             sr.flush()
 
 
@@ -651,7 +664,7 @@ def mk_progress_cb(file_length):
             previous_avg[0] = sum(rolling_avg_pts) / len(rolling_avg_pts)
             return previous_avg[0]
 
-    def the_callback(offset):
+    def the_callback(offset, repeater):
         time_current = time.time()
         offset_delta = offset - offset_last[0]
         time_delta = time_current - time_last[0]
@@ -659,8 +672,15 @@ def mk_progress_cb(file_length):
         mb_confirmed = offset / kb_to_mb
         speed_kbs = offset_delta / time_delta / 1024
         rolling_avg = compute_rolling_average(speed_kbs)
-        fmt_str = "\r[{:02.02f}% ({:.02f}/{:.02f} MB) at {:.02f} kB/s]"
-        status_str = fmt_str.format(percent_done, mb_confirmed, file_mb, rolling_avg)
+        fmt_str = "\r[{:02.02f}% ({:.02f}/{:.02f} MB) at {:.02f} kB/s ({:02.02f}% retries, {}/{})]"
+        percent_retried = repeater.total_retries / repeater.total_sends
+        status_str = fmt_str.format(percent_done,
+                                    mb_confirmed,
+                                    file_mb,
+                                    rolling_avg,
+                                    percent_retried,
+                                    repeater.total_retries,
+                                    repeater.total_sends)
         sys.stdout.write(status_str)
         sys.stdout.flush()
         time_last[0] = time_current
