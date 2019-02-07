@@ -1,5 +1,195 @@
 # Change Log
 
+## [Unreleased](https://github.com/swift-nav/piksi_tools/tree/HEAD)
+
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.2.17...HEAD)
+
+**Merged pull requests:**
+
+- Fix parse warning/error from ruamel.yaml [\#975](https://github.com/swift-nav/piksi_tools/pull/975)
+- Remove the obsolete cli tool sbp2rinex \[EX-465\] [\#972](https://github.com/swift-nav/piksi_tools/pull/972)
+- Handle failed connections gracefully \[ESD-1034\] [\#970](https://github.com/swift-nav/piksi_tools/pull/970)
+
+## [v2.2.17](https://github.com/swift-nav/piksi_tools/tree/v2.2.17) (2019-01-30)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.2.16...v2.2.17)
+
+**Merged pull requests:**
+
+- Add the verbose arg to Framer in settings and bootload\_v3 \[EX-476\] [\#965](https://github.com/swift-nav/piksi_tools/pull/965)
+
+## [v2.2.16](https://github.com/swift-nav/piksi_tools/tree/v2.2.16) (2019-01-29)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.2.15...v2.2.16)
+
+## [v2.2.15](https://github.com/swift-nav/piksi_tools/tree/v2.2.15) (2019-01-26)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.2.14...v2.2.15)
+
+**Merged pull requests:**
+
+- Update settings docs for IMU decimation \[ESD-1014\] [\#967](https://github.com/swift-nav/piksi_tools/pull/967)
+- sbp\_msg\_2\_csv: remove addidental print [\#964](https://github.com/swift-nav/piksi_tools/pull/964)
+- sbp\_msg\_2\_csv: handle arrays [\#963](https://github.com/swift-nav/piksi_tools/pull/963)
+- update\_view: use str.startswith to fix ins update on windows [\#962](https://github.com/swift-nav/piksi_tools/pull/962)
+- update\_view: use str.startswith to fix ins update on windows [\#961](https://github.com/swift-nav/piksi_tools/pull/961)
+- imu\_view: Calculating acceleration RMS at lower rate [\#960](https://github.com/swift-nav/piksi_tools/pull/960)
+- Clean up command line handling of cli tools a bit \[EX-477\] [\#958](https://github.com/swift-nav/piksi_tools/pull/958)
+- Add tentative python 3 support to the most important command line tools \[EX-477\] [\#954](https://github.com/swift-nav/piksi_tools/pull/954)
+- Update requests dep to resolve security warning [\#953](https://github.com/swift-nav/piksi_tools/pull/953)
+- build\_release.py: Instrument running of built executable. [\#952](https://github.com/swift-nav/piksi_tools/pull/952)
+
+## [v2.2.14](https://github.com/swift-nav/piksi_tools/tree/v2.2.14) (2019-01-11)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.2.13...v2.2.14)
+
+**Merged pull requests:**
+
+- Update the documentation of the default values for the port whitelists [\#957](https://github.com/swift-nav/piksi_tools/pull/957)
+- Update the documentation of the default value for the whitelist [\#956](https://github.com/swift-nav/piksi_tools/pull/956)
+
+## [v2.2.13](https://github.com/swift-nav/piksi_tools/tree/v2.2.13) (2019-01-11)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.2.12...v2.2.13)
+
+## [v2.2.12](https://github.com/swift-nav/piksi_tools/tree/v2.2.12) (2019-01-10)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.2.11...v2.2.12)
+
+## [v2.2.11](https://github.com/swift-nav/piksi_tools/tree/v2.2.11) (2019-01-03)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.2.10...v2.2.11)
+
+## [v2.2.10](https://github.com/swift-nav/piksi_tools/tree/v2.2.10) (2018-12-19)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.2.9...v2.2.10)
+
+## [v2.2.9](https://github.com/swift-nav/piksi_tools/tree/v2.2.9) (2018-12-14)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.2.8...v2.2.9)
+
+**Merged pull requests:**
+
+- Fix missing value request when reading settings for INS upgrade warning [\#951](https://github.com/swift-nav/piksi_tools/pull/951)
+- Fix missing value request when reading settings for INS upgrade warning [\#950](https://github.com/swift-nav/piksi_tools/pull/950)
+
+## [v2.2.8](https://github.com/swift-nav/piksi_tools/tree/v2.2.8) (2018-12-13)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.2.7...v2.2.8)
+
+## [v2.2.7](https://github.com/swift-nav/piksi_tools/tree/v2.2.7) (2018-12-11)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.1.23...v2.2.7)
+
+**Merged pull requests:**
+
+- added firmware upgrade warning when ins enabled - 2.2 [\#949](https://github.com/swift-nav/piksi_tools/pull/949)
+- added firmware upgrade warning when ins enabled - master [\#948](https://github.com/swift-nav/piksi_tools/pull/948)
+- Create tcp driver util and wrap error handling \[ESD-632\] [\#925](https://github.com/swift-nav/piksi_tools/pull/925)
+- Create tcp driver util and wrap error handling \[ESD-632\] [\#917](https://github.com/swift-nav/piksi_tools/pull/917)
+
+## [v2.1.23](https://github.com/swift-nav/piksi_tools/tree/v2.1.23) (2018-12-05)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.2.5...v2.1.23)
+
+**Merged pull requests:**
+
+- added checks for reading from settings dictionary in update\_view [\#946](https://github.com/swift-nav/piksi_tools/pull/946)
+
+## [v2.2.5](https://github.com/swift-nav/piksi_tools/tree/v2.2.5) (2018-12-05)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.2.4...v2.2.5)
+
+**Merged pull requests:**
+
+- remove WRITE\_RESP message from udp/tcp\_client \[ESD-922\] [\#947](https://github.com/swift-nav/piksi_tools/pull/947)
+- Refactor & tweak status bar mode determination \[ESD-807\]\[ESD-841\] [\#945](https://github.com/swift-nav/piksi_tools/pull/945)
+- remove WRITE\_RESP message from tcp\_client \[ESD-922\] [\#944](https://github.com/swift-nav/piksi_tools/pull/944)
+- Filter out unknown SBP message warning \[v2.2\] \[ESD-941\] [\#943](https://github.com/swift-nav/piksi_tools/pull/943)
+- \[ESD-906\] MASTER Update Settings for 2.2 release [\#942](https://github.com/swift-nav/piksi_tools/pull/942)
+- \[ESD-906\] Update Settings for 2.2 release [\#941](https://github.com/swift-nav/piksi_tools/pull/941)
+- Update libsbp to 2.4.5 \[ESD-941\] [\#940](https://github.com/swift-nav/piksi_tools/pull/940)
+- Refactor & tweak status bar mode determination \[ESD-807\] \[ESD-841\] [\#937](https://github.com/swift-nav/piksi_tools/pull/937)
+
+## [v2.2.4](https://github.com/swift-nav/piksi_tools/tree/v2.2.4) (2018-12-01)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.2.3...v2.2.4)
+
+**Merged pull requests:**
+
+- remove channel from plotting key \[ESD-614\] [\#939](https://github.com/swift-nav/piksi_tools/pull/939)
+- added display of CPU and FE temp to system monitor [\#936](https://github.com/swift-nav/piksi_tools/pull/936)
+- Add metrics table to system monitor view [\#935](https://github.com/swift-nav/piksi_tools/pull/935)
+- remove channel from plotting key \[ESD-614\] [\#934](https://github.com/swift-nav/piksi_tools/pull/934)
+
+## [v2.2.3](https://github.com/swift-nav/piksi_tools/tree/v2.2.3) (2018-11-28)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.1.22...v2.2.3)
+
+**Merged pull requests:**
+
+- add notes for disabling daemon prerequisites \[ESD-816\] [\#931](https://github.com/swift-nav/piksi_tools/pull/931)
+
+## [v2.1.22](https://github.com/swift-nav/piksi_tools/tree/v2.1.22) (2018-11-27)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.2.2...v2.1.22)
+
+**Merged pull requests:**
+
+- Added prompt to prevent updating device when output\_mode of INS is not "Disabled" [\#933](https://github.com/swift-nav/piksi_tools/pull/933)
+- Allow tracking view to age out old data \[ESD-902\] \[v2.2\] [\#930](https://github.com/swift-nav/piksi_tools/pull/930)
+- Allow tracking view to age out old data \[ESD-902\] [\#926](https://github.com/swift-nav/piksi_tools/pull/926)
+
+## [v2.2.2](https://github.com/swift-nav/piksi_tools/tree/v2.2.2) (2018-11-21)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.2.1...v2.2.2)
+
+**Merged pull requests:**
+
+- EX-445: Add rtcm\_out expert parameters \[release\] [\#928](https://github.com/swift-nav/piksi_tools/pull/928)
+- EX-445: Add rtcm\_out expert parameters [\#927](https://github.com/swift-nav/piksi_tools/pull/927)
+
+## [v2.2.1](https://github.com/swift-nav/piksi_tools/tree/v2.2.1) (2018-11-16)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.1.21...v2.2.1)
+
+**Merged pull requests:**
+
+- update settings.yaml for new ins\_ouptut\_mode Debug setting and to cal… [\#924](https://github.com/swift-nav/piksi_tools/pull/924)
+- Ins debug rename master [\#923](https://github.com/swift-nav/piksi_tools/pull/923)
+- Ins debug rename v2.2 [\#922](https://github.com/swift-nav/piksi_tools/pull/922)
+- Update settings\_view.py [\#921](https://github.com/swift-nav/piksi_tools/pull/921)
+
+## [v2.1.21](https://github.com/swift-nav/piksi_tools/tree/v2.1.21) (2018-11-13)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.2.0...v2.1.21)
+
+## [v2.2.0](https://github.com/swift-nav/piksi_tools/tree/v2.2.0) (2018-11-09)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.1.20...v2.2.0)
+
+## [v2.1.20](https://github.com/swift-nav/piksi_tools/tree/v2.1.20) (2018-11-08)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.1.19...v2.1.20)
+
+## [v2.1.19](https://github.com/swift-nav/piksi_tools/tree/v2.1.19) (2018-11-08)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.1.18...v2.1.19)
+
+## [v2.1.18](https://github.com/swift-nav/piksi_tools/tree/v2.1.18) (2018-10-31)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.2.0-branch...v2.1.18)
+
+## [v2.2.0-branch](https://github.com/swift-nav/piksi_tools/tree/v2.2.0-branch) (2018-10-31)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.1.17...v2.2.0-branch)
+
+**Merged pull requests:**
+
+- Make sure we get the size of the file correct [\#916](https://github.com/swift-nav/piksi_tools/pull/916)
+- tell flake8 to ignore select warnings [\#915](https://github.com/swift-nav/piksi_tools/pull/915)
+- Add more settings update error codes \[DEVC-1225\] \[DEVC-1219\] [\#914](https://github.com/swift-nav/piksi_tools/pull/914)
+
+## [v2.1.17](https://github.com/swift-nav/piksi_tools/tree/v2.1.17) (2018-10-26)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.1.16...v2.1.17)
+
+## [v2.1.16](https://github.com/swift-nav/piksi_tools/tree/v2.1.16) (2018-10-25)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.1.15...v2.1.16)
+
+## [v2.1.15](https://github.com/swift-nav/piksi_tools/tree/v2.1.15) (2018-10-24)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.1.14...v2.1.15)
+
+**Merged pull requests:**
+
+- EX-388: Add rtcm\_output.output\_messages config item [\#912](https://github.com/swift-nav/piksi_tools/pull/912)
+- \[MAP-696\] Delete info pertaining to dynamics filter settings. [\#911](https://github.com/swift-nav/piksi_tools/pull/911)
+
+## [v2.1.14](https://github.com/swift-nav/piksi_tools/tree/v2.1.14) (2018-10-12)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.1.13...v2.1.14)
+
+## [v2.1.13](https://github.com/swift-nav/piksi_tools/tree/v2.1.13) (2018-10-12)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.1.12...v2.1.13)
+
+**Merged pull requests:**
+
+- Update Changelog [\#910](https://github.com/swift-nav/piksi_tools/pull/910)
+
 ## [v2.1.12](https://github.com/swift-nav/piksi_tools/tree/v2.1.12) (2018-10-10)
 [Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.1.11...v2.1.12)
 
@@ -302,13 +492,13 @@
 [Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.6.0...v1.6.1)
 
 ## [v1.6.0](https://github.com/swift-nav/piksi_tools/tree/v1.6.0) (2018-06-15)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.6.0-branch...v1.6.0)
-
-## [v1.6.0-branch](https://github.com/swift-nav/piksi_tools/tree/v1.6.0-branch) (2018-06-12)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.0.0-branch...v1.6.0-branch)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.0.0-branch...v1.6.0)
 
 ## [v2.0.0-branch](https://github.com/swift-nav/piksi_tools/tree/v2.0.0-branch) (2018-06-12)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.5.15...v2.0.0-branch)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.6.0-branch...v2.0.0-branch)
+
+## [v1.6.0-branch](https://github.com/swift-nav/piksi_tools/tree/v1.6.0-branch) (2018-06-12)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.5.15...v1.6.0-branch)
 
 **Merged pull requests:**
 
@@ -495,7 +685,7 @@
 - Cmd line build [\#728](https://github.com/swift-nav/piksi_tools/pull/728)
 
 ## [v1.4.1rc1](https://github.com/swift-nav/piksi_tools/tree/v1.4.1rc1) (2018-02-26)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.4.0...v1.4.1rc1)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.4.0-branch...v1.4.1rc1)
 
 **Closed issues:**
 
@@ -521,11 +711,11 @@
 - Spectrum analyzer uses FFTMonitor [\#713](https://github.com/swift-nav/piksi_tools/pull/713)
 - Change scaling on Magnetomter view [\#710](https://github.com/swift-nav/piksi_tools/pull/710)
 
-## [v1.4.0](https://github.com/swift-nav/piksi_tools/tree/v1.4.0) (2018-02-03)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.4.0-branch...v1.4.0)
-
 ## [v1.4.0-branch](https://github.com/swift-nav/piksi_tools/tree/v1.4.0-branch) (2018-02-03)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.3.8...v1.4.0-branch)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.4.0...v1.4.0-branch)
+
+## [v1.4.0](https://github.com/swift-nav/piksi_tools/tree/v1.4.0) (2018-02-03)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.3.8...v1.4.0)
 
 **Closed issues:**
 
@@ -588,21 +778,21 @@
 - Move some settings to expert [\#681](https://github.com/swift-nav/piksi_tools/pull/681)
 
 ## [v1.3.2](https://github.com/swift-nav/piksi_tools/tree/v1.3.2) (2017-12-05)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.3.0-test...v1.3.2)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.3.dev...v1.3.2)
 
 **Merged pull requests:**
 
 - remove travis pypi deploy [\#680](https://github.com/swift-nav/piksi_tools/pull/680)
 - Mark the NTRIP debug setting as an "expert" value [\#679](https://github.com/swift-nav/piksi_tools/pull/679)
 
+## [v1.3.dev](https://github.com/swift-nav/piksi_tools/tree/v1.3.dev) (2017-12-02)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.3.0-test...v1.3.dev)
+
 ## [v1.3.0-test](https://github.com/swift-nav/piksi_tools/tree/v1.3.0-test) (2017-12-02)
 [Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.3_devtestest...v1.3.0-test)
 
 ## [v1.3_devtestest](https://github.com/swift-nav/piksi_tools/tree/v1.3_devtestest) (2017-12-02)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.3.dev...v1.3_devtestest)
-
-## [v1.3.dev](https://github.com/swift-nav/piksi_tools/tree/v1.3.dev) (2017-12-02)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.3.1...v1.3.dev)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.3.1...v1.3_devtestest)
 
 ## [v1.3.1](https://github.com/swift-nav/piksi_tools/tree/v1.3.1) (2017-11-29)
 [Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.3.0...v1.3.1)
@@ -665,7 +855,7 @@
 - Update settings.yaml [\#651](https://github.com/swift-nav/piksi_tools/pull/651)
 
 ## [v1.2.0rc3](https://github.com/swift-nav/piksi_tools/tree/v1.2.0rc3) (2017-09-16)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.2.0.rc2...v1.2.0rc3)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.2.0rc2...v1.2.0rc3)
 
 **Merged pull requests:**
 
@@ -680,11 +870,11 @@
 - observation\_view: restore total obs count [\#642](https://github.com/swift-nav/piksi_tools/pull/642)
 - improve console entry point and resource access [\#641](https://github.com/swift-nav/piksi_tools/pull/641)
 
-## [v1.2.0.rc2](https://github.com/swift-nav/piksi_tools/tree/v1.2.0.rc2) (2017-08-30)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.2.0rc2...v1.2.0.rc2)
-
 ## [v1.2.0rc2](https://github.com/swift-nav/piksi_tools/tree/v1.2.0rc2) (2017-08-30)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.2.0rc1...v1.2.0rc2)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.2.0.rc2...v1.2.0rc2)
+
+## [v1.2.0.rc2](https://github.com/swift-nav/piksi_tools/tree/v1.2.0.rc2) (2017-08-30)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.2.0rc1...v1.2.0.rc2)
 
 **Closed issues:**
 
@@ -1020,13 +1210,13 @@
 - update\_view: don't look for nap version keys [\#431](https://github.com/swift-nav/piksi_tools/pull/431)
 
 ## [v1.0.0](https://github.com/swift-nav/piksi_tools/tree/v1.0.0) (2017-01-12)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.0.0-branch...v1.0.0)
-
-## [v1.0.0-branch](https://github.com/swift-nav/piksi_tools/tree/v1.0.0-branch) (2017-01-11)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v0.32-rc2...v1.0.0-branch)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v0.32-rc2...v1.0.0)
 
 ## [v0.32-rc2](https://github.com/swift-nav/piksi_tools/tree/v0.32-rc2) (2017-01-11)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v0.30.8...v0.32-rc2)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.0.0-branch...v0.32-rc2)
+
+## [v1.0.0-branch](https://github.com/swift-nav/piksi_tools/tree/v1.0.0-branch) (2017-01-11)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v0.30.8...v1.0.0-branch)
 
 **Merged pull requests:**
 
