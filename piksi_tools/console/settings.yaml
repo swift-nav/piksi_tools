@@ -2577,6 +2577,18 @@
     3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
     the default value is optimal for logging and communication with the console.
 
+- group: can1
+  name: termination
+  expert: true
+  type: boolean
+  units: N/A
+  default value: 'false'
+  readonly: false
+  Description: Configure status of CAN termination resistor on Duro.
+  Notes: This setting toggles the 120 ohm termination resistor 
+    for the CAN interface available on the AUX connector of Duro.
+    It should only appear on Duro devices.
+
 - group: pps
   name: propagation_mode
   expert: false
