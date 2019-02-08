@@ -24,27 +24,24 @@ import sys
 from six.moves.queue import Queue
 
 from sbp.client import Framer, Handler
-from sbp.file_io import (SBP_MSG_FILEIO_READ_DIR_RESP,
-                         SBP_MSG_FILEIO_READ_RESP, SBP_MSG_FILEIO_WRITE_RESP,
+from sbp.file_io import (SBP_MSG_FILEIO_READ_DIR_RESP, SBP_MSG_FILEIO_READ_RESP,
+                         SBP_MSG_FILEIO_WRITE_RESP, SBP_MSG_FILEIO_CONFIG_RESP,
                          MsgFileioReadDirReq, MsgFileioReadDirResp,
-                         MsgFileioReadReq, MsgFileioRemove, MsgFileioWriteReq)
+                         MsgFileioReadReq, MsgFileioRemove, MsgFileioWriteReq,
+                         MsgFileioConfigReq, MsgFileioConfigResp)
 
 from piksi_tools import serial_link
 
 MAX_PAYLOAD_SIZE = 255
-SBP_FILEIO_WINDOW_SIZE = 1024
-
-# With SBP packets at 256 bytes, about 5 will fit a max network payload of 1460 bytes
-#   given 1500 as the MTU (maximum transmission unit) for Ethernet with IP overhead
-#   at 20 bytes and TCP overhead at 20 bytes.
-SBP_FILEIO_BATCH_SIZE = 32
-
-SBP_FILEIO_TIMEOUT = 2
-MAXIMUM_RETRIES = 10
+SBP_FILEIO_WINDOW_SIZE = 100
+SBP_FILEIO_BATCH_SIZE = 1
+SBP_FILEIO_TIMEOUT = 3
+MAXIMUM_RETRIES = 20
 PROGRESS_CB_REDUCTION_FACTOR = 100
 TEXT_ENCODING = 'utf-8'  # used for printing out directory listings and files
-
 WAIT_SLEEP = 0.001
+CONFIG_REQ_RETRY_MS = 100
+CONFIG_REQ_TIMEOUT_MS = 1000
 
 
 class PendingRequest(object):
@@ -197,28 +194,46 @@ class SelectiveRepeater(object):
         msg_type:
           The type of message being sent
         """
+
         self._link = link
         self._msg_type = msg_type
         self._callback = cb
-        self._pending_map = [PendingRequest(X) for X in range(SBP_FILEIO_WINDOW_SIZE)]
-        self._request_pool = Queue(SBP_FILEIO_WINDOW_SIZE)
-        for pending_req in self._pending_map:
-            self._request_pool.put(pending_req)
+
         self._seqmap = {}
         self._batch_msgs = []
         self._last_check_time = Time.now()
         self._expire_map = defaultdict(dict)
+
+        self._init_fileio_config(SBP_FILEIO_WINDOW_SIZE, SBP_FILEIO_BATCH_SIZE)
+
         self._callback_thread = None
         self._link_thread = None
+
         self._total_sends = 1.0
         self._total_retries = 0
 
+        self._config_send_time = Time.now()
+        self._config_retry_time = Time.now()
+        self._config_seq = random.randint(0, 0xffffffff)
+        self._config_msg = None
+
+        self._link(MsgFileioConfigReq(sequence=self._config_seq))
+
+    def _init_fileio_config(self, window_size, batch_size):
+        self._pending_map = [PendingRequest(X) for X in range(window_size)]
+        self._request_pool = Queue(window_size)
+        for pending_req in self._pending_map:
+            self._request_pool.put(pending_req)
+        self._batch_size = batch_size
+
     def __enter__(self):
         self._link.add_callback(self._request_cb, self._msg_type)
+        self._link.add_callback(self._config_cb, SBP_MSG_FILEIO_CONFIG_RESP)
         return self
 
     def __exit__(self, type, value, traceback):
         self._link.remove_callback(self._request_cb, self._msg_type)
+        self._link.remove_callback(self._config_cb, SBP_MSG_FILEIO_CONFIG_RESP)
 
     def _verify_cb_thread(self):
         """
@@ -259,6 +274,10 @@ class SelectiveRepeater(object):
         self._seqmap[msg.sequence] = pending_req.index
         self._pending_map[pending_req.index].track(msg, time_now, expiration_time)
         self._expire_map[expiration_time][pending_req] = pending_req
+
+    def _config_cb(self, msg, **metadata):
+        self._config_msg = msg
+        self._init_fileio_config(msg.window_size, msg.batch_size)
 
     def _request_cb(self, msg, **metadata):
         """
@@ -329,7 +348,28 @@ class SelectiveRepeater(object):
     def _window_available(self, batch_size):
         return self._request_pool.qsize() >= batch_size
 
+    def _config_received(self):
+        if self._config_msg is not None:
+            return True
+        config_timeout = self._config_send_time + Time(0, CONFIG_REQ_TIMEOUT_MS)
+        config_retry = self._config_retry_time + Time(0, CONFIG_REQ_RETRY_MS)
+        now = Time.now()
+        if now >= config_retry:
+            self._link(MsgFileioConfigReq(sequence=self._config_seq))
+            self._config_retry_time = now
+        if now >= config_timeout:
+            self._config_msg = MsgFileioConfigResp(sequence=0,
+                                                   window_size=100,
+                                                   batch_size=1,
+                                                   fileio_version=0)
+        return self._config_msg is not None
+
+    def _wait_config_received(self):
+        while not self._config_received():
+            time.sleep(WAIT_SLEEP)
+
     def _wait_window_available(self, batch_size):
+        self._wait_config_received()
         while not self._window_available(batch_size):
             self._check_pending()
             if not self._window_available(batch_size):
@@ -343,7 +383,13 @@ class SelectiveRepeater(object):
     def total_sends(self):
         return self._total_sends
 
-    def send(self, msg, batch_size=SBP_FILEIO_BATCH_SIZE):
+    def send(self, msg, batch_size=None):
+        if batch_size is not None:
+            self._send(msg, batch_size)
+        else:
+            self._send(msg, self._batch_size)
+
+    def _send(self, msg, batch_size):
         """
         Sends data via the current link, potentially batching it together.
 
@@ -672,8 +718,8 @@ def mk_progress_cb(file_length):
         mb_confirmed = offset / kb_to_mb
         speed_kbs = offset_delta / time_delta / 1024
         rolling_avg = compute_rolling_average(speed_kbs)
-        fmt_str = "\r[{:02.02f}% ({:.02f}/{:.02f} MB) at {:.02f} kB/s ({:02.02f}% retries, {}/{})]"
-        percent_retried = repeater.total_retries / repeater.total_sends
+        fmt_str = "\r[{:02.02f}% ({:.02f}/{:.02f} MB) at {:.02f} kB/s ({:0.02f}% retried)]"
+        percent_retried = 100 * (repeater.total_retries / repeater.total_sends)
         status_str = fmt_str.format(percent_done,
                                     mb_confirmed,
                                     file_mb,
