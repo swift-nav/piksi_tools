@@ -13,9 +13,9 @@ def maybe_remove(path):
         shutil.rmtree(str(path))
 
 
-def _check_output(exe):
+def _check_output(cmd):
     try:
-        v = check_output([str(exe), '-V'], stderr=subprocess.STDOUT)
+        v = check_output(cmd, stderr=subprocess.STDOUT)
         v = v.strip().split()[-1]
     except CalledProcessError as cpe:
         print("Output:\n" + cpe.output)
@@ -25,6 +25,7 @@ def _check_output(exe):
 
 
 def build(env='pyinstaller'):
+
     check_call(['tox', '-e', env])
     out_pyi = os.path.join(os.getcwd(), os.path.join('dist', 'console'))
     exe = os.path.join(out_pyi, 'console')
@@ -33,7 +34,7 @@ def build(env='pyinstaller'):
     v = "unknown"
 
     print("Running {} to determine its version.".format(str(exe)))
-    v = _check_output(exe)
+    v = _check_output([str(exe), '-V'])
 
     return out_pyi, v
 
