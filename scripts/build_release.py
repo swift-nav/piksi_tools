@@ -13,7 +13,7 @@ def maybe_remove(path):
         shutil.rmtree(str(path))
 
 
-def _check_output(cmd):
+def _check_output(cmd, v="unknown"):
     try:
         v = check_output(cmd, stderr=subprocess.STDOUT)
         v = v.strip().split()[-1]
@@ -25,17 +25,12 @@ def _check_output(cmd):
 
 
 def build(env='pyinstaller'):
-
     check_call(['tox', '-e', env])
     out_pyi = os.path.join(os.getcwd(), os.path.join('dist', 'console'))
     exe = os.path.join(out_pyi, 'console')
-
     # https://bugs.python.org/issue18920
-    v = "unknown"
-
     print("Running {} to determine its version.".format(str(exe)))
     v = _check_output([str(exe), '-V'])
-
     return out_pyi, v
 
 
