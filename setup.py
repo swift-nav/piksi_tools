@@ -4,12 +4,6 @@ import os
 
 from setuptools import setup
 
-from setuptools_scm.git import GitWorkdir, _git_parse_describe
-from setuptools_scm.git import DEFAULT_DESCRIBE
-from setuptools_scm.config import Configuration
-from setuptools_scm.utils import has_command
-from setuptools_scm.version import meta
-
 
 CLASSIFIERS = [
     'Intended Audience :: Developers',
@@ -55,14 +49,24 @@ PACKAGE_DATA = {
 
 
 def scmtools_parse(root,
-                   describe_command=DEFAULT_DESCRIBE,
+                   describe_command=None,
                    config=None):
     """
     rewriting of setuptools_scm.git.parse method to remove -branch string
     from any tags.  This library is clearly not designed for people to adjust
-    its function so I had to lift entire function from Aug 8 master with SHA 
+    its function so I had to lift entire function from Aug 8 master with SHA
     a91b40c99ea9bfc4289272285f17e1d43c243b76
     """
+
+    from setuptools_scm.git import GitWorkdir, _git_parse_describe
+    from setuptools_scm.config import Configuration
+    from setuptools_scm.utils import has_command
+    from setuptools_scm.version import meta
+
+    if describe_command is None:
+        from setuptools_scm.git import DEFAULT_DESCRIBE
+        describe_command = DEFAULT_DESCRIBE
+
     if not config:
         config = Configuration(root=root)
 
@@ -106,33 +110,35 @@ def scmtools_parse(root,
             return meta(tag.replace('-branch', ''), config=config, node=node, dirty=dirty, branch=branch)
 
 
-cwd = os.path.abspath(os.path.dirname(__file__))
+if __name__ == '__main__':
 
-with open(cwd + '/README.rst') as f:
-    readme = f.read()
+    cwd = os.path.abspath(os.path.dirname(__file__))
 
-with open(cwd + '/requirements.txt') as fp:
-    INSTALL_REQUIRES = [L.strip() for L in fp if not L.startswith('git+')]
-    DEPENDENCY_LINKS = [L.strip() for L in fp if L.startswith('git+')]
+    with open(cwd + '/README.rst') as f:
+        readme = f.read()
 
-setup(
-    name='piksi_tools',
-    description='Python tools for the Piksi GNSS receiver.',
-    long_description=readme,
-    use_scm_version={
-        'write_to': 'piksi_tools/_version.py',
-        'parse': scmtools_parse
-    },
-    setup_requires=['setuptools_scm'],
-    author='Swift Navigation',
-    author_email='dev@swiftnav.com',
-    url='https://github.com/swift-nav/piksi_tools',
-    classifiers=CLASSIFIERS,
-    packages=PACKAGES,
-    package_data=PACKAGE_DATA,
-    platforms=PLATFORMS,
-    install_requires=INSTALL_REQUIRES,
-    dependency_links=DEPENDENCY_LINKS,
-    include_package_data=True,
-    use_2to3=False,
-    zip_safe=False)
+    with open(cwd + '/requirements.txt') as fp:
+        INSTALL_REQUIRES = [L.strip() for L in fp if not L.startswith('git+')]
+        DEPENDENCY_LINKS = [L.strip() for L in fp if L.startswith('git+')]
+
+    setup(
+        name='piksi_tools',
+        description='Python tools for the Piksi GNSS receiver.',
+        long_description=readme,
+        use_scm_version={
+            'write_to': 'piksi_tools/_version.py',
+            'parse': scmtools_parse
+        },
+        setup_requires=['setuptools_scm'],
+        author='Swift Navigation',
+        author_email='dev@swiftnav.com',
+        url='https://github.com/swift-nav/piksi_tools',
+        classifiers=CLASSIFIERS,
+        packages=PACKAGES,
+        package_data=PACKAGE_DATA,
+        platforms=PLATFORMS,
+        install_requires=INSTALL_REQUIRES,
+        dependency_links=DEPENDENCY_LINKS,
+        include_package_data=True,
+        use_2to3=False,
+        zip_safe=False)
