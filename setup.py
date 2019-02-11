@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import re
 import os
 
 from setuptools import setup
@@ -118,8 +119,15 @@ if __name__ == '__main__':
         readme = f.read()
 
     with open(cwd + '/requirements.txt') as fp:
+
         INSTALL_REQUIRES = [L.strip() for L in fp if not L.startswith('git+')]
-        DEPENDENCY_LINKS = [L.strip() for L in fp if L.startswith('git+')]
+
+        def transform(link):
+            link = link.strip()
+            spl = re.split('[&#]', link)
+            return str.join('#', spl)
+
+        DEPENDENCY_LINKS = [transform(L) for L in fp if L.startswith('git+')]
 
     setup(
         name='piksi_tools',
