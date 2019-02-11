@@ -4,12 +4,12 @@ import os
 
 from setuptools import setup
 
-from setuptools_scm.git import parse as git_parse
 from setuptools_scm.git import GitWorkdir, _git_parse_describe
 from setuptools_scm.git import DEFAULT_DESCRIBE
 from setuptools_scm.config import Configuration
-from setuptools_scm.utils import do_ex, trace, has_command
+from setuptools_scm.utils import has_command
 from setuptools_scm.version import meta
+
 
 CLASSIFIERS = [
     'Intended Audience :: Developers',
@@ -54,15 +54,14 @@ PACKAGE_DATA = {
 }
 
 
-
-def myparse(
-        root, describe_command=DEFAULT_DESCRIBE, config=None):
+def scmtools_parse(root,
+                   describe_command=DEFAULT_DESCRIBE,
+                   config=None):
     """
     rewriting of setuptools_scm.git.parse method to remove -branch string
     from any tags.  This library is clearly not designed for people to adjust
     its function so I had to lift entire function from Aug 8 master with SHA 
     a91b40c99ea9bfc4289272285f17e1d43c243b76
-
     """
     if not config:
         config = Configuration(root=root)
@@ -96,7 +95,7 @@ def myparse(
         branch = wd.get_branch()
         if number:
             return meta(
-                tag.replace('-branch',''),
+                tag.replace('-branch', ''),
                 config=config,
                 distance=number,
                 node=node,
@@ -106,12 +105,15 @@ def myparse(
         else:
             return meta(tag.replace('-branch', ''), config=config, node=node, dirty=dirty, branch=branch)
 
+
 cwd = os.path.abspath(os.path.dirname(__file__))
+
 with open(cwd + '/README.rst') as f:
     readme = f.read()
 
-with open(cwd + '/requirements.txt') as f:
-    INSTALL_REQUIRES = [i.strip() for i in f.readlines()]
+with open(cwd + '/requirements.txt') as fp:
+    INSTALL_REQUIRES = [L.strip() for L in fp if not L.startswith('git+')]
+    DEPENDENCY_LINKS = [L.strip() for L in fp if L.startswith('git+')]
 
 setup(
     name='piksi_tools',
@@ -119,7 +121,7 @@ setup(
     long_description=readme,
     use_scm_version={
         'write_to': 'piksi_tools/_version.py',
-        'parse': myparse
+        'parse': scmtools_parse
     },
     setup_requires=['setuptools_scm'],
     author='Swift Navigation',
@@ -130,6 +132,7 @@ setup(
     package_data=PACKAGE_DATA,
     platforms=PLATFORMS,
     install_requires=INSTALL_REQUIRES,
+    dependency_links=DEPENDENCY_LINKS,
     include_package_data=True,
     use_2to3=False,
     zip_safe=False)
