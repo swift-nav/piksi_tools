@@ -128,6 +128,7 @@ if __name__ == '__main__':
             return str.join('#', spl)
 
         DEPENDENCY_LINKS = [transform(L) for L in fp if L.startswith('git+')]
+        DEPENDENCY_LINKS = ['git+https://github.com/swift-nav/libsbp.git@14ebde8608e72c0f69eefd59f929c1db9e215604#subdirectory=python']
 
     setup(
         name='piksi_tools',
