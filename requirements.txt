@@ -16,4 +16,4 @@ ruamel.yaml==0.15.31
 pre-commit==1.10.3
 setuptools_scm==3.1.0
 enum34==1.1.6
-git+http://github.com/swift-nav/libsbp.git@14ebde8608e72c0f69eefd59f929c1db9e215604#egg=sbp-2.4.8.dev0&subdirectory=python
+git+http://github.com/swift-nav/libsbp.git@14ebde8608e72c0f69eefd59f929c1db9e215604#subdirectory=python#egg=sbp-2.4.8.dev0
