@@ -13,22 +13,24 @@ def maybe_remove(path):
         shutil.rmtree(str(path))
 
 
-def build(env='pyinstaller'):
+def _check_output(cmd, default=None):
+    try:
+        v = check_output(cmd, stderr=subprocess.STDOUT)
+        return v.strip().split()[-1]
+    except CalledProcessError as cpe:
+        print("Output:\n" + cpe.output)
+        print("Return Code:\n" + str(cpe.returncode))
+        raise CalledProcessError
+    return default
+
+
+def build(env):
     check_call(['tox', '-e', env])
     out_pyi = os.path.join(os.getcwd(), os.path.join('dist', 'console'))
     exe = os.path.join(out_pyi, 'console')
-
     # https://bugs.python.org/issue18920
-    v = "unknown"
     print("Running {} to determine its version.".format(str(exe)))
-    try:
-      v = check_output([str(exe), '-V'], stderr=subprocess.STDOUT)
-      v = v.strip().split()[-1]
-    except CalledProcessError as cpe:
-      print("Output:\n" + cpe.output)
-      print("Return Code:\n" + str(cpe.returncode))
-      raise CalledProcessError
-
+    v = _check_output([str(exe), '-V'], default="unknown")
     return out_pyi, v
 
 
@@ -76,20 +78,26 @@ def build_win():
     ])
 
 
+def build_cli_tools_nix():
+    _check_output(['tox', '-e', 'pyinstaller_cmdline_tools-nix'])
+
+
+def build_cli_tools_win():
+    _check_output(['tox', '-e', 'pyinstaller_cmdline_tools-win'])
+
+
 def main():
     plat = sys.platform
     if plat.startswith('linux'):
         build_linux()
+        build_cli_tools_nix()
     elif plat.startswith('darwin'):
         build_macos()
+        build_cli_tools_nix()
     elif plat.startswith('win'):
         build_win()
-    try: 
-        check_call(['tox', '-e', 'pyinstaller_cmdline_tools'])
-    except CalledProcessError as cpe:
-      print("Output:\n" + cpe.output)
-      print("Return Code:\n" + str(cpe.returncode))
-      raise CalledProcessError
+        build_cli_tools_win()
+
 
 if __name__ == '__main__':
     main()
