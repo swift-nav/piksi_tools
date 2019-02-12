@@ -57,5 +57,4 @@ def get_tcp_driver(host, port=None):
     except socket.timeout:
         raise Exception('TCP connection timed out. Check host: {}'.format(host))
     except Exception as e:
-        import traceback
-        raise Exception('Invalid host and/or port: {0}'.format(traceback.format_exc()))
+        raise Exception('Invalid host and/or port: {}'.format(str(e)))

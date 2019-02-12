@@ -1709,7 +1709,7 @@
   default value: 'Static'
   readonly: false
   Description: Ethernet configuration mode.
-  Notes: If DHCP is chosen the IP address will be assigned automatically. Note: The DHCP assigned IP address cannot be viewed under the Settings tab, instead use the Advanced -> Networking Tab and click on 'Refresh Network Status'.
+  Notes: "If DHCP is chosen the IP address will be assigned automatically. Note: The DHCP assigned IP address cannot be viewed under the Settings tab, instead use the Advanced -> Networking Tab and click on 'Refresh Network Status'."
 
 - group: ethernet
   name: ip_address
@@ -1719,7 +1719,7 @@
   default value: '192.168.0.222'
   readonly: false
   Description: The static IP address.
-  Notes: The configured IP address in XXX.XXX.XXX.XXX format. Note: If DHCP is used, the DHCP assigned IP address cannot be viewed under the Settings tab, instead use the Advanced -> Networking Tab and click on 'Refresh Network Status'.
+  Notes: "The configured IP address in XXX.XXX.XXX.XXX format. Note: If DHCP is used, the DHCP assigned IP address cannot be viewed under the Settings tab, instead use the Advanced -> Networking Tab and click on 'Refresh Network Status'."
 
 - group: ethernet
   name: netmask
@@ -2576,6 +2576,18 @@
     a divisor can be specified after the / character for each id. For example, an entry of
     3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
     the default value is optimal for logging and communication with the console.
+
+- group: can1
+  name: termination
+  expert: true
+  type: boolean
+  units: N/A
+  default value: 'false'
+  readonly: false
+  Description: Configure status of CAN termination resistor on Duro.
+  Notes: This setting toggles the 120 ohm termination resistor 
+    for the CAN interface available on the AUX connector of Duro.
+    It should only appear on Duro devices.
 
 - group: pps
   name: propagation_mode

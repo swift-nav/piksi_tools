@@ -369,7 +369,7 @@ def main():
     command = args.command
     return_code = 0
     driver = serial_link.get_base_args_driver(args)
-    with Handler(Framer(driver.read, driver.write)) as link:
+    with Handler(Framer(driver.read, driver.write, verbose=args.verbose)) as link:
         settings = Settings(link, timeout=args.timeout)
         with settings:
             if command == 'write':

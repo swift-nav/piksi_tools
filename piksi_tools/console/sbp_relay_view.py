@@ -535,7 +535,7 @@ class SbpRelayView(HasTraits):
         try:
             if (isinstance(self.http_watchdog_thread, threading.Thread) and
                not self.http_watchdog_thread.stopped()):
-                    self.http_watchdog_thread.stop()
+                self.http_watchdog_thread.stop()
             else:
                 print(("Unable to disconnect: Http watchdog thread "
                        "inititalized at {0} and connected since {1} has "

@@ -151,7 +151,7 @@ def get_args():
 def get_driver(use_ftdi=False,
                port=SERIAL_PORT,
                baud=SERIAL_BAUD,
-               file=False,
+               use_file=False,
                rtscts=False):
     """
     Get a driver based on configuration options
@@ -168,7 +168,7 @@ def get_driver(use_ftdi=False,
     try:
         if use_ftdi:
             return PyFTDIDriver(baud)
-        if file:
+        if use_file:
             return FileDriver(open(port, 'rb'))
     # HACK - if we are on OSX and the device appears to be a CDC device, open as a binary file
         for each in serial.tools.list_ports.comports():
@@ -328,11 +328,21 @@ def run(args, link):
 
 def get_base_args_driver(args):
     driver = None
-    if args.tcp:
-        driver = get_tcp_driver(args.port)
+    if getattr(args, 'tcp', None):
+        driver = get_tcp_driver(getattr(args, 'port', None))
     else:
-        driver = get_driver(
-            args.ftdi, args.port, args.baud, args.file, rtscts=args.rtscts)
+        driver_kwargs = {}
+        # unpack relevant args
+        driver_kwargs['use_ftdi'] = getattr(args, 'ftdi', None)
+        driver_kwargs['port'] = getattr(args, 'port', None)
+        driver_kwargs['baud'] = getattr(args, 'baud', None)
+        driver_kwargs['use_file'] = getattr(args, 'file', None)
+        driver_kwargs['rtscts'] = getattr(args, 'rtscts', None)
+        # trim none values
+        driver_kwargs = {k: v
+                         for k, v in driver_kwargs.iteritems()
+                         if v is not None}
+        driver = get_driver(**driver_kwargs)
     return driver
 
 
