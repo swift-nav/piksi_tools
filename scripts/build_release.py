@@ -78,25 +78,21 @@ def build_win():
     ])
 
 
-def build_cli_tools_nix():
-    _check_output(['tox', '-e', 'pyinstaller_cmdline_tools-nix'])
-
-
-def build_cli_tools_win():
-    _check_output(['tox', '-e', 'pyinstaller_cmdline_tools-win'])
+def build_cli_tools():
+    _check_output(['tox', '-e', 'pyinstaller_cmdline_tools'])
 
 
 def main():
     plat = sys.platform
     if plat.startswith('linux'):
         build_linux()
-        build_cli_tools_nix()
+        build_cli_tools()
     elif plat.startswith('darwin'):
         build_macos()
-        build_cli_tools_nix()
+        build_cli_tools()
     elif plat.startswith('win'):
         build_win()
-        build_cli_tools_win()
+        build_cli_tools()
 
 
 if __name__ == '__main__':
