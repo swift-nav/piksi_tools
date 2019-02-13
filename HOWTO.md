@@ -70,6 +70,20 @@ Upload the console binaries from `dist/` to the
 [AWS S3 bucket](http://downloads.swiftnav.com/swift_console/) and
 update the console version number in the `index.json` there.
 
+# Custom libsbp version
+
+To use a custom libsbp from Git without publishing to PyPI add to following to `requirements.txt`:
+
+```
+git+https://github.com/swift-nav/libsbp.git@<COMMIT_HASH>#subdirectory=python&egg=sbp
+```
+
+Where `<COMMIT_HASH>` is the tip of Git branch you want to use.  Alternately, a local checkout can be installed via:
+
+```
+pip install -e file://$PWD/libsbp#subdirectory=python&egg=sbp
+```
+
 # Contributions
 
 This library is developed internally by Swift Navigation. We welcome

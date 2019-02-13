@@ -12,8 +12,8 @@ pyparsing==2.2.0
 pygments==2.2.0
 requests==2.20.0
 six==1.10.0
+sbp==2.4.5
 ruamel.yaml==0.15.31
 pre-commit==1.10.3
 setuptools_scm==3.1.0
 enum34==1.1.6
-git+https://github.com/swift-nav/libsbp.git@14ebde8608e72c0f69eefd59f929c1db9e215604#subdirectory=python&egg=sbp
