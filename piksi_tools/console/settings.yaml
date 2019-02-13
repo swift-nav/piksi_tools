@@ -405,6 +405,21 @@
     attempted by the receiver.
 
 - group: solution
+  name: process_noise_motion_mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'Default'
+  readonly: false
+  enumerated possible values: Default, Automotive, Static
+  Description: Selects the process noise variance of position, velocity & acceleration in the Horizontal &
+    Vertical directions.
+  Notes: The "Default" mode assigns equal process noise variances (uncertainities in the dynamic model) in all
+    directions. The "Automotive" mode assigns relatively smaller process noise variances to the vertical
+    position/velocity/acceleration. The "Static" mode assigns small process noise variances for position/velocity
+    /acceleration in both the horizontal and vertical directions.
+
+- group: solution
   name: dgnss_filter
   expert: true
   type: enum
