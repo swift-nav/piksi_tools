@@ -19,7 +19,6 @@ from threading import Thread
 from time import sleep
 from urllib2 import URLError
 
-from pkg_resources import parse_version as pkparse_version
 from pyface.api import GUI, OK, FileDialog, DirectoryDialog, ProgressDialog
 from sbp.logging import SBP_MSG_LOG
 from sbp.piksi import MsgReset
@@ -28,6 +27,7 @@ from traitsui.api import HGroup, InstanceEditor, Item, UItem, VGroup, View, Spri
 
 import piksi_tools.console.callback_prompt as prompt
 from piksi_tools import __version__ as CONSOLE_VERSION
+from piksi_tools.utils import parse_version
 from piksi_tools.bootload_v3 import shell_command
 from piksi_tools.fileio import FileIO
 
@@ -49,13 +49,6 @@ UPGRADE_WHITELIST = [
 
 V2_LINK = "https://www.swiftnav.com/resource-files/Piksi%20Multi/v2.0.0/Firmware/PiksiMulti-v2.0.0.bin"
 
-
-def parse_version(version):
-    if version[0] == 'v':
-        version = version[1:]
-    return pkparse_version(version.replace(
-        "-dirty",
-        "", ))
 
 
 class FirmwareFileDialog(HasTraits):
@@ -304,6 +297,7 @@ class UpdateView(HasTraits):
         self.stream.max_len = 1000
         self.last_call_fw_version = None
         self.link.add_callback(self.log_cb, SBP_MSG_LOG)
+        self.upgrade_warning_fired = False
 
     def _choose_dir_fired(self):
         dialog = DirectoryDialog(
@@ -433,11 +427,12 @@ class UpdateView(HasTraits):
             pass
 
         current_fw_version = parse_version(self.piksi_stm_vers)
-        re_result = re.search('[a-zA-Z0-9]*-(v[0-9]*\.[0-9]*\.[0-9])', self.stm_fw.status)
-        intended_version = parse_version(re_result.group(1))
+        intended_version = parse_version(self.stm_fw.status)
         # If the current firmware is not yet beyond 2.0.0, and we are loading beyond 2.0.0
         # warn the user that this upgrade is not possible
-        if (current_fw_version < pkparse_version("v2.0.0") and intended_version > pkparse_version("v2.0.0")):
+        if (not self.upgrade_warning_fired and 
+                current_fw_version < parse_version("v2.0.0") and current_fw_version > parse_version("v1.0.0") and intended_version > parse_version("v2.0.0")):
+            self.upgrade_warning_fired = True;
             confirm_prompt = prompt.CallbackPrompt(
                 title="Update to v2.0.0",
                 actions=[prompt.close_button, prompt.ok_button],
@@ -448,6 +443,8 @@ class UpdateView(HasTraits):
                                   + "    version 2.0.0.                                                        \n" \
                                   + "                                                                          \n" \
                                   + "    Would you like to download firmware version v2.0.0 now?               \n" \
+                                  + "                                                                          \n" \
+                                  + "    You will not receive this warning on any subsequent upgrade attempts. \n" \
                                   + "                                                                          \n"
             confirm_prompt.run(block=False)
             return

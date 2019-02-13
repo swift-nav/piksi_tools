@@ -13,10 +13,22 @@ from __future__ import print_function
 
 import errno
 import os
+import re
 
 from sbp.client.drivers.network_drivers import TCPDriver
+from pkg_resources import parse_version as pkparse_version
 import socket
 
+def parse_version(version):
+    # coerce ersion strings into something that is semver.org and PEP 440 version string  compatible
+                       #prefix_string vX.X.X  pre-release-identifier         20190901 
+    match = re.search('[a-zA-Z0-9-]*v([0-9]*\.[0-9]*\.[0-9])([a-zA-Z\-\_\+]*)([0-9]*).*', version)
+    if match is not None:
+       print("got match" + str(match.group(1) + match.group(3)))
+       return pkparse_version(match.group(1) + match.group(3))
+    else:
+       print("no match trying raw string {}".format(version))
+       return pkparse_version(version)
 
 def wrap_sbp_dict(data_dict, timestamp):
     return {'data': data_dict, 'time': timestamp}
