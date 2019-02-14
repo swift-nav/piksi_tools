@@ -19,7 +19,7 @@ from threading import Thread
 from time import sleep
 from urllib2 import URLError
 
-from pkg_resources import parse_version as pkparse_version
+from GitVersion import parse as gitversion_parse
 from pyface.api import GUI, OK, FileDialog, DirectoryDialog, ProgressDialog
 from sbp.logging import SBP_MSG_LOG
 from sbp.piksi import MsgReset
@@ -51,11 +51,7 @@ V2_LINK = "https://www.swiftnav.com/resource-files/Piksi%20Multi/v2.0.0/Firmware
 
 
 def parse_version(version):
-    if version[0] == 'v':
-        version = version[1:]
-    return pkparse_version(version.replace(
-        "-dirty",
-        "", ))
+    return gitversion_parse(version)
 
 
 class FirmwareFileDialog(HasTraits):
@@ -433,11 +429,13 @@ class UpdateView(HasTraits):
             pass
 
         current_fw_version = parse_version(self.piksi_stm_vers)
-        re_result = re.search('[a-zA-Z0-9]*-(v[0-9]*\.[0-9]*\.[0-9])', self.stm_fw.status)
-        intended_version = parse_version(re_result.group(1))
+        re_result = re.search('.*-(v[0-9]*\.[0-9]*\.[0-9]*.*)$', self.stm_fw.status)
+        intended_version = parse_version(re_Result.group(1))
+        print >> str(current_fw_version)
+        print >> str(intended_fw_version)
         # If the current firmware is not yet beyond 2.0.0, and we are loading beyond 2.0.0
-        # warn the user that this upgrade is not possible
-        if (current_fw_version < pkparse_version("v2.0.0") and intended_version > pkparse_version("v2.0.0")):
+        # warn the user that this upgrade is not possible. But always allow development version
+        if ( current_fw_version.isdev == False ) and ( intended_version.isdev == False ) and ( current_fw_version < parse_version("v2.0.0")) and ( intended_version > parse_version("v2.0.0")):
             confirm_prompt = prompt.CallbackPrompt(
                 title="Update to v2.0.0",
                 actions=[prompt.close_button, prompt.ok_button],
