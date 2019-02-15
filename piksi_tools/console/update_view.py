@@ -90,7 +90,7 @@ class FirmwareFileDialog(HasTraits):
 
     def load_bin(self, filepath):
         try:
-            self.blob = open(filepath, 'rb').read()
+            self.blob = bytearray(open(filepath, 'rb').read())
             self.status = os.path.split(filepath)[1]
         except:  # noqa
             self.clear('Error: Failed to read binary file')
@@ -713,7 +713,7 @@ class UpdateView(HasTraits):
         self._write("Transferring image to device...\n\n00.0 of {:2.1f} MB trasnferred".format(self.blob_size * 1e-6))
         try:
             FileIO(self.link).write(
-                "upgrade.image_set.bin",
+                b"upgrade.image_set.bin",
                 self.stm_fw.blob,
                 progress_cb=self.file_transfer_progress_cb)
         except Exception as e:
@@ -729,7 +729,7 @@ class UpdateView(HasTraits):
         self.link.add_callback(self.log_cb, SBP_MSG_LOG)
         code = shell_command(
             self.link,
-            "upgrade_tool upgrade.image_set.bin",
+            b"upgrade_tool upgrade.image_set.bin",
             200)
         self.link.remove_callback(self.log_cb, SBP_MSG_LOG)
 
