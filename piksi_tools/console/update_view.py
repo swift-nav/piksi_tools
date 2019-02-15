@@ -429,10 +429,8 @@ class UpdateView(HasTraits):
             pass
 
         current_fw_version = parse_version(self.piksi_stm_vers)
-        re_result = re.search('.*-(v[0-9]*\.[0-9]*\.[0-9]*.*)$', self.stm_fw.status)
-        intended_version = parse_version(re_Result.group(1))
-        print >> str(current_fw_version)
-        print >> str(intended_fw_version)
+        re_result = re.search('.*-(v[0-9]*\.[0-9]*\.[0-9]*.*).bin$', self.stm_fw.status)
+        intended_version = parse_version(str(re_result.group(1)))
         # If the current firmware is not yet beyond 2.0.0, and we are loading beyond 2.0.0
         # warn the user that this upgrade is not possible. But always allow development version
         if ( current_fw_version.isdev == False ) and ( intended_version.isdev == False ) and ( current_fw_version < parse_version("v2.0.0")) and ( intended_version > parse_version("v2.0.0")):
