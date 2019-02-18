@@ -19,7 +19,7 @@ from threading import Thread
 from time import sleep
 from urllib2 import URLError
 
-from GitVersion import parse as gitversion_parse
+from piksi_tools.console.GitVersion import parse as gitversion_parse
 from pyface.api import GUI, OK, FileDialog, DirectoryDialog, ProgressDialog
 from sbp.logging import SBP_MSG_LOG
 from sbp.piksi import MsgReset
