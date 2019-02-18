@@ -1,9 +1,9 @@
-import collections
 import re
 
 __all__ = [
     "GitVersion"
 ]
+
 
 def parse(version):
     """
@@ -15,9 +15,10 @@ def parse(version):
 
 class InvalidVersion(ValueError):
     """
-    An invalid version was found, users should only pass in the output 
+    An invalid version was found, users should only pass in the output
     of a 'git describe' command
     """
+
 
 class GitVersion(object):
 
@@ -89,7 +90,7 @@ class GitVersion(object):
     _regex = re.compile(
         r"^\s*(?P<leader>[^0-9]*)(?P<marketing>[0-9]+)\.(?P<major>[0-9]+)\.(?P<minor>[0-9]+)(?P<dev>.*)$",
         re.VERBOSE | re.IGNORECASE,
-        )
+    )
 
     def __init__(self, version):
         match = self._regex.search(version)
@@ -105,8 +106,3 @@ class GitVersion(object):
             self._devstring = self._devstring + match.group("leader")
         if match.group("dev"):
             self._devstring = self._devstring + match.group("dev")
-
-
-
-
-

@@ -433,7 +433,7 @@ class UpdateView(HasTraits):
         intended_version = parse_version(str(re_result.group(1)))
         # If the current firmware is not yet beyond 2.0.0, and we are loading beyond 2.0.0
         # warn the user that this upgrade is not possible. But always allow development version
-        if ( current_fw_version.isdev == False ) and ( intended_version.isdev == False ) and ( current_fw_version < parse_version("v2.0.0")) and ( intended_version > parse_version("v2.0.0")):
+        if (current_fw_version.isdev is False) and (intended_version.isdev is False) and (current_fw_version < parse_version("v2.0.0")) and (intended_version > parse_version("v2.0.0")):
             confirm_prompt = prompt.CallbackPrompt(
                 title="Update to v2.0.0",
                 actions=[prompt.close_button, prompt.ok_button],
