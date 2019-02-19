@@ -58,7 +58,6 @@ from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
                                        mode_dict, resource_filename,
                                        icon, swift_path, DR_MODE, DIFFERENTIAL_MODES)
-from piksi_tools.console.skylark_view import SkylarkView
 
 
 class ArgumentParserError(Exception):
@@ -176,7 +175,6 @@ class SwiftConsole(HasTraits):
     imu_view = Instance(IMUView)
     mag_view = Instance(MagView)
     spectrum_analyzer_view = Instance(SpectrumAnalyzerView)
-    skylark_view = Instance(SkylarkView)
     log_level_filter = Enum(list(SYSLOG_LEVELS.itervalues()))
     """"
   mode : baseline and solution view - SPP, Fixed or Float
@@ -270,7 +268,6 @@ class SwiftConsole(HasTraits):
                         style='custom'),
                     label='Advanced',
                     show_labels=False),
-                Item('skylark_view', style='custom', label='Skylark'),
                 show_labels=False),
             VGroup(
                 VGroup(
@@ -696,7 +693,6 @@ class SwiftConsole(HasTraits):
                 'whitelist': [SBP_MSG_POS_LLH, SBP_MSG_HEARTBEAT]
             })
             self.networking_view = SbpRelayView(self.link, **networking_dict)
-            self.skylark_view = SkylarkView()
             self.json_logging = json_logging
             self.csv_logging = False
             self.first_json_press = True
@@ -722,7 +718,6 @@ class SwiftConsole(HasTraits):
                     pass
                 if mfg_id:
                     self.device_serial = 'PK' + str(mfg_id)
-                self.skylark_view.set_uuid(self.uuid)
                 self.networking_view.set_route(uuid=self.uuid, serial_id=mfg_id)
                 if self.networking_view.connect_when_uuid_received:
                     self.networking_view._connect_rover_fired()

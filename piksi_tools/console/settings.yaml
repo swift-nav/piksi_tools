@@ -327,29 +327,6 @@
     bit 2 (decimal value 4) turns on Float IAR simulated RTK outputs
     bit 3 (decimal value 8) turns on Fixed IAR simulated RTK outputs
 
-- group: skylark
-  name: enable
-  expert: false
-  type: boolean
-  units: N/A
-  default value: 'False'
-  readonly: false
-  enumerated possible values: True,False
-  Description: Enable Skylark client.
-  Notes: |
-      If True, Skylark client will be used for reference observations
-
-- group: skylark
-  name: url
-  expert: true
-  type: string
-  units: N/A
-  default value: N/A
-  readonly: false
-  enumerated possible values:
-  Description: Skylark URL to use.
-  Notes: URL to use with Skylark client. Skylark must be enabled to use this setting.
-
 - group: solution
   name: soln_freq
   expert: false
@@ -519,7 +496,6 @@
   Description: Disable Klobuchar ionospheric corrections.
   Notes: |
       If True, Klobuchar ionospheric corrections will not be applied.
-      This setting must be set to True when Skylark is enabled (skylark.enable == True)
 
 - group: solution
   name: enable_glonass
