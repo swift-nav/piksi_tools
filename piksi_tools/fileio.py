@@ -39,7 +39,7 @@ SBP_FILEIO_TIMEOUT = 3
 MAXIMUM_RETRIES = 20
 PROGRESS_CB_REDUCTION_FACTOR = 100
 TEXT_ENCODING = 'utf-8'  # used for printing out directory listings and files
-WAIT_SLEEP = 0.001
+WAIT_SLEEP_S = 0.001
 CONFIG_REQ_RETRY_MS = 100
 CONFIG_REQ_TIMEOUT_MS = 1000
 
@@ -191,8 +191,10 @@ class SelectiveRepeater(object):
         ---
         link : Handler
           Link over which messages will be sent.
-        msg_type:
+        msg_type :
           The type of message being sent
+        cb :
+          Invoked when SBP message with type `msg_type` is received
         """
 
         self._link = link
@@ -212,11 +214,11 @@ class SelectiveRepeater(object):
         self._total_sends = 1.0
         self._total_retries = 0
 
-        self._config_send_time = Time.now()
-        self._config_retry_time = Time.now()
+        now = Time.now()
+        self._config_retry_time = now + Time(0, CONFIG_REQ_RETRY_MS)
+        self._config_timeout = now + Time(0, CONFIG_REQ_TIMEOUT_MS)
         self._config_seq = random.randint(0, 0xffffffff)
         self._config_msg = None
-
         self._link(MsgFileioConfigReq(sequence=self._config_seq))
 
     def _init_fileio_config(self, window_size, batch_size):
@@ -351,13 +353,11 @@ class SelectiveRepeater(object):
     def _config_received(self):
         if self._config_msg is not None:
             return True
-        config_timeout = self._config_send_time + Time(0, CONFIG_REQ_TIMEOUT_MS)
-        config_retry = self._config_retry_time + Time(0, CONFIG_REQ_RETRY_MS)
         now = Time.now()
-        if now >= config_retry:
+        if now >= self._config_retry_time:
             self._link(MsgFileioConfigReq(sequence=self._config_seq))
-            self._config_retry_time = now
-        if now >= config_timeout:
+            self._config_retry_time = now + Time(0, CONFIG_REQ_RETRY_MS)
+        if now >= self._config_timeout:
             self._config_msg = MsgFileioConfigResp(sequence=0,
                                                    window_size=100,
                                                    batch_size=1,
@@ -366,14 +366,14 @@ class SelectiveRepeater(object):
 
     def _wait_config_received(self):
         while not self._config_received():
-            time.sleep(WAIT_SLEEP)
+            time.sleep(WAIT_SLEEP_S)
 
     def _wait_window_available(self, batch_size):
         self._wait_config_received()
         while not self._window_available(batch_size):
             self._check_pending()
             if not self._window_available(batch_size):
-                time.sleep(WAIT_SLEEP)
+                time.sleep(WAIT_SLEEP_S)
 
     @property
     def total_retries(self):
@@ -420,7 +420,7 @@ class SelectiveRepeater(object):
         self.send(None, batch_size=0)
         while self._has_pending():
             self._check_pending()
-            time.sleep(WAIT_SLEEP)
+            time.sleep(WAIT_SLEEP_S)
 
 
 class FileIO(object):
@@ -470,7 +470,7 @@ class FileIO(object):
                 sr.send(msg)
                 offset += chunksize
             while not closure['done']:
-                time.sleep(WAIT_SLEEP)
+                time.sleep(WAIT_SLEEP_S)
             sorted_buffers = sorted(closure['buf'].items(), key=lambda kv: kv[0])
             return bytearray(itertools.chain.from_iterable(kv[1] for kv in sorted_buffers))
 
@@ -559,7 +559,11 @@ class FileIO(object):
                 msg = MsgFileioWriteReq(
                     sequence=seq,
                     offset=offset,
-                    filename=filename + b'\x00' + chunk,
+                    filename=filename + b'\x00' + chunk,  # Note: We put "chunk" into the name because
+                                                          #   putting in the correct place (the data
+                                                          #   field) results in a huge slowdown
+                                                          #   (presumably because an issue in the
+                                                          #    construct library).
                     data=b'')
                 sr.send(msg)
                 offset += len(chunk)
@@ -688,8 +692,8 @@ def mk_progress_cb(file_length):
     time_last = [time.time()]
     offset_last = [0]
 
-    kb_to_mb = 1024 * 1024.0
-    file_mb = file_length / kb_to_mb
+    b_to_mb = 1024 * 1024.0
+    file_mb = file_length / b_to_mb
     rolling_avg_len = 20
     rolling_avg_pts = []
     previous_avg = [None]
@@ -715,7 +719,7 @@ def mk_progress_cb(file_length):
         offset_delta = offset - offset_last[0]
         time_delta = time_current - time_last[0]
         percent_done = 100 * (offset / float(file_length))
-        mb_confirmed = offset / kb_to_mb
+        mb_confirmed = offset / b_to_mb
         speed_kbs = offset_delta / time_delta / 1024
         rolling_avg = compute_rolling_average(speed_kbs)
         fmt_str = "\r[{:02.02f}% ({:.02f}/{:.02f} MB) at {:.02f} kB/s ({:0.02f}% retried)]"
