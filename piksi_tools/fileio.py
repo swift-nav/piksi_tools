@@ -20,11 +20,13 @@ import random
 import time
 import threading
 import sys
+import os
 
 from six.moves.queue import Queue
 
 from sbp.client import Framer, Handler
-from sbp.file_io import (SBP_MSG_FILEIO_READ_DIR_RESP, SBP_MSG_FILEIO_READ_RESP,
+from sbp.file_io import (SBP_MSG_FILEIO_WRITE_REQ,
+                         SBP_MSG_FILEIO_READ_DIR_RESP, SBP_MSG_FILEIO_READ_RESP,
                          SBP_MSG_FILEIO_WRITE_RESP, SBP_MSG_FILEIO_CONFIG_RESP,
                          MsgFileioReadDirReq, MsgFileioReadDirResp,
                          MsgFileioReadReq, MsgFileioRemove, MsgFileioWriteReq,
@@ -42,6 +44,113 @@ TEXT_ENCODING = 'utf-8'  # used for printing out directory listings and files
 WAIT_SLEEP_S = 0.001
 CONFIG_REQ_RETRY_MS = 100
 CONFIG_REQ_TIMEOUT_MS = 1000
+
+
+import struct
+
+import numpy as np
+
+_crc16_tab = [0x0000,0x1021,0x2042,0x3063,0x4084,0x50a5,0x60c6,0x70e7,
+             0x8108,0x9129,0xa14a,0xb16b,0xc18c,0xd1ad,0xe1ce,0xf1ef,
+             0x1231,0x0210,0x3273,0x2252,0x52b5,0x4294,0x72f7,0x62d6,
+             0x9339,0x8318,0xb37b,0xa35a,0xd3bd,0xc39c,0xf3ff,0xe3de,
+             0x2462,0x3443,0x0420,0x1401,0x64e6,0x74c7,0x44a4,0x5485,
+             0xa56a,0xb54b,0x8528,0x9509,0xe5ee,0xf5cf,0xc5ac,0xd58d,
+             0x3653,0x2672,0x1611,0x0630,0x76d7,0x66f6,0x5695,0x46b4,
+             0xb75b,0xa77a,0x9719,0x8738,0xf7df,0xe7fe,0xd79d,0xc7bc,
+             0x48c4,0x58e5,0x6886,0x78a7,0x0840,0x1861,0x2802,0x3823,
+             0xc9cc,0xd9ed,0xe98e,0xf9af,0x8948,0x9969,0xa90a,0xb92b,
+             0x5af5,0x4ad4,0x7ab7,0x6a96,0x1a71,0x0a50,0x3a33,0x2a12,
+             0xdbfd,0xcbdc,0xfbbf,0xeb9e,0x9b79,0x8b58,0xbb3b,0xab1a,
+             0x6ca6,0x7c87,0x4ce4,0x5cc5,0x2c22,0x3c03,0x0c60,0x1c41,
+             0xedae,0xfd8f,0xcdec,0xddcd,0xad2a,0xbd0b,0x8d68,0x9d49,
+             0x7e97,0x6eb6,0x5ed5,0x4ef4,0x3e13,0x2e32,0x1e51,0x0e70,
+             0xff9f,0xefbe,0xdfdd,0xcffc,0xbf1b,0xaf3a,0x9f59,0x8f78,
+             0x9188,0x81a9,0xb1ca,0xa1eb,0xd10c,0xc12d,0xf14e,0xe16f,
+             0x1080,0x00a1,0x30c2,0x20e3,0x5004,0x4025,0x7046,0x6067,
+             0x83b9,0x9398,0xa3fb,0xb3da,0xc33d,0xd31c,0xe37f,0xf35e,
+             0x02b1,0x1290,0x22f3,0x32d2,0x4235,0x5214,0x6277,0x7256,
+             0xb5ea,0xa5cb,0x95a8,0x8589,0xf56e,0xe54f,0xd52c,0xc50d,
+             0x34e2,0x24c3,0x14a0,0x0481,0x7466,0x6447,0x5424,0x4405,
+             0xa7db,0xb7fa,0x8799,0x97b8,0xe75f,0xf77e,0xc71d,0xd73c,
+             0x26d3,0x36f2,0x0691,0x16b0,0x6657,0x7676,0x4615,0x5634,
+             0xd94c,0xc96d,0xf90e,0xe92f,0x99c8,0x89e9,0xb98a,0xa9ab,
+             0x5844,0x4865,0x7806,0x6827,0x18c0,0x08e1,0x3882,0x28a3,
+             0xcb7d,0xdb5c,0xeb3f,0xfb1e,0x8bf9,0x9bd8,0xabbb,0xbb9a,
+             0x4a75,0x5a54,0x6a37,0x7a16,0x0af1,0x1ad0,0x2ab3,0x3a92,
+             0xfd2e,0xed0f,0xdd6c,0xcd4d,0xbdaa,0xad8b,0x9de8,0x8dc9,
+             0x7c26,0x6c07,0x5c64,0x4c45,0x3ca2,0x2c83,0x1ce0,0x0cc1,
+             0xef1f,0xff3e,0xcf5d,0xdf7c,0xaf9b,0xbfba,0x8fd9,0x9ff8,
+             0x6e17,0x7e36,0x4e55,0x5e74,0x2e93,0x3eb2,0x0ed1,0x1ef0]
+
+crc16_tab = np.array(_crc16_tab, dtype=np.uint16)
+
+
+from numba import jit
+
+
+@jit(nopython=True)
+def _crc16(s, crc=0):
+  """CRC16 implementation acording to CCITT standards.
+  """
+  for ch in s: # bytearray's elements are integers in both python 2 and 3
+    crc = ((crc<<8)&0xFFFF) ^ crc16_tab[ ((crc>>8)&0xFF) ^ (ch&0xFF)]
+    crc &= 0xFFFF
+  return crc
+
+
+def crc16(s):
+    #from sbp.msg import crc16
+    #return crc16(s)
+    return _crc16(bytearray(s))
+
+
+def mk_pack_write(filename, filename_len, buf):
+
+    class _MsgFileioWriteReq(object):
+
+        __slots__ = ['sequence', '_buffer']
+
+        def __init__(self, s, b):
+            self.sequence = s
+            self._buffer = b
+
+        def to_binary(self):
+            return bytes(self._buffer)
+
+    def pack_write(seq, offset, chunk):
+
+        chunk_len = len(chunk)
+
+        seq_len, offset_len = 4, 4
+        data_len = seq_len + offset_len + filename_len + chunk_len + 1
+        preamble_len, type_len, sender_len, length_len = 1, 2, 2, 1
+
+        filename_offset = preamble_len + type_len + sender_len + length_len + seq_len + offset_len
+
+        header = struct.pack('<BHHBII', 0x55, SBP_MSG_FILEIO_WRITE_REQ, 0x42, data_len, seq, offset)
+
+        buf[0:filename_offset] = header
+        null_offset = filename_offset + filename_len
+
+        buf[filename_offset:null_offset] = filename
+        data_offset = null_offset + 1
+
+        buf[null_offset:data_offset] = b'\x00'
+        crc_offset = data_offset + chunk_len
+
+        buf[data_offset:crc_offset] = chunk
+
+        crc = crc16(buf[1:crc_offset])
+
+        pkt_len = crc_offset + 2
+        buf[crc_offset:pkt_len] = struct.pack('<H', crc)
+
+        msg = _MsgFileioWriteReq(seq, buf[:pkt_len])
+
+        return msg
+
+    return pack_write
 
 
 class PendingRequest(object):
@@ -562,6 +671,11 @@ class FileIO(object):
         chunksize = MAX_PAYLOAD_SIZE - len(filename) - 9
         current_index = 0
 
+        buf = bytearray(512)
+        filename_len = len(filename)
+
+        pack_write = mk_pack_write(filename, filename_len, buf)
+
         with SelectiveRepeater(self.link, SBP_MSG_FILEIO_WRITE_RESP) as sr:
             while offset < len(data):
                 seq = self.next_seq()
@@ -569,6 +683,7 @@ class FileIO(object):
                 if end_index > len(data):
                     end_index = len(data)
                 chunk = data[offset:offset + chunksize - 1]
+                '''
                 msg = MsgFileioWriteReq(
                     sequence=seq,
                     offset=offset,
@@ -578,12 +693,15 @@ class FileIO(object):
                                                           #   (presumably because an issue in the
                                                           #    construct library).
                     data=b'')
+                '''
+                msg = pack_write(seq, offset, chunk)
                 sr.send(msg)
                 offset += len(chunk)
                 if (progress_cb is not None and seq % sr.progress_cb_reduction_factor == 0):
                     progress_cb(offset, sr)
             progress_cb(offset, sr)
             sr.flush()
+#            os.kill(os.getpid(), 9)
 
 
 def hexdump(data):
@@ -762,34 +880,46 @@ def main():
         # Handler with context
         with Handler(Framer(driver.read, driver.write, args.verbose)) as link:
             f = FileIO(link)
-            try:
-                if args.write:
-                    file_data = bytearray(open(args.write[0], 'rb').read())
-                    f.write(raw_filename(args.write[1]), file_data, progress_cb=mk_progress_cb(len(file_data)))
-                    sys.stdout.write("\n")
-                    sys.stdout.flush()
-                elif args.read:
-                    if len(args.read) not in [1, 2]:
-                        sys.stderr.write("Error: fileio read requires either 1 or 2 arguments, SOURCE and optionally DEST.")
-                        sys.exit(1)
-                    data = f.read(raw_filename(args.read[0]))
-                    if len(args.read) == 2:
-                        with open(args.read[1], ('w' if args.hex else 'wb')) as fd:
-                            fd.write(hexdump(data) if args.hex else data)
-                    elif args.hex:
-                        print(hexdump(data))
-                    else:
-                        print(printable_text_from_device(data))
-                elif args.delete:
-                    f.remove(raw_filename(args.delete[0]))
-                elif args.list is not None:
-                    print_dir_listing(f.readdir(raw_filename(args.list[0])))
+            if args.write:
+                file_data = bytearray(open(args.write[0], 'rb').read())
+                f.write(raw_filename(args.write[1]), file_data, progress_cb=mk_progress_cb(len(file_data)))
+                sys.stdout.write("\n")
+                sys.stdout.flush()
+            elif args.read:
+                if len(args.read) not in [1, 2]:
+                    sys.stderr.write("Error: fileio read requires either 1 or 2 arguments, SOURCE and optionally DEST.")
+                    sys.exit(1)
+                data = f.read(raw_filename(args.read[0]))
+                if len(args.read) == 2:
+                    with open(args.read[1], ('w' if args.hex else 'wb')) as fd:
+                        fd.write(hexdump(data) if args.hex else data)
+                elif args.hex:
+                    print(hexdump(data))
                 else:
-                    print("No command given, listing root directory:")
-                    print_dir_listing(f.readdir())
-            except KeyboardInterrupt:
-                pass
+                    print(printable_text_from_device(data))
+            elif args.delete:
+                f.remove(raw_filename(args.delete[0]))
+            elif args.list is not None:
+                print_dir_listing(f.readdir(raw_filename(args.list[0])))
+            else:
+                print("No command given, listing root directory:")
+                print_dir_listing(f.readdir())
+
+
+
+import rpdb
+rpdb.handle_trap()
+
+
+import faulthandler
+import signal
+faulthandler.register(signal.SIGUSR2, all_threads=True)
 
 
 if __name__ == "__main__":
-    main()
+    print("PID: {}".format(os.getpid()))
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
+#    os.kill(os.getpid(), 9)
