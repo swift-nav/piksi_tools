@@ -260,9 +260,9 @@ class SelectiveRepeater(object):
         """
         self._verify_cb_thread()
         self._request_pool.put(pending_req)
-        del self._seqmap[pending_req.message.sequence]
-        del self._expire_map[pending_req.time_expire][pending_req]
         pending_req.completed = True
+        self._try_remove_keys(self._seqmap, pending_req.message.sequence)
+        self._try_remove_keys(self._expire_map[pending_req.time_expire], pending_req)
 
     def _record_pending_req(self, msg, time_now, expiration_time):
         """
@@ -311,7 +311,7 @@ class SelectiveRepeater(object):
         self._link(pending_req.message)
         delete_keys.append(pending_req)
 
-    def _try_remove_keys(self, d, keys):
+    def _try_remove_keys(self, d, *keys):
         for key in keys:
             try:
                 del d[key]
@@ -344,7 +344,7 @@ class SelectiveRepeater(object):
             #   is running, so a key error means is was marked completed
             #   after we sent a retry (therefore _try_remove_keys ignores
             #   key errors).
-            self._try_remove_keys(self._expire_map[check_time], retried_writes)
+            self._try_remove_keys(self._expire_map[check_time], *retried_writes)
         self._last_check_time = time_now
 
     def _window_available(self, batch_size):
