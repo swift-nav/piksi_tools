@@ -260,10 +260,16 @@ class SelectiveRepeater(object):
         entries in the expiration map.
         """
         self._verify_cb_thread()
-        self._request_pool.put(pending_req)
         pending_req.completed = True
-        self._try_remove_keys(self._seqmap, pending_req.message.sequence)
-        self._try_remove_keys(self._expire_map[pending_req.time_expire], pending_req)
+        try:
+            msg = pending_req.message
+        except AttributeError:
+            # Got a completion for something that was never requested
+            return
+        self._try_remove_keys(self._seqmap, msg.sequence)
+        if self._try_remove_keys(self._expire_map[pending_req.time_expire], pending_req):
+            # Only put the request back if it was successfully removed
+            self._request_pool.put(pending_req)
 
     def _record_pending_req(self, msg, time_now, expiration_time):
         """
@@ -313,11 +319,13 @@ class SelectiveRepeater(object):
         delete_keys.append(pending_req)
 
     def _try_remove_keys(self, d, *keys):
+        success = True
         for key in keys:
             try:
                 del d[key]
             except KeyError:
-                pass
+                success = False
+        return success
 
     def _check_pending(self):
         """
