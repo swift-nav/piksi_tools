@@ -206,7 +206,7 @@ class SelectiveRepeater(object):
         self._last_check_time = Time.now()
         self._expire_map = defaultdict(dict)
 
-        self._init_fileio_config(SBP_FILEIO_WINDOW_SIZE, SBP_FILEIO_BATCH_SIZE)
+        self._init_fileio_config(SBP_FILEIO_WINDOW_SIZE, SBP_FILEIO_BATCH_SIZE, PROGRESS_CB_REDUCTION_FACTOR)
 
         self._callback_thread = None
         self._link_thread = None
@@ -221,12 +221,13 @@ class SelectiveRepeater(object):
         self._config_msg = None
         self._link(MsgFileioConfigReq(sequence=self._config_seq))
 
-    def _init_fileio_config(self, window_size, batch_size):
+    def _init_fileio_config(self, window_size, batch_size, progress_cb_reduction_factor):
         self._pending_map = [PendingRequest(X) for X in range(window_size)]
         self._request_pool = Queue(window_size)
         for pending_req in self._pending_map:
             self._request_pool.put(pending_req)
         self._batch_size = batch_size
+        self._progress_cb_reduction_factor = progress_cb_reduction_factor
 
     def __enter__(self):
         self._link.add_callback(self._request_cb, self._msg_type)
@@ -279,7 +280,7 @@ class SelectiveRepeater(object):
 
     def _config_cb(self, msg, **metadata):
         self._config_msg = msg
-        self._init_fileio_config(msg.window_size, msg.batch_size)
+        self._init_fileio_config(msg.window_size, msg.batch_size, PROGRESS_CB_REDUCTION_FACTOR * 2)
 
     def _request_cb(self, msg, **metadata):
         """
@@ -382,6 +383,10 @@ class SelectiveRepeater(object):
     @property
     def total_sends(self):
         return self._total_sends
+
+    @property
+    def progress_cb_reduction_factor(self):
+        return self._progress_cb_reduction_factor
 
     def send(self, msg, batch_size=None):
         if batch_size is not None:
@@ -567,7 +572,7 @@ class FileIO(object):
                     data=b'')
                 sr.send(msg)
                 offset += len(chunk)
-                if (progress_cb is not None and seq % PROGRESS_CB_REDUCTION_FACTOR == 0):
+                if (progress_cb is not None and seq % sr.progress_cb_reduction_factor == 0):
                     progress_cb(offset, sr)
             progress_cb(offset, sr)
             sr.flush()
