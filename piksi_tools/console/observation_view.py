@@ -146,10 +146,7 @@ class ObservationView(CodeFiltered):
         total = seq >> 4
         count = seq & ((1 << 4) - 1)
 
-        # Confirm this packet is good.
-        # Assumes no out-of-order packets
-        # this happens on first packet received of epoch
-        if count == 0:
+        def reset():
             self.old_tow = self.gps_tow
             self.gps_tow = tow
             self.gps_week = wn
@@ -158,10 +155,17 @@ class ObservationView(CodeFiltered):
             self.old_cp = self.new_cp
             self.new_cp.clear()
             self.incoming_obs.clear()
+
+        # Confirm this packet is good.
+        # Assumes no out-of-order packets
+        # this happens on first packet received of epoch
+        if count == 0:
+            reset()
         elif (self.gps_tow != tow or self.gps_week != wn or
                 self.prev_obs_count + 1 != count or self.prev_obs_total != total):
             print("We dropped a packet. Skipping this observation sequence")
-            self.prev_obs_count = -1
+            reset()
+            self.prev_obs_count = count
             return
         else:
             self.prev_obs_count = count
@@ -303,3 +307,5 @@ class ObservationView(CodeFiltered):
             SBP_MSG_OBS_DEP_C
         ])
         self.python_console_cmds = {'obs': self}
+        self.prev_obs_count = 0
+        self.prev_obs_total = 0
