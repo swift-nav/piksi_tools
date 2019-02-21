@@ -29,11 +29,11 @@ class GitVersion(object):
 
     The marketing, major, and minor components are separated out and stored in
     appropriately named properties. The remaining parts of the string are combined
-    in to the dev string property. In practice this string will consist of a leading 
+    in to the dev string property. In practice this string will consist of a leading
     'v' characters, plus whatever characters trailed the minor number. The devstring
-    property will therefore always contain at least 1 character, a minimum of the 
+    property will therefore always contain at least 1 character, a minimum of the
     leading 'v'. If the devstring contains /only/ a 'v' the version string is not
-    considered to be a development build, but if the dev string is any longer 
+    considered to be a development build, but if the dev string is any longer
     the build is a development build and the 'isdev' property will return True.
     """
 
@@ -117,7 +117,7 @@ class GitVersion(object):
     marketing - Integer (1 of more characters, 0-9)
     major - Integer
     minor - Integer
-    dev - Any number of any characters 
+    dev - Any number of any characters
 
     Leading whitespace is stripped away, any trailing whitespace is included in the 'dev' group.
 
