@@ -558,30 +558,58 @@ class FileIO(object):
         if trunc and offset == 0:
             self.remove(filename)
 
+        filename_len = len(filename)
+        data_len = len(data)
+
+        sequence_len = 4
+        offset_len = 4
+        null_sep_len = 1
+
+        write_req_overhead_len = sequence_len + offset_len + null_sep_len
+
         # How do we calculate this from the MsgFileioWriteReq class?
-        chunksize = MAX_PAYLOAD_SIZE - len(filename) - 9
-        current_index = 0
+        chunksize = MAX_PAYLOAD_SIZE - filename_len - write_req_overhead_len
+
+        chunk_buf = bytearray(filename_len + null_sep_len + chunksize)
+
+        chunk_buf[0:filename_len] = filename
+        chunk_buf[filename_len] = b'\x00'
+
+        chunk_offset = filename_len + null_sep_len
 
         with SelectiveRepeater(self.link, SBP_MSG_FILEIO_WRITE_RESP) as sr:
-            while offset < len(data):
+            while offset < data_len:
+
                 seq = self.next_seq()
-                end_index = offset + chunksize - 1
-                if end_index > len(data):
-                    end_index = len(data)
-                chunk = data[offset:offset + chunksize - 1]
+
+                end_offset = min(offset + chunksize, data_len)
+                chunk_len = min(chunksize, data_len - offset)
+                chunk_end = (chunk_offset + chunk_len)
+
+                chunk = data[offset:end_offset]
+                chunk_buf[chunk_offset:chunk_end] = chunk
+
+                if chunk_len < len(chunk_buf):
+                    write_buf = chunk_buf[:chunk_end]
+                else:
+                    write_buf = chunk_buf
+
                 msg = MsgFileioWriteReq(
                     sequence=seq,
                     offset=offset,
-                    filename=filename + b'\x00' + chunk,  # Note: We put "chunk" into the name because
-                                                          #   putting in the correct place (the data
-                                                          #   field) results in a huge slowdown
-                                                          #   (presumably because an issue in the
-                                                          #    construct library).
+                    filename=write_buf,  # Note: We put "write_buf" into the name because
+                                         #   putting in the correct place (the data
+                                         #   field) results in a huge slowdown
+                                         #   (presumably because an issue in the
+                                         #   construct library).
                     data=b'')
+
                 sr.send(msg)
-                offset += len(chunk)
+                offset += chunk_len
+
                 if (progress_cb is not None and seq % sr.progress_cb_reduction_factor == 0):
                     progress_cb(offset, sr)
+
             progress_cb(offset, sr)
             sr.flush()
 
