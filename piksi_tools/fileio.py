@@ -215,12 +215,7 @@ class SelectiveRepeater(object):
         self._total_sends = 1.0
         self._total_retries = 0
 
-        now = Time.now()
-        self._config_retry_time = now + Time(0, CONFIG_REQ_RETRY_MS)
-        self._config_timeout = now + Time(0, CONFIG_REQ_TIMEOUT_MS)
-        self._config_seq = random.randint(0, 0xffffffff)
-        self._config_msg = None
-        self._link(MsgFileioConfigReq(sequence=self._config_seq))
+        self._config_retry_time = None
 
     def _init_fileio_config(self, window_size, batch_size, progress_cb_reduction_factor):
         self._pending_map = [PendingRequest(X) for X in range(window_size)]
@@ -360,7 +355,18 @@ class SelectiveRepeater(object):
     def _window_available(self, batch_size):
         return self._request_pool.qsize() >= batch_size
 
+    def _ensure_config_req_sent(self):
+        if self._config_retry_time is not None:
+            return
+        now = Time.now()
+        self._config_retry_time = now + Time(0, CONFIG_REQ_RETRY_MS)
+        self._config_timeout = now + Time(0, CONFIG_REQ_TIMEOUT_MS)
+        self._config_seq = random.randint(0, 0xffffffff)
+        self._config_msg = None
+        self._link(MsgFileioConfigReq(sequence=self._config_seq))
+
     def _config_received(self):
+        self._ensure_config_req_sent()
         if self._config_msg is not None:
             return True
         now = Time.now()
