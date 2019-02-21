@@ -75,7 +75,7 @@ class PendingRequest(object):
         return "PendingRequest(offset=%r,seq=%r,time=%r,tries=%r,index=%r)" % (
             self.message.offset, self.message.sequence, self.time, self.tries, self.index)
 
-    def track(self, pending_req, time, time_expire, tries=0):
+    def track(self, pending_req, time, time_expire):
         """
         Load information about the pending write so that it can be tracked.
         """
