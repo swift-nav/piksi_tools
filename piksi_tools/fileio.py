@@ -42,6 +42,7 @@ TEXT_ENCODING = 'utf-8'  # used for printing out directory listings and files
 WAIT_SLEEP_S = 0.001
 CONFIG_REQ_RETRY_MS = 100
 CONFIG_REQ_TIMEOUT_MS = 1000
+READDIR_WAIT_S = 5.0
 
 
 class PendingRequest(object):
@@ -507,7 +508,7 @@ class FileIO(object):
             msg = MsgFileioReadDirReq(
                 sequence=seq, offset=len(files), dirname=dirname)
             self.link(msg)
-            reply = self.link.wait(SBP_MSG_FILEIO_READ_DIR_RESP, timeout=5.0)
+            reply = self.link.wait(SBP_MSG_FILEIO_READ_DIR_RESP, timeout=READDIR_WAIT_S)
             if not reply:
                 raise Exception("Timeout waiting for FILEIO_READ_DIR reply")
             # Why isn't this already decoded?
