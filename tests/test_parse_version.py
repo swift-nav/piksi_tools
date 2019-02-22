@@ -95,7 +95,7 @@ def test_version_parser():
 
         try:
             ver = parse_version(each[0])
-        except InvalidVersion:
+        except (InvalidVersion, TypeError, IndexError):
             raised = True
 
         assert(raised is True)
