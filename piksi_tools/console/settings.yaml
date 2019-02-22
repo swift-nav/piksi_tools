@@ -405,19 +405,18 @@
     attempted by the receiver.
 
 - group: solution
-  name: process_noise_motion_mode
+  name: dynamic_motion_model
   expert: true
   type: enum
   units: N/A
-  default value: 'Default'
+  default value: 'High Dynamics'
   readonly: false
-  enumerated possible values: Default, Automotive, Static
+  enumerated possible values: High Dynamics, High Horizontal Dynamics, Low Dynamics
   Description: Selects the Filter Uncertainity of position, velocity & acceleration in the Horizontal &
     Vertical directions.
-  Notes: The "Default" mode assigns equal process noise variances (uncertainities in the dynamic model) in all
-    directions. The "Automotive" mode assigns relatively smaller process noise variances to the vertical
-    position/velocity/acceleration. The "Static" mode assigns small process noise variances for position/velocity
-    /acceleration in both the horizontal and vertical directions.
+  Notes: High dynamics - suitable when dynamics are high in all axes, High horizontal dynamics - suitable
+    when dynamics are high in the horizontal plane and low in the vertical axis and Low dynamics - suitable
+    when dynamics are high in all axes.
 
 - group: solution
   name: dgnss_filter
