@@ -1,4 +1,7 @@
+--extra-index-url https://testpypi.python.org/pypi
 numpy==1.16.2
+cython==0.28
+pytest==3.2.1
 configparser
 future==0.17.1
 futures==3.1.1
@@ -13,3 +16,4 @@ sbp==2.5.3
 ruamel.yaml==0.15.87
 setuptools_scm==3.1.0
 enum34==1.1.6
+libsettings==0.1.9

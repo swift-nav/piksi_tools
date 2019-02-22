@@ -23,12 +23,8 @@ elif is_darwin:
 else:
   icon = None
 
-if is_win:
-  binaries = [('../lib/libsettings/libsettings.pyd', '.')]
-else:
-  binaries = [('../piksi_tools/lib/libsettings/libsettings.so', '.')]
-
 # hack to prevent segfault on ubuntu 16.04
+binaries = []
 if is_linux:
   libs = ['libgtk-x11-2.0.so.0', 'libgio-2.0.so.0', 'libatk-1.0.so.0']
   binaries += [(findLibrary(l), '.') for l in libs]

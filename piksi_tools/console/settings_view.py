@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-# Copyright (C) 2011-2014 Swift Navigation Inc.
-# Contact: Fergus Noble <fergus@swift-nav.com>
+# Copyright (C) 2011-2019 Swift Navigation Inc.
+# Contact: Swift Navigation <dev@swiftnav.com>
 #
 # This source is subject to the license found in the file 'LICENSE' which must
 # be be distributed together with this source. All other rights reserved.
@@ -36,10 +36,7 @@ from pyface.api import FileDialog, OK
 from .settings_list import SettingsList
 from .utils import resource_filename
 
-try:
-    from ..lib.libsettings.libsettings import Settings, SettingsWriteResponseCodes
-except ImportError as error:
-    from libsettings import Settings, SettingsWriteResponseCodes
+from libsettings import Settings, SettingsWriteResponseCodes
 
 if ETSConfig.toolkit != 'null':
     from enable.savage.trait_defs.ui.svg_button import SVGButton
@@ -524,14 +521,14 @@ class SettingsView(HasTraits):
                 continue
 
             if setting_type == 'enum':
-                    enum_values = setting_format.split(',')
-                    self.settings[section][name] = EnumSetting(
-                        name,
-                        section,
-                        value,
-                        enum_values,
-                        ordering=idx,
-                        settings=self)
+                enum_values = setting_format.split(',')
+                self.settings[section][name] = EnumSetting(
+                    name,
+                    section,
+                    value,
+                    enum_values,
+                    ordering=idx,
+                    settings=self)
             else:
                 # No known format type
                 self.settings[section][name] = Setting(

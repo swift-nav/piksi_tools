@@ -230,20 +230,6 @@ function install_python_deps_osx () {
     log_info ""
 }
 
-function install_local_libsettings () {
-    cd ../piksi_tools
-    mkdir -p lib
-    cd lib
-    rm -rf libsettings*
-    curl -O https://raw.githubusercontent.com/swift-nav/libsettings/v"$1"/python/libsettings-"$1".tar.gz
-    mkdir libsettings
-    touch __init__.py
-    touch libsettings/__init__.py
-    tar -xzf libsettings-"$1".tar.gz -C libsettings --strip-components=1
-    cd libsettings
-    python setup.py build_ext --inplace --force
-    cd ../../../tasks
-}
 
 
 ####################################################################
@@ -266,7 +252,6 @@ function run_all_platforms () {
         log_error "This script does not support this platform. Please contact dev@swiftnav.com."
         exit 1
     fi
-    install_local_libsettings 0.1.3
     log_info "Done!"
 }
 
