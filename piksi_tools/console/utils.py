@@ -4,6 +4,7 @@ import datetime
 import pkg_resources
 import time
 import os
+import locale
 
 from functools import partial
 from threading import Event, Thread
@@ -638,4 +639,9 @@ resource_filename = partial(pkg_resources.resource_filename, 'piksi_tools')
 resource_stream = partial(pkg_resources.resource_stream, 'piksi_tools')
 icon = ImageResource(resource_filename('console/images/icon.png'))
 
-swift_path = os.path.normpath(os.path.join(os.path.expanduser("~"), 'SwiftNav'))
+home_path  = os.path.expanduser("~"+os.sep)
+loc = locale.getdefaultlocale()
+if loc[1]:
+    encoding = loc[1]
+    home_path = home_path.decode(encoding)
+swift_path = os.path.normpath(os.path.join(home_path, 'SwiftNav'))
