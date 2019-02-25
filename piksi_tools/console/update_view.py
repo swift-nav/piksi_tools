@@ -23,7 +23,7 @@ from piksi_tools.console.GitVersion import parse as gitversion_parse
 from pyface.api import GUI, OK, FileDialog, DirectoryDialog, ProgressDialog
 from sbp.logging import SBP_MSG_LOG
 from sbp.piksi import MsgReset
-from traits.api import Bool, Button, HasTraits, Instance, String
+from traits.api import Bool, Button, HasTraits, Instance, String, Unicode
 from traitsui.api import HGroup, InstanceEditor, Item, UItem, VGroup, View, Spring
 
 import piksi_tools.console.callback_prompt as prompt
@@ -56,7 +56,7 @@ def parse_version(version):
 
 class FirmwareFileDialog(HasTraits):
     file_wildcard = String("Binary image set (*.bin)|*.bin|All files|*")
-    status = String('Please choose a file')
+    status = Unicode('Please choose a file')
     choose_fw = Button(label='...', padding=-1)
     view = View(
         HGroup(
@@ -188,7 +188,7 @@ class UpdateView(HasTraits):
     update_stm_en = Bool(False)
 
     download_firmware = Button(label='Download Latest Firmware')
-    download_directory = String()
+    download_directory = Unicode()
     choose_dir = Button(label='...', padding=-1)
     download_stm = Button(label='Download', height=HT)
     downloading = Bool(False)
