@@ -683,8 +683,8 @@ class UpdateView(HasTraits):
                 % INDEX_URL)
             return
 
-    def file_transfer_progress_cb(self, arg):
-        new_pcent = float(arg) / float(self.blob_size) * 100
+    def file_transfer_progress_cb(self, offset, repeater):
+        new_pcent = float(offset) / float(self.blob_size) * 100
         if new_pcent - self.pcent_complete > 0.1:
             self.pcent_complete = new_pcent
             self.stream.scrollback_write("{:2.1f} % of {:2.1f} MB transferred.".format(self.pcent_complete, self.blob_size * 1e-6))
