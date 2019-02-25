@@ -9,7 +9,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-
+from __future__ import absolute_import, print_function
 
 import threading
 import time
@@ -33,6 +33,7 @@ from traitsui.tabular_adapter import TabularAdapter
 import piksi_tools.console.callback_prompt as prompt
 from piksi_tools.console.gui_utils import MultilineTextEditor
 from piksi_tools.console.utils import swift_path
+from piksi_tools.settings import KEY_ENCODING, VALUE_ENCODING
 from pyface.api import FileDialog, OK
 
 from .settings_list import SettingsList
@@ -229,16 +230,14 @@ class Setting(SettingBase):
         if not self._prevent_revert_thread:
             if getattr(self, 'settings', None):
                 if (old != new and old is not Undefined and new is not Undefined):
-                    # if type(self.value) == str:
-                    #     self.value = self.value.encode('ascii', 'replace')
                     self.confirmed_set = False
                     self.timed_revert_thread = TimedDelayStoppableThread(
                         SETTINGS_REVERT_TIMEOUT,
                         target=self.revert_to_prior_value,
                         args=(name, old, new))
-                    section, name, value = (self.section.encode('ascii'),
-                                            self.name.encode('ascii'),
-                                            self.value.encode('ascii'))
+                    section, name, value = (self.section.encode(KEY_ENCODING),
+                                            self.name.encode(KEY_ENCODING),
+                                            self.value.encode(VALUE_ENCODING))
                     self.settings.set(section, name, value)
                     self.timed_revert_thread.start()
                 # If we have toggled the Inertial Nav enable setting (currently "output mode")
@@ -457,7 +456,7 @@ class SettingsView(HasTraits):
                                 'imu_rate': Setting('imu_rate', 'imu', '100')
                                 }
         settings_wrong_list = []
-        for each_key in list(recommended_settings.keys()):
+        for each_key in recommended_settings.keys():
             if recommended_settings[each_key].value != self.settings['imu'][each_key].value:
                 self.settings['imu'][each_key].rec_value = recommended_settings[each_key].value
                 settings_wrong_list.append(self.settings['imu'][each_key])
@@ -623,9 +622,9 @@ class SettingsView(HasTraits):
             # Iterate over each setting and set in the GUI.
             # Use the same mechanism as GUI to do settings write to device
 
-            for section, settings in list(parser.items()):
+            for section, settings in parser.items():
                 this_section = self.settings.get(section, None)
-                for setting, value in list(settings.items()):
+                for setting, value in settings.items():
                     if this_section:
                         this_setting = this_section.get(setting, None)
                         if this_setting:
@@ -681,8 +680,8 @@ class SettingsView(HasTraits):
                 parser (dict): A dict of dicts with setting sections then names for keys
         """
         write_failures = 0
-        for section, settings in list(parser.items()):
-            for setting, _ in list(settings.items()):
+        for section, settings in parser.items():
+            for setting, _ in settings.items():
                 if self.settings[section][setting].write_failure:
                     write_failures += 1
                     self.settings[section][setting].write_failure = False
@@ -706,7 +705,7 @@ class SettingsView(HasTraits):
         for sec in sections:
             this_section = []
             for name, setting in sorted(
-                    iter(self.settings[sec].items()),
+                    self.settings[sec].items(),
                     key=lambda n_s: n_s[1].ordering):
                 if not setting.expert or (self.expert and setting.expert):
                     this_section.append(setting)
@@ -731,11 +730,15 @@ class SettingsView(HasTraits):
 
     def settings_read_resp_callback(self, sbp_msg, **metadata):
         confirmed_set = True
-        settings_list = sbp_msg.setting.split("\0")
-        if len(settings_list) <= 3:
+        settings_list_raw = sbp_msg.setting.split(b"\0")
+        if len(settings_list_raw) <= 3:
             print("Received malformed settings read response {0}".format(
                 sbp_msg))
             confirmed_set = False
+            return
+        settings_list = [settings_list_raw[0].decode(KEY_ENCODING),
+                         settings_list_raw[1].decode(KEY_ENCODING),
+                         settings_list_raw[2].decode(VALUE_ENCODING)]
         try:
             if self.settings[settings_list[0]][settings_list[1]].value != settings_list[2]:
                 try:
@@ -758,11 +761,15 @@ class SettingsView(HasTraits):
             # Setting was rejected.  This shouldn't happen because we'll only
             # send requests for settings enumerated using read by index.
             return
-        settings_list = [S.decode('ascii') for S in sbp_msg.setting.split(b"\0")]
-        if len(settings_list) <= 3:
+        settings_list_raw = sbp_msg.setting.split(b"\0")
+        if len(settings_list_raw) <= 3:
             print("Received malformed settings write response {0}".format(
                 sbp_msg))
             return
+        # section, key, value, terminating empty string
+        settings_list = [settings_list_raw[0].decode(KEY_ENCODING),
+                         settings_list_raw[1].decode(KEY_ENCODING),
+                         settings_list_raw[2].decode(VALUE_ENCODING)]
         try:
             setting = self.settings[settings_list[0]][settings_list[1]]
         except KeyError:
@@ -785,10 +792,10 @@ class SettingsView(HasTraits):
     def settings_read_by_index_callback(self, sbp_msg, **metadata):
         section, setting, value, format_type = sbp_msg.payload[2:].split(
             b'\0')[:4]
-        section, setting, value, format_type = (section.decode('ascii'),
-                                                setting.decode('ascii'),
-                                                value.decode('ascii'),
-                                                format_type.decode('ascii'))
+        section, setting, value, format_type = (section.decode(KEY_ENCODING),
+                                                setting.decode(KEY_ENCODING),
+                                                value.decode(VALUE_ENCODING),
+                                                format_type.decode(VALUE_ENCODING))
         self.ordering_counter += 1
         if format_type == '':
             format_type = None

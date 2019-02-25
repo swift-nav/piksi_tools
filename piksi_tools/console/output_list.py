@@ -67,7 +67,7 @@ ALL_LOG_LEVELS = SYSLOG_LEVELS.copy()
 ALL_LOG_LEVELS.update(UNMASKABLE_LEVELS)
 
 SYSLOG_LEVELS_INVERSE = {}
-for key, value in list(SYSLOG_LEVELS.items()):
+for key, value in SYSLOG_LEVELS.items():
     SYSLOG_LEVELS_INVERSE[value.lower()] = key
 # Set default filter level
 DEFAULT_LOG_LEVEL_FILTER = "WARNING"

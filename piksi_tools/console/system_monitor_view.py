@@ -9,7 +9,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-
+from __future__ import absolute_import
 
 from sbp.piksi import (SBP_MSG_THREAD_STATE,
                        SBP_MSG_UART_STATE, SBP_MSG_UART_STATE_DEPA,
@@ -159,7 +159,7 @@ class SystemMonitorView(HasTraits):
 
     def update_threads(self):
         self._threads_table_list = [
-            (thread_name, state.cpu, state.stack_free)
+            (thread_name.decode('ascii', 'replace'), state.cpu, state.stack_free)
             for thread_name, state in sorted(
                 self.threads, key=lambda x: x[1].cpu, reverse=True)
         ]
@@ -179,7 +179,7 @@ class SystemMonitorView(HasTraits):
     def thread_state_callback(self, sbp_msg, **metadata):
         if sbp_msg.name == '':
             sbp_msg.name = '(no name)'
-        sbp_msg.cpu /= 10.
+        sbp_msg.cpu //= 10
         self.threads.append((sbp_msg.name, sbp_msg))
 
     def csac_header_callback(self, sbp_msg, **metadata):

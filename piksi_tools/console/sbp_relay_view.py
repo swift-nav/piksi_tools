@@ -9,7 +9,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-
+from __future__ import print_function
 
 import threading
 import time
@@ -403,12 +403,12 @@ class SbpRelayView(HasTraits):
     def _network_callback(self, m, **metadata):
         txstr = sizeof_fmt(m.tx_bytes),
         rxstr = sizeof_fmt(m.rx_bytes)
-        if m.interface_name.startswith('ppp0'):  # Hack for ppp tx and rx which doesn't work
+        if m.interface_name.startswith(b'ppp0'):  # Hack for ppp tx and rx which doesn't work
             txstr = "---"
             rxstr = "---"
-        elif m.interface_name.startswith('lo') or m.interface_name.startswith('sit0'):
+        elif m.interface_name.startswith(b'lo') or m.interface_name.startswith(b'sit0'):
             return
-        table_row = ((m.interface_name, ip_bytes_to_string(m.ipv4_address),
+        table_row = ((m.interface_name.decode('ascii'), ip_bytes_to_string(m.ipv4_address),
                      ((m.flags & (1 << 6)) != 0), txstr, rxstr))
         exists = False
         for i, each in enumerate(self._network_info):

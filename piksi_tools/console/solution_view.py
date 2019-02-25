@@ -9,7 +9,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-
+from __future__ import absolute_import
 
 import datetime
 import math
@@ -226,7 +226,7 @@ class SolutionView(HasTraits):
         self.plot_data.update_data(pending_update)
 
     def _append_empty_sln_data(self, exclude_mode=None):
-        for each_mode in list(mode_string_dict.values()):
+        for each_mode in mode_string_dict.values():
             if exclude_mode is None or each_mode != exclude_mode:
                 self.slns['lat_' + each_mode].append(np.nan)
                 self.slns['lng_' + each_mode].append(np.nan)
@@ -844,7 +844,7 @@ class SolutionView(HasTraits):
             marker_size=5.0)
         plot_labels = ['SPP', 'SBAS', 'DGPS', 'RTK float', 'RTK fixed', 'DR']
         plots_legend = dict(
-            list(zip(plot_labels, [spp, sbas, dgnss, rtkfloat, rtkfix, dr])))
+            zip(plot_labels, [spp, sbas, dgnss, rtkfloat, rtkfix, dr]))
         self.plot.legend.plots = plots_legend
         self.plot.legend.labels = plot_labels  # sets order
         self.plot.legend.visible = True
