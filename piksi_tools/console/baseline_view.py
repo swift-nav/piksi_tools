@@ -166,7 +166,7 @@ class BaselineView(HasTraits):
         self.plot_data.update_data(pending_update)
 
     def _append_empty_sln_data(self, exclude_mode=None):
-        for each_mode in list(mode_string_dict.values()):
+        for each_mode in mode_string_dict.values():
             if exclude_mode is None or each_mode != exclude_mode:
                 self.slns['n_' + each_mode].append(np.nan)
                 self.slns['e_' + each_mode].append(np.nan)
@@ -486,7 +486,7 @@ class BaselineView(HasTraits):
             marker_size=5)
         plot_labels = [' Base Position', 'DGPS', 'RTK Float', 'RTK Fixed']
         plots_legend = dict(
-            list(zip(plot_labels, [ref, cur_dgnss, cur_float, cur_fixed])))
+            zip(plot_labels, [ref, cur_dgnss, cur_float, cur_fixed]))
         self.plot.legend.plots = plots_legend
         self.plot.legend.labels = plot_labels  # sets order
         self.plot.legend.visible = True

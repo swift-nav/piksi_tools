@@ -10,7 +10,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-
+from __future__ import print_function
 
 import numpy as np
 import time
@@ -57,11 +57,11 @@ class MagView(HasTraits):
         min_data = np.min(self.mag)
         max_data = np.max(self.mag)
         padding = (max_data - min_data) / 4.0
-        if ((min_data - padding) < self.plot.value_range.low_setting or
-                self.plot.value_range.low_setting == 'auto'):
+        if (self.plot.value_range.low_setting == 'auto' or
+                (min_data - padding) < self.plot.value_range.low_setting):
             self.plot.value_range.low_setting = min_data - padding
-        if ((max_data + padding) > self.plot.value_range.high_setting or
-                self.plot.value_range.high_setting == 'auto'):
+        if (self.plot.value_range.high_setting == 'auto' or
+                (max_data + padding) > self.plot.value_range.high_setting):
             self.plot.value_range.high_setting = max_data + padding
         self.plot_data.set_data('mag_x', self.mag[:, 0])
         self.plot_data.set_data('mag_y', self.mag[:, 1])

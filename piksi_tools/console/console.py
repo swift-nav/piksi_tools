@@ -9,7 +9,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-
+from __future__ import print_function
 
 import argparse
 # Logging
@@ -958,6 +958,13 @@ def main():
                     expand_json=args.expand_json) as console:
 
                 console.configure_traits()
+
+    # TODO: solve this properly
+    # Force exit, even if threads haven't joined
+    try:
+        os._exit(0)
+    except:  # noqa
+        pass
 
 
 if __name__ == "__main__":

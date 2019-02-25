@@ -9,7 +9,7 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-
+from __future__ import absolute_import
 
 import datetime
 
@@ -77,7 +77,7 @@ class CellModemView(HasTraits):
 
     def _network_callback(self, m, **metadata):
         for interface in m.interfaces:
-            stripped_name = interface.interface_name.rstrip(b'\0')
+            stripped_name = interface.interface_name.rstrip(b'\0').decode('ascii')
             if stripped_name == self.cellmodem_interface_name:
                 self._set_network_usage(stripped_name,
                                         duration_format(milliseconds=interface.duration),

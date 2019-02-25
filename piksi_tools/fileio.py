@@ -134,7 +134,7 @@ class Time(object):
 
     def __add__(a, b):
         new_time = (1000 * a._seconds) + (1000 * b._seconds) + a._millis + b._millis
-        return Time(seconds=(new_time / 1000), millis=(new_time % 1000))
+        return Time(seconds=(new_time // 1000), millis=(new_time % 1000))
 
     def __eq__(a, b):
         return a._seconds == b._seconds and a._millis == b._millis

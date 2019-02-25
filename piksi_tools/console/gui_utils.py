@@ -92,7 +92,7 @@ class CodeFiltered(HasTraits):
         '''
         hgroup = HGroup()
 
-        for prefix, code_list in sorted(list(GUI_CODES.items()), key=lambda x: x[1][0] if x[0] != 'SBAS' else 100):
+        for prefix, code_list in sorted(GUI_CODES.items(), key=lambda x: x[1][0] if x[0] != 'SBAS' else 100):
             vgroup = VGroup()
             for code in code_list:
                 vgroup.content.append(

@@ -340,7 +340,7 @@ def get_base_args_driver(args):
         driver_kwargs['rtscts'] = getattr(args, 'rtscts', None)
         # trim none values
         driver_kwargs = {k: v
-                         for k, v in driver_kwargs.iteritems()
+                         for k, v in driver_kwargs.items()
                          if v is not None}
         driver = get_driver(**driver_kwargs)
     return driver
