@@ -382,6 +382,20 @@
     attempted by the receiver.
 
 - group: solution
+  name: dynamic_motion_model
+  expert: true
+  type: enum
+  units: N/A
+  default value: 'High Dynamics'
+  readonly: false
+  enumerated possible values: High Dynamics, High Horizontal Dynamics, Low Dynamics
+  Description: Selects the Filter Uncertainity of position, velocity & acceleration in the Horizontal &
+    Vertical directions.
+  Notes: High dynamics - suitable when dynamics are high in all axes, High horizontal dynamics - suitable
+    when dynamics are high in the horizontal plane and low in the vertical axis and Low dynamics - suitable
+    when dynamics are high in all axes.
+
+- group: solution
   name: dgnss_filter
   expert: true
   type: enum
