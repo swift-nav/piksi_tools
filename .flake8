@@ -25,3 +25,4 @@
 #       (false-positives)
 ignore = E501, F841
 exclude = piksi_tools/testing/gdb_chibios
+max-line-length = 120
