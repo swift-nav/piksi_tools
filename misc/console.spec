@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-from PyInstaller import is_linux, is_darwin, is_win
+from PyInstaller.compat import is_linux, is_darwin, is_win
 from PyInstaller.depend.bindepend import findLibrary
 from PyInstaller.utils.hooks import collect_data_files
 
@@ -35,7 +35,7 @@ a = Analysis(['../piksi_tools/console/console.py'],
              datas=datas,
              hiddenimports=[],
              hookspath=['misc/pyi-hooks'],
-             runtime_hooks=[],
+             runtime_hooks=['misc/pyi-hooks/runtime-hook.py'],
              excludes=[],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,

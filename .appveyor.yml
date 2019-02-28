@@ -26,6 +26,7 @@ install:
   - cinst swig
   - cinst nsis
   - SET PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
+  - SET PYTHONPATH=.
   - python --version
   # Upgrade to the latest pip.
   - '%CMD_IN_ENV% python -m pip install -U pip setuptools wheel tox'

@@ -24,14 +24,36 @@ Or, on Linux Mint, run::
   virtualenv py2 --system-site-packages
   source py2/bin/activate
 
+To setup a python 3.5 virtual environment if your default python is 2.7, first
+install python 3.5 via your package manager if needed, and then run::
+
+  virtualenv -p python3.5 ~/py3
+  source ~/py3/bin/activate
+
 To install the dependencies for the basic tools: ``pip install -r requirements.txt``
 
-To install the dependencies for the console GUI, first run ``make deps`` to install the systemwide deps and then ``pip install -r requirements_gui.txt pyside`` for the python deps.
+To install the dependencies for the console GUI, run ``make deps``. Besides
+system packages, this also installs python dependencies into the current
+(virtual) environment, and includes the deps for the aforementioned basic tools.
 
 Finally, ``pip install -e .`` to set up a dev install in the local dev environment.
 
 To run the installed console from the current env, use ``python -m piksi_tools.console.console``
 
+Python version support
+~~~~~~~~~~~~~~~~~~~~~~
+
+The most important command line tools - ``bootload_v3.py``, ``fileio.py``,
+``serial_link.py``, and ``settings.py`` - support Python 2.7, 3.5, and 3.7
+under Linux. Console GUI under Linux supports 2.7 and 3.5. Note that at this
+stage Python 3 support is still somewhat experimental.
+
+Command line tools under MacOS support Python 2.7 and 3.7, GUI is only tested
+against 2.7. Windows is Python 2.7 -only. Full 3.x support for these platforms
+will be added later on.
+
+Pre-built binaries for Linux use Python 3.5. Pre-built binaries for MacOS and
+Windows use Python 2.7.
 
 Usage Examples
 --------------
@@ -54,9 +76,22 @@ For command line arguments, see `console.py <https://github.com/swift-nav/piksi_
 Testing
 -------
 
-To run the tests and check for coverage::
+To run the tests (excluding some graphical ones) and check for coverage::
 
-  $  PYTHONPATH=. tox
+  $ PYTHONPATH=. tox
+
+This by default attempts to run tests for all supported Python versions. To skip
+those versions that you don't have installed, run::
+
+  $ PYTHONPATH=. tox --skip-missing-interpreters
+
+To run some extra tests for the GUI (excluding the non-graphical tests)::
+
+  $ PYTHONPATH=. tox -e gui27,gui35
+
+Finally, to run *all* tests for all supported Python versions::
+
+  $ PYTHONPATH=. tox -e py27,py35,py37,gui27,gui35
 
 USB issues on OS X
 ------------------

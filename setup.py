@@ -16,6 +16,7 @@ CLASSIFIERS = [
     'Topic :: Scientific/Engineering :: Interface Engine/Protocol Translator',
     'Topic :: Software Development :: Libraries :: Python Modules',
     'Programming Language :: Python :: 2.7',
+    'Programming Language :: Python :: 3.5',
 ]
 
 PACKAGES = ['piksi_tools', 'piksi_tools.console', 'piksi_tools.ardupilot']
