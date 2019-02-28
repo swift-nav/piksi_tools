@@ -31,8 +31,6 @@ optional arguments:
   -i INITLOGLEVEL, --initloglevel INITLOGLEVEL
                         Set log level filter.
   -u, --update          don't prompt about firmware/console updates.
-  --toolkit TOOLKIT     specify the TraitsUI toolkit to use, either 'wx' or
-                        'qt4'.
   --error               Do not swallow exceptions.
   --log-console         Log console stdout/err to file.
   --networking [NETWORKING]

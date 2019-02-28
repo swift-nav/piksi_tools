@@ -1,9 +1,5 @@
-dist: trusty
+dist: xenial
 sudo: required
-
-
-python:
-  - "2.7"
 
 git:
   depth: false
@@ -17,31 +13,63 @@ cache:
 matrix:
   include:
    - os: linux
-     language: python
-   - os: osx
-     osx_image: Xcode 8.3.3
      language: generic
+     env: TESTENV=test_cli TOXENV=py27,py35,py37
+     before_install:
+        # a ppa is needed for python 3.7 under xenial
+        - sudo add-apt-repository -y ppa:deadsnakes/ppa
+        - sudo apt-get -qq update
+        - sudo apt-get install python2.7
+        - sudo apt-get install python3.5
+        - sudo apt-get install python3.7 python3.7-dev
+        - sudo pip install tox
+     script: tox -v
+
+   - os: linux
+     language: generic
+     env: TESTENV=test_gui TOXENV=gui27,gui35
+     before_install:
+        - sudo apt-get -qq update
+        - sudo apt-get install -y swig python2.7 python3.5
+        - sudo apt-get install -y mesa-common-dev libglu1-mesa-dev
+        - sudo apt-get install -y python-sip python-qt4 python-qt4-gl
+        - sudo apt-get install -y python3-sip python3-pyqt4 python3-pyqt4.qtopengl
+        - sudo pip install tox
+     before_script:
+        - export DISPLAY=:0.0
+        - Xvfb ${DISPLAY} -screen 0 800x600x16 & PID=$!
+        - sleep 3  # give xvfb some time to start
+     script: tox -v
+
    - os: linux
      language: python
+     python: 3.5
+     env: TESTENV=build_console
+     before_install: make deps
+     script: make build_console
+
+   - os: osx
+     osx_image: Xcode 8.3.3
+     env: TESTENV=mac TOXENV=py27,py37
+     language: generic
+     before_install:
+        - export PATH="/usr/local/opt/python@2/libexec/bin:$PATH"
+        - make deps
+     before_script:
+        - export PATH="/usr/local/bin/:./:$PATH"
+        - export DISPLAY=:0.0
+        - Xvfb ${DISPLAY} -screen 0 800x600x16 & PID=$!
+        - sleep 3  # give xvfb some time to start
+     script:
+        - tox -v
+        - py.test -vs tests/test_console.py
+        - make build_console
+
+   - os: linux
+     language: python
+     python: 3.5
      env: TESTENV=flake8
-
-before_install:
-  - sleep 3 #give xvfb some time to start
-  - rm -rf ~/home/.enthought
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/python@2/libexec/bin:$PATH"; fi
-  - make deps 
-  - pip list
-
-before_script:
-  - "export DISPLAY=:0.0"
-  - "export PATH=/usr/local/bin/:./:$PATH"
-  - Xvfb :0.0 -screen 1 800x600x16 &
-  - sleep 3
-
-script:
-  - bash tasks/travis.sh
-  - export GIT_DESCRIBE=`git describe`
-
+     script: tox -vv -e flake8
 
 addons:
   artifacts:

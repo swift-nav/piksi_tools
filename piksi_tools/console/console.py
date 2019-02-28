@@ -31,8 +31,6 @@ from sbp.piksi import SBP_MSG_COMMAND_RESP, MsgCommandResp, MsgReset
 from sbp.system import SBP_MSG_HEARTBEAT
 from traits.api import (Bool, Dict, Directory, Enum, HasTraits, Instance, Int,
                         Str)
-# Toolkit
-from traits.etsconfig.api import ETSConfig
 from traitsui.api import (Handler, HGroup, HTMLEditor, ImageEditor,
                           InstanceEditor, Item, Spring,
                           Tabbed, TextEditor, UItem, VGroup, View, VSplit)
@@ -88,11 +86,6 @@ def get_args():
         "--update",
         help="don't prompt about firmware/console updates.",
         action="store_false")
-    parser.add_argument(
-        '--toolkit',
-        nargs=1,
-        default=[None],
-        help="specify the TraitsUI toolkit to use, either 'wx' or 'qt4'.")
     parser.add_argument(
         '--error', action='store_true', help="Do not swallow exceptions.")
     parser.add_argument(
@@ -913,11 +906,6 @@ def main():
         print(e)
         show_usage = True
         error_str = "ERROR: " + str(e)
-
-    if args and args.toolkit[0] is not None:
-        ETSConfig.toolkit = args.toolkit[0]
-    else:
-        ETSConfig.toolkit = 'qt4'
 
     # Make sure that SIGINT (i.e. Ctrl-C from command line) actually stops the
     # application event loop (otherwise Qt swallows KeyboardInterrupt exceptions)

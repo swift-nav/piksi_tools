@@ -66,6 +66,7 @@ function install_dev_libs(){
       libglu1-mesa-dev \
       libx11-dev \
       python2.7-dev \
+      python-qt4-dev \
       pyqt4-dev-tools \
       qt4-qmake \
       qt4-default \
@@ -106,10 +107,17 @@ function install_pyside() {
     fi
 }
 
+function install_pyqt4() {
+    sudo apt-get install -y python-sip python-qt4 python-qt4-gl
+    sudo apt-get install -y python3-sip python3-pyqt4 python3-pyqt4.qtopengl
+    bash copy_pyqt_to_venv.sh
+}
+
 function all_dependencies_debian () {
     sudo apt-get install git \
          build-essential \
          python \
+         python3 \
          python-setuptools \
          python-virtualenv \
          swig
@@ -118,21 +126,15 @@ function all_dependencies_debian () {
          libqt4-scripttools \
          libffi-dev \
          libssl-dev \
-         python-chaco \
-         python-qt4-dev \
-         python-sip \
-         python-qt4-gl \
-         libgtk2.0-0
+         python-chaco
     if ! bionic_like; then
         sudo apt-get install \
             python-software-properties \
             python-vtk \
-            python-pip \
-            python-wxgtk2.8
+            python-pip
     else
         sudo apt-get install \
             software-properties-common \
-            python-wxgtk3.0 \
             python-vtk6
         sudo apt-get purge python-pip
         sudo python -m easy_install pip
@@ -143,7 +145,7 @@ function all_dependencies_debian () {
     pip install PyInstaller
     pip install -r ../requirements.txt
     pip install -r ../requirements_gui.txt
-    install_pyside
+    install_pyqt4
 }
 
 

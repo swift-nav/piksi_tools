@@ -25,12 +25,14 @@ def _check_output(cmd, default=None):
 
 
 def build(env):
+    from six.moves import reload_module
     check_call(['tox', '-e', env])
     out_pyi = os.path.join(os.getcwd(), os.path.join('dist', 'console'))
-    exe = os.path.join(out_pyi, 'console')
-    # https://bugs.python.org/issue18920
-    print("Running {} to determine its version.".format(str(exe)))
-    v = _check_output([str(exe), '-V'], default="unknown")
+    # tox writes _version.py, doing a delayed import and a reload after that
+    from piksi_tools import _version
+    reload_module(_version)
+    v = _version.version
+    print("build version:", v)
     return out_pyi, v
 
 
@@ -81,12 +83,14 @@ def build_win():
 def build_cli_tools():
     _check_output(['tox', '-e', 'pyinstaller_cmdline_tools'])
 
+def build_cli_tools_py35():
+    _check_output(['tox', '-e', 'pyinstaller_cmdline_tools-py35'])
 
 def main():
     plat = sys.platform
     if plat.startswith('linux'):
         build_linux()
-        build_cli_tools()
+        build_cli_tools_py35()
     elif plat.startswith('darwin'):
         build_macos()
         build_cli_tools()
