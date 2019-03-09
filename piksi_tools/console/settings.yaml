@@ -354,7 +354,7 @@
   expert: false
   type: integer
   units: N/A
-  default value: '2'
+  default value: '10'
   readonly: false
   enumerated possible values:
   Description: Integer divisor of solution frequency for which the observations will
