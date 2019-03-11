@@ -70,6 +70,7 @@ class PendingRequest(object):
     def __init__(self, index):
         self.index = index
         self.completed = None
+        self.time = Time()
 
     def __repr__(self):
         return "PendingRequest(offset=%r,seq=%r,time=%r,tries=%r,index=%r)" % (
