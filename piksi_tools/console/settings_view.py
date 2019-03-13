@@ -15,6 +15,8 @@ import threading
 import time
 import configparser
 
+from queue import Queue
+
 from pyface.api import GUI
 from sbp.piksi import MsgReset
 from sbp.settings import MsgSettingsSave
@@ -28,7 +30,6 @@ from traitsui.tabular_adapter import TabularAdapter
 import piksi_tools.console.callback_prompt as prompt
 from piksi_tools.console.gui_utils import MultilineTextEditor
 from piksi_tools.console.utils import swift_path
-from piksi_tools.settings import KEY_ENCODING, VALUE_ENCODING
 from pyface.api import FileDialog, OK
 
 from .settings_list import SettingsList
@@ -40,8 +41,6 @@ if ETSConfig.toolkit != 'null':
     from enable.savage.trait_defs.ui.svg_button import SVGButton
 else:
     SVGButton = dict
-
-from queue import Queue
 
 
 class WorkQueue():
@@ -201,8 +200,7 @@ class Setting(SettingBase):
 
     def _write_value(self, old, new):
         if (old != new and old is not Undefined and new is not Undefined):
-            if type(self.value) == unicode:
-                self.value = self.value.encode('ascii', 'replace')
+            self.value = self.value.encode('ascii', 'replace')
             self.confirmed_set = False
             res = self.settings.settings_api.write(self.section, self.name, new)
             if res == SettingsWriteResponseCodes.SETTINGS_WR_OK:
