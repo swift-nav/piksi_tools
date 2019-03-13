@@ -145,10 +145,6 @@ class SwiftConsole(HasTraits):
       Update the firmware
     log_level_filter : str
       Syslog string, one of "ERROR", "WARNING", "INFO", "DEBUG".
-    skip_settings : bool
-      Don't read the device settings. Set to False when the console is reading
-      from a network connection only.
-
     """
 
     link = Instance(sbpc.Handler)
@@ -586,7 +582,6 @@ class SwiftConsole(HasTraits):
                  link,
                  update,
                  log_level_filter,
-                 skip_settings=False,
                  error=False,
                  cnx_desc=None,
                  json_logging=False,
@@ -715,11 +710,16 @@ class SwiftConsole(HasTraits):
                 if self.networking_view.connect_when_uuid_received:
                     self.networking_view._connect_rover_fired()
 
+            skip_settings_read = False
+            if 'mode' in self.connection_info:
+                if self.connection_info['mode'] == 'file':
+                    skip_settings_read = True
+
             settings_read_finished_functions.append(update_serial)
             self.settings_view = SettingsView(
                 self.link,
                 settings_read_finished_functions,
-                skip=skip_settings)
+                skip_read=skip_settings_read)
             self.update_view.settings = self.settings_view.settings
             self.python_console_env = {
                 'send_message': self.link,

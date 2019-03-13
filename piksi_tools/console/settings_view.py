@@ -306,9 +306,9 @@ class SettingsView(HasTraits):
       Show expert settings (defaults to False)
     gui_mode : bool
       ??? (defaults to True)
-    skip : bool
+    skip_read : bool
       Skip reading of the settings (defaults to False). Intended for
-      use when reading from network connections.
+      use when reading from network connections or file.
     """
     show_auto_survey = Bool(False)
     settings_yaml = list()
@@ -742,7 +742,7 @@ class SettingsView(HasTraits):
                  name_of_yaml_file="settings.yaml",
                  expert=False,
                  gui_mode=True,
-                 skip=False):
+                 skip_read=False):
         super(SettingsView, self).__init__()
         self.settings_api = Settings(link)
         self.workqueue = WorkQueue()
@@ -758,8 +758,7 @@ class SettingsView(HasTraits):
         # No support for arguments currently.
         self.read_finished_functions = read_finished_functions
         self.setting_detail = SettingBase()
-        self.pending_settings = []
-        if not skip:
+        if not skip_read:
             try:
                 self._settings_read_all()
             except IOError:
