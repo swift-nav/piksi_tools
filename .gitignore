@@ -79,3 +79,6 @@ swift_nap_*.hex
 
 # Virtual env
 *venv
+
+# IDE files
+.vscode/
