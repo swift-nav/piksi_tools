@@ -123,6 +123,10 @@ def base_cl_options(override_arg_parse=None, add_help=True,
             default=False,
             help="Expand fields in JSON logs"
         )
+        parser.add_argument(
+            "--skip-metadata",
+            action="store_true",
+            help="Omit metadata from JSON logs.")
     return parser
 
 
@@ -364,7 +368,10 @@ def main(args):
     use_broker = args.broker
     # Driver with context
     driver = get_base_args_driver(args)
-    with Handler(Framer(driver.read, driver.write, args.verbose)) as link:
+    with Handler(Framer(driver.read,
+                        driver.write,
+                        args.verbose,
+                        skip_metadata=args.skip_metadata)) as link:
         # Logger with context
         with get_logger(args.log, log_filename, args.expand_json) as logger:
             link.add_callback(printer, SBP_MSG_PRINT_DEP)
@@ -374,8 +381,10 @@ def main(args):
                 device_id = get_uuid(channel, serial_id)
                 with HTTPDriver(str(device_id), base) as http:
                     with Handler(
-                            Framer(http.read, http.write,
-                                   args.verbose)) as slink:
+                            Framer(http.read,
+                                   http.write,
+                                   args.verbose,
+                                   skip_metadata=args.skip_metadata)) as slink:
                         Forwarder(slink, swriter(link)).start()
                         run(args, link)
             else:
