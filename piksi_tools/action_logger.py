@@ -293,7 +293,7 @@ def main():
                                 print("Timer expired!")
                                 break
                             if not link.is_alive():
-                                sys.stderr.write("ERROR: Thread died!")
+                                sys.stderr.write("ERROR: link is gone!\n")
                                 sys.exit(1)
                 except KeyboardInterrupt:
                     # Callbacks call thread.interrupt_main(), which throw a KeyboardInterrupt
