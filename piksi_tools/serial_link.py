@@ -127,6 +127,10 @@ def base_cl_options(override_arg_parse=None, add_help=True,
             "--skip-metadata",
             action="store_true",
             help="Omit metadata from JSON logs.")
+        parser.add_argument(
+            "--sort-keys",
+            action="store_true",
+            help="Sort JSON log elements by keys.")
     return parser
 
 
@@ -188,7 +192,7 @@ def get_driver(use_ftdi=False,
         sys.exit(1)
 
 
-def get_logger(use_log=False, filename=logfilename(), expand_json=False):
+def get_logger(use_log=False, filename=logfilename(), expand_json=False, sort_keys=False):
     """
     Get a logger based on configuration options.
 
@@ -210,7 +214,7 @@ def get_logger(use_log=False, filename=logfilename(), expand_json=False):
         logger = JSONLogger
     else:
         logger = JSONBinLogger
-    return logger(infile)
+    return logger(infile, sort_keys=sort_keys)
 
 
 def printer(sbp_msg, **metadata):
@@ -373,7 +377,10 @@ def main(args):
                         args.verbose,
                         skip_metadata=args.skip_metadata)) as link:
         # Logger with context
-        with get_logger(args.log, log_filename, args.expand_json) as logger:
+        with get_logger(args.log,
+                        log_filename,
+                        args.expand_json,
+                        args.sort_keys) as logger:
             link.add_callback(printer, SBP_MSG_PRINT_DEP)
             link.add_callback(log_printer, SBP_MSG_LOG)
             Forwarder(link, logger).start()
