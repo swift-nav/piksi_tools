@@ -323,9 +323,18 @@ def run(args, link):
             else:
                 print("Timer expired!")
                 break
-            if not link.is_alive():
-                sys.stderr.write("ERROR: Thread died!")
-                sys.exit(1)
+
+            if link.is_alive():
+                continue
+
+            if getattr(args, 'file', None):
+                # If reading from a file it is expected to end at some point
+                sys.exit(0)
+
+            if args.verbose:
+                sys.stderr.write("ERROR: link is gone!\n")
+
+            sys.exit(1)
     except KeyboardInterrupt:
         # Callbacks call thread.interrupt_main(), which throw a
         # KeyboardInterrupt exception. To get the proper error
