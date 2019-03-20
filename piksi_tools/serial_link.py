@@ -305,6 +305,7 @@ def run(args, link):
       Piksi serial handle
 
     """
+    link.start()
     timeout = args.timeout
     if args.reset:
         link(MsgReset(flags=0))
@@ -371,7 +372,8 @@ def main(args):
     with Handler(Framer(driver.read,
                         driver.write,
                         args.verbose,
-                        skip_metadata=args.skip_metadata)) as link:
+                        skip_metadata=args.skip_metadata),
+                 autostart=False) as link:
         # Logger with context
         with get_logger(args.log, log_filename, args.expand_json) as logger:
             link.add_callback(printer, SBP_MSG_PRINT_DEP)
