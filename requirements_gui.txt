@@ -1,9 +1,7 @@
-# chaco 4.6.1 and enable 4.6.2 have a regression which make the solution plot look weird.
-# chaco==4.6.1
-# enable==4.6.2
-https://github.com/enthought/enable/archive/aa33701123bb2f6e4d12b0192285d8732500a0dd.zip
-https://github.com/enthought/chaco/archive/d7e9b5aa4a12fd7343e49c0c6de63b9996b8470e.zip
+# fixes a memory leak. TODO: update to 4.7.3 when released
+git+git://github.com/enthought/enable@2c0a312f0b56a#egg=enable
 
+chaco==4.7.2
 traits==4.6.0 
 traitsui==6.0.0
 pyface==6.0.0
