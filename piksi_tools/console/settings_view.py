@@ -15,7 +15,7 @@ import threading
 import time
 import configparser
 
-from queue import Queue
+from six.moves.queue import Queue
 
 from pyface.api import GUI
 from sbp.piksi import MsgReset
