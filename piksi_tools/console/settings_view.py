@@ -203,7 +203,6 @@ class Setting(SettingBase):
 
     def _write_value(self, old, new):
         if (old != new and old is not Undefined and new is not Undefined):
-            self.value = self.value.encode('ascii', 'replace')
             self.confirmed_set = False
             res = self.settings.settings_api.write(self.section, self.name, new)
             if res == SettingsWriteResponseCodes.SETTINGS_WR_OK:
