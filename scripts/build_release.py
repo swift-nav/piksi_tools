@@ -39,7 +39,7 @@ def build(env):
 def build_linux():
     import tarfile
     out_pyi, version = build('pyinstaller-linux')
-    out = os.path.join(os.getcwd(), os.path.join('dist', 'swift_console_v{}_linux'.format(version)))
+    out = os.path.join(os.getcwd(), os.path.join('dist', 'swift_console_{}_linux'.format(version)))
     maybe_remove(out)
     shutil.move(out_pyi, out)
 
@@ -57,7 +57,7 @@ def build_macos():
         'sudo',
         os.path.join(os.getcwd(), os.path.join('misc',
                      'create-dmg-installer.sh')),
-        'swift_console_v{}_macos.dmg'.format(version)
+        'swift_console_{}_macos.dmg'.format(version)
     ])
 
 
@@ -75,7 +75,7 @@ def build_win():
 
     check_call([
         nsis,
-        '-XOutfile ../dist/swift_console_v{}_windows.exe'.format(version),
+        '-XOutfile ../dist/swift_console_{}_windows.exe'.format(version),
         'misc/swift_console.nsi'
     ])
 
