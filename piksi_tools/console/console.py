@@ -750,7 +750,7 @@ class SwiftConsole(HasTraits):
             import traceback
             traceback.print_exc()
             if self.error:
-                sys.exit(1)
+                os._exit(1)
 
 
 class ShowUsage(HasTraits):

@@ -73,3 +73,4 @@ class SettingsList():
         except:  # noqa
             import traceback
             traceback.print_exc()
+            raise
