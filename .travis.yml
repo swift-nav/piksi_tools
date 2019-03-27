@@ -32,8 +32,7 @@ matrix:
         - sudo apt-get -qq update
         - sudo apt-get install -y swig python2.7 python3.5
         - sudo apt-get install -y mesa-common-dev libglu1-mesa-dev
-        - sudo apt-get install -y python-sip python-qt4 python-qt4-gl
-        - sudo apt-get install -y python3-sip python3-pyqt4 python3-pyqt4.qtopengl
+        - sudo apt-get install -y libqt4-opengl libqt4-opengl-dev
         - sudo pip install tox
      before_script:
         - export DISPLAY=:0.0
