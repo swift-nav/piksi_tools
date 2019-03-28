@@ -474,7 +474,7 @@
   readonly: false
   enumerated possible values: True,False
   Description: Receiver Autonomous Integrity Monitoring.
-  Notes: If True, RAIM checks will not be performed.
+  Notes: If True, RAIM checks will not be performed on observation output.
 
 - group: solution
   name: send_heading
