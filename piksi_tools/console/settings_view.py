@@ -417,7 +417,7 @@ class SettingsView(HasTraits):
 
     def _expert_changed(self, info):
         try:
-            self.settings_display_setup(finish=False)
+            self.settings_display_setup(do_read_finished=False)
         except AttributeError:
             pass
 
@@ -719,7 +719,7 @@ class SettingsView(HasTraits):
         self.settings['surveyed_position']['surveyed_lat'].value = lat_value
         self.settings['surveyed_position']['surveyed_lon'].value = lon_value
         self.settings['surveyed_position']['surveyed_alt'].value = alt_value
-        self.settings_display_setup(finish=False)
+        self.settings_display_setup(do_read_finished=False)
 
     def finish_read(self):
         for cb in self.read_finished_functions:
@@ -729,7 +729,7 @@ class SettingsView(HasTraits):
                 cb()
 
     # Callbacks for receiving messages
-    def settings_display_setup(self, finish=True):
+    def settings_display_setup(self, do_read_finished=True):
         self.settings_list = []
         sections = sorted(self.settings.keys())
         for sec in sections:
@@ -743,7 +743,7 @@ class SettingsView(HasTraits):
                 self.settings_list.append(SectionHeading(sec))
                 self.settings_list += this_section
 
-        if finish:
+        if do_read_finished:
             self.finish_read()
 
     def piksi_startup_callback(self, sbp_msg, **metadata):
