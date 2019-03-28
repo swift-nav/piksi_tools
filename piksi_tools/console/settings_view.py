@@ -58,10 +58,8 @@ class WorkQueue():
     def _work_thd(self):
         while True:
             (func, argv) = self._work_queue.get(block=True)
-            self._settings_view.disable()
             func(*argv)
             self._work_queue.task_done()
-            self._settings_view.enable()
 
 
 class SettingBase(HasTraits):
@@ -329,7 +327,6 @@ class SettingsView(HasTraits):
       use when reading from network connections or file.
     """
     show_auto_survey = Bool(False)
-    enable_buttons = Bool(True)
     settings_yaml = list()
     auto_survey = SVGButton(
         label='Auto\nSurvey',
@@ -390,7 +387,6 @@ class SettingsView(HasTraits):
                         'auto_survey',
                         show_label=False,
                         visible_when='show_auto_survey'),
-                    enabled_when='enable_buttons',
                 ),
                 HGroup(
                     Item('settings_read_button', show_label=False,
@@ -398,7 +394,6 @@ class SettingsView(HasTraits):
                     Item('', label="Refresh settings\nfrom device", padding=0),
                     Item('expert', show_label=False),
                     Item('', label="Show Advanced\nSettings", padding=0),
-                    enabled_when='enable_buttons',
                 ),
                 Item('selected_setting', style='custom', show_label=False),
             ),
@@ -758,12 +753,6 @@ class SettingsView(HasTraits):
 
     def __exit__(self, *args):
         self.cleanup()
-
-    def disable(self):
-        self.enable_buttons = False
-
-    def enable(self):
-        self.enable_buttons = True
 
     def __init__(self,
                  link,
