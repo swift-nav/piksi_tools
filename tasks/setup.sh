@@ -66,6 +66,7 @@ function install_dev_libs(){
       libglu1-mesa-dev \
       libx11-dev \
       python2.7-dev \
+      python3.5-dev \
       qt4-qmake \
       qt4-default \
       qt4-dev-tools \
@@ -108,8 +109,8 @@ function install_pyside() {
 function all_dependencies_debian () {
     sudo apt-get install git \
          build-essential \
-         python \
-         python3 \
+         python2.7 \
+         python3.5 \
          python-setuptools \
          python-virtualenv \
          swig
