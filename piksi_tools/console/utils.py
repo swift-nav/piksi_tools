@@ -640,8 +640,7 @@ resource_filename = partial(pkg_resources.resource_filename, 'piksi_tools')
 resource_stream = partial(pkg_resources.resource_stream, 'piksi_tools')
 icon = ImageResource(resource_filename('console/images/icon.png'))
 
-home_path = os.path.expanduser("~" + os.sep)
 (language_code, encoding) = locale.getdefaultlocale()
-if encoding is not None:
-    home_path = home_path.decode(encoding)
+home_path_raw = os.path.expanduser(b"~")
+home_path = home_path_raw.decode(encoding if encoding is not None else 'ascii')
 swift_path = os.path.normpath(os.path.join(home_path, 'SwiftNav'))
