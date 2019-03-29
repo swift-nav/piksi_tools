@@ -1,4 +1,4 @@
-numpy==1.15.0
+numpy==1.16.2
 cython==0.28
 pytest==3.2.1
 configparser
@@ -12,7 +12,7 @@ pyparsing==2.2.0
 pygments==2.2.0
 requests==2.20.0
 six==1.10.0
-sbp==2.5.0
+sbp==2.5.1
 ruamel.yaml==0.15.87
 pre-commit==1.10.3
 setuptools_scm==3.1.0
