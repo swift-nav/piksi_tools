@@ -22,7 +22,7 @@ from sbp.imu import SBP_MSG_IMU_AUX, SBP_MSG_IMU_RAW
 from traits.api import Dict, Float, HasTraits, Instance, Int
 from traitsui.api import HGroup, Item, VGroup, View
 
-from .gui_utils import GUI_UPDATE_PERIOD
+from .gui_utils import GUI_UPDATE_PERIOD, UpdateScheduler
 NUM_POINTS = 200
 
 colours_list = [
@@ -64,7 +64,6 @@ class IMUView(HasTraits):
     )
 
     def update_plot(self):
-        self.update_scheduled = False
         self.last_plot_update_time = time.time()
         self.plot_data.set_data('acc_x', self.acc_x)
         self.plot_data.set_data('acc_y', self.acc_y)
@@ -76,16 +75,13 @@ class IMUView(HasTraits):
     def imu_set_data(self):
         if time.time() - self.last_plot_update_time < GUI_UPDATE_PERIOD:
             return
-        if self.update_scheduled:
-            return
         if self.imu_conf is not None:
             acc_range = self.imu_conf & 0xF
             sf = 2. ** (acc_range + 1) / 2. ** 15
             self.rms_acc_x = sf * np.sqrt(np.mean(np.square(self.acc_x)))
             self.rms_acc_y = sf * np.sqrt(np.mean(np.square(self.acc_y)))
             self.rms_acc_z = sf * np.sqrt(np.mean(np.square(self.acc_z)))
-        self.update_scheduled = True
-        GUI.invoke_later(self.update_plot)
+        self.update_scheduler.schedule_update('update_plot', self.update_plot)
 
     def imu_aux_callback(self, sbp_msg, **metadata):
         if sbp_msg.imu_type == 0:
@@ -170,4 +166,4 @@ class IMUView(HasTraits):
 
         self.python_console_cmds = {'track': self}
 
-        self.update_scheduled = False
+        self.update_scheduler = UpdateScheduler()
