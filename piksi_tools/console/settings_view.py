@@ -619,7 +619,7 @@ class SettingsView(HasTraits):
             title="Failed to import settings from file",
             actions=[prompt.close_button])
         confirm_prompt.text = "\n" \
-            "  Verify what config file is not overwriting active connection settings.  \n"
+            "  Verify that config file is not overwriting active connection settings.  \n"
         confirm_prompt.run(block=False)
 
     def _import_failure_section(self, section):
