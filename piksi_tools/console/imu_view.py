@@ -14,6 +14,7 @@ from __future__ import print_function
 
 import numpy as np
 import time
+from pyface.api import GUI
 from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
@@ -21,7 +22,7 @@ from sbp.imu import SBP_MSG_IMU_AUX, SBP_MSG_IMU_RAW
 from traits.api import Dict, Float, HasTraits, Instance, Int
 from traitsui.api import HGroup, Item, VGroup, View
 
-from .gui_utils import GUI_UPDATE_PERIOD
+from .gui_utils import GUI_UPDATE_PERIOD, UpdateScheduler
 NUM_POINTS = 200
 
 colours_list = [
@@ -62,14 +63,25 @@ class IMUView(HasTraits):
         )
     )
 
-    def imu_set_data(self):
+    def update_plot(self):
         self.last_plot_update_time = time.time()
-        self.plot_data.set_data('acc_x', self.acc[:, 0])
-        self.plot_data.set_data('acc_y', self.acc[:, 1])
-        self.plot_data.set_data('acc_z', self.acc[:, 2])
-        self.plot_data.set_data('gyr_x', self.gyro[:, 0])
-        self.plot_data.set_data('gyr_y', self.gyro[:, 1])
-        self.plot_data.set_data('gyr_z', self.gyro[:, 2])
+        self.plot_data.set_data('acc_x', self.acc_x)
+        self.plot_data.set_data('acc_y', self.acc_y)
+        self.plot_data.set_data('acc_z', self.acc_z)
+        self.plot_data.set_data('gyr_x', self.gyro_x)
+        self.plot_data.set_data('gyr_y', self.gyro_y)
+        self.plot_data.set_data('gyr_z', self.gyro_z)
+
+    def imu_set_data(self):
+        if time.time() - self.last_plot_update_time < GUI_UPDATE_PERIOD:
+            return
+        if self.imu_conf is not None:
+            acc_range = self.imu_conf & 0xF
+            sf = 2. ** (acc_range + 1) / 2. ** 15
+            self.rms_acc_x = sf * np.sqrt(np.mean(np.square(self.acc_x)))
+            self.rms_acc_y = sf * np.sqrt(np.mean(np.square(self.acc_y)))
+            self.rms_acc_z = sf * np.sqrt(np.mean(np.square(self.acc_z)))
+        self.update_scheduler.schedule_update('update_plot', self.update_plot)
 
     def imu_aux_callback(self, sbp_msg, **metadata):
         if sbp_msg.imu_type == 0:
@@ -79,25 +91,30 @@ class IMUView(HasTraits):
             print("IMU type %d not known" % sbp_msg.imu_type)
 
     def imu_raw_callback(self, sbp_msg, **metadata):
-        self.acc[:-1, :] = self.acc[1:, :]
-        self.gyro[:-1, :] = self.gyro[1:, :]
-        self.acc[-1] = (sbp_msg.acc_x, sbp_msg.acc_y, sbp_msg.acc_z)
-        self.gyro[-1] = (sbp_msg.gyr_x, sbp_msg.gyr_y, sbp_msg.gyr_z)
-
-        if time.time() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
-            self.imu_set_data()
-            if self.imu_conf is not None:
-                acc_range = self.imu_conf & 0xF
-                sf = 2. ** (acc_range + 1) / 2. ** 15
-                self.rms_acc_x = sf * np.sqrt(np.mean(np.square(self.acc[:, 0])))
-                self.rms_acc_y = sf * np.sqrt(np.mean(np.square(self.acc[:, 1])))
-                self.rms_acc_z = sf * np.sqrt(np.mean(np.square(self.acc[:, 2])))
+        memoryview(self.acc_x)[:-1] = memoryview(self.acc_x)[1:]
+        memoryview(self.acc_y)[:-1] = memoryview(self.acc_y)[1:]
+        memoryview(self.acc_z)[:-1] = memoryview(self.acc_z)[1:]
+        memoryview(self.gyro_x)[:-1] = memoryview(self.gyro_x)[1:]
+        memoryview(self.gyro_y)[:-1] = memoryview(self.gyro_y)[1:]
+        memoryview(self.gyro_z)[:-1] = memoryview(self.gyro_z)[1:]
+        self.acc_x[-1] = sbp_msg.acc_x
+        self.acc_y[-1] = sbp_msg.acc_y
+        self.acc_z[-1] = sbp_msg.acc_z
+        self.gyro_x[-1] = sbp_msg.gyr_x
+        self.gyro_y[-1] = sbp_msg.gyr_y
+        self.gyro_z[-1] = sbp_msg.gyr_z
+        self.imu_set_data()
 
     def __init__(self, link):
         super(IMUView, self).__init__()
 
-        self.acc = np.zeros((NUM_POINTS, 3))
-        self.gyro = np.zeros((NUM_POINTS, 3))
+        self.acc_x = np.zeros(NUM_POINTS)
+        self.acc_y = np.zeros(NUM_POINTS)
+        self.acc_z = np.zeros(NUM_POINTS)
+        self.gyro_x = np.zeros(NUM_POINTS)
+        self.gyro_y = np.zeros(NUM_POINTS)
+        self.gyro_z = np.zeros(NUM_POINTS)
+
         self.last_plot_update_time = 0
 
         self.plot_data = ArrayPlotData(
@@ -146,4 +163,7 @@ class IMUView(HasTraits):
         self.link = link
         self.link.add_callback(self.imu_raw_callback, SBP_MSG_IMU_RAW)
         self.link.add_callback(self.imu_aux_callback, SBP_MSG_IMU_AUX)
+
         self.python_console_cmds = {'track': self}
+
+        self.update_scheduler = UpdateScheduler()

@@ -13,7 +13,6 @@
 import time
 from collections import defaultdict, deque
 import threading
-from pyface.api import GUI
 from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
@@ -22,7 +21,7 @@ from traits.api import Bool, Dict, Instance, List
 from traitsui.api import HGroup, Item, Spring, VGroup, View
 
 from piksi_tools.acq_results import SNR_THRESHOLD
-from piksi_tools.console.gui_utils import CodeFiltered
+from piksi_tools.console.gui_utils import CodeFiltered, UpdateScheduler
 from piksi_tools.console.utils import (code_is_glo,
                                        code_is_sbas,
                                        code_is_bds,
@@ -170,10 +169,7 @@ class TrackingView(CodeFiltered):
                 if key not in codes_that_came:
                     cno_array.append(0)
             self.clean_cn0(t)
-            if self.update_scheduled:
-                return
-            self.update_scheduled = True
-        GUI.invoke_later(self.update_plot)
+        self.update_scheduler.schedule_update('update_plot', self.update_plot)
 
     def tracking_state_callback(self, sbp_msg, **metadata):
         with self.CN0_lock:
@@ -206,14 +202,10 @@ class TrackingView(CodeFiltered):
                 if key not in codes_that_came:
                     cno_array.append(0)
             self.clean_cn0(t)
-            if self.update_scheduled:
-                return
-            self.update_scheduled = True
-        GUI.invoke_later(self.update_plot)
+        self.update_scheduler.schedule_update('update_plot', self.update_plot)
 
     def update_plot(self):
         with self.CN0_lock:
-            self.update_scheduled = False
             plot_labels = []
             plots = []
             # Update the underlying plot data from the CN0_dict for selected items
@@ -301,4 +293,4 @@ class TrackingView(CodeFiltered):
         self.link.add_callback(self.tracking_state_callback,
                                SBP_MSG_TRACKING_STATE)
         self.python_console_cmds = {'track': self}
-        self.update_scheduled = False
+        self.update_scheduler = UpdateScheduler()
