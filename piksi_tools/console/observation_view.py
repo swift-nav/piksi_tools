@@ -17,15 +17,13 @@ import time
 
 from threading import Lock
 
-from pyface.api import GUI
-
 from sbp.observation import (SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B,
                              SBP_MSG_OBS_DEP_C)
 from traits.api import Dict, Float, Int, List, Str
 from traitsui.api import HGroup, Item, UItem, Spring, TabularEditor, VGroup, View
 from traitsui.tabular_adapter import TabularAdapter
 
-from piksi_tools.console.gui_utils import CodeFiltered
+from piksi_tools.console.gui_utils import CodeFiltered, UpdateScheduler
 from piksi_tools.console.utils import (
     EMPTY_STR, GUI_CODES, SUPPORTED_CODES, code_is_gps, code_to_str)
 from piksi_tools.console.gui_utils import GUI_UPDATE_PERIOD
@@ -139,26 +137,6 @@ class ObservationView(CodeFiltered):
             if getattr(self, 'count_{}'.format(code)) != 0 and code not in self.received_codes:
                 self.received_codes.append(code)
 
-    def schedule_update(self, ident, update_func, *args):
-
-        def _wrap_update():
-            update_funcs = None
-            with self.update_lock:
-                update_funcs = self.update_funcs.copy()
-                self.update_scheduled = False
-                self.update_funcs.clear()
-            for update in update_funcs.values():
-                update_func, args = update
-                update_func(*args)
-
-        with self.update_lock:
-            self.update_funcs[ident] = (update_func, args)
-            if self.update_scheduled:
-                return
-            self.update_scheduled = True
-
-        GUI.invoke_later(_wrap_update)
-
     def gui_update_tow(self, tow):
         self.traits_gps_tow = tow
 
@@ -172,7 +150,7 @@ class ObservationView(CodeFiltered):
         count = seq & ((1 << 4) - 1)
 
         def reset():
-            self.schedule_update('tow', self.gui_update_tow, tow)
+            self.update_scheduler.schedule_update('tow', self.gui_update_tow, tow)
             self.old_tow = self.gps_tow
             self.gps_tow = tow
             self.gps_week = wn
@@ -227,7 +205,7 @@ class ObservationView(CodeFiltered):
                 flags = o.flags
                 msdopp = float(o.D.i) + float(o.D.f) / (1 << 8)
                 self.gps_tow += sbp_msg.header.t.ns_residual * 1e-9
-                self.schedule_update('tow', self.gui_update_tow, self.gps_tow)
+                self.update_scheduler.schedule_update('tow', self.gui_update_tow, self.gps_tow)
 
             try:
                 ocp = self.old_cp[prn]
@@ -304,7 +282,7 @@ class ObservationView(CodeFiltered):
         if (count == total - 1):
             # this is here to let GUI catch up to real time if required
             if time.time() - self.last_table_update_time > GUI_UPDATE_PERIOD:
-                self.schedule_update('update_obs', self.update_obs, self.incoming_obs.copy())
+                self.update_scheduler.schedule_update('update_obs', self.update_obs, self.incoming_obs.copy())
                 self.last_table_update_tow = self.gps_tow
                 self.last_table_update_time = time.time()
         return
@@ -337,3 +315,4 @@ class ObservationView(CodeFiltered):
         self.update_scheduled = False
         self.update_lock = Lock()
         self.update_funcs = {}
+        self.update_scheduler = UpdateScheduler()
