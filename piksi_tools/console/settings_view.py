@@ -145,7 +145,7 @@ class Setting(SettingBase):
         if readonly:
             self.readonly = True
 
-    def revert_to_prior_value(self, name, old, new, error_value=SettingsWriteResponseCodes.SETTINGS_WR_TIMEOUT):
+    def revert_to_prior_value(self, section, name, old, new, error_value):
         '''Revert setting to old value in the case we can't confirm new value'''
 
         if self.readonly:
@@ -155,7 +155,7 @@ class Setting(SettingBase):
         self.value = old
         self.write_failure = True
         invalid_setting_prompt = prompt.CallbackPrompt(
-            title="Settings Write Error",
+            title="Settings Write Error: {}.{}".format(section, name),
             actions=[prompt.close_button], )
         if error_value == SettingsWriteResponseCodes.SETTINGS_WR_TIMEOUT:
             invalid_setting_prompt.text = \
@@ -163,11 +163,7 @@ class Setting(SettingBase):
                  "   Message timed out.\n"
                  "   Ensure that the new setting value did not interrupt console communication.\n"
                  "   Error Value: {2}")
-        else:
-            invalid_setting_prompt.text = \
-                ("\n   Unable to set {0} to {1}.\n")
-
-        if error_value == SettingsWriteResponseCodes.SETTINGS_WR_VALUE_REJECTED:
+        elif error_value == SettingsWriteResponseCodes.SETTINGS_WR_VALUE_REJECTED:
             invalid_setting_prompt.text += \
                 ("   Ensure the range and formatting of the entry are correct.\n"
                  "   Error Value: {2}")
@@ -200,13 +196,13 @@ class Setting(SettingBase):
         self.reverting = False
 
     def _write_value(self, old, new):
-        if (old != new and old is not Undefined and new is not Undefined):
+        if (old is not Undefined and new is not Undefined):
             self.confirmed_set = False
-            res = self.settings.settings_api.write(self.section, self.name, new)
-            if res == SettingsWriteResponseCodes.SETTINGS_WR_OK:
+            (error, section, name, value) = self.settings.settings_api.write(self.section, self.name, new)
+            if error == SettingsWriteResponseCodes.SETTINGS_WR_OK:
                 self.value = new
             else:
-                self.revert_to_prior_value(self.name, old, new, res)
+                self.revert_to_prior_value(self.section, self.name, old, new, res)
 
             self.confirmed_set = True
 
@@ -607,8 +603,8 @@ class SettingsView(HasTraits):
         except IOError as e:
             print('Unable to export settings to file due to IOError: {}'.format(e))
 
-    def _import_success(self):
-        print("Successfully imported settings from file.")
+    def _import_success(self, count):
+        print("Successfully imported {} settings from file.".format(count))
         confirm_prompt = prompt.CallbackPrompt(
             title="Save to device flash?",
             actions=[prompt.close_button, prompt.ok_button],
@@ -616,6 +612,14 @@ class SettingsView(HasTraits):
         confirm_prompt.text = "\n" \
             "  Settings import from file complete.  Click OK to save the settings  \n" \
             "  to the device's persistent storage.  \n"
+        confirm_prompt.run(block=False)
+
+    def _import_fail(self):
+        confirm_prompt = prompt.CallbackPrompt(
+            title="Failed to import settings from file",
+            actions=[prompt.close_button])
+        confirm_prompt.text = "\n" \
+            "  Verify what config file is not overwriting active connection settings.  \n"
         confirm_prompt.run(block=False)
 
     def _import_failure_section(self, section):
@@ -626,9 +630,49 @@ class SettingsView(HasTraits):
         print(("Unable to import settings from file. Setting \"{0}\" in section \"{1}\""
                " has not been sent from device.").format(name, section))
 
-    def _import_failure_write(self, section, name):
-        print(("Unable to import settings from file. Writing setting \"{0}\" in section \"{1}\""
-               " failed.").format(name, section))
+    def _import_failure_write(self, error, section, name):
+        print(("Writing setting \"{0}\" in section \"{1}\""
+               " failed with error code {2}.").format(name, section, error))
+
+    def _write_parsed(self, parser):
+        settings_to_write = []
+        # Iterate over each setting
+        for section, settings in parser.items():
+            if not settings:
+                # Empty
+                continue
+
+            this_section = self.settings.get(section, None)
+
+            if this_section is None:
+                self._import_failure_section(section)
+                return
+
+            for name, value in settings.items():
+                this_setting = this_section.get(name, None)
+                if this_setting is None:
+                    self._import_failure_not_found(section, name)
+                    return
+
+                settings_to_write.append({'section': section,
+                                          'name': name,
+                                          'value': value})
+
+        ret = self.settings_api.write_all(settings_to_write)
+
+        success = True
+
+        for (error, section, name, value) in ret:
+            if error and error != SettingsWriteResponseCodes.SETTINGS_WR_READ_ONLY:
+                self._import_failure_write(error, section, name)
+                success = False
+            else:
+                self.settings.get(section, None).get(name, None).value = value
+
+        if success:
+            self._import_success(len(ret))
+        else:
+            self._import_fail()
 
     def _settings_import_from_file_button_fired(self):
         """Imports settings from INI file and sends settings write to device for each entry.
@@ -659,36 +703,7 @@ class SettingsView(HasTraits):
             print('Unable to import settings to device.')
             return
 
-        # Iterate over each setting
-        for section, settings in parser.items():
-
-            if not settings:
-                # Empty
-                continue
-
-            this_section = self.settings.get(section, None)
-
-            if this_section is None:
-                self._import_failure_section(section)
-                return
-
-            for setting, value in settings.items():
-                this_setting = this_section.get(setting, None)
-                if this_setting is None:
-                    self._import_failure_not_found(section, setting)
-                    return
-
-                if this_setting.value == value:
-                    continue
-
-                this_setting._write_value(this_setting.value, value)
-
-                if this_setting.write_failure:
-                    self._import_failure_write(section, setting)
-                    this_setting.write_failure = False
-                    return
-
-        self._import_success()
+        self.workqueue.put(self._write_parsed, parser)
 
     def _auto_survey_fired(self):
         confirm_prompt = prompt.CallbackPrompt(
