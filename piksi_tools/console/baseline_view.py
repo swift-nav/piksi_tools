@@ -15,7 +15,6 @@ import threading
 from collections import deque
 
 import numpy as np
-from pyface.api import GUI
 from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import PanTool, ZoomTool
 from enable.api import ComponentEditor
@@ -37,7 +36,7 @@ from piksi_tools.console.utils import (
     datetime_2_str, get_mode, log_time_strings, mode_dict)
 from piksi_tools.utils import sopen
 from .utils import resource_filename
-from .gui_utils import GUI_UPDATE_PERIOD, STALE_DATA_PERIOD
+from .gui_utils import GUI_UPDATE_PERIOD, STALE_DATA_PERIOD, UpdateScheduler
 
 PLOT_HISTORY_MAX = 1000
 
@@ -363,7 +362,7 @@ class BaselineView(HasTraits):
             self.list_lock.release()
 
         if time.time() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
-            GUI.invoke_later(self._solution_draw)
+            self.update_scheduler.schedule_update('_solution_draw', self._solution_draw)
 
     def _solution_draw(self):
         self.list_lock.acquire()
@@ -527,3 +526,4 @@ class BaselineView(HasTraits):
                                SBP_MSG_AGE_CORRECTIONS)
 
         self.python_console_cmds = {'baseline': self}
+        self.update_scheduler = UpdateScheduler()
