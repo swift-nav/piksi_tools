@@ -125,10 +125,7 @@ class Setting(SettingBase):
         self.ordering = ordering
         self.settings = settings
         self.confirmed_set = True
-        self.reverting = False
-
-        # flag on each setting to indicate a write failure if the revert thread has run on the setting
-        self.write_failure = False
+        self.skip_write_req = False
 
         if settings is None:
             return
@@ -151,9 +148,10 @@ class Setting(SettingBase):
         if self.readonly:
             return
 
-        self.reverting = True
+        self.skip_write_req = True
         self.value = old
-        self.write_failure = True
+        self.skip_write_req = False
+
         invalid_setting_prompt = prompt.CallbackPrompt(
             title="Settings Write Error: {}.{}".format(section, name),
             actions=[prompt.close_button], )
@@ -193,7 +191,6 @@ class Setting(SettingBase):
                  "   Error Value: {2}")
         invalid_setting_prompt.text = invalid_setting_prompt.text.format(self.name, new, error_value)
         invalid_setting_prompt.run()
-        self.reverting = False
 
     def _write_value(self, old, new):
         if (old is not Undefined and new is not Undefined):
@@ -222,7 +219,7 @@ class Setting(SettingBase):
         if getattr(self, 'settings', None) is None:
             return
 
-        if self.reverting or old == new:
+        if self.skip_write_req or old == new:
             return
 
         self.settings.workqueue.put(self._write_value, old, new)
@@ -667,7 +664,9 @@ class SettingsView(HasTraits):
                 self._import_failure_write(error, section, name)
                 success = False
             else:
+                self.skip_write_req = True
                 self.settings.get(section, None).get(name, None).value = value
+                self.skip_write_req = False
 
         if success:
             self._import_success(len(ret))
