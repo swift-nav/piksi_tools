@@ -1,4 +1,4 @@
-numpy==1.16.2
+numpy==1.15.0
 cython==0.28
 pytest==3.2.1
 configparser
