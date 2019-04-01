@@ -199,7 +199,7 @@ class Setting(SettingBase):
             if error == SettingsWriteResponseCodes.SETTINGS_WR_OK:
                 self.value = new
             else:
-                self.revert_to_prior_value(self.section, self.name, old, new, res)
+                self.revert_to_prior_value(self.section, self.name, old, new, error)
 
             self.confirmed_set = True
 
