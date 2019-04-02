@@ -15,8 +15,6 @@ from __future__ import print_function
 import datetime
 import time
 
-from threading import Lock
-
 from sbp.observation import (SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B,
                              SBP_MSG_OBS_DEP_C)
 from traits.api import Dict, Float, Int, List, Str
@@ -312,7 +310,4 @@ class ObservationView(CodeFiltered):
         self.prev_obs_total = 0
         self.traits_obs_count = 0
         self.traits_gps_tow = 0.0
-        self.update_scheduled = False
-        self.update_lock = Lock()
-        self.update_funcs = {}
         self.update_scheduler = UpdateScheduler()
