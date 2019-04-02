@@ -14,7 +14,6 @@ from __future__ import print_function
 
 import numpy as np
 import time
-from pyface.api import GUI
 from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
