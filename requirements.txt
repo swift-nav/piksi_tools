@@ -1,5 +1,4 @@
 numpy==1.16.2
-cython==0.28
 pytest==3.2.1
 configparser
 tox==3.2.1 
@@ -17,3 +16,4 @@ ruamel.yaml==0.15.87
 pre-commit==1.10.3
 setuptools_scm==3.1.0
 enum34==1.1.6
+cython
