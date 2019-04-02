@@ -113,7 +113,7 @@ def get_args():
     return parser
 
 
-CONSOLE_TITLE = 'Swift Console ' + CONSOLE_VERSION
+CONSOLE_TITLE = 'Swift Console v' + CONSOLE_VERSION
 
 
 class ConsoleHandler(Handler):

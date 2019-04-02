@@ -178,7 +178,7 @@ class UpdateView(HasTraits):
     newest_stm_vers = String('Downloading Latest Firmware info...')
     piksi_nap_vers = String('Waiting for Piksi to send settings...')
     newest_nap_vers = String('Downloading Latest Firmware info...')
-    local_console_vers = String(CONSOLE_VERSION)
+    local_console_vers = String('v' + CONSOLE_VERSION)
     newest_console_vers = String('Downloading Latest Console info...')
     download_directory_label = String('Firmware Download Directory:')
 
@@ -586,7 +586,7 @@ class UpdateView(HasTraits):
                         "Please visit http://support.swiftnav.com to\n" + \
                         "download the latest version.\n\n" + \
                         "Local Console Version :\n\t" + \
-                        CONSOLE_VERSION + \
+                        "v" + CONSOLE_VERSION + \
                         "\nLatest Console Version :\n\t" + \
                         self.update_dl.index[self.piksi_hw_rev]['console']['version'] + "\n"
                 else:

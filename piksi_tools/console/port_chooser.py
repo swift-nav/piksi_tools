@@ -108,7 +108,7 @@ class PortChooser(HasTraits):
         close_result=False,
         icon=icon,
         width=460,
-        title='Swift Console {0} - Select Interface'.format(CONSOLE_VERSION)
+        title='Swift Console v{0} - Select Interface'.format(CONSOLE_VERSION)
     )
 
     def refresh_ports(self):
