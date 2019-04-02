@@ -487,6 +487,14 @@ class SettingsView(HasTraits):
 
         confirm_prompt2.run(block=False)
 
+    def _read_all_fail(self):
+        confirm_prompt = prompt.CallbackPrompt(
+            title="Failed to read settings from device",
+            actions=[prompt.close_button])
+        confirm_prompt.text = "\n" \
+            "  Check connection and refresh settings.  \n"
+        confirm_prompt.run(block=False)
+
     def _settings_unconfirm_all(self):
         # Clear the tabular editor
         del self.settings_list[:]
@@ -500,6 +508,10 @@ class SettingsView(HasTraits):
 
     def _read_all_thread(self):
         settings_list = self.settings_api.read_all()
+
+        if not settings_list:
+            self._read_all_fail()
+            return
 
         idx = 0
 
