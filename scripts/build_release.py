@@ -31,9 +31,9 @@ def build(env):
     # tox writes _version.py, doing a delayed import and a reload after that
     from piksi_tools import _version
     reload_module(_version)
-    v = _version.version
-    print("build version:", v)
-    return out_pyi, v
+    ver = _version.version
+    print("build version:", ver)
+    return out_pyi, ver
 
 
 def build_linux():
