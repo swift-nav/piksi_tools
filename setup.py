@@ -112,6 +112,13 @@ def scmtools_parse(root,
             return meta(tag.replace('-branch', ''), config=config, node=node, dirty=dirty, branch=branch)
 
 
+def version_scheme_add_v(version):
+    from setuptools_scm.version import guess_next_dev_version
+    scm_version = guess_next_dev_version(version)
+    v_version = scm_version if scm_version[0] == 'v' else "v" + scm_version
+    return v_version
+
+
 if __name__ == '__main__':
 
     cwd = os.path.abspath(os.path.dirname(__file__))
@@ -136,7 +143,8 @@ if __name__ == '__main__':
         long_description=readme,
         use_scm_version={
             'write_to': 'piksi_tools/_version.py',
-            'parse': scmtools_parse
+            'parse': scmtools_parse,
+            'version_scheme': version_scheme_add_v
         },
         setup_requires=['setuptools_scm'],
         author='Swift Navigation',
