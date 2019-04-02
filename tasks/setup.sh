@@ -221,7 +221,7 @@ function install_python_deps_osx () {
     brew tap-pin cartr/qt4
     brew install qt@4 shiboken@1.2 qt-webkit@2.3
     brew install libftdi sip --force 2>&1 || :
-    
+
     pip install -r ../requirements.txt
     pip install -r ../requirements_gui.txt
     pip install PySide==1.2.2
