@@ -43,6 +43,26 @@ all: deps
 deps:
 	cd $(SWIFTNAV_ROOT)/tasks && bash setup.sh && cd $(SWIFTNAV_ROOT)
 
+.conda_py27:
+	conda create -p $(PWD)/.conda_py27 python=2.7 --yes
+
+.conda_py35:
+	conda create -p $(PWD)/.conda_py35 python=3.5 --yes
+
+tox_all:
+	@echo TESTENV=$(TESTENV) TOXENV=$(TOXENV)
+	tox $(if $(filter y,$(VERBOSE)), -v,)
+
+tox_Darwin: export TESTENV=mac
+tox_Darwin: export TOXENV=py27,gui35
+tox_Darwin: tox_all
+
+tox: .conda_py27 .conda_py35
+tox: export PATH:=$(CURDIR)/.conda_py35/bin:$(CURDIR).conda_py27/bin:$(PATH)
+tox: tox_$(shell uname)
+
+test: tox
+
 serial_deps:
 	pip install -r requirements.txt
 
