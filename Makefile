@@ -44,8 +44,8 @@ tox_all:
 	@echo Using TESTENV=$(TESTENV), TOXENV=$(TOXENV)...
 	tox $(if $(filter y,$(VERBOSE)), -v,)
 
-tox_Darwin: export TESTENV=$(TESTENV)
-tox_Darwin: export TOXENV=$(TOXENV)
+tox_Darwin: export TESTENV:=$(TESTENV)
+tox_Darwin: export TOXENV:=$(TOXENV)
 tox_Darwin: tox_all
 
 tox: .conda_py27 .conda_py35
