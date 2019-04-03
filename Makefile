@@ -2,7 +2,7 @@
 # client. Please read and understand the contents of this file before
 # using it to do Crazy Things.
 
-SWIFTNAV_ROOT := $(shell pwd)
+SWIFTNAV_ROOT := $(CURDIR)
 export PYTHONPATH := .
 
 ifneq (,$(findstring /cygdrive/,$(PATH)))
@@ -22,7 +22,7 @@ endif
 
 MAKEFLAGS += SWIFTNAV_ROOT=$(SWIFTNAV_ROOT)
 
-.PHONY: help deps serial_deps build_console build_console_posix build_console_Darwin build_console_Linux build_console_Windows
+.PHONY: help deps serial_deps build_console
 
 help:
 	@echo
@@ -52,27 +52,6 @@ gen_readme:
 
 build_console:
 	./scripts/build_release.py
-
-build_console_posix:
-	cd $(SWIFTNAV_ROOT)/piksi_tools/console/pyinstaller; \
-	make clean && make; \
-	cd $(SWIFTNAV_ROOT);
-	@echo
-	@echo "Finished! Please check $(SWIFTNAV_ROOT)/piksi_tools/console/pyinstaller."
-
-build_console_Darwin: build_console_posix
-
-build_console_Linux: build_console_posix
-
-build_console_Windows:
-	@echo "$(PATH)"
-	@echo "$(SWIFTNAV_ROOT)"
-	cd $(SWIFTNAV_ROOT)/piksi_tools/console/pyinstaller; \
-	make clean && make; \
-	cd $(SWIFTNAV_ROOT);
-	@echo
-	@echo "Finished! Please check $(SWIFTNAV_ROOT)/piksi_tools/console/pyinstaller."
-
 
 release:
 	$(call announce-begin,"Run release boilerplate")
