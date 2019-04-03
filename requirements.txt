@@ -16,5 +16,5 @@ sbp==2.5.3
 ruamel.yaml==0.15.87
 setuptools_scm==3.1.0
 enum34==1.1.6
-git+https://github.com/swift-nav/libsettings.git@pmiettinen/esd-1204-parallel-requests#subdirectory=dist
+git+https://github.com/swift-nav/libsettings.git@v0.1.11#subdirectory=dist
 
