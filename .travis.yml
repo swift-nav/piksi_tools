@@ -51,6 +51,7 @@ matrix:
      osx_image: Xcode 8.3.3
      language: generic
      before_install:
+        - export PATH="/Users/travis/miniconda3/bin:$PATH"
         - make deps
      script:
         - export PATH="/Users/travis/miniconda3/bin:$PATH"
