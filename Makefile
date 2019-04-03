@@ -12,7 +12,7 @@ endif
 
 MAKEFLAGS += SWIFTNAV_ROOT=$(SWIFTNAV_ROOT)
 
-.PHONY: help deps serial_deps build_console build_console_posix build_console_Darwin build_console_Linux build_console_Windows
+.PHONY: help deps serial_deps build_console
 
 help:
 	@echo
