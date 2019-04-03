@@ -62,7 +62,7 @@ gen_readme:
 	tail -n +2  piksi_tools/console/README.txt > tmp.txt && mv tmp.txt piksi_tools/console/README.txt
 
 build_console_all:
-	./scripts/build_release.py
+	python ./scripts/build_release.py
 
 build_console_Darwin: export PATH:=$(CURDIR)/.conda_py35/bin:$(CURDIR).conda_py27/bin:$(PATH)
 build_console_Darwin: .conda_py27 .conda_py35
