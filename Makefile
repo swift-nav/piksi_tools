@@ -2,22 +2,12 @@
 # client. Please read and understand the contents of this file before
 # using it to do Crazy Things.
 
-SWIFTNAV_ROOT := $(shell pwd)
-export PYTHONPATH := .
+SWIFTNAV_ROOT := $(CURDIR)
 
-ifneq (,$(findstring /cygdrive/,$(PATH)))
-    ifeq (,$(findstring /cygdrive/,$(SWIFTNAV_ROOT)))
-        ifneq (,$(findstring /c/,$(SWIFTNAV_ROOT)))
-            SWIFTNAV_ROOT := /cygdrive$(SWIFTNAV_ROOT)
-        endif
-    endif
-    UNAME := Windows
+ifeq ("$(OS)","Windows_NT")
+UNAME := Windows
 else
-ifneq (,$(findstring WINDOWS,$(PATH)))
-    UNAME := Windows
-else
-    UNAME := $(shell uname -s)
-endif
+UNAME := $(shell uname -s)
 endif
 
 MAKEFLAGS += SWIFTNAV_ROOT=$(SWIFTNAV_ROOT)
@@ -59,7 +49,7 @@ tox_Darwin: tox_all
 
 tox: .conda_py27 .conda_py35
 tox: export PATH:=$(CURDIR)/.conda_py35/bin:$(CURDIR).conda_py27/bin:$(PATH)
-tox: tox_$(shell uname)
+tox: tox_$(UNAME)
 
 test: tox
 
@@ -70,29 +60,18 @@ gen_readme:
 	PYTHONPATH=. piksi_tools/console/console.py -h > piksi_tools/console/README.txt 
 	tail -n +2  piksi_tools/console/README.txt > tmp.txt && mv tmp.txt piksi_tools/console/README.txt
 
-build_console:
+build_console_all:
 	./scripts/build_release.py
 
-build_console_posix:
-	cd $(SWIFTNAV_ROOT)/piksi_tools/console/pyinstaller; \
-	make clean && make; \
-	cd $(SWIFTNAV_ROOT);
-	@echo
-	@echo "Finished! Please check $(SWIFTNAV_ROOT)/piksi_tools/console/pyinstaller."
+build_console_Darwin: export PATH:=$(CURDIR)/.conda_py35/bin:$(CURDIR).conda_py27/bin:$(PATH)
+build_console_Darwin: .conda_py27 .conda_py35
+build_console_Darwin: build_console_all
 
-build_console_Darwin: build_console_posix
+build_console_Linux: build_console_all
 
-build_console_Linux: build_console_posix
+build_console_Windows: build_console_all
 
-build_console_Windows:
-	@echo "$(PATH)"
-	@echo "$(SWIFTNAV_ROOT)"
-	cd $(SWIFTNAV_ROOT)/piksi_tools/console/pyinstaller; \
-	make clean && make; \
-	cd $(SWIFTNAV_ROOT);
-	@echo
-	@echo "Finished! Please check $(SWIFTNAV_ROOT)/piksi_tools/console/pyinstaller."
-
+build_console: build_console_$(UNAME)
 
 release:
 	$(call announce-begin,"Run release boilerplate")
