@@ -203,8 +203,7 @@ function install_python_deps_osx () {
     local conda_env_name
     conda_env_name=$(echo "$ROOT" | sed -e "s@${HOME}/@@" -e 's@/@_@g')
 
-	  conda create -n "$conda_env_name" python=3.5 --yes
-
+    conda create -n "$conda_env_name" python=3.5 --yes
     {
       export PS1=''
 
@@ -219,9 +218,11 @@ function install_python_deps_osx () {
 
     pip install PyQt5==5.10.0
 
-    log_info "To run piksi_tools_tools from source, do the following:"
+    log_info ""
+    log_info "To run piksi_tools from source, do the following:"
     log_info "  source activate ${conda_env_name}"
     log_info "  python piksi_tools/console/console.py"
+    log_info ""
 }
 
 

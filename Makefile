@@ -3,6 +3,7 @@
 # using it to do Crazy Things.
 
 SWIFTNAV_ROOT := $(CURDIR)
+export PYTHONPATH := .
 
 ifeq ("$(OS)","Windows_NT")
 UNAME := Windows
