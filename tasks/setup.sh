@@ -195,6 +195,7 @@ function install_python_deps_osx () {
 
     conda install --yes virtualenv
     conda install --yes pytest
+    conda install --yes swig
 
     pip install --upgrade pip
     pip install tox
