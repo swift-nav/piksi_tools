@@ -691,8 +691,9 @@ class UpdateView(HasTraits):
 
     def log_cb(self, msg, **kwargs):
         for regex in UPGRADE_WHITELIST:
-            if re.match(regex, msg.text.decode('utf8')):
-                text = msg.text.replace("\r", "\n").strip().split("\n")
+            msg_text = msg.text.decode('utf8')
+            if re.match(regex, msg_text):
+                text = msg_text.replace("\r", "\n").strip().split("\n")
                 if len(text) > 1:
                     # upgrade tool deliminates lines in stoud with \r, we want penultimate line that is complete to show
                     text = text[-2]
