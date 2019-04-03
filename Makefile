@@ -41,11 +41,11 @@ deps:
 	conda create -p $(PWD)/.conda_py35 python=3.5 --yes
 
 tox_all:
-	@echo TESTENV=$(TESTENV) TOXENV=$(TOXENV)
+	@echo Using TESTENV=$(TESTENV), TOXENV=$(TOXENV)...
 	tox $(if $(filter y,$(VERBOSE)), -v,)
 
-tox_Darwin: export TESTENV=mac
-tox_Darwin: export TOXENV=py27,gui35
+tox_Darwin: export TESTENV=$(TESTENV)
+tox_Darwin: export TOXENV=$(TOXENV)
 tox_Darwin: tox_all
 
 tox: .conda_py27 .conda_py35
