@@ -12,7 +12,6 @@
 
 from __future__ import print_function
 
-import datetime
 import time
 
 from sbp.observation import (SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B,
@@ -21,7 +20,7 @@ from traits.api import Dict, Float, Int, List, Str
 from traitsui.api import HGroup, Item, UItem, Spring, TabularEditor, VGroup, View
 from traitsui.tabular_adapter import TabularAdapter
 
-from piksi_tools.console.gui_utils import CodeFiltered
+from piksi_tools.console.gui_utils import CodeFiltered, UpdateScheduler
 from piksi_tools.console.utils import (
     EMPTY_STR, GUI_CODES, SUPPORTED_CODES, code_is_gps, code_to_str)
 from piksi_tools.console.gui_utils import GUI_UPDATE_PERIOD
@@ -37,16 +36,15 @@ class SimpleAdapter(TabularAdapter):
 
 
 class ObservationView(CodeFiltered):
-    python_console_cmds = Dict()
+
     Label = Str('')
-    _obs_table_list = List()
-    obs = Dict()
-    old_cp = Dict()
-    new_cp = Dict()
-    old_tow = Float()
-    gps_tow = Float()
-    obs_count = Int()
-    gps_week = Int()
+
+    python_console_cmds = Dict()
+
+    traits_obs_table_list = List()
+    traits_gps_tow = Float()
+    traits_obs_count = Int()
+    traits_gps_week = Int()
 
     for code in SUPPORTED_CODES:
         vars()['count_{}'.format(code)] = Int()
@@ -61,7 +59,7 @@ class ObservationView(CodeFiltered):
                 emphasized=True,
                 width=-1, padding=-1, height=-1, style_sheet='*{font-size:1px}',
                 tooltip='GPS Week Number (since 1980'),
-            Item('gps_week', style='readonly', show_label=False),
+            Item('traits_gps_week', style='readonly', show_label=False),
             Item(
                 'Label',
                 label='  TOW:',
@@ -70,7 +68,7 @@ class ObservationView(CodeFiltered):
                 emphasized=True,
                 tooltip='GPS milliseconds in week'),
             Item(
-                'gps_tow',
+                'traits_gps_tow',
                 style='readonly',
                 show_label=False,
                 height=-1,
@@ -82,7 +80,7 @@ class ObservationView(CodeFiltered):
                 emphasized=True,
                 width=-1, height=-1, padding=-1, style_sheet='*{font-size:1px}',
                 tooltip='Total observation count'),
-            Item('obs_count', style='readonly', show_label=False),
+            Item('traits_obs_count', style='readonly', show_label=False),
             padding=0, springy=False
         )
         filters = HGroup(padding=0, springy=False)
@@ -115,7 +113,7 @@ class ObservationView(CodeFiltered):
                 info,
                 filters,
                 Item(
-                    '_obs_table_list',
+                    'traits_obs_table_list',
                     style='readonly',
                     editor=TabularEditor(adapter=SimpleAdapter()),
                     show_label=False),
@@ -123,19 +121,21 @@ class ObservationView(CodeFiltered):
                 padding=0,
                 show_border=True))
 
-    def update_obs(self):
-        self.obs_count = len(self.obs)
-        self._obs_table_list = [
+    def update_obs(self, obs_update):
+        self.traits_obs_count = len(obs_update)
+        self.traits_obs_table_list = [
             ('{} ({})'.format(svid[0], code_to_str(svid[1])),) + obs
-            for svid, obs in sorted(self.obs.items())
+            for svid, obs in sorted(obs_update.items())
             if getattr(self, 'show_{}'.format(svid[1]), True)
         ]
-
         for code in SUPPORTED_CODES:
             setattr(self, 'count_{}'.format(code),
-                    len([key for key in self.obs.keys() if key[1] == code]))
+                    len([key for key in obs_update.keys() if key[1] == code]))
             if getattr(self, 'count_{}'.format(code)) != 0 and code not in self.received_codes:
                 self.received_codes.append(code)
+
+    def gui_update_tow(self, tow):
+        self.traits_gps_tow = tow
 
     def obs_packed_callback(self, sbp_msg, **metadata):
         if (sbp_msg.sender is not None and (self.relay ^ (sbp_msg.sender == 0))):
@@ -147,6 +147,7 @@ class ObservationView(CodeFiltered):
         count = seq & ((1 << 4) - 1)
 
         def reset():
+            self.update_scheduler.schedule_update('tow', self.gui_update_tow, tow)
             self.old_tow = self.gps_tow
             self.gps_tow = tow
             self.gps_week = wn
@@ -201,6 +202,7 @@ class ObservationView(CodeFiltered):
                 flags = o.flags
                 msdopp = float(o.D.i) + float(o.D.f) / (1 << 8)
                 self.gps_tow += sbp_msg.header.t.ns_residual * 1e-9
+                self.update_scheduler.schedule_update('tow', self.gui_update_tow, self.gps_tow)
 
             try:
                 ocp = self.old_cp[prn]
@@ -275,14 +277,9 @@ class ObservationView(CodeFiltered):
                                       cpdopp_str, lock_str, flags_str)
 
         if (count == total - 1):
-            self.t = (datetime.datetime(1980, 1, 6) +
-                      datetime.timedelta(weeks=self.gps_week) +
-                      datetime.timedelta(seconds=self.gps_tow))
-            self.obs.clear()
-            self.obs.update(self.incoming_obs)
             # this is here to let GUI catch up to real time if required
             if time.time() - self.last_table_update_time > GUI_UPDATE_PERIOD:
-                self.update_obs()
+                self.update_scheduler.schedule_update('update_obs', self.update_obs, self.incoming_obs.copy())
                 self.last_table_update_tow = self.gps_tow
                 self.last_table_update_time = time.time()
         return
@@ -292,10 +289,11 @@ class ObservationView(CodeFiltered):
         self.dirname = dirname
         self.last_table_update_tow = 0
         self.last_table_update_time = 0
-        self.obs = {}
+        self.old_cp = {}
+        self.new_cp = {}
         self.incoming_obs = {}
-        self.obs_count = 0
         self.gps_tow = 0.0
+        self.old_tow = 0.0
         self.gps_week = 0
         self.relay = relay
         self.name = name
@@ -309,3 +307,6 @@ class ObservationView(CodeFiltered):
         self.python_console_cmds = {'obs': self}
         self.prev_obs_count = 0
         self.prev_obs_total = 0
+        self.traits_obs_count = 0
+        self.traits_gps_tow = 0.0
+        self.update_scheduler = UpdateScheduler()
