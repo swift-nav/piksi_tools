@@ -225,6 +225,9 @@ function install_python_deps_osx () {
     log_info "  source activate ${conda_env_name}"
     log_info "  python piksi_tools/console/console.py"
     log_info ""
+    log_info "To deactivate the conda Python environment, do the following:"
+    log_info "  conda deactivate"
+    log_info ""
 }
 
 
