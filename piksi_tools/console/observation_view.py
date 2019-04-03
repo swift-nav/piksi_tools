@@ -12,7 +12,6 @@
 
 from __future__ import print_function
 
-import datetime
 import time
 
 from sbp.observation import (SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B,
