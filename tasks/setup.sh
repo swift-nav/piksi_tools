@@ -205,8 +205,12 @@ function install_python_deps_osx () {
 
 	  conda create -n "$conda_env_name" python=3.5 --yes
 
-    eval "$(conda shell.bash hook)"
-    PS1='' source activate "$conda_env_name"
+    {
+      export PS1=''
+
+      eval "$(conda shell.bash hook)"
+      source activate "$conda_env_name"
+    }
 
     pip install -r "$ROOT/requirements_dev.txt"
     pip install -r "$ROOT/requirements.txt"

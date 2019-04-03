@@ -44,7 +44,9 @@ matrix:
      language: python
      python: 3.5
      env: TESTENV=build_console
-     before_install: make deps
+     before_install:
+       - make deps
+       - pip install -r requirements_dev.txt
      script: make build_console
 
    - os: osx
@@ -62,6 +64,7 @@ matrix:
      language: python
      python: 3.5
      env: TESTENV=flake8
+     before_install: pip install -r requirements_dev.txt
      script: tox -vv -e flake8
 
 addons:
