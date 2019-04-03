@@ -581,7 +581,7 @@ class FileIO(object):
         chunk_buf = bytearray(filename_len + null_sep_len + chunksize)
 
         chunk_buf[0:filename_len] = filename
-        chunk_buf[filename_len] = b'\x00'
+        chunk_buf[filename_len] = ord(b'\x00')
 
         chunk_offset = filename_len + null_sep_len
 
