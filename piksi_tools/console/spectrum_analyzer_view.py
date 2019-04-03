@@ -13,11 +13,12 @@ import struct
 import numpy as np
 from chaco.api import ArrayPlotData, Plot
 from enable.api import ComponentEditor
-from pyface.api import GUI
 from sbp.client.util.fftmonitor import FFTMonitor
 from sbp.piksi import SBP_MSG_SPECAN, SBP_MSG_SPECAN_DEP
 from traits.api import Dict, HasTraits, Instance, Str
 from traitsui.api import EnumEditor, Item, View, HGroup, Spring
+
+from .gui_utils import UpdateScheduler
 
 # How many points are in each FFT?
 NUM_POINTS = 512
@@ -120,7 +121,7 @@ class SpectrumAnalyzerView(HasTraits):
             self.fftmonitor.clear_ffts()
             self.most_recent_complete_data['frequencies'] = most_recent_fft['frequencies']
             self.most_recent_complete_data['amplitudes'] = most_recent_fft['amplitudes']
-            GUI.invoke_later(self.update_plot)
+            self.update_scheduler.schedule_update('update_plot', self.update_plot)
 
     def update_plot(self):
         most_recent_fft = self.most_recent_complete_data
@@ -163,3 +164,5 @@ class SpectrumAnalyzerView(HasTraits):
         self.plot_data.set_data('amplitude', [0])
         self.plot.plot(
             ('frequency', 'amplitude'), type='line', name='spectrum')
+
+        self.update_scheduler = UpdateScheduler()

@@ -66,8 +66,7 @@ function install_dev_libs(){
       libglu1-mesa-dev \
       libx11-dev \
       python2.7-dev \
-      python-qt4-dev \
-      pyqt4-dev-tools \
+      python3.5-dev \
       qt4-qmake \
       qt4-default \
       qt4-dev-tools \
@@ -107,17 +106,11 @@ function install_pyside() {
     fi
 }
 
-function install_pyqt4() {
-    sudo apt-get install -y python-sip python-qt4 python-qt4-gl
-    sudo apt-get install -y python3-sip python3-pyqt4 python3-pyqt4.qtopengl
-    bash copy_pyqt_to_venv.sh
-}
-
 function all_dependencies_debian () {
     sudo apt-get install git \
          build-essential \
-         python \
-         python3 \
+         python2.7 \
+         python3.5 \
          python-setuptools \
          python-virtualenv \
          swig
@@ -145,7 +138,16 @@ function all_dependencies_debian () {
     pip install PyInstaller
     pip install -r ../requirements.txt
     pip install -r ../requirements_gui.txt
-    install_pyqt4
+
+    python_version=`python --version 2>&1`
+    if [[ ${python_version} == *"2.7"* ]]; then
+        install_pyside
+    elif [[ ${python_version} == *"3"* ]]; then
+        pip install pyqt5==5.10.0
+    else
+        echo "unsupported python version"
+        exit 1
+    fi
 }
 
 

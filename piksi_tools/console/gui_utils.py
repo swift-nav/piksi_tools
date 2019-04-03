@@ -9,6 +9,9 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 import numpy as np
+
+from pyface.api import GUI
+
 from traits.api import Bool, HasTraits, List
 from traitsui.api import HGroup, VGroup, Item, TextEditor
 
@@ -16,6 +19,31 @@ from piksi_tools.console.utils import SUPPORTED_CODES, GUI_CODES, code_to_str
 
 GUI_UPDATE_PERIOD = 0.2
 STALE_DATA_PERIOD = 0.8
+
+
+class UpdateScheduler(object):
+    '''Allows scheduling a GUI update to happen later on the GUI thread'''
+
+    def __init__(self):
+        self._update_funcs = {}
+
+    def schedule_update(self, ident, update_func, *args):
+        '''Schedule a GUI update'''
+
+        def _wrap_update():
+            update_funcs = self._update_funcs.copy()
+            self._update_funcs.clear()
+            for update in update_funcs.values():
+                update_func, args = update
+                update_func(*args)
+            if self._update_funcs:
+                GUI.invoke_later(_wrap_update)
+
+        if not self._update_funcs:
+            self._update_funcs[ident] = (update_func, args)
+            GUI.invoke_later(_wrap_update)
+        else:
+            self._update_funcs[ident] = (update_func, args)
 
 
 class MultilineTextEditor(TextEditor):

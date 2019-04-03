@@ -19,7 +19,6 @@ import threading
 from collections import deque
 
 import numpy as np
-from pyface.api import GUI
 from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import PanTool, ZoomTool
 from enable.api import ComponentEditor
@@ -44,7 +43,7 @@ from piksi_tools.console.utils import (
     mode_dict)
 from piksi_tools.utils import sopen
 from .utils import resource_filename
-from .gui_utils import GUI_UPDATE_PERIOD, STALE_DATA_PERIOD
+from .gui_utils import GUI_UPDATE_PERIOD, STALE_DATA_PERIOD, UpdateScheduler
 
 PLOT_HISTORY_MAX = 1000
 
@@ -411,7 +410,7 @@ class SolutionView(HasTraits):
         # Updating array plot data is not thread safe, so we have to fire an event
         # and have the GUI thread do it
         if time.time() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
-            GUI.invoke_later(self._solution_draw)
+            self.update_scheduler.schedule_update('_solution_draw', self._solution_draw)
 
     def _display_units_changed(self):
         # we store current extents of plot and current scalefactlrs
@@ -879,7 +878,5 @@ class SolutionView(HasTraits):
         self.nsec = 0
         self.meters_per_lat = None
         self.meters_per_lon = None
-
-        self.python_console_cmds = {
-            'solution': self,
-        }
+        self.python_console_cmds = {'solution': self}
+        self.update_scheduler = UpdateScheduler()
