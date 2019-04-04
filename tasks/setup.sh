@@ -20,6 +20,8 @@
 ####################################################################
 ## Utilities.
 
+ROOT=$( (cd "$(dirname "$0")/.." || exit 1 >/dev/null; pwd -P) )
+
 function color () {
     # Print with color.
     printf '\033[%sm%s\033[m\n' "$@"
@@ -170,38 +172,9 @@ function piksi_splash_osx () {
     "
 }
 
-function homebrew_install () {
-    # Provides homebrew for OS X and fixes permissions for brew
-    # access. Run this if you need to install brew by:
-    #    source ./setup.sh
-    #    homebrew_install
-    ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-    brew doctor
-    brew update
-    # Homebrew apparently requires the contents of /usr/local to be
-    # chown'd to your username.  See:
-    # http://superuser.com/questions/254843/cant-install-brew-formulae-correctly-permission-denied-in-usr-local-lib
-    sudo chown -R "$(whoami)" /usr/local
-}
-
 function bootstrap_osx () {
-    sw_vers
     log_info "Checking base OS X development tools..."
-    # Download and install Homebrew
-    if [[ ! -x /usr/local/bin/brew ]]; then
-        log_info "Installing homebrew..."
-        homebrew_install
-    fi
-    brew update
-    brew upgrade
-    brew install openssl
-    brew link openssl
-}
-
-function install_swig_osx () {
-    log_info "Installing swig...."
-    brew install https://gist.github.com/denniszollo/e09e8b074d6699d77937483b899129ee/raw/7c43bc024053d74bb604488e457f9eb3a4e6a45c/swig@2.rb
-    brew link --overwrite --force swig2
+    sw_vers
 }
 
 function install_python_deps_osx () {
@@ -209,27 +182,52 @@ function install_python_deps_osx () {
     # python dependencies.
     log_info "Installing Python dependencies..."
 
-    if [[ ! -x /usr/local/bin/python ]]; then 
-      brew install python@2 --framework --with-brewed-openssl 2>&1 || :
+    if ! command -v conda; then
+
+      log_info "Installing conda..."
+
+      curl -sSL https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh \
+        -o install_miniconda.sh
+      bash ./install_miniconda.sh -- -b
     fi
 
-    brew install python@2
-    brew link python@2 --force
+    conda update --yes conda
+
+    conda install --yes \
+      virtualenv \
+      pytest \
+      swig \
+      six
 
     pip install --upgrade pip
-    brew tap-unpin cartr/qt4 | true # If brew tap-pin is run twice, it errors.
-    brew untap cartr/qt4 | true     # If brew tap is run twice, it errors.
-    brew tap cartr/qt4
-    brew tap-pin cartr/qt4
-    brew install qt@4 shiboken@1.2 qt-webkit@2.3
-    brew install libftdi sip --force 2>&1 || :
-    
-    pip install -r ../requirements.txt
-    pip install -r ../requirements_gui.txt
-    pip install PySide==1.2.2
-    curl -O https://raw.githubusercontent.com/PySide/pyside-setup/1.2.2/pyside_postinstall.py
-    python pyside_postinstall.py -install
-    pip install PyInstaller==3.2.1
+    pip install tox
+
+    local conda_env_name
+    conda_env_name=$(echo "$ROOT" | sed -e "s@${HOME}/@@" -e 's@/@_@g')
+
+    conda create -n "$conda_env_name" python=3.5 --yes
+    {
+      export PS1=''
+
+      eval "$(conda shell.bash hook)"
+      source activate "$conda_env_name"
+    }
+
+    pip install -r "$ROOT/requirements_dev.txt"
+    pip install -r "$ROOT/requirements.txt"
+    pip install -r "$ROOT/requirements_gui.txt"
+    pip install -e "$ROOT"
+
+    pip install PyQt5==5.10.0
+
+    log_info ""
+    log_info "To run piksi_tools from source, do the following:"
+    log_info "  source activate ${conda_env_name}"
+    log_info "  python piksi_tools/console/console.py"
+    log_info ""
+    log_info "To deactivate the conda Python environment, do the following:"
+    log_info "  conda deactivate"
+    log_info ""
 }
 
 
@@ -248,11 +246,8 @@ function run_all_platforms () {
     elif [[ "$OSTYPE" == "darwin"* ]]; then
         piksi_splash_osx
         log_info "Checking system dependencies for OSX..."
-        log_info "Please enter your password..."
         log_info ""
-        bootstrap_osx &&
-            install_swig_osx &&
-            install_python_deps_osx
+        bootstrap_osx && install_python_deps_osx
     else
         log_error "This script does not support this platform. Please contact dev@swiftnav.com."
         exit 1
