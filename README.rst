@@ -43,17 +43,16 @@ To run the installed console from the current env, use ``python -m piksi_tools.c
 Python version support
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The most important command line tools - ``bootload_v3.py``, ``fileio.py``,
-``serial_link.py``, and ``settings.py`` - support Python 2.7, 3.5, and 3.7
-under Linux. Console GUI under Linux supports 2.7 and 3.5. Note that at this
-stage Python 3 support is still somewhat experimental.
+* The most important command line tools - ``bootload_v3.py``, ``fileio.py``,
+  ``serial_link.py``, and ``settings.py`` - support Python 2.7, 3.5, and 3.7
 
-Command line tools under MacOS support Python 2.7 and 3.7, GUI is only tested
-against 2.7. Windows is Python 2.7 -only. Full 3.x support for these platforms
-will be added later on.
+* Console GUI under Linux supports 2.7 and 3.5
 
-Pre-built binaries for Linux use Python 3.5. Pre-built binaries for MacOS and
-Windows use Python 2.7.
+* Console GUI under MacOS and Windows is tested against Python 3.5 but probably
+  would support all versions that Linux GUI supports, but some of those might
+  need a manual GUI backend change/installation
+
+* Pre-built (pyinstaller) binaries for all platforms use Python 3.5
 
 Usage Examples
 --------------
