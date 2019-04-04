@@ -82,12 +82,18 @@ IF %PYTHON_ARCH% == 64 (
         call %COMMAND_TO_RUN% || EXIT 1
     )
 ) ELSE (
-    ECHO Using default MSVC build environment for 32 bit architecture
-        SET DISTUTILS_USE_SDK=1
-        SET MSSdk=1
-        "%WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Setup\WindowsSdkVer.exe" -q -version:%WINDOWS_SDK_VERSION%
-        "%WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Bin\SetEnv.cmd" /x86 /release
-    ECHO Executing: %COMMAND_TO_RUN%
-    SET TOX_TESTENV_PASSENV=DISTUTILS_USE_SDK MSSdk INCLUDE LIB
-    call %COMMAND_TO_RUN% || EXIT 1
+    IF %SET_SDK_64% == N (
+        ECHO Using default MSVC build environment for Python 3.5+ on a 32 bit architecture
+        ECHO Executing: %COMMAND_TO_RUN%
+        call %COMMAND_TO_RUN% || EXIT 1
+    ) ELSE (
+        ECHO Using default MSVC build environment for 32 bit architecture
+            SET DISTUTILS_USE_SDK=1
+            SET MSSdk=1
+            "%WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Setup\WindowsSdkVer.exe" -q -version:%WINDOWS_SDK_VERSION%
+            "%WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Bin\SetEnv.cmd" /x86 /release
+        ECHO Executing: %COMMAND_TO_RUN%
+        SET TOX_TESTENV_PASSENV=DISTUTILS_USE_SDK MSSdk INCLUDE LIB
+        call %COMMAND_TO_RUN% || EXIT 1
+    )
 )
