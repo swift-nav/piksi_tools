@@ -7,7 +7,7 @@ import sys
 import io
 
 import numpy as np
-import ujson
+import json
 
 from sbp.jit import msg
 from sbp.jit.table import dispatch
@@ -16,6 +16,19 @@ from sbp import msg as msg_nojit
 from sbp.table import dispatch as dispatch_nojit
 
 NORM = os.environ.get('NOJIT') is not None
+
+
+class SbpJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.float32) or isinstance(obj, np.float64):
+            ret = float(repr(obj))
+            if ret.is_integer():
+                ret = int(ret)
+            return ret
+        elif isinstance(obj, bytes):
+            return obj.decode('ascii')
+        # Let the base class default method raise the TypeError
+        return json.JSONEncoder.default(self, obj)
 
 
 def main():
@@ -52,20 +65,26 @@ def main():
                 except StreamError:
                     break
                 m = dispatch_nojit(m)
-                sys.stdout.write(ujson.dumps(m.to_json_dict()))
+                sys.stdout.write(json.dumps(m.to_json_dict(),
+                                            allow_nan=False,
+                                            sort_keys=True,
+                                            separators=(',', ':')))
                 consumed = header_len + m.length + 2
             else:
                 consumed, payload_len, msg_type, sender, crc, crc_fail = \
                     msg.SBP.unpack_payload(buf, unconsumed_offset, (read_offset - unconsumed_offset))
-                if crc_fail:
-                    sys.stderr.write("*** CRC FAILURE ***\n")
-                    sys.stderr.flush()
-                if msg_type != 0:
+
+                if not crc_fail and msg_type != 0:
                     payload = buf[unconsumed_offset + header_len:unconsumed_offset + header_len + payload_len]
                     m = dispatch(msg_type)(msg_type, sender, payload_len, payload, crc)
                     res, offset, length = m.unpack(buf, unconsumed_offset + header_len, payload_len)
-                    sys.stdout.write(ujson.dumps(res))
+                    sys.stdout.write(json.dumps(res,
+                                                allow_nan=False,
+                                                sort_keys=True,
+                                                separators=(',', ':'),
+                                                cls=SbpJSONEncoder))
                     sys.stdout.write("\n")
+
                 if consumed == 0:
                     break
             unconsumed_offset += consumed
