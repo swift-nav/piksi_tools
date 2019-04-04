@@ -5,19 +5,10 @@
 SWIFTNAV_ROOT := $(CURDIR)
 export PYTHONPATH := .
 
-ifneq (,$(findstring /cygdrive/,$(PATH)))
-    ifeq (,$(findstring /cygdrive/,$(SWIFTNAV_ROOT)))
-        ifneq (,$(findstring /c/,$(SWIFTNAV_ROOT)))
-            SWIFTNAV_ROOT := /cygdrive$(SWIFTNAV_ROOT)
-        endif
-    endif
-    UNAME := Windows
+ifeq ("$(OS)","Windows_NT")
+UNAME := Windows
 else
-ifneq (,$(findstring WINDOWS,$(PATH)))
-    UNAME := Windows
-else
-    UNAME := $(shell uname -s)
-endif
+UNAME := $(shell uname -s)
 endif
 
 MAKEFLAGS += SWIFTNAV_ROOT=$(SWIFTNAV_ROOT)
@@ -43,6 +34,26 @@ all: deps
 deps:
 	cd $(SWIFTNAV_ROOT)/tasks && bash setup.sh && cd $(SWIFTNAV_ROOT)
 
+.conda_py27:
+	conda create -p $(PWD)/.conda_py27 python=2.7 --yes
+
+.conda_py35:
+	conda create -p $(PWD)/.conda_py35 python=3.5 --yes
+
+tox_all:
+	@echo Using TESTENV=$(TESTENV), TOXENV=$(TOXENV)...
+	tox $(if $(filter y,$(VERBOSE)), -v,)
+
+tox_Darwin: export TESTENV:=$(TESTENV)
+tox_Darwin: export TOXENV:=$(TOXENV)
+tox_Darwin: tox_all
+
+tox: .conda_py27 .conda_py35
+tox: export PATH:=$(CURDIR)/.conda_py35/bin:$(CURDIR).conda_py27/bin:$(PATH)
+tox: tox_$(UNAME)
+
+test: tox
+
 serial_deps:
 	pip install -r requirements.txt
 
@@ -50,8 +61,18 @@ gen_readme:
 	PYTHONPATH=. piksi_tools/console/console.py -h > piksi_tools/console/README.txt 
 	tail -n +2  piksi_tools/console/README.txt > tmp.txt && mv tmp.txt piksi_tools/console/README.txt
 
-build_console:
-	./scripts/build_release.py
+build_console_all:
+	python ./scripts/build_release.py
+
+build_console_Darwin: export PATH:=$(CURDIR)/.conda_py35/bin:$(CURDIR).conda_py27/bin:$(PATH)
+build_console_Darwin: .conda_py27 .conda_py35
+build_console_Darwin: build_console_all
+
+build_console_Linux: build_console_all
+
+build_console_Windows: build_console_all
+
+build_console: build_console_$(UNAME)
 
 release:
 	$(call announce-begin,"Run release boilerplate")

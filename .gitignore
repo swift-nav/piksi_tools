@@ -82,3 +82,7 @@ swift_nap_*.hex
 
 # IDE files
 .vscode/
+
+# Conda
+.conda_py27
+.conda_py35
