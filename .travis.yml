@@ -44,30 +44,28 @@ matrix:
      language: python
      python: 3.5
      env: TESTENV=build_console
-     before_install: make deps
+     before_install:
+       - make deps
+       - pip install -r requirements_dev.txt
      script: make build_console
 
    - os: osx
      osx_image: Xcode 8.3.3
-     env: TESTENV=mac TOXENV=py27,py37
      language: generic
+     env: TESTENV=mac TOXENV=py27,py35,py37,gui35
      before_install:
-        - export PATH="/usr/local/opt/python@2/libexec/bin:$PATH"
+        - export PATH="/Users/travis/miniconda3/bin:$PATH"
         - make deps
-     before_script:
-        - export PATH="/usr/local/bin/:./:$PATH"
-        - export DISPLAY=:0.0
-        - Xvfb ${DISPLAY} -screen 0 800x600x16 & PID=$!
-        - sleep 3  # give xvfb some time to start
      script:
-        - tox -v
-        - py.test -vs tests/test_console.py
+        - export PATH="/Users/travis/miniconda3/bin:$PATH"
+        - make tox VERBOSE=y
         - make build_console
 
    - os: linux
      language: python
      python: 3.5
      env: TESTENV=flake8
+     before_install: pip install -r requirements_dev.txt
      script: tox -vv -e flake8
 
 addons:
