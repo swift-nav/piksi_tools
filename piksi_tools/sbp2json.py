@@ -19,8 +19,59 @@ NORM = os.environ.get('NOJIT') is not None
 
 
 class SbpJSONEncoder(json.JSONEncoder):
+    # Overwrite for json.JSONEncoder.iterencode()
+    def iterencode(self, o, _one_shot=False):
+        """Encode the given object and yield each string
+        representation as available.
+        For example::
+            for chunk in JSONEncoder().iterencode(bigobject):
+                mysocket.write(chunk)
+        """
+        if self.check_circular:
+            markers = {}
+        else:
+            markers = None
+        if self.ensure_ascii:
+            _encoder = json.encoder.encode_basestring_ascii
+        else:
+            _encoder = json.encoder.encode_basestring
+
+        def floatstr(o, allow_nan=self.allow_nan,
+                     _repr=float.__repr__, _inf=float('inf'), _neginf=-float('inf')):
+            # Check for specials.  Note that this type of test is processor
+            # and/or platform-specific, so do tests which don't depend on the
+            # internals.
+            if o != o:
+                text = 'NaN'
+            elif o == _inf:
+                text = 'Infinity'
+            elif o == _neginf:
+                text = '-Infinity'
+            elif o.is_integer():
+                return str(int(o))
+            elif abs(o) < 0.1 or abs(o) > 9999999:
+                # GHC uses showFloat to print which will result in the
+                # scientific notation whenever the absolute value is outside the
+                # range between 0.1 and 9,999,999.
+                return str(np.format_float_scientific(o, exp_digits=1))
+            else:
+                return _repr(o)
+
+            if not allow_nan:
+                raise ValueError(
+                    "Out of range float values are not JSON compliant: " +
+                    repr(o))
+
+            return text
+
+        _iterencode = json.encoder._make_iterencode(
+            markers, self.default, _encoder, self.indent, floatstr,
+            self.key_separator, self.item_separator, self.sort_keys,
+            self.skipkeys, _one_shot)
+        return _iterencode(o, 0)
+
     def default(self, obj):
-        if isinstance(obj, np.float32) or isinstance(obj, np.float64):
+        if isinstance(obj, np.float32):
             ret = float(repr(obj))
             if ret.is_integer():
                 ret = int(ret)
