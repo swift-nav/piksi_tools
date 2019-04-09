@@ -382,11 +382,11 @@ class SolutionView(HasTraits):
                 pos_table.append(('UTC Src', EMPTY_STR))
 
             pos_table.append(('Sats Used', soln.n_sats))
-            pos_table.append(('Lat', soln.lat))
-            pos_table.append(('Lng', soln.lon))
+            pos_table.append(('Lat', "{:.12g}".format(soln.lat)))
+            pos_table.append(('Lng', "{:.12g}".format(soln.lon)))
             pos_table.append(('Height', "{0:.3f}".format(soln.height)))
-            pos_table.append(('Horiz Acc', soln.h_accuracy))
-            pos_table.append(('Vert Acc', soln.v_accuracy))
+            pos_table.append(('Horiz Acc', "{:.12g}".format(soln.h_accuracy)))
+            pos_table.append(('Vert Acc', "{:.12g}".format(soln.v_accuracy)))
 
         pos_table.append(('Pos Flags', '0x%03x' % soln.flags))
         pos_table.append(('INS Used', '{}'.format(self.ins_used)))
