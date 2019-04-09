@@ -26,7 +26,6 @@ from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.image_resource import ImageResource
 from sbp.ext_events import SBP_MSG_EXT_EVENT, MsgExtEvent
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP
-from sbp.navigation import SBP_MSG_POS_LLH
 from sbp.piksi import SBP_MSG_COMMAND_RESP, MsgCommandResp, MsgReset
 from sbp.system import SBP_MSG_HEARTBEAT
 from traits.api import (Bool, Dict, Directory, Enum, HasTraits, Instance, Int,

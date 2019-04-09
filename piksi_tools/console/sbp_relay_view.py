@@ -11,27 +11,19 @@
 
 from __future__ import print_function
 
-import threading
-import time
-
-from sbp.client.forwarder import Forwarder
-from sbp.client.framer import Framer
-from sbp.client.handler import Handler
 from sbp.client.loggers.udp_logger import UdpLogger
 from sbp.observation import (SBP_MSG_BASE_POS_ECEF, SBP_MSG_BASE_POS_LLH,
                              SBP_MSG_OBS, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C)
 from sbp.piksi import (SBP_MSG_NETWORK_STATE_RESP, MsgNetworkStateReq)
 from traits.api import Bool, Button, Enum, HasTraits, Int, String, List, \
     Instance
-from traitsui.api import (HGroup, Item, Spring, TextEditor, UItem, VGroup,
+from traitsui.api import (HGroup, Item, TextEditor, UItem, VGroup,
                           View, spring, TabularEditor)
 from traitsui.tabular_adapter import TabularAdapter
 
 from piksi_tools.console.callback_prompt import CallbackPrompt, close_button
 from piksi_tools.console.gui_utils import MultilineTextEditor
 from piksi_tools.console.cellmodem_view import CellModemView
-from piksi_tools.serial_link import (CHANNEL_UUID, DEFAULT_BASE, get_uuid,
-                                     swriter)
 from traits.etsconfig.api import ETSConfig
 from .utils import resource_filename, sizeof_fmt
 
@@ -195,31 +187,6 @@ class SbpRelayView(HasTraits):
             self.msgs = [None]
         else:
             raise NotImplementedError
-
-    def set_route(self, uuid=None, serial_id=None, channel=CHANNEL_UUID):
-        """Sets serial_id hash for HTTP headers.
-
-        Parameters
-        ----------
-        uuid: str
-          real uuid of device
-        serial_id : int
-          Piksi device ID
-        channel : str
-          UUID namespace for device UUID
-
-        """
-        if uuid:
-            device_uid = uuid
-        elif serial_id:
-            device_uid = str(get_uuid(channel, serial_id % 1000))
-        else:
-            print(
-                "Improper call of set_route, either a serial number or UUID should be passed"
-            )
-            device_uid = str(get_uuid(channel, 1234))
-            print("Setting UUID to default value of {0}".format(device_uid))
-        self.device_uid = device_uid
 
     def _prompt_setting_error(self, text):
         """Nonblocking prompt for a device setting error.
