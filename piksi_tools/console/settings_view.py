@@ -598,8 +598,8 @@ class SettingsView(HasTraits):
         # iterate over nested dict and set inner value to a bare string rather than dict
         for section in self.settings:
             settings_out[section] = {}
-            for setting, inner_dict in self.settings[section].iteritems():
-                settings_out[section][setting] = str(inner_dict.value)
+            for name, inner_dict in self.settings[section].items():
+                settings_out[section][name] = str(inner_dict.value)
         # write out with config parser
         parser = configparser.RawConfigParser()
         # the optionxform is needed to handle case sensitive settings
