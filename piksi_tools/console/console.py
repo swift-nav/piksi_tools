@@ -93,13 +93,6 @@ def get_args():
         action='store_true',
         help="Log console stdout/err to file.")
     parser.add_argument(
-        '--networking',
-        default=None,
-        const='{}',
-        nargs='?',
-        help="key value pairs to pass to sbp_relay_view initializer for network"
-    )
-    parser.add_argument(
         '-h',
         '--help',
         action='store_true',
@@ -593,7 +586,6 @@ class SwiftConsole(HasTraits):
                  log_dirname=None,
                  override_filename=None,
                  log_console=False,
-                 networking=None,
                  connection_info=None,
                  expand_json=False
                  ):
@@ -667,25 +659,7 @@ class SwiftConsole(HasTraits):
             self.spectrum_analyzer_view = SpectrumAnalyzerView(self.link)
             settings_read_finished_functions.append(
                 self.update_view.compare_versions)
-            if networking:
-                from ruamel.yaml import YAML
-                yaml = YAML(typ='safe')
-                try:
-                    networking_dict = yaml.load(networking)
-                    networking_dict.update({'show_networking': True})
-                except yaml.YAMLError:
-                    print(
-                        "Unable to interpret networking cmdline argument.  It will be ignored."
-                    )
-                    import traceback
-                    print(traceback.format_exc())
-                    networking_dict = {'show_networking': True}
-            else:
-                networking_dict = {}
-            networking_dict.update({
-                'whitelist': [SBP_MSG_POS_LLH, SBP_MSG_HEARTBEAT]
-            })
-            self.networking_view = SbpRelayView(self.link, **networking_dict)
+            self.networking_view = SbpRelayView(self.link)
             self.json_logging = json_logging
             self.csv_logging = False
             self.first_json_press = True
@@ -711,9 +685,6 @@ class SwiftConsole(HasTraits):
                     pass
                 if mfg_id:
                     self.device_serial = 'PK' + str(mfg_id)
-                self.networking_view.set_route(uuid=self.uuid, serial_id=mfg_id)
-                if self.networking_view.connect_when_uuid_received:
-                    self.networking_view._connect_rover_fired()
 
             settings_read_finished_functions.append(update_serial)
             self.settings_view = SettingsView(
@@ -941,7 +912,6 @@ def main():
                     log_dirname=args.log_dirname,
                     override_filename=args.logfilename,
                     log_console=args.log_console,
-                    networking=args.networking,
                     connection_info=cnx_data.connection_info,
                     expand_json=args.expand_json) as console:
 

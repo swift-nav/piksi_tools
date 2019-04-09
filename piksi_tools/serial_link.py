@@ -22,7 +22,6 @@ import uuid
 import serial.tools.list_ports
 from sbp.client import Forwarder, Framer, Handler
 from sbp.client.drivers.cdc_driver import CdcDriver
-from sbp.client.drivers.network_drivers import HTTPDriver
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.file_driver import FileDriver
@@ -147,8 +146,6 @@ def get_args():
         default=CHANNEL_UUID,
         help="Networking channel ID.")
     parser.add_argument("-s", "--serial_id", default=None, help="Device ID.")
-    parser.add_argument(
-        "-x", "--broker", action="store_true", help="Used brokered SBP data.")
     parser.add_argument(
         "--timeout",
         default=None,
@@ -379,7 +376,6 @@ def main(args):
     channel = args.channel_id
     serial_id = int(args.serial_id) if args.serial_id is not None else None
     base = args.base
-    use_broker = args.broker
     # Driver with context
     driver = get_base_args_driver(args)
     with Handler(Framer(driver.read,
@@ -395,18 +391,7 @@ def main(args):
             link.add_callback(printer, SBP_MSG_PRINT_DEP)
             link.add_callback(log_printer, SBP_MSG_LOG)
             Forwarder(link, logger).start()
-            if use_broker and base and serial_id:
-                device_id = get_uuid(channel, serial_id)
-                with HTTPDriver(str(device_id), base) as http:
-                    with Handler(
-                            Framer(http.read,
-                                   http.write,
-                                   args.verbose,
-                                   skip_metadata=args.skip_metadata)) as slink:
-                        Forwarder(slink, swriter(link)).start()
-                        run(args, link)
-            else:
-                run(args, link)
+            run(args, link)
 
 
 if __name__ == "__main__":
