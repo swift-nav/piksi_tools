@@ -9,6 +9,8 @@ import io
 import numpy as np
 import json
 
+import decimal as dec
+
 from sbp.jit import msg
 from sbp.jit.table import dispatch
 
@@ -16,6 +18,8 @@ from sbp import msg as msg_nojit
 from sbp.table import dispatch as dispatch_nojit
 
 NORM = os.environ.get('NOJIT') is not None
+
+dec.getcontext().rounding = dec.ROUND_HALF_UP
 
 
 class SbpJSONEncoder(json.JSONEncoder):
@@ -52,10 +56,21 @@ class SbpJSONEncoder(json.JSONEncoder):
             elif abs(o) < 0.1 or abs(o) > 9999999:
                 # GHC uses showFloat to print which will result in the
                 # scientific notation whenever the absolute value is outside the
-                # range between 0.1 and 9,999,999.
-                return str(np.format_float_scientific(o, exp_digits=1))
+                # range between 0.1 and 9,999,999. Numpy wants to put '+' after
+                # exponent sign, strip it. Use decimal module to control
+                # rounding method.
+                text = np.format_float_scientific(o, precision=None, unique=True, trim='0', exp_digits=1)
+                d = dec.Decimal(text)
+                rounded = round(dec.Decimal(o), abs(d.as_tuple().exponent))
+
+                if d == rounded:
+                    # original is good
+                    return text.replace('+', '')
+
+                return ('{:.' + str(len(d.as_tuple().digits) - 1) + 'e}').format(rounded).replace('+', '')
             else:
-                return _repr(o)
+                d = dec.Decimal(np.format_float_positional(o, precision=None, unique=True, trim='0'))
+                return round(dec.Decimal(o), abs(d.as_tuple().exponent)).to_eng_string()
 
             if not allow_nan:
                 raise ValueError(
@@ -72,9 +87,8 @@ class SbpJSONEncoder(json.JSONEncoder):
 
     def default(self, obj):
         if isinstance(obj, np.float32):
-            ret = float(repr(obj))
-            if ret.is_integer():
-                ret = int(ret)
+            d = dec.Decimal(np.format_float_positional(obj, precision=None, unique=True, trim='0'))
+            ret = float(round(dec.Decimal(float(obj)), abs(d.as_tuple().exponent)))
             return ret
         elif isinstance(obj, bytes):
             return obj.decode('ascii')
