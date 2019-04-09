@@ -328,11 +328,11 @@ class BaselineView(HasTraits):
                     tutc, float(secutc))))
                 table.append(('UTC Src', self.utc_source))
 
-            table.append(('N', soln.n))
-            table.append(('E', soln.e))
-            table.append(('D', soln.d))
-            table.append(('Horiz Acc', soln.h_accuracy))
-            table.append(('Vert Acc', soln.v_accuracy))
+            table.append(('N', "{:.12g}".format(soln.n)))
+            table.append(('E', "{:.12g}".format(soln.e)))
+            table.append(('D', "{:.12g}".format(soln.d)))
+            table.append(('Horiz Acc', "{:.12g}".format(soln.h_accuracy)))
+            table.append(('Vert Acc', "{:.12g}".format(soln.v_accuracy)))
             table.append(('Dist.', "{0:.3f}".format(dist)))
 
             table.append(('Sats Used', soln.n_sats))
