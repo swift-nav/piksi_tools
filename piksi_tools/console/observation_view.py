@@ -134,7 +134,8 @@ class ObservationView(CodeFiltered):
             if getattr(self, 'count_{}'.format(code)) != 0 and code not in self.received_codes:
                 self.received_codes.append(code)
 
-    def gui_update_tow(self, tow):
+    def gui_update_tow(self, week, tow):
+        self.traits_gps_week = week
         self.traits_gps_tow = tow
 
     def obs_packed_callback(self, sbp_msg, **metadata):
@@ -147,7 +148,7 @@ class ObservationView(CodeFiltered):
         count = seq & ((1 << 4) - 1)
 
         def reset():
-            self.update_scheduler.schedule_update('tow', self.gui_update_tow, tow)
+            self.update_scheduler.schedule_update('tow', self.gui_update_tow, wn, tow)
             self.old_tow = self.gps_tow
             self.gps_tow = tow
             self.gps_week = wn
@@ -202,7 +203,7 @@ class ObservationView(CodeFiltered):
                 flags = o.flags
                 msdopp = float(o.D.i) + float(o.D.f) / (1 << 8)
                 self.gps_tow += sbp_msg.header.t.ns_residual * 1e-9
-                self.update_scheduler.schedule_update('tow', self.gui_update_tow, self.gps_tow)
+                self.update_scheduler.schedule_update('tow', self.gui_update_tow, self.gps_week, self.gps_tow)
 
             try:
                 ocp = self.old_cp[prn]
