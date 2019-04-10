@@ -51,7 +51,8 @@ def get_tcp_driver(host, port=None):
             host, port = host.split(':')
         return TCPDriver(host,
                          int(port),
-                         raise_initial_timeout=True)
+                         raise_initial_timeout=True,
+                         reconnect=True)
     except ValueError:
         raise Exception('Invalid format (use ip_address:port): {}'.format(host))
     except socket.timeout:

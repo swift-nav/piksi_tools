@@ -17,12 +17,10 @@ from __future__ import print_function
 import os
 import sys
 import time
-import uuid
 
 import serial.tools.list_ports
 from sbp.client import Forwarder, Framer, Handler
 from sbp.client.drivers.cdc_driver import CdcDriver
-from sbp.client.drivers.network_drivers import HTTPDriver
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.file_driver import FileDriver
@@ -35,8 +33,6 @@ from piksi_tools.utils import mkdir_p, get_tcp_driver
 
 SERIAL_PORT = "/dev/ttyUSB0"
 SERIAL_BAUD = 115200
-CHANNEL_UUID = '118db405-b5de-4a05-87b5-605cc85af924'
-DEFAULT_BASE = "https://broker.skylark2.swiftnav.com"
 
 
 def logfilename():
@@ -139,16 +135,6 @@ def get_args():
     Get and parse arguments.
     """
     parser = base_cl_options(add_log_args=True, add_reset_arg=True)
-    parser.add_argument(
-        "-u", "--base", default=DEFAULT_BASE, help="Base station URI.")
-    parser.add_argument(
-        "-c",
-        "--channel_id",
-        default=CHANNEL_UUID,
-        help="Networking channel ID.")
-    parser.add_argument("-s", "--serial_id", default=None, help="Device ID.")
-    parser.add_argument(
-        "-x", "--broker", action="store_true", help="Used brokered SBP data.")
     parser.add_argument(
         "--timeout",
         default=None,
@@ -272,32 +258,6 @@ def swriter(link):
     return scallback
 
 
-def get_uuid(channel, serial_id):
-    """Returns a namespaced UUID based on the piksi serial number and a
-    namespace.
-
-    Parameters
-    ----------
-    channel : str
-      UUID namespace
-    serial_id : int
-      Piksi unique serial number
-
-    Returns
-    ----------
-    UUID4 string, or None on invalid input.
-
-    """
-    if isinstance(channel, str) and isinstance(serial_id,
-                                               int) and serial_id > 0:
-        return uuid.uuid5(uuid.UUID(channel), str(serial_id))
-    elif isinstance(channel, str) and isinstance(serial_id,
-                                                 int) and serial_id < 0:
-        return uuid.uuid5(uuid.UUID(channel), str(-serial_id))
-    else:
-        return None
-
-
 def run(args, link):
     """Spin loop for reading from the serial link.
 
@@ -368,19 +328,12 @@ def main(args):
     """
     Get configuration, get driver, get logger, and build handler and start it.
     """
-    timeout = args.timeout
     log_filename = args.logfilename
     log_dirname = args.log_dirname
     if not log_filename:
         log_filename = logfilename()
     if log_dirname:
         log_filename = os.path.join(log_dirname, log_filename)
-    # State for handling a networked base stations.
-    channel = args.channel_id
-    serial_id = int(args.serial_id) if args.serial_id is not None else None
-    base = args.base
-    use_broker = args.broker
-    # Driver with context
     driver = get_base_args_driver(args)
     with Handler(Framer(driver.read,
                         driver.write,
@@ -395,18 +348,7 @@ def main(args):
             link.add_callback(printer, SBP_MSG_PRINT_DEP)
             link.add_callback(log_printer, SBP_MSG_LOG)
             Forwarder(link, logger).start()
-            if use_broker and base and serial_id:
-                device_id = get_uuid(channel, serial_id)
-                with HTTPDriver(str(device_id), base) as http:
-                    with Handler(
-                            Framer(http.read,
-                                   http.write,
-                                   args.verbose,
-                                   skip_metadata=args.skip_metadata)) as slink:
-                        Forwarder(slink, swriter(link)).start()
-                        run(args, link)
-            else:
-                run(args, link)
+            run(args, link)
 
 
 if __name__ == "__main__":
