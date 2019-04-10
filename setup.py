@@ -128,7 +128,7 @@ if __name__ == '__main__':
 
     with open(cwd + '/requirements.txt') as fp:
 
-        INSTALL_REQUIRES = [L.strip() for L in fp if not L.startswith('git+')]
+        INSTALL_REQUIRES = [L.strip() for L in fp if (not L.startswith('git+') and not L.startswith('--extra-index-url'))]
 
         def transform(link):
             link = link.strip()
