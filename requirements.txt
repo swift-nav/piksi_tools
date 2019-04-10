@@ -9,7 +9,7 @@ pyparsing==2.2.0
 pygments==2.2.0
 requests==2.20.0
 six==1.10.0
-sbp==2.5.2
+sbp==2.5.4
 ruamel.yaml==0.15.87
 setuptools_scm==3.1.0
 enum34==1.1.6
