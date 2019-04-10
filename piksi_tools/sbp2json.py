@@ -90,8 +90,6 @@ class SbpJSONEncoder(json.JSONEncoder):
             d = dec.Decimal(np.format_float_positional(obj, precision=None, unique=True, trim='0'))
             ret = float(round(dec.Decimal(float(obj)), abs(d.as_tuple().exponent)))
             return ret
-        elif isinstance(obj, bytes):
-            return obj.decode('ascii')
         # Let the base class default method raise the TypeError
         return json.JSONEncoder.default(self, obj)
 
