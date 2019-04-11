@@ -33,7 +33,7 @@ def base_cl_options():
     group_json.add_argument(
             "--float-meta",
             action="store_true",
-            help="Preserve float32/64 distinction, affects rounding and reprentation precision")
+            help="Preserve float32/64 distinction, affects rounding and reprentation precision. Only on Python 3.5 and forward.")
     group_json.add_argument(
             "--sort-keys",
             action="store_true",
@@ -51,6 +51,11 @@ def get_args():
 
     if args.mode == 'ujson' and len(sys.argv) > 3:
         print('ERROR: ujson mode does not support given arguments')
+        parser.print_help()
+        return None
+
+    if args.float_meta and sys.version_info[0] < 3:
+        print('ERROR: Must be using Python 3.5 or newer for --float-meta')
         parser.print_help()
         return None
 
