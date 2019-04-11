@@ -3,8 +3,6 @@
 import os
 import sys
 
-import sys
-
 import io
 
 import numpy as np
@@ -31,13 +29,13 @@ def base_cl_options():
 
     group_json = parser.add_argument_group('json specific arguments')
     group_json.add_argument(
-            "--float-meta",
-            action="store_true",
-            help="Preserve float32/64 distinction, affects rounding and reprentation precision. Only on Python 3.5 and forward.")
+        "--float-meta",
+        action="store_true",
+        help="Preserve float32/64 distinction, affects rounding and reprentation precision. Only on Python 3.5 and forward.")
     group_json.add_argument(
-            "--sort-keys",
-            action="store_true",
-            help="Sort JSON log elements by keys")
+        "--sort-keys",
+        action="store_true",
+        help="Sort JSON log elements by keys")
 
     return parser
 
@@ -183,7 +181,7 @@ def main(args):
                 except StreamError:
                     break
                 m = dispatch_nojit(m)
-                dump(args, res)
+                dump(args, m)
                 consumed = header_len + m.length + 2
             else:
                 consumed, payload_len, msg_type, sender, crc, crc_fail = \
