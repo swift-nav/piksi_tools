@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 
 import os
+import sys
 
 import sys
 
@@ -8,6 +9,7 @@ import io
 
 import numpy as np
 import json
+import ujson
 
 import decimal as dec
 
@@ -20,6 +22,39 @@ from sbp.table import dispatch as dispatch_nojit
 NORM = os.environ.get('NOJIT') is not None
 
 dec.getcontext().rounding = dec.ROUND_HALF_UP
+
+
+def base_cl_options():
+    import argparse
+    parser = argparse.ArgumentParser(description="Swift Navigation SBP to JSON parser")
+    parser.add_argument('--mode', type=str, choices=['json', 'ujson'], default='ujson')
+
+    group_json = parser.add_argument_group('json specific arguments')
+    group_json.add_argument(
+            "--float-meta",
+            action="store_true",
+            help="Preserve float32/64 distinction, affects rounding and reprentation precision")
+    group_json.add_argument(
+            "--sort-keys",
+            action="store_true",
+            help="Sort JSON log elements by keys")
+
+    return parser
+
+
+def get_args():
+    """
+    Get and parse arguments.
+    """
+    parser = base_cl_options()
+    args = parser.parse_args()
+
+    if args.mode == 'ujson' and len(sys.argv) > 3:
+        print('ERROR: ujson mode does not support given arguments')
+        parser.print_help()
+        return None
+
+    return args
 
 
 class SbpJSONEncoder(json.JSONEncoder):
@@ -94,7 +129,22 @@ class SbpJSONEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def main():
+def dump(args, res):
+    if 'json' == args.mode:
+        sys.stdout.write(json.dumps(res,
+                         allow_nan=False,
+                         sort_keys=args.sort_keys,
+                         separators=(',', ':'),
+                         cls=SbpJSONEncoder if args.float_meta else None))
+    elif 'ujson' == args.mode:
+        sys.stdout.write(ujson.dumps(res))
+
+    sys.stdout.write("\n")
+
+
+def main(args):
+    msg.SBP.float_meta = args.float_meta
+
     header_len = 6
     reader = io.open(sys.stdin.fileno(), 'rb')
     buf = np.zeros(4096, dtype=np.uint8)
@@ -128,10 +178,7 @@ def main():
                 except StreamError:
                     break
                 m = dispatch_nojit(m)
-                sys.stdout.write(json.dumps(m.to_json_dict(),
-                                            allow_nan=False,
-                                            sort_keys=True,
-                                            separators=(',', ':')))
+                dump(args, res)
                 consumed = header_len + m.length + 2
             else:
                 consumed, payload_len, msg_type, sender, crc, crc_fail = \
@@ -141,17 +188,15 @@ def main():
                     payload = buf[unconsumed_offset + header_len:unconsumed_offset + header_len + payload_len]
                     m = dispatch(msg_type)(msg_type, sender, payload_len, payload, crc)
                     res, offset, length = m.unpack(buf, unconsumed_offset + header_len, payload_len)
-                    sys.stdout.write(json.dumps(res,
-                                                allow_nan=False,
-                                                sort_keys=True,
-                                                separators=(',', ':'),
-                                                cls=SbpJSONEncoder))
-                    sys.stdout.write("\n")
+                    dump(args, res)
 
                 if consumed == 0:
                     break
             unconsumed_offset += consumed
 
 
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    args = get_args()
+    if not args:
+        sys.exit(1)
+    main(args)
