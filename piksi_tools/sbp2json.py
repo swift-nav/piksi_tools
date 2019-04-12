@@ -125,7 +125,11 @@ class SbpJSONEncoder(json.JSONEncoder):
 
     def default(self, obj):
         if isinstance(obj, np.float32):
+            # Let numpy's judicious rounding tell us the amount of digits we
+            # want as it seems to align with Haskell's output
             d = dec.Decimal(np.format_float_positional(obj, precision=None, unique=True, trim='0'))
+            # Round it using correct rounding strategy and return it as native float
+            # NOTE: Can't this be done already on libsbp side?
             ret = float(round(dec.Decimal(float(obj)), abs(d.as_tuple().exponent)))
             return ret
         # Let the base class default method raise the TypeError
