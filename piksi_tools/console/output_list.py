@@ -19,10 +19,11 @@ import time
 from pyface.api import GUI
 from traits.api import (Bool, Enum, Float, Font, HasTraits, Int, List,
                         Property, Str, Trait)
-from traitsui.api import TabularEditor, UItem, View
+from traitsui.api import UItem, View
 from traitsui.tabular_adapter import TabularAdapter
 
 from piksi_tools.utils import sopen
+from piksi_tools.console.gui_utils import PiksiTabularEditor
 
 # These levels are identical to sys.log levels
 LOG_EMERG = 0  # system is unusable
@@ -312,7 +313,7 @@ class OutputList(HasTraits):
         view = \
             View(
                 UItem('filtered_list',
-                      editor=TabularEditor(adapter=LogItemOutputListAdapter(), editable=False,
-                                           vertical_lines=False, horizontal_lines=False))
+                      editor=PiksiTabularEditor(adapter=LogItemOutputListAdapter(), editable=False,
+                                                vertical_lines=False, horizontal_lines=False))
             )
         return view

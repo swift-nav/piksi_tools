@@ -12,8 +12,9 @@ import numpy as np
 
 from pyface.api import GUI
 
-from traits.api import Bool, HasTraits, List
-from traitsui.api import HGroup, VGroup, Item, TextEditor
+from traits.api import Bool, HasTraits, List, Int
+from traitsui.api import HGroup, VGroup, Item, TextEditor, TabularEditor
+from traitsui.qt4.tabular_editor import _TableView
 
 from piksi_tools.console.utils import SUPPORTED_CODES, GUI_CODES, code_to_str
 
@@ -130,3 +131,44 @@ class CodeFiltered(HasTraits):
                         visible_when="{} in received_codes".format(code)))
             hgroup.content.append(vgroup)
         return hgroup
+
+
+class PiksiTabularEditor(TabularEditor):
+    """Extends traitsui.api.TabularEditor by allowing setting a fixed row height
+
+       Limitations:
+       * only supports Qt backends
+       * only effective at initialization (later changes have no effect)"""
+
+    row_height = Int(19)
+
+    def initTableView(self, *args, **kwds):
+        """Overrides normal traitsui table widget init to adjust properties"""
+        table_view = _TableView(*args, **kwds)
+        if self.row_height > 0:
+            table_view.verticalHeader().setDefaultSectionSize(self.row_height)
+        return table_view
+
+    def simple_editor(self, ui, object, name, description, parent):
+        """Hooks into traitsui table widget init"""
+        editor = super(PiksiTabularEditor, self).simple_editor(ui, object, name, description, parent)
+        editor.widget_factory = self.initTableView
+        return editor
+
+    def custom_editor(self, ui, object, name, description, parent):
+        """Hooks into traitsui table widget init"""
+        editor = super(PiksiTabularEditor, self).custom_editor(ui, object, name, description, parent)
+        editor.widget_factory = self.initTableView
+        return editor
+
+    def readonly_editor(self, ui, object, name, description, parent):
+        """Hooks into traitsui table widget init"""
+        editor = super(PiksiTabularEditor, self).readonly_editor(ui, object, name, description, parent)
+        editor.widget_factory = self.initTableView
+        return editor
+
+    def text_editor(self, ui, object, name, description, parent):
+        """Hooks into traitsui table widget init"""
+        editor = super(PiksiTabularEditor, self).text_editor(ui, object, name, description, parent)
+        editor.widget_factory = self.initTableView
+        return editor

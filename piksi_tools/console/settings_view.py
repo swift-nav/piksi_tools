@@ -24,11 +24,11 @@ from sbp.system import SBP_MSG_STARTUP
 from traits.api import (Bool, Color, Constant, Float, Font, HasTraits,
                         Instance, List, Property, Str, Undefined)
 from traits.etsconfig.api import ETSConfig
-from traitsui.api import (EnumEditor, HGroup, HSplit, Item, TabularEditor,
+from traitsui.api import (EnumEditor, HGroup, HSplit, Item,
                           TextEditor, UItem, VGroup, View)
 from traitsui.tabular_adapter import TabularAdapter
 import piksi_tools.console.callback_prompt as prompt
-from piksi_tools.console.gui_utils import MultilineTextEditor
+from piksi_tools.console.gui_utils import MultilineTextEditor, PiksiTabularEditor
 from piksi_tools.console.utils import swift_path
 from pyface.api import FileDialog, OK
 
@@ -363,7 +363,7 @@ class SettingsView(HasTraits):
         HSplit(
             Item(
                 'settings_list',
-                editor=TabularEditor(
+                editor=PiksiTabularEditor(
                     adapter=SimpleAdapter(),
                     editable_labels=False,
                     auto_update=True,
@@ -457,7 +457,7 @@ class SettingsView(HasTraits):
             # from objbrowser import browse
             # browse(confirm_prompt)
             confirm_prompt.view.content.content[0].content.append(
-                Item("settings_list", editor=TabularEditor(
+                Item("settings_list", editor=PiksiTabularEditor(
                     adapter=SimpleChangeAdapter(),
                     editable_labels=False,
                     auto_update=True,

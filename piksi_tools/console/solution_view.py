@@ -32,11 +32,11 @@ from sbp.navigation import (
     MsgVelNEDDepA)
 from traits.api import (Bool, Dict, File, HasTraits, Instance, Int, Float, List,
                         Str, Enum)
-from traitsui.api import (HGroup, HSplit, Item, TabularEditor, TextEditor,
+from traitsui.api import (HGroup, HSplit, Item, TextEditor,
                           VGroup, View)
 from traitsui.tabular_adapter import TabularAdapter
 
-from piksi_tools.console.gui_utils import MultilineTextEditor, plot_square_axes
+from piksi_tools.console.gui_utils import MultilineTextEditor, plot_square_axes, PiksiTabularEditor
 from piksi_tools.console.utils import (
     DGNSS_MODE, EMPTY_STR, FIXED_MODE, FLOAT_MODE, SBAS_MODE, DR_MODE,
     SPP_MODE, color_dict, datetime_2_str, get_mode, log_time_strings,
@@ -156,7 +156,7 @@ class SolutionView(HasTraits):
                 Item(
                     'table',
                     style='readonly',
-                    editor=TabularEditor(adapter=SimpleAdapter()),
+                    editor=PiksiTabularEditor(adapter=SimpleAdapter()),
                     show_label=False,
                     width=0.3),
                 Item(

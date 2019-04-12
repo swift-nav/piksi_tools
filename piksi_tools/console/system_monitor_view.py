@@ -17,10 +17,11 @@ from sbp.piksi import (SBP_MSG_THREAD_STATE,
 from sbp.system import SBP_MSG_HEARTBEAT, SBP_MSG_CSAC_TELEMETRY, SBP_MSG_CSAC_TELEMETRY_LABELS
 from traits.api import Dict, HasTraits, Int, Float, List, Bool
 from traits.etsconfig.api import ETSConfig
-from traitsui.api import HGroup, Item, TabularEditor, VGroup, View
+from traitsui.api import HGroup, Item, VGroup, View
 from traitsui.tabular_adapter import TabularAdapter
 
 from .utils import resource_filename
+from piksi_tools.console.gui_utils import PiksiTabularEditor
 
 if ETSConfig.toolkit != 'null':
     from enable.savage.trait_defs.ui.svg_button import SVGButton
@@ -72,7 +73,7 @@ class SystemMonitorView(HasTraits):
             Item(
                 '_threads_table_list',
                 style='readonly',
-                editor=TabularEditor(adapter=SimpleAdapter()),
+                editor=PiksiTabularEditor(adapter=SimpleAdapter()),
                 show_label=False,
                 width=0.85, ),
             HGroup(
@@ -147,7 +148,7 @@ class SystemMonitorView(HasTraits):
                     Item(
                         '_csac_telem_list',
                         style='readonly',
-                        editor=TabularEditor(adapter=SimpleCSACAdapter()),
+                        editor=PiksiTabularEditor(adapter=SimpleCSACAdapter()),
                         show_label=False),
                     show_border=True,
                     label="Metrics",

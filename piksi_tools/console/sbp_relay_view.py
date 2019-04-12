@@ -18,7 +18,7 @@ from sbp.piksi import (SBP_MSG_NETWORK_STATE_RESP, MsgNetworkStateReq)
 from traits.api import Bool, Button, Enum, HasTraits, Int, String, List, \
     Instance
 from traitsui.api import (HGroup, Item, TextEditor, UItem, VGroup,
-                          View, spring, TabularEditor)
+                          View, spring)
 from traitsui.tabular_adapter import TabularAdapter
 
 from piksi_tools.console.callback_prompt import CallbackPrompt, close_button
@@ -26,6 +26,7 @@ from piksi_tools.console.gui_utils import MultilineTextEditor
 from piksi_tools.console.cellmodem_view import CellModemView
 from traits.etsconfig.api import ETSConfig
 from .utils import resource_filename, sizeof_fmt
+from piksi_tools.console.gui_utils import PiksiTabularEditor
 
 if ETSConfig.toolkit != 'null':
     from enable.savage.trait_defs.ui.svg_button import SVGButton
@@ -120,8 +121,8 @@ class SbpRelayView(HasTraits):
                           Item(
                               '_network_info',
                               style='readonly',
-                              editor=TabularEditor(
-                                  adapter=SimpleNetworkAdapter()),
+                              editor=PiksiTabularEditor(
+                                  adapter=SimpleNetworkAdapter(), row_height=17),
                               show_label=False, ),
                           Item(
                               'network_refresh_button', show_label=False,
