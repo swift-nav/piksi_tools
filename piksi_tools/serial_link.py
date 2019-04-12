@@ -78,6 +78,11 @@ def base_cl_options(override_arg_parse=None, add_help=True,
                       If TCP is selected, the port is interpreted as host:port"
     )
     parser.add_argument(
+        "--timeout",
+        default=5,
+        help="Set timeout for TCP/IP socket"
+    )
+    parser.add_argument(
         "-f",
         "--ftdi",
         action="store_true",
@@ -136,9 +141,9 @@ def get_args():
     """
     parser = base_cl_options(add_log_args=True, add_reset_arg=True)
     parser.add_argument(
-        "--timeout",
+        "--close-after",
         default=None,
-        help="exit after TIMEOUT seconds have elapsed.")
+        help="Close serial link connection after N seconds have elapsed")
     return parser.parse_args()
 
 
@@ -270,11 +275,11 @@ def run(args, link):
 
     """
     link.start()
-    timeout = args.timeout
+    timeout = args.close_after
     if args.reset:
         link(MsgReset(flags=0))
     try:
-        if args.timeout is not None:
+        if timeout is not None:
             expire = time.time() + float(args.timeout)
         while True:
             if timeout is None or time.time() < expire:
@@ -307,7 +312,8 @@ def run(args, link):
 def get_base_args_driver(args):
     driver = None
     if getattr(args, 'tcp', None):
-        driver = get_tcp_driver(getattr(args, 'port', None))
+        driver = get_tcp_driver(getattr(args, 'port', None),
+                                timeout=float(getattr(args, 'timeout', '5')))
     else:
         driver_kwargs = {}
         # unpack relevant args

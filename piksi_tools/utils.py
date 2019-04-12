@@ -43,7 +43,7 @@ def sopen(path, mode):
     return open(path, mode)
 
 
-def get_tcp_driver(host, port=None):
+def get_tcp_driver(host, port=None, timeout=5):
     ''' Factory method helper for opening TCPDriver from host and port
     '''
     try:
@@ -52,7 +52,8 @@ def get_tcp_driver(host, port=None):
         return TCPDriver(host,
                          int(port),
                          raise_initial_timeout=True,
-                         reconnect=True)
+                         reconnect=True,
+                         timeout=timeout)
     except ValueError:
         raise Exception('Invalid format (use ip_address:port): {}'.format(host))
     except socket.timeout:
