@@ -1501,6 +1501,17 @@
   Description: Number of Solution Periods between GSA NMEA messages being sent.
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message.
 
+- group: nmea
+  name: gpgst_msg_rate
+  expert: false
+  type: integer
+  units: Solution Period
+  default value: '1'
+  readonly: false
+  enumerated possible values:
+  Description: Number of Solution Periods between GST NMEA messages being sent.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message.
+
 - group: ntrip
   name: enable
   expert: false
@@ -2233,7 +2244,9 @@
   units: Hz
   Description: The frequency at which the network poll service checks for connectivity.
   Notes: The network poll service will perform a connectivity check with a well known IP
-         address at the frequency configured by this setting.
+         address at the frequency configured by this setting.  A value of 0 will disable
+         the connectivity check, this will also disable the LED that indicates
+         connectivity status.
 
 - group: system
   name: connectivity_retry_frequency
@@ -2245,6 +2258,18 @@
   Description: The frequency at which the network poll service retries after a failed connectivity check.
   Notes: If a connectivity check fails, this settings controls the frequency at which a new
          connectivity check is performed.
+
+- group: system
+  name: connectivity_check_addresses
+  type: string
+  expert: true
+  default value: '8.8.8.8'
+  readonly: false
+  units: N/A
+  Description: A comma separated list of addresses to ping to check for network connectivity.
+  Notes: A comma separated list of addresses, for example: '8.8.8.8,1.1.1.1' to which
+         an ICMP echo request is sent, each in succession until a successful response
+         is received.
 
 - group: system
   name: ota_enabled
