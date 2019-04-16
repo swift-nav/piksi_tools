@@ -21,6 +21,9 @@ import time
 # Shut chaco up for now
 import warnings
 
+# Needs to be before qt init by traitsui imports
+from piksi_tools.console import windows_scaling # noqa
+
 import sbp.client as sbpc
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.image_resource import ImageResource
