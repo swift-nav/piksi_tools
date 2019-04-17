@@ -328,10 +328,12 @@ class SettingsView(HasTraits):
         width=20,
         height=20)
     settings_read_button = SVGButton(
+        label='Refresh settings\nfrom device',
         tooltip='Reload settings from Piksi',
         filename=resource_filename('console/images/fontawesome/refresh.svg'),
-        allow_clipping=False,
-        width_padding=4, height_padding=4)
+        orientation='horizontal',
+        width=20,
+        height=20)
     settings_save_button = SVGButton(
         label='Save to\nDevice',
         tooltip='Save settings to persistent storage on device.',
@@ -382,9 +384,7 @@ class SettingsView(HasTraits):
                         visible_when='show_auto_survey'),
                 ),
                 HGroup(
-                    Item('settings_read_button', show_label=False,
-                         padding=0, height=-20, width=-20),
-                    Item('', label="Refresh settings\nfrom device", padding=0),
+                    Item('settings_read_button', show_label=False),
                     Item('expert', show_label=False),
                     Item('', label="Show Advanced\nSettings", padding=0),
                 ),
