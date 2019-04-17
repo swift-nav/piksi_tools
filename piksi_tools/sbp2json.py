@@ -29,9 +29,9 @@ def base_cl_options():
 
     group_json = parser.add_argument_group('json specific arguments')
     group_json.add_argument(
-        "--float-meta",
+        "--judicious-rounding",
         action="store_true",
-        help="Preserve float32/64 distinction, affects rounding and reprentation precision. Only on Python 3.5 and forward.")
+        help="Use Numpy's judicious rounding and reprentation precision. Only on Python 3.5 and forward.")
     group_json.add_argument(
         "--sort-keys",
         action="store_true",
@@ -52,7 +52,7 @@ def get_args():
         parser.print_help()
         return None
 
-    if args.float_meta and sys.version_info[0] < 3:
+    if args.judicious_rounding and sys.version_info[0] < 3:
         print('ERROR: Must be using Python 3.5 or newer for --float-meta')
         parser.print_help()
         return None
@@ -123,18 +123,6 @@ class SbpJSONEncoder(json.JSONEncoder):
             self.skipkeys, _one_shot)
         return _iterencode(o, 0)
 
-    def default(self, obj):
-        if isinstance(obj, np.float32):
-            # Let numpy's judicious rounding tell us the amount of digits we
-            # want as it seems to align with Haskell's output
-            d = dec.Decimal(np.format_float_positional(obj, precision=None, unique=True, trim='0'))
-            # Round it using correct rounding strategy and return it as native float
-            # NOTE: Can't this be done already on libsbp side?
-            ret = float(round(dec.Decimal(float(obj)), abs(d.as_tuple().exponent)))
-            return ret
-        # Let the base class default method raise the TypeError
-        return json.JSONEncoder.default(self, obj)
-
 
 def dump(args, res):
     if 'json' == args.mode:
@@ -142,7 +130,7 @@ def dump(args, res):
                          allow_nan=False,
                          sort_keys=args.sort_keys,
                          separators=(',', ':'),
-                         cls=SbpJSONEncoder if args.float_meta else None))
+                         cls=SbpJSONEncoder if args.judicious_rounding else None))
     elif 'ujson' == args.mode:
         sys.stdout.write(ujson.dumps(res))
 
@@ -150,7 +138,7 @@ def dump(args, res):
 
 
 def main(args):
-    msg.SBP.float_meta = args.float_meta
+    msg.SBP.judicious_rounding = args.judicious_rounding
 
     header_len = 6
     reader = io.open(sys.stdin.fileno(), 'rb')
