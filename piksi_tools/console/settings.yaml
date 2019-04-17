@@ -2244,9 +2244,8 @@
   units: Hz
   Description: The frequency at which the network poll service checks for connectivity.
   Notes: The network poll service will perform a connectivity check with a well known IP
-         address at the frequency configured by this setting.  A value of 0 will disable
-         the connectivity check, this will also disable the LED that indicates
-         connectivity status.
+         address at the frequency configured by this setting. A value of 0 will disable
+         the connectivity check and the Link LED will not show Internet access status.
 
 - group: system
   name: connectivity_retry_frequency
@@ -2267,9 +2266,9 @@
   readonly: false
   units: N/A
   Description: A comma separated list of addresses to ping to check for network connectivity.
-  Notes: A comma separated list of addresses, for example: '8.8.8.8,1.1.1.1' to which
+  Notes: 'A comma separated list of addresses, for example: 8.8.8.8,1.1.1.1 to which
          an ICMP echo request is sent, each in succession until a successful response
-         is received.
+         is received.'
 
 - group: system
   name: ota_enabled
