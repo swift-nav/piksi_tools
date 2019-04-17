@@ -30,7 +30,7 @@ from sbp.piksi import SBP_MSG_COMMAND_RESP, MsgCommandResp, MsgReset
 from sbp.system import SBP_MSG_HEARTBEAT
 from traits.api import (Bool, Dict, Directory, Enum, HasTraits, Instance, Int,
                         Str)
-from traitsui.api import (Handler, HGroup, HTMLEditor, ImageEditor,
+from traitsui.api import (Handler, HGroup, ImageEditor,
                           InstanceEditor, Item, Spring,
                           Tabbed, TextEditor, UItem, VGroup, View, VSplit)
 
@@ -730,7 +730,7 @@ class ShowUsage(HasTraits):
             "usage_str",
             style='readonly',
             show_label=False,
-            editor=HTMLEditor(),
+            editor=TextEditor(),
             resizable=True),
         width=680,
         resizable=True,
