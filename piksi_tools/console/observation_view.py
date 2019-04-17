@@ -154,7 +154,7 @@ class ObservationView(CodeFiltered):
             self.gps_week = wn
             self.prev_obs_total = total
             self.prev_obs_count = 0
-            self.old_cp = self.new_cp
+            self.old_cp = dict(self.new_cp)
             self.new_cp.clear()
             self.incoming_obs.clear()
 
