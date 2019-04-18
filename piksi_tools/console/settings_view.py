@@ -34,6 +34,7 @@ from pyface.api import FileDialog, OK
 
 from .settings_list import SettingsList
 from .utils import resource_filename
+from .gui_utils import PiksiBooleanEditor
 
 from libsettings import Settings, SettingsWriteResponseCodes
 
@@ -384,9 +385,9 @@ class SettingsView(HasTraits):
                         visible_when='show_auto_survey'),
                 ),
                 HGroup(
-                    Item('settings_read_button', show_label=False),
-                    Item('expert', show_label=False),
-                    Item('', label="Show Advanced\nSettings", padding=0),
+                    UItem('settings_read_button'),
+                    UItem('expert', label="Show Advanced\nSettings",
+                          editor=PiksiBooleanEditor()),
                 ),
                 Item('selected_setting', style='custom', show_label=False),
             ),
