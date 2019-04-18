@@ -19,6 +19,17 @@ import pyface.qt
 #
 # Ideally would become unnecessary one day when all components, plots included,
 # would properly work in a high dpi environment.
+
+if '--print-dpi' in sys.argv:
+    from PyQt5 import QtWidgets
+
+    app = QtWidgets.QApplication([])
+    dpi_list = [screen.logicalDotsPerInch() for screen in app.screens()]
+    max_dpi = max(dpi_list)
+
+    print(max_dpi, end="")
+    sys.exit(0)
+
 if sys.platform == "win32" and pyface.qt.qt_api.lower() in ['pyqt5', 'pyside2']:
     prog_str = b"""\
 from PyQt5 import QtWidgets
@@ -32,7 +43,7 @@ print(max_dpi, end="")
     # initializing the application to use this Windows scaling mechanism is
     # only possible before initializing the QApplication for the first time,
     # so the dpi query, which also uses Qt, is done in a separate process
-    helper_proc = subprocess.Popen([sys.executable, "-u", "-"],
+    helper_proc = subprocess.Popen([sys.executable, "-u", "-", '--print-dpi'],
                                    stdin=subprocess.PIPE,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT)
