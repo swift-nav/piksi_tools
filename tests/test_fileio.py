@@ -1,6 +1,6 @@
 # -*- python -*-
 
-from piksi_tools.fileio import Time
+from piksi_tools.utils import Time
 
 
 def test_time_repr():
