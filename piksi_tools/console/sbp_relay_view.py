@@ -19,10 +19,9 @@ from traits.api import Bool, Button, Enum, HasTraits, Int, String, List, \
     Instance
 from traitsui.api import (HGroup, Item, TextEditor, UItem, VGroup,
                           View, spring, TabularEditor)
-from traitsui.tabular_adapter import TabularAdapter
 
 from piksi_tools.console.callback_prompt import CallbackPrompt, close_button
-from piksi_tools.console.gui_utils import MultilineTextEditor
+from piksi_tools.console.gui_utils import MultilineTextEditor, ReadOnlyTabularAdapter
 from piksi_tools.console.cellmodem_view import CellModemView
 from traits.etsconfig.api import ETSConfig
 from .utils import resource_filename, sizeof_fmt
@@ -42,7 +41,7 @@ def ip_bytes_to_string(ip_bytes):
     return '.'.join(str(x) for x in ip_bytes)
 
 
-class SimpleNetworkAdapter(TabularAdapter):
+class SimpleNetworkAdapter(ReadOnlyTabularAdapter):
     columns = [('Interface Name', 0), ('IPv4 Addr', 1), ('Running', 2),
                ('Tx Usage', 3), ('Rx Usage', 4)]
 

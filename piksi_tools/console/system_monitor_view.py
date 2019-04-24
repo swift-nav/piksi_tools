@@ -18,7 +18,7 @@ from sbp.system import SBP_MSG_HEARTBEAT, SBP_MSG_CSAC_TELEMETRY, SBP_MSG_CSAC_T
 from traits.api import Dict, HasTraits, Int, Float, List, Bool
 from traits.etsconfig.api import ETSConfig
 from traitsui.api import HGroup, Item, TabularEditor, VGroup, View
-from traitsui.tabular_adapter import TabularAdapter
+from piksi_tools.console.gui_utils import ReadOnlyTabularAdapter
 
 from .utils import resource_filename
 
@@ -30,11 +30,11 @@ def ip_bytes_to_string(ip_bytes):
     return '.'.join(str(x) for x in ip_bytes)
 
 
-class SimpleAdapter(TabularAdapter):
+class SimpleAdapter(ReadOnlyTabularAdapter):
     columns = [('Thread Name', 0), ('CPU %', 1), ('Stack Free', 2)]
 
 
-class SimpleCSACAdapter(TabularAdapter):
+class SimpleCSACAdapter(ReadOnlyTabularAdapter):
     columns = [('Metric Name', 0), ('Value', 1)]
 
 

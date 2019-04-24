@@ -29,9 +29,8 @@ from sbp.orientation import SBP_MSG_BASELINE_HEADING, MsgBaselineHeading
 from sbp.piksi import MsgResetFilters
 from traits.api import Bool, Button, Float, Dict, File, HasTraits, Instance, List
 from traitsui.api import HGroup, HSplit, Item, TabularEditor, VGroup, View
-from traitsui.tabular_adapter import TabularAdapter
 
-from piksi_tools.console.gui_utils import plot_square_axes
+from piksi_tools.console.gui_utils import plot_square_axes, ReadOnlyTabularAdapter
 from piksi_tools.console.utils import (
     DGNSS_MODE, EMPTY_STR, FIXED_MODE, FLOAT_MODE, color_dict,
     datetime_2_str, get_mode, log_time_strings, mode_dict)
@@ -44,7 +43,7 @@ PLOT_HISTORY_MAX = 1000
 mode_string_dict = {2: 'dgnss', 3: 'float', 4: 'fixed'}
 
 
-class SimpleAdapter(TabularAdapter):
+class SimpleAdapter(ReadOnlyTabularAdapter):
     columns = [('Item', 0), ('Value', 1)]
     width = 80
 

@@ -16,6 +16,7 @@ from traits.api import Bool, HasTraits, List
 from traitsui.api import HGroup, VGroup, Item, TextEditor
 from traitsui.basic_editor_factory import BasicEditorFactory
 import traitsui.qt4.boolean_editor
+from traitsui.tabular_adapter import TabularAdapter
 
 from piksi_tools.console.utils import SUPPORTED_CODES, GUI_CODES, code_to_str
 
@@ -146,3 +147,12 @@ class PiksiBooleanEditor(BasicEditorFactory):
        by making the UI item's label part of the toggle button (editor).
        This enables toggling it by clicking on the text, too, as in normal Qt."""
     klass = _PiksiBooleanEditor
+
+
+class ReadOnlyTabularAdapter(TabularAdapter):
+    '''A tabular editor that is by default uneditable and where drag
+       (of drag & drop) is disabled'''
+    can_edit = Bool(False)
+
+    def get_drag(self, object, trait, row):
+        return None  # disables drag
