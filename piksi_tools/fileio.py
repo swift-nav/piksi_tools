@@ -684,7 +684,7 @@ def printable_text_from_device(data):
 
 def mk_progress_cb(file_length):
 
-    time_last = [time.time()]
+    time_last = [Time.now()]
     offset_last = [0]
 
     b_to_mb = 1024 * 1024.0
@@ -710,12 +710,12 @@ def mk_progress_cb(file_length):
             return previous_avg[0]
 
     def the_callback(offset, repeater):
-        time_current = time.time()
+        time_current = Time.now()
         offset_delta = offset - offset_last[0]
         time_delta = time_current - time_last[0]
         percent_done = 100 * (offset / float(file_length))
         mb_confirmed = offset / b_to_mb
-        speed_kbs = offset_delta / time_delta / 1024
+        speed_kbs = offset_delta / time_delta.to_float() / 1024
         rolling_avg = compute_rolling_average(speed_kbs)
         fmt_str = "\r[{:02.02f}% ({:.02f}/{:.02f} MB) at {:.02f} kB/s ({:0.02f}% retried)]"
         percent_retried = 100 * (repeater.total_retries / repeater.total_sends)

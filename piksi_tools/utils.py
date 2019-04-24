@@ -14,7 +14,6 @@ from __future__ import print_function
 import errno
 import os
 import socket
-
 import monotonic
 
 from sbp.client.drivers.network_drivers import TCPDriver
