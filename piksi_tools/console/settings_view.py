@@ -26,9 +26,8 @@ from traits.api import (Bool, Color, Constant, Float, Font, HasTraits,
 from traits.etsconfig.api import ETSConfig
 from traitsui.api import (EnumEditor, HGroup, HSplit, Item, TabularEditor,
                           TextEditor, UItem, VGroup, View)
-from traitsui.tabular_adapter import TabularAdapter
 import piksi_tools.console.callback_prompt as prompt
-from piksi_tools.console.gui_utils import MultilineTextEditor
+from piksi_tools.console.gui_utils import MultilineTextEditor, ReadOnlyTabularAdapter
 from piksi_tools.console.utils import swift_path
 from pyface.api import FileDialog, OK
 
@@ -269,10 +268,9 @@ class SectionHeading(SettingBase):
         self.name = name
 
 
-class SimpleAdapter(TabularAdapter):
+class SimpleAdapter(ReadOnlyTabularAdapter):
     columns = [('Name', 'name'), ('Value', 'value')]
     font = Font('12')
-    can_edit = Bool(False)
     SectionHeading_bg_color = Color(0xE0E0E0)
     SectionHeading_font = Font('14 bold')
     SectionHeading_name_text = Property
@@ -286,10 +284,9 @@ class SimpleAdapter(TabularAdapter):
         return self.item.name.replace('_', ' ')
 
 
-class SimpleChangeAdapter(TabularAdapter):
+class SimpleChangeAdapter(ReadOnlyTabularAdapter):
     columns = [('Name', 'name'), ('Current Value', 'value'), ('Recommended Value', 'rec_value')]
     font = Font('12')
-    can_edit = Bool(False)
     SectionHeading_bg_color = Color(0xE0E0E0)
     SectionHeading_font = Font('14 bold')
     SectionHeading_name_text = Property

@@ -17,15 +17,14 @@ from sbp.observation import (SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B,
                              SBP_MSG_OBS_DEP_C)
 from traits.api import Dict, Float, Int, List, Str
 from traitsui.api import HGroup, Item, UItem, Spring, TabularEditor, VGroup, View
-from traitsui.tabular_adapter import TabularAdapter
 
-from piksi_tools.console.gui_utils import CodeFiltered, UpdateScheduler
+from piksi_tools.console.gui_utils import CodeFiltered, UpdateScheduler, ReadOnlyTabularAdapter
 from piksi_tools.console.utils import (
     EMPTY_STR, GUI_CODES, SUPPORTED_CODES, code_is_gps, code_to_str)
 from piksi_tools.console.gui_utils import GUI_UPDATE_PERIOD
 
 
-class SimpleAdapter(TabularAdapter):
+class SimpleAdapter(ReadOnlyTabularAdapter):
     columns = [('PRN', 0), ('Pseudorange (m)', 1), ('Carrier Phase (cycles)',
                                                     2), ('C/N0 (dB-Hz)', 3),
                ('Meas. Doppler (Hz)', 4), ('Comp. Doppler (Hz)',

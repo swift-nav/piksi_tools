@@ -20,7 +20,7 @@ from pyface.api import GUI
 from traits.api import (Bool, Enum, Float, Font, HasTraits, Int, List,
                         Property, Str, Trait)
 from traitsui.api import TabularEditor, UItem, View
-from traitsui.tabular_adapter import TabularAdapter
+from piksi_tools.console.gui_utils import ReadOnlyTabularAdapter
 
 from piksi_tools.utils import sopen
 
@@ -86,14 +86,13 @@ def str_to_log_level(level_str):
     return SYSLOG_LEVELS_INVERSE.get(level_str.lower(), DEFAULT_LOG_LEVEL)
 
 
-class LogItemOutputListAdapter(TabularAdapter):
+class LogItemOutputListAdapter(ReadOnlyTabularAdapter):
     """
     Tabular adapter for table of LogItems
     """
     columns = [('Host timestamp', 'timestamp'), ('Log level', 'log_level_str'),
                ('Message', 'msg')]
     font = Font('12')
-    can_edit = Bool(False)
     timestamp_width = Float(0.21)
     log_level_width = Float(0.07)
     msg_width = Float(0.72)
