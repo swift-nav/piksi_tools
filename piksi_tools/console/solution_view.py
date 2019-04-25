@@ -15,6 +15,7 @@ import datetime
 import math
 import os
 import time
+from monotonic import monotonic
 import threading
 from collections import deque
 
@@ -364,7 +365,7 @@ class SolutionView(HasTraits):
             pos_table.append(('Horiz Acc', EMPTY_STR))
             pos_table.append(('Vert Acc', EMPTY_STR))
         else:
-            self.last_stime_update = time.time()
+            self.last_stime_update = monotonic()
 
             if self.week is not None:
                 pos_table.append(('GPS Week', str(self.week)))
@@ -409,7 +410,7 @@ class SolutionView(HasTraits):
         # setup_plot variables
         # Updating array plot data is not thread safe, so we have to fire an event
         # and have the GUI thread do it
-        if time.time() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
+        if monotonic() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
             self.update_scheduler.schedule_update('_solution_draw', self._solution_draw)
 
     def _display_units_changed(self):
@@ -480,7 +481,7 @@ class SolutionView(HasTraits):
 
     def _solution_draw(self):
         self.list_lock.acquire()
-        current_time = time.time()
+        current_time = monotonic()
         self.last_plot_update_time = current_time
         pending_draw_modes = self.pending_draw_modes
         current_mode = pending_draw_modes[-1] if len(pending_draw_modes) > 0 else None

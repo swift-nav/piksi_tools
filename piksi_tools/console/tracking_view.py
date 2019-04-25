@@ -10,9 +10,10 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
-import time
-from collections import defaultdict, deque
 import threading
+
+from monotonic import monotonic  # compatible with python 2.7 unlike time.monotonic
+from collections import defaultdict, deque
 from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
@@ -142,7 +143,7 @@ class TrackingView(CodeFiltered):
     def measurement_state_callback(self, sbp_msg, **metadata):
         with self.CN0_lock:
             codes_that_came = []
-            t = time.time() - self.t_init
+            t = monotonic() - self.t_init
             self.time.append(t)
             # first we loop over all the SIDs / channel keys we have stored and set 0 in for CN0
             for i, s in enumerate(sbp_msg.states):
@@ -174,7 +175,7 @@ class TrackingView(CodeFiltered):
     def tracking_state_callback(self, sbp_msg, **metadata):
         with self.CN0_lock:
             codes_that_came = []
-            t = time.time() - self.t_init
+            t = monotonic() - self.t_init
             self.time.append(t)
             # first we loop over all the SIDs / channel keys we have stored and set 0 in for CN0
             # for each SID, an array of size MAX PLOT with the history of CN0's stored
@@ -257,7 +258,7 @@ class TrackingView(CodeFiltered):
 
     def __init__(self, link):
         super(TrackingView, self).__init__()
-        self.t_init = time.time()
+        self.t_init = monotonic()
         self.time = deque([x * 1 / TRK_RATE for x in range(-NUM_POINTS, 0, 1)], maxlen=NUM_POINTS)
         self.CN0_lock = threading.Lock()
         self.CN0_dict = defaultdict(lambda: deque([0] * NUM_POINTS, maxlen=NUM_POINTS))
