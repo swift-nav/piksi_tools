@@ -14,6 +14,8 @@ from pyface.api import GUI
 
 from traits.api import Bool, HasTraits, List
 from traitsui.api import HGroup, VGroup, Item, TextEditor
+from traitsui.basic_editor_factory import BasicEditorFactory
+import traitsui.qt4.boolean_editor
 
 from piksi_tools.console.utils import SUPPORTED_CODES, GUI_CODES, code_to_str
 
@@ -130,3 +132,17 @@ class CodeFiltered(HasTraits):
                         visible_when="{} in received_codes".format(code)))
             hgroup.content.append(vgroup)
         return hgroup
+
+
+class _PiksiBooleanEditor(traitsui.qt4.boolean_editor.SimpleEditor):
+    def init(self, parent):
+        super(_PiksiBooleanEditor, self).init(parent)
+        self.control.setText(self.item.get_label(self.ui))
+
+
+class PiksiBooleanEditor(BasicEditorFactory):
+    """Extends TraitsUI's bool editor
+
+       by making the UI item's label part of the toggle button (editor).
+       This enables toggling it by clicking on the text, too, as in normal Qt."""
+    klass = _PiksiBooleanEditor
