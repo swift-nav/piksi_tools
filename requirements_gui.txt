@@ -1,5 +1,5 @@
-# fixes a memory leak. TODO: update to 4.7.3 when released
-git+git://github.com/swift-nav/enable@fe0a66630da725afb739b41137ed8c6e09b08f71#egg=enable
+# several fixes compared to enable v. 4.7.2. TODO: update to 4.7.3 when released
+git+git://github.com/enthought/enable@77b23977ad5486328ec59f6bc14cbbdc8b53d7dd#egg=enable
 
 chaco==4.7.2
 traits==4.6.0 
