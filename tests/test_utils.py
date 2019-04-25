@@ -1,6 +1,6 @@
 # -*- python -*-
 
-from piksi_tools.fileio import Time
+from piksi_tools.utils import Time
 
 
 def test_time_repr():
@@ -39,6 +39,23 @@ def test_time_gt():
     t4 += Time(0, 1)
     assert (t4 > t5)
 
+
+def test_time_le():
+    t1 = Time(1, 500)
+    t2 = Time(1, 500)
+    assert t1 <= t2
+    t2 += Time(0, 1)
+    assert t1 <= t2
+    t1 += Time(0, 2)
+    assert not (t1 <= t2)
+
+
+def test_time_lt():
+    t1 = Time(1, 500)
+    t2 = Time(1, 500)
+    assert not (t1 > t2)
+    t1 += Time(0, 1)
+    assert (t2 < t1)
 
 def test_time():
     t1 = Time.now()

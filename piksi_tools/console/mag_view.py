@@ -13,7 +13,7 @@
 from __future__ import print_function
 
 import numpy as np
-import time
+from monotonic import monotonic
 
 from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import LegendTool
@@ -53,7 +53,7 @@ class MagView(HasTraits):
     )
 
     def mag_set_data(self):
-        self.last_plot_update_time = time.time()
+        self.last_plot_update_time = monotonic()
         min_data = np.min(self.mag)
         max_data = np.max(self.mag)
         padding = (max_data - min_data) / 4.0
@@ -72,7 +72,7 @@ class MagView(HasTraits):
         self.mag[-1] = (sbp_msg.mag_x,
                         sbp_msg.mag_y,
                         sbp_msg.mag_z)
-        if time.time() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
+        if monotonic() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
             self.mag_set_data()
 
     def __init__(self, link):

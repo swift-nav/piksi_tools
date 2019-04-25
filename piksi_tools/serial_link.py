@@ -17,6 +17,7 @@ from __future__ import print_function
 import os
 import sys
 import time
+from monotonic import monotonic
 
 import serial.tools.list_ports
 from sbp.client import Forwarder, Framer, Handler
@@ -275,9 +276,9 @@ def run(args, link):
         link(MsgReset(flags=0))
     try:
         if args.timeout is not None:
-            expire = time.time() + float(args.timeout)
+            expire = monotonic() + float(args.timeout)
         while True:
-            if timeout is None or time.time() < expire:
+            if timeout is None or monotonic() < expire:
                 # Wait forever until the user presses Ctrl-C
                 time.sleep(1)
             else:

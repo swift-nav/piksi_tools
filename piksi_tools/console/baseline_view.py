@@ -11,6 +11,7 @@
 import datetime
 import os
 import time
+from monotonic import monotonic
 import threading
 from collections import deque
 
@@ -315,7 +316,7 @@ class BaselineView(HasTraits):
             table.append(('Heading', EMPTY_STR))
             table.append(('Corr. Age [s]', EMPTY_STR))
         else:
-            self.last_btime_update = time.time()
+            self.last_btime_update = monotonic()
             if self.week is not None:
                 table.append(('GPS Week', str(self.week)))
             table.append(('GPS TOW', "{:.3f}".format(tow)))
@@ -361,12 +362,12 @@ class BaselineView(HasTraits):
             self._append_empty_sln_data(soln)
             self.list_lock.release()
 
-        if time.time() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
+        if monotonic() - self.last_plot_update_time > GUI_UPDATE_PERIOD:
             self.update_scheduler.schedule_update('_solution_draw', self._solution_draw)
 
     def _solution_draw(self):
         self.list_lock.acquire()
-        current_time = time.time()
+        current_time = monotonic()
         self.last_plot_update_time = current_time
         pending_draw_modes = self.pending_draw_modes
         current_mode = pending_draw_modes[-1] if len(pending_draw_modes) > 0 else None

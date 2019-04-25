@@ -13,7 +13,7 @@
 from __future__ import print_function
 
 import numpy as np
-import time
+from monotonic import monotonic
 from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
@@ -63,7 +63,7 @@ class IMUView(HasTraits):
     )
 
     def update_plot(self):
-        self.last_plot_update_time = time.time()
+        self.last_plot_update_time = monotonic()
         self.plot_data.set_data('acc_x', self.acc_x)
         self.plot_data.set_data('acc_y', self.acc_y)
         self.plot_data.set_data('acc_z', self.acc_z)
@@ -72,7 +72,7 @@ class IMUView(HasTraits):
         self.plot_data.set_data('gyr_z', self.gyro_z)
 
     def imu_set_data(self):
-        if time.time() - self.last_plot_update_time < GUI_UPDATE_PERIOD:
+        if monotonic() - self.last_plot_update_time < GUI_UPDATE_PERIOD:
             return
         if self.imu_conf is not None:
             acc_range = self.imu_conf & 0xF
