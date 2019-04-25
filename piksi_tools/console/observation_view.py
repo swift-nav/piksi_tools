@@ -12,8 +12,7 @@
 
 from __future__ import print_function
 
-import time
-
+from monotonic import monotonic
 from sbp.observation import (SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B,
                              SBP_MSG_OBS_DEP_C)
 from traits.api import Dict, Float, Int, List, Str
@@ -279,10 +278,10 @@ class ObservationView(CodeFiltered):
 
         if (count == total - 1):
             # this is here to let GUI catch up to real time if required
-            if time.time() - self.last_table_update_time > GUI_UPDATE_PERIOD:
+            if monotonic() - self.last_table_update_time > GUI_UPDATE_PERIOD:
                 self.update_scheduler.schedule_update('update_obs', self.update_obs, self.incoming_obs.copy())
                 self.last_table_update_tow = self.gps_tow
-                self.last_table_update_time = time.time()
+                self.last_table_update_time = monotonic()
         return
 
     def __init__(self, link, name='Local', relay=False, dirname=None):

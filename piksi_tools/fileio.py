@@ -31,6 +31,7 @@ from sbp.file_io import (SBP_MSG_FILEIO_READ_DIR_RESP, SBP_MSG_FILEIO_READ_RESP,
                          MsgFileioConfigReq, MsgFileioConfigResp)
 
 from piksi_tools import serial_link
+from piksi_tools.utils import Time
 
 MAX_PAYLOAD_SIZE = 255
 SBP_FILEIO_WINDOW_SIZE = 100
@@ -96,61 +97,6 @@ class PendingRequest(object):
         self.time = retry_time
         self.time_expire = new_expire_time
         return self
-
-
-class Time(object):
-    """
-    Time object with millisecond resolution.  Used to inspect
-    request expiration times.
-    """
-
-    __slots__ = ["_seconds", "_millis"]
-
-    def __init__(self, seconds=0, millis=0):
-        self._seconds = seconds
-        self._millis = millis
-
-    @classmethod
-    def now(cls):
-        now = time.time()
-        return Time(int(now), int((now * 1000) % 1000))
-
-    @classmethod
-    def iter_since(cls, last, now):
-        """
-        Iterate time slices since the `last` time given up to (and including)
-        the `now` time but not including the `last` time.
-        """
-        increment = Time(0, 1)
-        next_time = last
-        while not next_time >= now:
-            next_time += increment
-            yield next_time
-
-    def __hash__(self):
-        return hash((self._seconds, self._millis))
-
-    def __repr__(self):
-        return "Time(s=%r,ms=%r)" % (self._seconds, self._millis)
-
-    def __add__(a, b):
-        new_time = (1000 * a._seconds) + (1000 * b._seconds) + a._millis + b._millis
-        return Time(seconds=(new_time // 1000), millis=(new_time % 1000))
-
-    def __eq__(a, b):
-        return a._seconds == b._seconds and a._millis == b._millis
-
-    def __ge__(a, b):
-        if a == b:
-            return True
-        return a > b
-
-    def __gt__(a, b):
-        if a._seconds < b._seconds:
-            return False
-        if a._seconds == b._seconds:
-            return a._millis > b._millis
-        return True
 
 
 class SelectiveRepeater(object):
@@ -738,7 +684,7 @@ def printable_text_from_device(data):
 
 def mk_progress_cb(file_length):
 
-    time_last = [time.time()]
+    time_last = [Time.now()]
     offset_last = [0]
 
     b_to_mb = 1024 * 1024.0
@@ -764,12 +710,12 @@ def mk_progress_cb(file_length):
             return previous_avg[0]
 
     def the_callback(offset, repeater):
-        time_current = time.time()
+        time_current = Time.now()
         offset_delta = offset - offset_last[0]
         time_delta = time_current - time_last[0]
         percent_done = 100 * (offset / float(file_length))
         mb_confirmed = offset / b_to_mb
-        speed_kbs = offset_delta / time_delta / 1024
+        speed_kbs = offset_delta / time_delta.to_float() / 1024
         rolling_avg = compute_rolling_average(speed_kbs)
         fmt_str = "\r[{:02.02f}% ({:.02f}/{:.02f} MB) at {:.02f} kB/s ({:0.02f}% retried)]"
         percent_retried = 100 * (repeater.total_retries / repeater.total_sends)
