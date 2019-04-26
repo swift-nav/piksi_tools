@@ -1,7 +1,7 @@
-# several fixes compared to enable v. 4.7.2. TODO: update to 4.7.3 when released
+# several fixes ahead of enable & chaco v. 4.7.2. TODO: update to 4.7.3 when released
 git+git://github.com/enthought/enable@77b23977ad5486328ec59f6bc14cbbdc8b53d7dd#egg=enable
+git+git://github.com/enthought/chaco@14c5539248b25ab4c737c5f74523c71d95587731#egg=chaco
 
-chaco==4.7.2
 traits==4.6.0 
 traitsui==6.0.0
 pyface==6.0.0

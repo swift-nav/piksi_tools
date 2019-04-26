@@ -46,7 +46,7 @@ Python version support
 * The most important command line tools - ``bootload_v3.py``, ``fileio.py``,
   ``serial_link.py``, and ``settings.py`` - support Python 2.7, 3.5, and 3.7
 
-* Console GUI under Linux supports 2.7 and 3.5
+* Console GUI under Linux supports 2.7 and 3.5. Experimental support for Python 3.7
 
 * Console GUI under MacOS and Windows is tested against Python 3.5 but probably
   would support all versions that Linux GUI supports, but some of those might
