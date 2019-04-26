@@ -170,10 +170,7 @@ class ObservationView(CodeFiltered):
             return
         else:
             self.prev_obs_count = count
-        # Don't bother updating anything except the TOW faster than 2Hz
-        tow_diff = self.gps_tow - self.last_table_update_tow
-        if tow_diff > 0 and tow_diff < 0.5:
-            return
+
         # Save this packet
         # See sbp_piksi.h for format
         for o in sbp_msg.obs:
