@@ -81,7 +81,7 @@ def build_win():
 
 
 def build_cli_tools():
-    _check_output(['tox', '-e', 'pyinstaller_cmdline_tools'])
+    _check_output(['tox', '-e', 'pyinstaller-cmdline_tools'])
 
 
 def main():
