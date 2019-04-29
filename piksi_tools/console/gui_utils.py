@@ -9,9 +9,9 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 import numpy as np
+import sys
 
 from pyface.api import GUI
-
 from traits.api import Bool, HasTraits, List
 from traitsui.api import HGroup, VGroup, Item, TextEditor
 from traitsui.basic_editor_factory import BasicEditorFactory
@@ -156,3 +156,19 @@ class ReadOnlyTabularAdapter(TabularAdapter):
 
     def get_drag(self, object, trait, row):
         return None  # disables drag
+
+
+def scaled_size(default_size):
+    '''Scale a pixel size based on monitor's DPI.
+
+       Primarily meant for Windows. If the DPI is 96, no scaling is done.'''
+    from pyface.qt import QtGui
+
+    if '--scale' in sys.argv:
+        # this is before actual argument parsing
+        primary_screen = QtGui.QApplication.primaryScreen()
+        dpi = primary_screen.logicalDotsPerInch()
+        size_after_scaling = int(default_size * dpi / 96.0)
+        return size_after_scaling
+    else:
+        return default_size

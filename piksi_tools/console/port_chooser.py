@@ -19,6 +19,7 @@ from traitsui.api import EnumEditor, HGroup, Item, Label, Spring, VGroup, View
 import piksi_tools.serial_link as s
 from piksi_tools import __version__ as CONSOLE_VERSION
 from piksi_tools.console.utils import resource_filename, icon
+from piksi_tools.console.gui_utils import scaled_size
 
 
 # If using a device connected to an actual port, then invoke the
@@ -47,7 +48,7 @@ class PortChooser(HasTraits):
 
     traits_view = View(
         VGroup(
-            Spring(height=8),
+            Spring(height=scaled_size(8)),
             HGroup(
                 Spring(width=-2, springy=False),
                 Item(
@@ -60,8 +61,9 @@ class PortChooser(HasTraits):
                 VGroup(
                     Label('Serial Device:'),
                     HGroup(
-                        Item('port', editor=EnumEditor(name='ports'), show_label=False, springy=True),
-                        Item('refresh_ports_button', show_label=False, padding=0, height=-20, width=-20),
+                        Item('port', editor=EnumEditor(name='ports'), height=0.2, show_label=False, springy=True),
+                        Item('refresh_ports_button', show_label=False, padding=0,
+                             height=scaled_size(-20), width=scaled_size(-20)),
                     ),
                 ),
                 VGroup(
@@ -69,11 +71,13 @@ class PortChooser(HasTraits):
                     Item(
                         'baudrate',
                         editor=EnumEditor(values=BAUD_LIST),
+                        height=0.2,
                         show_label=False,
                         visible_when='choose_baud'),
                     Item(
                         'baudrate',
                         show_label=False,
+                        height=0.2,
                         visible_when='not choose_baud',
                         style='readonly'), ),
                 VGroup(
@@ -82,6 +86,7 @@ class PortChooser(HasTraits):
                         'flow_control',
                         editor=EnumEditor(
                             values=flow_control_options_list, format_str='%s'),
+                        height=0.2,
                         show_label=False), ),
                 visible_when="mode==\'Serial/USB\'"),
             HGroup(
@@ -92,7 +97,7 @@ class PortChooser(HasTraits):
                         label="IP Address",
                         style='simple',
                         show_label=False,
-                        height=-24), ),
+                        height=scaled_size(-24)), ),
                 VGroup(
                     Label('IP Port:'),
                     Item(
@@ -100,14 +105,14 @@ class PortChooser(HasTraits):
                         label="IP Port",
                         style='simple',
                         show_label=False,
-                        height=-24), ),
+                        height=scaled_size(-24)), ),
                 Spring(),
                 visible_when="mode==\'TCP/IP\'"), ),
         buttons=['OK', 'Cancel'],
         default_button='OK',
         close_result=False,
         icon=icon,
-        width=460,
+        width=scaled_size(460),
         title='Swift Console {0} - Select Interface'.format(CONSOLE_VERSION)
     )
 

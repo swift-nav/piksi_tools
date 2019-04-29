@@ -22,7 +22,7 @@ from traits.api import Bool, Dict, Instance, List
 from traitsui.api import HGroup, Item, Spring, VGroup, View
 
 from piksi_tools.acq_results import SNR_THRESHOLD
-from piksi_tools.console.gui_utils import CodeFiltered, UpdateScheduler
+from piksi_tools.console.gui_utils import CodeFiltered, UpdateScheduler, scaled_size
 from piksi_tools.console.utils import (code_is_glo,
                                        code_is_sbas,
                                        code_is_bds,
@@ -284,7 +284,12 @@ class TrackingView(CodeFiltered):
         self.plot.legend.visible = True
         self.plot.legend.align = 'll'
         self.plot.legend.line_spacing = 1
-        self.plot.legend.font = 'monospace 8'
+
+        # the enable font rendering backend doesn't seem to compute sizes
+        # correctly in the high-DPI Windows case; point-sizes should be
+        # auto-scaled. This is a hack.
+        self.plot.legend.font = 'monospace ' + str(scaled_size(8))
+
         self.plot.legend.draw_layer = 'overlay'
         self.plot.legend.tools.append(
             LegendTool(self.plot.legend, drag_button="right"))

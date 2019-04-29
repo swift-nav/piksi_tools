@@ -55,6 +55,7 @@ from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
                                        mode_dict, resource_filename,
                                        icon, swift_path, DR_MODE, DIFFERENTIAL_MODES)
+from piksi_tools.console.gui_utils import scaled_size
 
 
 class ArgumentParserError(Exception):
@@ -91,6 +92,10 @@ def get_args():
         '--log-console',
         action='store_true',
         help="Log console stdout/err to file.")
+    parser.add_argument(
+        '--scale',
+        action='store_true',
+        help="Scale the Console window if running on a high-DPI monitor. Primarily meant for Windows.")
     parser.add_argument(
         '-h',
         '--help',
@@ -207,14 +212,14 @@ class SwiftConsole(HasTraits):
         toggle=True,
         filename=resource_filename('console/images/iconic/pause.svg'),
         toggle_filename=resource_filename('console/images/iconic/play.svg'),
-        width=8,
-        height=8)
+        width=scaled_size(8),
+        height=scaled_size(8))
     clear_button = SVGButton(
         label='',
         tooltip='Clear console buffer',
         filename=resource_filename('console/images/iconic/x.svg'),
-        width=8,
-        height=8)
+        width=scaled_size(8),
+        height=scaled_size(8))
 
     view = View(
         VSplit(
@@ -258,41 +263,41 @@ class SwiftConsole(HasTraits):
                             'paused_button',
                             show_label=False,
                             padding=0,
-                            width=8,
-                            height=8),
+                            width=scaled_size(8),
+                            height=scaled_size(8)),
                         Item(
                             'clear_button',
                             show_label=False,
-                            width=8,
-                            height=8),
+                            width=scaled_size(8),
+                            height=scaled_size(8)),
                         Item('', label='Console Log', emphasized=True),
                         Item(
                             'csv_logging_button',
                             emphasized=True,
                             show_label=False,
-                            width=12,
-                            height=-30,
+                            width=scaled_size(12),
+                            height=scaled_size(-30),
                             padding=0),
                         Item(
                             'json_logging_button',
                             emphasized=True,
                             show_label=False,
-                            width=12,
-                            height=-30,
+                            width=scaled_size(12),
+                            height=scaled_size(-30),
                             padding=0),
                         Item(
                             'directory_name',
                             show_label=False,
                             springy=True,
                             tooltip='Choose location for file logs. Default is home/SwiftNav.',
-                            height=-25,
+                            height=scaled_size(-25),
                             enabled_when='not(json_logging or csv_logging)',
                             editor_args={'auto_set': True}),
                         UItem(
                             'log_level_filter',
                             style='simple',
                             padding=0,
-                            height=8,
+                            height=scaled_size(8),
                             show_label=True,
                             tooltip='Show log levels up to and including the selected level of severity.\nThe CONSOLE log level is always visible.'
                         ), ),
@@ -300,7 +305,7 @@ class SwiftConsole(HasTraits):
                         'console_output',
                         style='custom',
                         editor=InstanceEditor(),
-                        height=125,
+                        height=scaled_size(125),
                         show_label=False,
                         full_size=True), ),
                 HGroup(
@@ -354,8 +359,8 @@ class SwiftConsole(HasTraits):
                         'cnx_icon',
                         show_label=False,
                         padding=0,
-                        width=8,
-                        height=8,
+                        width=scaled_size(8),
+                        height=scaled_size(8),
                         visible_when='solid_connection',
                         springy=False,
                         editor=ImageEditor(
@@ -366,8 +371,8 @@ class SwiftConsole(HasTraits):
                         'cnx_icon',
                         show_label=False,
                         padding=0,
-                        width=8,
-                        height=8,
+                        width=scaled_size(8),
+                        height=scaled_size(8),
                         visible_when='not solid_connection',
                         springy=False,
                         editor=ImageEditor(
@@ -379,8 +384,8 @@ class SwiftConsole(HasTraits):
                 Spring(height=1, springy=False), ), ),
         icon=icon,
         resizable=True,
-        width=800,
-        height=600,
+        width=scaled_size(800),
+        height=scaled_size(600),
         handler=ConsoleHandler(),
         title=CONSOLE_TITLE)
 
