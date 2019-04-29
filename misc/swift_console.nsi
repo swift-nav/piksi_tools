@@ -48,6 +48,7 @@ inst:
   ; Now create shortcuts
   CreateDirectory "$SMPROGRAMS\Swift Navigation"
   CreateShortCut "$SMPROGRAMS\Swift Navigation\Swift Console.lnk" "$INSTDIR\console.exe"
+  CreateShortCut "$SMPROGRAMS\Swift Navigation\Swift Console, scaled for high DPI displays.lnk" "$INSTDIR\console.exe" "-platform windows:dpiawareness=1"
   CreateShortCut "$SMPROGRAMS\Swift Navigation\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
 
   ;create desktop shortcut
