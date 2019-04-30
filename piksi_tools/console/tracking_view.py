@@ -284,7 +284,7 @@ class TrackingView(CodeFiltered):
         self.plot.legend.visible = True
         self.plot.legend.align = 'll'
         self.plot.legend.line_spacing = 1
-        self.plot.legend.font = 'monospace 8'
+        self.plot.legend.font = 'monospace 6'
         self.plot.legend.draw_layer = 'overlay'
         self.plot.legend.tools.append(
             LegendTool(self.plot.legend, drag_button="right"))
