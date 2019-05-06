@@ -35,7 +35,51 @@ colours_list = [
     0xF781BF,
 ]
 
+# Authors: Prabhu Ramachandran <prabhu [at] aero.iitb.ac.in>
+# Copyright (c) 2007, Enthought, Inc.
+# License: BSD Style.
+
+# Standard imports.
+from numpy import sqrt, sin, mgrid
+
+# Enthought imports.
+from traits.api import HasTraits, Instance, Property, Enum
+from traitsui.api import View, Item, HSplit, VSplit, InstanceEditor
+from tvtk.pyface.scene_editor import SceneEditor
+from mayavi.tools.mlab_scene_model import MlabSceneModel
+
+
+######################################################################
 class AttitudeView(HasTraits):
+    python_console_cmds = Dict()
+    # The scene model.
+    scene = Instance(MlabSceneModel, ())
+
+    ######################
+    traits_view = View(Item(name='scene',
+                     editor=SceneEditor(),
+                     show_label=False,
+                     resizable=True,
+                     height=500,
+                     width=500),
+                resizable=False,
+                scrollable=False)
+
+    def __init__(self, link, **traits):
+        HasTraits.__init__(self, **traits)
+        self.generate_data_mayavi()
+
+    def generate_data_mayavi(self):
+        """Shows how you can generate data using mayavi instead of mlab."""
+        from mayavi.sources.api import ParametricSurface
+        from mayavi.modules.api import Outline, Surface
+        e = self.scene.engine
+        s = ParametricSurface()
+        e.add_source(s)
+        e.add_module(Outline())
+        e.add_module(Surface())
+
+class blechAttitudeView(HasTraits):
     python_console_cmds = Dict()
     plot = Instance(Plot)
     plot_data = Instance(ArrayPlotData)
