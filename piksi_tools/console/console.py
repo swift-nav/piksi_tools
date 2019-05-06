@@ -42,6 +42,7 @@ from piksi_tools.console.port_chooser import get_args_from_port_chooser
 from piksi_tools.console.deprecated import DeprecatedMessageHandler
 from piksi_tools.console.imu_view import IMUView
 from piksi_tools.console.mag_view import MagView
+from piksi_tools.console.attitude_view import AttitudeView
 from piksi_tools.console.observation_view import ObservationView
 from piksi_tools.console.output_list import (
     DEFAULT_LOG_LEVEL_FILTER, SYSLOG_LEVELS, OutputList, str_to_log_level)
@@ -148,6 +149,7 @@ class SwiftConsole(HasTraits):
     solution_view = Instance(SolutionView)
     baseline_view = Instance(BaselineView)
     observation_view = Instance(ObservationView)
+    attitude_view = Instance(AttitudeView)
     networking_view = Instance(SbpRelayView)
     observation_view_base = Instance(ObservationView)
     system_monitor_view = Instance(SystemMonitorView)
@@ -247,6 +249,7 @@ class SwiftConsole(HasTraits):
                         'spectrum_analyzer_view',
                         label='Spectrum Analyzer',
                         style='custom'),
+                    Item('attitude_view', style='custom', label='Attitude'),
                     label='Advanced',
                     show_labels=False),
                 show_labels=False),
@@ -650,6 +653,7 @@ class SwiftConsole(HasTraits):
                 connection_info=self.connection_info)
             self.imu_view = IMUView(self.link)
             self.mag_view = MagView(self.link)
+            self.attitude_view = AttitudeView(self.link)
             self.spectrum_analyzer_view = SpectrumAnalyzerView(self.link)
             settings_read_finished_functions.append(
                 self.update_view.compare_versions)
