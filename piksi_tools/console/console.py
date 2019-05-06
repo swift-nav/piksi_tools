@@ -715,6 +715,7 @@ class SwiftConsole(HasTraits):
                 self.update_view.python_console_cmds)
             self.python_console_env.update(self.imu_view.python_console_cmds)
             self.python_console_env.update(self.mag_view.python_console_cmds)
+            self.python_console_env.update(self.attitude_view.python_console_cmds)
             self.python_console_env.update(
                 self.settings_view.python_console_cmds)
             self.python_console_env.update(

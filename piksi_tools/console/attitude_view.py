@@ -35,7 +35,6 @@ colours_list = [
     0xF781BF,
 ]
 
-
 class AttitudeView(HasTraits):
     python_console_cmds = Dict()
     plot = Instance(Plot)
@@ -105,7 +104,7 @@ class AttitudeView(HasTraits):
         self.imu_set_data()
 
     def __init__(self, link):
-        super(IMUView, self).__init__()
+        super(AttitudeView, self).__init__()
 
         self.acc_x = np.zeros(NUM_POINTS)
         self.acc_y = np.zeros(NUM_POINTS)
