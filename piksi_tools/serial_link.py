@@ -30,7 +30,7 @@ from sbp.client.loggers.null_logger import NullLogger
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP, MsgLog
 from sbp.piksi import MsgReset
 
-from piksi_tools.utils import mkdir_p, get_tcp_driver
+from piksi_tools.utils import mkdir_p, get_tcp_driver, get_file_driver
 
 SERIAL_PORT = "/dev/ttyUSB0"
 SERIAL_BAUD = 115200
@@ -309,6 +309,9 @@ def get_base_args_driver(args):
     driver = None
     if getattr(args, 'tcp', None):
         driver = get_tcp_driver(getattr(args, 'port', None))
+    elif getattr(args, 'file', None):
+        print("Making a file driver")
+        driver = get_file_driver(getattr(args, 'port', None))
     else:
         driver_kwargs = {}
         # unpack relevant args

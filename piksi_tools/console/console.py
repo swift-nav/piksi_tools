@@ -56,6 +56,7 @@ from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
                                        mode_dict, resource_filename,
                                        icon, swift_path, DR_MODE, DIFFERENTIAL_MODES)
+from piksi_tools.utils import RealTimeFramer
 
 
 class ArgumentParserError(Exception):
@@ -928,6 +929,71 @@ def main():
     except:  # noqa
         pass
 
+def hackathon_main():
+    warnings.simplefilter(action="ignore", category=FutureWarning)
+    logging.basicConfig()
+    args = None
+    parser = get_args()
+    try:
+        args = parser.parse_args()
+        show_usage = args.help
+        error_str = ""
+    except (ArgumentParserError, argparse.ArgumentError,
+            argparse.ArgumentTypeError) as e:
+        print(e)
+        show_usage = True
+        error_str = "ERROR: " + str(e)
+
+    # Make sure that SIGINT (i.e. Ctrl-C from command line) actually stops the
+    # application event loop (otherwise Qt swallows KeyboardInterrupt exceptions)
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    if show_usage:
+        usage_str = parser.format_help()
+        print(usage_str)
+        usage = ShowUsage(usage_str, error_str)
+        usage.configure_traits()
+        sys.exit(1)
+
+    # fail out if connection failed to initialize
+    cnx_data = do_connection(args)
+    if cnx_data is None:
+        print('Unable to Initialize Connection. Exiting...')
+        sys.exit(1)
+
+    with cnx_data.driver as driver:
+        if type(driver) == sbpc.drivers.file_driver.FileDriver:
+            framer = RealTimeFramer(driver.read, driver.write, args.verbose, args.replay_speed)
+        else:
+            framer = sbpc.Framer(driver.read, driver.write, args.verbose)
+
+        with sbpc.Handler(framer) as link:
+            if args.reset:
+                link(MsgReset(flags=0))
+            log_filter = DEFAULT_LOG_LEVEL_FILTER
+            if args.initloglevel[0]:
+                log_filter = args.initloglevel[0]
+            with SwiftConsole(
+                    link,
+                    args.update,
+                    log_filter,
+                    cnx_desc=cnx_data.description,
+                    error=args.error,
+                    json_logging=args.log,
+                    log_dirname=args.log_dirname,
+                    override_filename=args.logfilename,
+                    log_console=args.log_console,
+                    connection_info=cnx_data.connection_info,
+                    expand_json=args.expand_json) as console:
+
+                console.configure_traits()
+
+    # TODO: solve this properly
+    # Force exit, even if threads haven't joined
+    try:
+        os._exit(0)
+    except:  # noqa
+        pass
+
 
 if __name__ == "__main__":
-    main()
+    hackathon_main()

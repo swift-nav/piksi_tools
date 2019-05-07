@@ -13,20 +13,23 @@ from __future__ import print_function
 
 # UI
 from enable.savage.trait_defs.ui.svg_button import SVGButton
-from traits.api import Bool, Enum, HasTraits, Int, List, Str
+from traits.api import Bool, Enum, HasTraits, Int, List, Str, File
 from traitsui.api import EnumEditor, HGroup, Item, Label, Spring, VGroup, View
 
 import piksi_tools.serial_link as s
 from piksi_tools import __version__ as CONSOLE_VERSION
 from piksi_tools.console.utils import resource_filename, icon
 
+from pathlib import Path
+
 
 # If using a device connected to an actual port, then invoke the
 # regular console dialog for port selection
 flow_control_options_list = ['None', 'Hardware RTS/CTS']
-cnx_type_list = ['Serial/USB', 'TCP/IP']
+cnx_type_list = ['Serial/USB', 'TCP/IP', 'File Replay']
 
 BAUD_LIST = [57600, 115200, 230400, 921600, 1000000]
+REPLAY_SPEED_LIST = ["Slow", "Regular", "Fast", "Ludicrous"]
 
 
 class PortChooser(HasTraits):
@@ -44,6 +47,8 @@ class PortChooser(HasTraits):
                                      allow_clipping=False,
                                      width_padding=4, height_padding=4
                                      )
+    file_path = File(Path.home())
+    file_speed = Str("Regular")
 
     traits_view = View(
         VGroup(
@@ -54,7 +59,7 @@ class PortChooser(HasTraits):
                     'mode',
                     style='custom',
                     editor=EnumEditor(
-                        values=cnx_type_list, cols=2, format_str='%s'),
+                        values=cnx_type_list, cols=3, format_str='%s'),
                     show_label=False)),
             HGroup(
                 VGroup(
@@ -102,7 +107,24 @@ class PortChooser(HasTraits):
                         show_label=False,
                         height=-24), ),
                 Spring(),
-                visible_when="mode==\'TCP/IP\'"), ),
+                visible_when="mode==\'TCP/IP\'"),
+            HGroup(
+                VGroup(
+                    Label('File:'),
+                    Item(
+                        'file_path',
+                        label="File",
+                        style='simple',
+                        show_label=False,
+                        height=-24), ),
+                VGroup(
+                    Label('Replay Speed:'),
+                    Item(
+                        'file_speed',
+                        editor=EnumEditor(values=REPLAY_SPEED_LIST),
+                        show_label=False), ),
+                Spring(),
+                visible_when="mode==\'File Replay\'"), ),
         buttons=['OK', 'Cancel'],
         default_button='OK',
         close_result=False,
@@ -141,10 +163,12 @@ def get_args_from_port_chooser(args):
     is_ok = port_chooser.configure_traits()
     ip_address = port_chooser.ip_address
     ip_port = port_chooser.ip_port
+    file_path = port_chooser.file_path
     mode = port_chooser.mode
     args.port = port_chooser.port
     args.baud = port_chooser.baudrate
     args.rtscts = port_chooser.flow_control == flow_control_options_list[1]
+    args.replay_speed = port_chooser.file_speed
 
     # if the user pressed cancel or didn't select anything
     if not (args.port or (ip_address and ip_port)) or not is_ok:
@@ -154,9 +178,15 @@ def get_args_from_port_chooser(args):
     # Use TCP/IP if selected from gui
     if mode == cnx_type_list[1]:
         args.tcp = True
+        args.file = False
         args.port = ip_address + ":" + str(ip_port)
         print("Using TCP/IP at address %s and port %d" % (ip_address, ip_port))
+    if mode == cnx_type_list[2]:
+        args.tcp = False
+        args.file = True
+        args.port = file_path
     else:
         args.tcp = False
+        args.file = False
 
     return args
