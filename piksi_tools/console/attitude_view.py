@@ -83,8 +83,8 @@ class AttitudeView(HasTraits):
         self.plot.title = 'Attitude Uncertainty'
         self.plot.title_color = [0, 0, 0.43]
         self.ylim = self.plot.value_mapper.range
-        self.ylim.low = -360.
-        self.ylim.high = 360. 
+        self.ylim.low = -180.
+        self.ylim.high = 180. 
         self.plot.value_axis.orientation = 'right'
         self.plot.value_axis.axis_line_visible = False
         self.plot.value_axis.title = 'Angle'
@@ -155,8 +155,5 @@ class AttitudeView(HasTraits):
         y = sbp_msg.yaw / 1.e6
         p = sbp_msg.pitch / 1.e6 
         r = sbp_msg.roll / 1.e6
-        y_std = sbp_msg.yaw_accuracy
-        p_std = sbp_msg.pitch_accuracy
-        r_std = sbp_msg.roll_accuracy
         self.update_attitude(y, p, r)
 

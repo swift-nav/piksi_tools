@@ -36,7 +36,7 @@ class AttitudeView(HasTraits):
     @on_trait_change('scene.activated')
     def initialize_scene(self):
         # Turn off all interaction.
-        #self.scene.scene_editor._interactor.interactor_style = None
+        self.scene.scene_editor._interactor.interactor_style = None
         self.tform = tvtk.Transform()
         axes = tvtk.AxesActor(cylinder_radius=.02,
                               shaft_type='cylinder',
