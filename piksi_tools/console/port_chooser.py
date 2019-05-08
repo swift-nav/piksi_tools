@@ -181,7 +181,7 @@ def get_args_from_port_chooser(args):
         args.file = False
         args.port = ip_address + ":" + str(ip_port)
         print("Using TCP/IP at address %s and port %d" % (ip_address, ip_port))
-    if mode == cnx_type_list[2]:
+    elif mode == cnx_type_list[2]:
         args.tcp = False
         args.file = True
         args.port = file_path
