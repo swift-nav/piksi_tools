@@ -81,10 +81,20 @@ class AttitudeView(HasTraits):
         self.tform.rotate_z(y)
 
         self.axes.user_transform = self.tform
-        self.scene.render()
+        self.update_scheduler.schedule_update("render_attitude", self.scene.render)
+
+    def update_attitude_std(self, y_std, p_std, r_std):
+        pass
 
     def orient_euler_callback(self, sbp_msg, **metadata):
-        print("Got an euler callback!")
+        y = sbp_msg.yaw / 10.e6
+        p = sbp_msg.pitch / 10.e6 
+        r = sbp_msg.roll / 10.e6
+        y_std = sbp_msg.yaw_accuracy
+        p_std = sbp_msg.pitch_accuracy
+        r_std = sbp_msg.roll_accuracy
+        self.update_attitude(self, y, p, r)
+        self.update_attitude_std(self, y_std, p_std, r_std)
 
     def imu_raw_callback(self, sbp_msg, **metadata):
         print("Got an IMU Raw!")
