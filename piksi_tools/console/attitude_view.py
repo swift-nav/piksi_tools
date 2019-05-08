@@ -4,6 +4,7 @@
 
 # Enthought imports.
 import numpy as np
+from monotonic import monotonic
 from tvtk.api import tvtk
 from traits.api import *
 from traitsui.api import *
@@ -70,23 +71,23 @@ class AttitudeView(HasTraits):
         self.init_plotting()
 
     def init_plotting(self):
-        self.std_y = np.zeros(NUM_PLOT_POINTS)
-        self.std_p = np.zeros(NUM_PLOT_POINTS)
-        self.std_r = np.zeros(NUM_PLOT_POINTS)
+        self.est_yaw = np.zeros(NUM_PLOT_POINTS)
+        self.est_pit = np.zeros(NUM_PLOT_POINTS)
+        self.est_rol = np.zeros(NUM_PLOT_POINTS)
         self.last_plot_update_time = 0
         self.data = ArrayPlotData(t=np.arange(NUM_PLOT_POINTS),
-                                  std_y=[0.0],
-                                  std_p=[0.0],
-                                  std_r=[0.0])
+                                  est_yaw=[0.0],
+                                  est_pit=[0.0],
+                                  est_rol=[0.0])
         self.plot = Plot(self.data, auto_colors=[0x0000FF, 0x00FF00, 0xFF0000], emphasized=True)
         self.plot.title = 'Attitude Uncertainty'
         self.plot.title_color = [0, 0, 0.43]
         self.ylim = self.plot.value_mapper.range
-        self.ylim.low = -32768
-        self.ylim.high = 32767
+        self.ylim.low = -360.
+        self.ylim.high = 360. 
         self.plot.value_axis.orientation = 'right'
         self.plot.value_axis.axis_line_visible = False
-        self.plot.value_axis.title = 'LSB count'
+        self.plot.value_axis.title = 'Angle'
         self.legend_visible = True
         self.plot.legend.visible = True
         self.plot.legend.align = 'll'
@@ -95,9 +96,9 @@ class AttitudeView(HasTraits):
         self.plot.legend.draw_layer = 'overlay'
         self.plot.legend.tools.append(LegendTool(self.plot.legend, drag_button="right"))
 
-        std_y = self.plot.plot(('t', 'std_y'), type='line', color='auto', name='Yaw \sigma')
-        std_p = self.plot.plot(('t', 'std_p'), type='line', color='auto', name='Pitch \sigma')
-        std_r = self.plot.plot(('t', 'std_r'), type='line', color='auto', name='Roll \sigma')
+        self.plot.plot(('t', 'est_yaw'), type='line', color='auto', name='Yaw (\degree)')
+        self.plot.plot(('t', 'est_pit'), type='line', color='auto', name='Pitch (\degree)')
+        self.plot.plot(('t', 'est_rol'), type='line', color='auto', name='Roll (\degree)')
 
     @on_trait_change('scene.activated')
     def initialize_scene(self):
@@ -123,19 +124,32 @@ class AttitudeView(HasTraits):
     
     # Update the attitude representation.
     def update_attitude(self, y, p, r):
+        # Update transform.
         self.init_tform_ned()
         print("ATTITUDE", np.deg2rad(r), np.deg2rad(p), np.deg2rad(y))
         self.tform.rotate_x(r)
         self.tform.rotate_y(p)
         self.tform.rotate_z(y)
-
         self.axes.user_transform = self.tform
-        #self.update_scheduler.schedule_update("render_attitude", self.scene.render)
-        self.scene.render()
+        # Update the plot.
+        memoryview(self.est_yaw)[:-1] = memoryview(self.est_yaw)[1:]
+        memoryview(self.est_pit)[:-1] = memoryview(self.est_pit)[1:]
+        memoryview(self.est_rol)[:-1] = memoryview(self.est_rol)[1:]
+        self.est_yaw[-1] = y
+        self.est_pit[-1] = p
+        self.est_rol[-1] = r
 
+        # Update the attitude view at full rate.
+        self.update_scheduler.schedule_update("render_attitude", self.scene.render)
+        # Update the plots at reduced rate.
+        if monotonic() - self.last_plot_update_time >= GUI_UPDATE_PERIOD:
+            self.update_scheduler.schedule_update("attitude_plot_update", self.update_plot)
 
-    def update_attitude_std(self, y_std, p_std, r_std):
-        pass
+    def update_plot(self):
+        self.last_plot_update_time = monotonic()
+        self.data.set_data('est_yaw', self.est_yaw)
+        self.data.set_data('est_pit', self.est_pit)
+        self.data.set_data('est_rol', self.est_rol)
 
     def callback_orient_euler(self, sbp_msg, **metadata):
         y = sbp_msg.yaw / 1.e6
@@ -145,5 +159,4 @@ class AttitudeView(HasTraits):
         p_std = sbp_msg.pitch_accuracy
         r_std = sbp_msg.roll_accuracy
         self.update_attitude(y, p, r)
-        self.update_attitude_std(y_std, p_std, r_std)
 
