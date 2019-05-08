@@ -11,7 +11,8 @@ from tvtk.pyface import actors
 from tvtk.pyface.scene import Scene
 from mayavi.core.ui.api import MlabSceneModel, SceneEditor
 
-
+from sbp.orientation import SBP_MSG_ORIENT_EULER
+from sbp.imu import SBP_MSG_IMU_RAW
 from .gui_utils import GUI_UPDATE_PERIOD, UpdateScheduler
 
 ######################################################################
@@ -25,6 +26,12 @@ class AttitudeView(HasTraits):
     # The scene model.
     scene = Instance(MlabSceneModel, ())
 
+    # Transform for attitude marker.
+    tform = Instance(tvtk.Transform, ())
+
+    # Axes attitude marker.
+    axes = Instance(tvtk.AxesActor, ())
+
     ##################################################################
     traits_view = View(Item(name='scene',
                        editor=SceneEditor(scene_class=AttitudeScene),
@@ -37,34 +44,49 @@ class AttitudeView(HasTraits):
     def initialize_scene(self):
         # Turn off all interaction.
         self.scene.scene_editor._interactor.interactor_style = None
-        # Add some actors.
-        sphere = actors.sphere_actor(center=[0., 0., 0.], radius=1.)
-        tf = tvtk.Transform()
-        tf.pre_multiply()
-        #tf.translate(0., 0., 1.)
-        #tf.rotate_y(180.)
-        #tf.rotate_x(90.)
-        axes = tvtk.AxesActor(user_transform=tf,
-                              cylinder_radius=.02,
-                              shaft_type='cylinder')
-        print("RADIUS", axes.cylinder_radius)
-        print("SHAFT", axes.shaft_type)
-        self.scene.add_actor(axes)
+        # Set up the attitude transform.
+        self.tform = tvtk.Transform()
+        self.init_tform_ned()
+        # Set up the axes object.
+        self.axes = tvtk.AxesActor(cylinder_radius=.02,
+                                   shaft_type='cylinder',
+                                   axis_labels=False,
+                                   user_transform=self.tform)
+        self.scene.add_actor(self.axes)
         # Set up the camera. Look down on the origin from above.
-        #self.scene.scene_editor._camera.position = (0, -3., 3.)
-        #self.scene.scene_editor._camera.elevation()
-        self.scene.scene_editor._renderer.reset_camera()
-        self.scene.scene_editor._renWin.render()
-
+        #self.scene.scene_editor._camera.position = (0., 0., 10.)
+        #self.scene.scene_editor._renderer.reset_camera()
 
     def __init__(self, link, **traits):
         HasTraits.__init__(self, **traits)
     
         # SBP Console stuff.
         self.link = link
-        #self.link.add_callback(self.imu_raw_callback, SBP_MSG_IMU_RAW)
-        #self.link.add_callback(self.imu_aux_callback, SBP_MSG_IMU_AUX)
+        self.link.add_callback(self.orient_euler_callback, SBP_MSG_ORIENT_EULER)
+        self.link.add_callback(self.imu_raw_callback, SBP_MSG_IMU_RAW)
 
         self.python_console_cmds = {'track': self}
-        #self.update_scheduler = UpdateScheduler()
+        self.update_scheduler = UpdateScheduler()
+
+    def init_tform_ned(self):
+        self.tform.identity()
+        self.tform.rotate_y(180.)
+        self.tform.rotate_x(90.)
+    
+    # Update the attitude representation.
+    def update_attitude(self, y, p, r):
+        self.init_tform_ned()
+        self.tform.rotate_x(r)
+        self.tform.rotate_y(p)
+        self.tform.rotate_z(y)
+
+        self.axes.user_transform = self.tform
+        self.scene.render()
+
+    def orient_euler_callback(self, sbp_msg, **metadata):
+        print("Got an euler callback!")
+
+    def imu_raw_callback(self, sbp_msg, **metadata):
+        print("Got an IMU Raw!")
+        self.update_attitude(360*np.random.rand(), 360*np.random.rand(), 360*np.random.rand())
 
