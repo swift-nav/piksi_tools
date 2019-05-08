@@ -14,12 +14,37 @@ from mayavi.core.ui.api import MlabSceneModel, SceneEditor
 from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
+from tvtk.common import configure_input_data
 
 from sbp.orientation import SBP_MSG_ORIENT_EULER
 from sbp.imu import SBP_MSG_IMU_RAW
 from .gui_utils import GUI_UPDATE_PERIOD, UpdateScheduler
 
 NUM_PLOT_POINTS = 200
+
+def _secret(image_file):
+    # load and map the texture
+    img = tvtk.PNGReader()
+    img.file_name = image_file
+    texture = tvtk.Texture(input_connection=img.output_port, interpolate=1, repeat=1)
+    # (interpolate for a less raster appearance when zoomed in)
+
+    cube_source = tvtk.CubeSource(center=(0,0,0))
+    cube_mapper = tvtk.PolyDataMapper()
+    configure_input_data(cube_mapper, cube_source.output)
+    p = tvtk.Property(opacity=1.0)
+    actor = tvtk.Actor(mapper=cube_mapper, property=p, texture=texture)
+    cube_source.update()
+    return actor
+
+    # create the sphere source with a given radius and angular resolution
+    # sphere = tvtk.TexturedSphereSource(radius=1, theta_resolution=180,
+                                       # phi_resolution=Nrad)
+
+    # assemble rest of the pipeline, assign texture
+    # sphere_mapper = tvtk.PolyDataMapper(input_connection=sphere.output_port)
+    # sphere_actor = tvtk.Actor(mapper=sphere_mapper, texture=texture)
+    # return sphere_actor
 
 ######################################################################
 class AttitudeScene(Scene):
@@ -34,9 +59,11 @@ class AttitudeView(HasTraits):
 
     # Transform for attitude marker.
     tform = Instance(tvtk.Transform, ())
+    logo_tform = Instance(tvtk.Transform, ())
 
     # Axes attitude marker.
     axes = Instance(tvtk.AxesActor, ())
+    logo = Instance(tvtk.Actor, ())
 
     # Plot objects for stddev.
     plot = Instance(Plot)
@@ -112,7 +139,11 @@ class AttitudeView(HasTraits):
                                    shaft_type='cylinder',
                                    axis_labels=False,
                                    user_transform=self.tform)
+
+        self.logo = _secret("./SwiftNavLogo-Square.png")
         self.scene.add_actor(self.axes)
+        self.scene.add_actor(self.logo)
+        # help(self.axes)
         # Set up the camera. Look down on the origin from above.
         #self.scene.scene_editor._camera.position = (0., 0., 10.)
         #self.scene.scene_editor._renderer.reset_camera()
@@ -121,16 +152,27 @@ class AttitudeView(HasTraits):
         self.tform.identity()
         self.tform.rotate_y(180.)
         self.tform.rotate_x(90.)
+
+        self.logo_tform.identity()
+        self.logo_tform.rotate_y(180.)
+        self.logo_tform.rotate_x(90.)
     
     # Update the attitude representation.
     def update_attitude(self, y, p, r):
         # Update transform.
         self.init_tform_ned()
-        print("ATTITUDE", np.deg2rad(r), np.deg2rad(p), np.deg2rad(y))
+        # print("ATTITUDE", np.deg2rad(r), np.deg2rad(p), np.deg2rad(y))
         self.tform.rotate_x(r)
         self.tform.rotate_y(p)
         self.tform.rotate_z(y)
+        self.logo_tform.rotate_x(r)
+        self.logo_tform.rotate_y(p)
+        self.logo_tform.rotate_z(y)
+        self.logo_tform.scale(1, 0.75, 0.1)
+
         self.axes.user_transform = self.tform
+        self.logo.user_transform = self.logo_tform
+
         # Update the plot.
         memoryview(self.est_yaw)[:-1] = memoryview(self.est_yaw)[1:]
         memoryview(self.est_pit)[:-1] = memoryview(self.est_pit)[1:]
@@ -150,7 +192,7 @@ class AttitudeView(HasTraits):
         self.data.set_data('est_yaw', self.est_yaw)
         self.data.set_data('est_pit', self.est_pit)
         self.data.set_data('est_rol', self.est_rol)
-
+        
     def callback_orient_euler(self, sbp_msg, **metadata):
         y = sbp_msg.yaw / 1.e6
         p = sbp_msg.pitch / 1.e6 
