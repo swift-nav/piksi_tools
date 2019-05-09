@@ -420,8 +420,7 @@ class SettingsView(HasTraits):
         Returns a list of settings that should change for smoothpose
         """
 
-        recommended_settings = {'imu_raw_output': Setting('imu_raw_output', 'imu', 'True'),
-                                'gyro_range': Setting('gyro_range', 'imu', '125'),
+        recommended_settings = {'gyro_range': Setting('gyro_range', 'imu', '125'),
                                 'acc_range': Setting('acc_range', 'imu', '8g'),
                                 'imu_rate': Setting('imu_rate', 'imu', '100')
                                 }
