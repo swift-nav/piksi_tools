@@ -539,6 +539,7 @@ class SettingsView(HasTraits):
 
     def _settings_read_button_fired(self):
         self.settings.clear()
+        self.settings_list = []
         self._settings_read_by_index()
 
     def _settings_save_button_fired(self):
