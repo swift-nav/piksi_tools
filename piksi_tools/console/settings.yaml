@@ -1702,6 +1702,17 @@
   Notes:
 
 - group: ethernet
+  name: locked
+  expert: false
+  type: boolean
+  enumerated possible values: True,False
+  units: N/A
+  default value: 'False'
+  readonly: false
+  Description: Ethernet configuration locked toggle.
+  Notes: "If the ethernet configuration is unlocked, the ethernet settings can be changed freely, but will have no effect. When the ethernet configuration is locked, all settings will be updated at once, and become unmodifiable until unlocked again."
+
+- group: ethernet
   name: ip_config_mode
   expert: false
   type: enum
