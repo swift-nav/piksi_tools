@@ -1702,7 +1702,7 @@
   Notes:
 
 - group: ethernet
-  name: locked
+  name: mode
   expert: false
   type: boolean
   enumerated possible values: True,False
@@ -1710,7 +1710,10 @@
   default value: 'False'
   readonly: false
   Description: Ethernet configuration locked toggle.
-  Notes: "If the ethernet configuration is unlocked, the ethernet settings can be changed freely, but will have no effect. When the ethernet configuration is locked, all settings will be updated at once, and become unmodifiable until unlocked again."
+  Notes: |
+    "Config" IP configuration can be changed freely, but no change is made on the device.
+
+    "Active" The current IP configuration is sent to the device and updated. Afterward, no IP settings can be changed until returned to 'config' mode
 
 - group: ethernet
   name: ip_config_mode
