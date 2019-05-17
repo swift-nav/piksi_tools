@@ -37,6 +37,7 @@ class SkyplotView(HasTraits):
             HGroup(
                 Spring(width=8, springy=False),
                 Item('legend_visible', label="Show Legend:"),
+                Spring(width=8, springy=False),
                 Item('gps_visible', label="GPS"),
                 Item('glo_visible', label="GLONASS"),
                 Item('gal_visible', label="GALILEO"),
@@ -91,9 +92,6 @@ class SkyplotView(HasTraits):
         # store new label updates, and display at once
         overlay_update = []
 
-        # keep the legend
-        self.plot.overlays = self.plot.overlays[0:self.plot_overlays_size]
-
         for azel in svazelmsg.azel:
             sid = azel.sid
             az = azel.az * 2
@@ -137,19 +135,18 @@ class SkyplotView(HasTraits):
             overlay_update.append(label)
 
         # display label updates
-        self.plot.overlays = self.plot.overlays + overlay_update
+        self.plot.overlays = (self.axis_overlays +
+                              overlay_update +
+                              self.default_overlays)
 
         self.plot_data.update(pending_update)
 
     def _legend_visible_changed(self):
         if self.plot:
-            if not self.legend_visible:
-                self.plot.legend.visible = False
-            else:
-                self.plot.legend.visible = True
+            self.plot.legend.visible = self.legend_visible
 
     def __init__(self, link):
-        self.legend_visible = True
+        self.legend_visible = False
         self.gps_visible = True
         self.glo_visible = True
         self.gal_visible = True
@@ -323,19 +320,22 @@ class SkyplotView(HasTraits):
             zip(plot_labels, [gps, glo, gal, bds, sbas]))
         self.plot.legend.plots = plots_legend
         self.plot.legend.labels = plot_labels  # sets order
-        self.plot.legend.visible = True
+        self.plot.legend.visible = False
 
-        self.plot.index_range.low_setting = -100
-        self.plot.index_range.high_setting = 100
-        self.plot.value_range.low_setting = -100
-        self.plot.value_range.high_setting = 100
+        self.plot.index_range.low_setting = -110
+        self.plot.index_range.high_setting = 110
+        self.plot.value_range.low_setting = -110
+        self.plot.value_range.high_setting = 110
 
+        self.plot.padding = (5, 5, 5, 5)
         self.plot.aspect_ratio = 1.0
         self.plot.x_axis.visible = False
         self.plot.y_axis.visible = False
         self.plot.x_grid.visible = False
         self.plot.y_grid.visible = False
-        self.legend_visible = True
+
+        self.default_overlays = self.plot.overlays
+        self.axis_overlays = []
 
         north_label = DataLabel(component=self.plot, data_point=(0, 90),
                                 label_text="N",
@@ -347,7 +347,7 @@ class SkyplotView(HasTraits):
                                 arrow_visible=False,
                                 show_label_coords=False
                                 )
-        self.plot.overlays.append(north_label)
+        self.axis_overlays.append(north_label)
         east_label = DataLabel(component=self.plot, data_point=(90, 0),
                                label_text="E",
                                label_position="right",
@@ -358,7 +358,7 @@ class SkyplotView(HasTraits):
                                arrow_visible=False,
                                show_label_coords=False
                                )
-        self.plot.overlays.append(east_label)
+        self.axis_overlays.append(east_label)
         south_label = DataLabel(component=self.plot, data_point=(0, -90),
                                 label_text="S",
                                 label_position="bottom",
@@ -369,7 +369,7 @@ class SkyplotView(HasTraits):
                                 arrow_visible=False,
                                 show_label_coords=False
                                 )
-        self.plot.overlays.append(south_label)
+        self.axis_overlays.append(south_label)
         west_label = DataLabel(component=self.plot, data_point=(-90, 0),
                                label_text="W",
                                label_position="left",
@@ -380,7 +380,7 @@ class SkyplotView(HasTraits):
                                arrow_visible=False,
                                show_label_coords=False
                                )
-        self.plot.overlays.append(west_label)
+        self.axis_overlays.append(west_label)
         el_0_label = DataLabel(component=self.plot, data_point=(0, 90),
                                label_text="0" + DEG_SIGN,
                                label_position="bottom right",
@@ -391,7 +391,7 @@ class SkyplotView(HasTraits):
                                arrow_visible=False,
                                show_label_coords=False
                                )
-        self.plot.overlays.append(el_0_label)
+        self.axis_overlays.append(el_0_label)
         el_30_label = DataLabel(component=self.plot, data_point=(0, 60),
                                 label_text="30" + DEG_SIGN,
                                 label_position="bottom right",
@@ -402,7 +402,7 @@ class SkyplotView(HasTraits):
                                 arrow_visible=False,
                                 show_label_coords=False
                                 )
-        self.plot.overlays.append(el_30_label)
+        self.axis_overlays.append(el_30_label)
         el_60_label = DataLabel(component=self.plot, data_point=(0, 30),
                                 label_text="60" + DEG_SIGN,
                                 label_position="bottom right",
@@ -413,9 +413,9 @@ class SkyplotView(HasTraits):
                                 arrow_visible=False,
                                 show_label_coords=False
                                 )
-        self.plot.overlays.append(el_60_label)
+        self.axis_overlays.append(el_60_label)
 
-        self.plot_overlays_size = len(self.plot.overlays)
+        self.plot.overlays += self.axis_overlays
 
         self.link = link
         self.link.add_callback(self.azel_callback, [SBP_MSG_SV_AZ_EL])
