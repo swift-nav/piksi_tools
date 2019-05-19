@@ -1704,16 +1704,16 @@
 - group: ethernet
   name: mode
   expert: false
-  type: boolean
-  enumerated possible values: True,False
+  type: enum
+  enumerated possible values: Config,Active
   units: N/A
-  default value: 'False'
+  default value: 'Active'
   readonly: false
-  Description: Ethernet configuration locked toggle.
+  Description: Ethernet configuration mode.
   Notes: |
-    "Config" IP configuration can be changed freely, but no change is made on the device.
+    "Config" IP configuration can be changed freely, but no change is made on the device. Returning to 'active' mode will refresh ethernet connection with current values.
 
-    "Active" The current IP configuration is sent to the device and updated. Afterward, no IP settings can be changed until returned to 'config' mode
+    "Active" The current IP configuration is sent to the device and updated. Afterward, no IP settings can be changed until returned to 'config' mode.
 
 - group: ethernet
   name: ip_config_mode
