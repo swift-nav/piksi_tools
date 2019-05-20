@@ -107,6 +107,10 @@ def get_args():
         action='store_true',
         help="Show CSV logging button.")
     parser.add_argument(
+        '--hide-legend',
+        action='store_true',
+        help="Hide tracking view legend initially.")
+    parser.add_argument(
         '-h',
         '--help',
         action='store_true',
@@ -650,7 +654,8 @@ class SwiftConsole(HasTraits):
                  override_filename=None,
                  log_console=False,
                  connection_info=None,
-                 expand_json=False
+                 expand_json=False,
+                 hide_legend=False
                  ):
         self.error = error
         self.cnx_desc = cnx_desc
@@ -700,7 +705,7 @@ class SwiftConsole(HasTraits):
             self.link.add_callback(self.update_on_heartbeat, SBP_MSG_HEARTBEAT)
             self.dep_handler = DeprecatedMessageHandler(link)
             settings_read_finished_functions = []
-            self.tracking_view = TrackingView(self.link)
+            self.tracking_view = TrackingView(self.link, legend_visible=(not hide_legend))
             self.solution_view = SolutionView(
                 self.link, dirname=self.directory_name)
             self.baseline_view = BaselineView(
@@ -999,8 +1004,8 @@ def main():
                 override_filename=args.logfilename,
                 log_console=args.log_console,
                 connection_info=cnx_data.connection_info,
-                expand_json=args.expand_json) as console:
-
+                expand_json=args.expand_json,
+                hide_legend=args.hide_legend) as console:
             console.configure_traits()
 
     # TODO: solve this properly
