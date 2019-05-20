@@ -185,8 +185,6 @@ class UpdateView(HasTraits):
 
     update_stm_firmware = Button(label='Update Firmware')
     download_console = Button(label='Download Latest Console')
-    console_directory = Unicode()
-    choose_console_dir = Button(label='...', padding=-1)
 
     updating = Bool(False)
     update_stm_en = Bool(False)
@@ -316,7 +314,7 @@ class UpdateView(HasTraits):
     def _download_console_fired(self):
         path = None
         dialog = DirectoryDialog(
-            label='Choose Download location',
+            label='Choose Swift Console Download Directory',
             action='open',
             default_path=self.download_directory,
             default_direcotry=self.download_directory)
@@ -553,7 +551,7 @@ class UpdateView(HasTraits):
         self.stm_fw.clear(status)
         self._write(status)
 
-    def _download_console(self, path):
+    def _download_console(self, path=None):
         """ Download latest firmware from swiftnav.com. """
         self._write('')
 
@@ -569,8 +567,9 @@ class UpdateView(HasTraits):
         if 'console' in self.update_dl.index[self.piksi_hw_rev]:
             try:
                 filepath = self.update_dl.download_console(
-                    self.piksi_hw_rev, str(path))
-                self._write('\nSaved file to %s' % filepath)
+                    self.piksi_hw_rev, path)
+                self._write('\nSaved Console Installer to %s' % filepath)
+                print('Saved Console Installer to %s' % filepath)
             except AttributeError:
                 self._write(
                     "Error downloading firmware: index file not downloaded yet"
@@ -659,53 +658,7 @@ class UpdateView(HasTraits):
                 'serial_number'].value
         except:  # noqa
             pass
-        # Check if console is out of date and notify user if so.
         if self.prompt:
-            local_console_version = parse_version(CONSOLE_VERSION)
-            remote_console_version = parse_version(self.newest_console_vers)
-            self.console_outdated = remote_console_version > local_console_version
-
-            # we want to warn users using v2 regardless of version logic
-            if self.console_outdated or self.is_v2:
-                if not self.is_v2:
-                    console_outdated_prompt = \
-                        prompt.CallbackPrompt(
-                            title="Swift Console Outdated",
-                            actions=[prompt.close_button, prompt.ok_button],
-                            callback=self._download_console
-                        )
-                    console_outdated_prompt.text = \
-                        "Your console is out of date and may be incompatible\n" + \
-                        "with current firmware. We highly recommend upgrading to\n" + \
-                        "ensure proper behavior.\n\n" + \
-                        "Download and installation instructions are available at http://support.swiftnav.com to\n\n" + \
-                        "Local Console Version :\n\t" + \
-                        CONSOLE_VERSION + \
-                        "\nLatest Console Version :\n\t" + \
-                        self.update_dl.index[self.piksi_hw_rev]['console']['version'] + "\n" \
-                        "\n\nWould you like to download the latest console for your platform now to the\n" + self.download_directory + " path?"
-                else:
-                    console_outdated_prompt = \
-                        prompt.CallbackPrompt(
-                            title="Swift Console Incompatible",
-                            actions=[prompt.close_button],
-                        )
-                    console_outdated_prompt.text = \
-                        "Your console is incompatible with your hardware revision.\n" + \
-                        "We highly recommend using a compatible console version\n" + \
-                        "to ensure proper behavior.\n\n" + \
-                        "Please visit http://support.swiftnav.com to\n" + \
-                        "download the latest compatible version.\n\n" + \
-                        "Current Hardware revision :\n\t" + \
-                        self.piksi_hw_rev + \
-                        "\nLast supported Console Version: \n\t" + \
-                        self.update_dl.index[self.piksi_hw_rev]['console']['version'] + "\n"
-
-                console_outdated_prompt.run()
-
-            # For timing aesthetics between windows popping up.
-            sleep(0.5)
-
             # Check if firmware is out of date and notify user if so.
             remote_stm_version = self.newest_stm_vers
 
@@ -736,6 +689,51 @@ class UpdateView(HasTraits):
                         self.update_dl.index[self.piksi_hw_rev]['nap_fw']['version']
 
                 fw_update_prompt.run()
+            
+            # For timing aesthetics between windows popping up.
+            sleep(0.5)
+            
+            # Check if console is out of date and notify user if so.
+            local_console_version = parse_version(CONSOLE_VERSION)
+            remote_console_version = parse_version(self.newest_console_vers)
+            self.console_outdated = remote_console_version > local_console_version
+            # we want to warn users using v2 regardless of version logic
+            if self.console_outdated or self.is_v2:
+                if not self.is_v2:
+                    console_outdated_prompt = \
+                        prompt.CallbackPrompt(
+                            title="Swift Console Outdated",
+                            actions=[prompt.close_button, prompt.ok_button],
+                            callback=self._download_console_fired
+                        )
+                    console_outdated_prompt.text = \
+                        "Your console is out of date and may be incompatible\n" + \
+                        "with current firmware. We highly recommend upgrading to\n" + \
+                        "ensure proper behavior.\n\n" + \
+                        "Download and installation instructions are available at http://support.swiftnav.com to\n\n" + \
+                        "Local Console Version :\n\t" + \
+                        CONSOLE_VERSION + \
+                        "\nLatest Console Version :\n\t" + \
+                        self.update_dl.index[self.piksi_hw_rev]['console']['version'] + "\n" \
+                        "\n\nWould you like to choose a directory and download the latest console now?"
+                else:
+                    console_outdated_prompt = \
+                        prompt.CallbackPrompt(
+                            title="Swift Console Incompatible",
+                            actions=[prompt.close_button],
+                        )
+                    console_outdated_prompt.text = \
+                        "Your console is incompatible with your hardware revision.\n" + \
+                        "We highly recommend using a compatible console version\n" + \
+                        "to ensure proper behavior.\n\n" + \
+                        "Please visit http://support.swiftnav.com to\n" + \
+                        "download the latest compatible version.\n\n" + \
+                        "Current Hardware revision :\n\t" + \
+                        self.piksi_hw_rev + \
+                        "\nLast supported Console Version: \n\t" + \
+                        self.update_dl.index[self.piksi_hw_rev]['console']['version'] + "\n"
+
+                console_outdated_prompt.run()
 
         # Check if firmware successfully upgraded and notify user if so.
         if ((self.last_call_fw_version is not None and self.last_call_fw_version != local_stm_version) and
