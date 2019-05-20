@@ -173,7 +173,8 @@ class SwiftConsole(HasTraits):
 
   """
 
-    mode = Str('')
+    pos_mode = Str('')
+    baseline_mode = Str('')
     num_sats = Int(0)
     cnx_desc = Str('')
     age_of_corrections = Str('')
@@ -320,10 +321,16 @@ class SwiftConsole(HasTraits):
                     Item('cnx_desc', show_label=False, style='readonly'),
                     Item(
                         '',
-                        label='FIX TYPE:',
+                        label='Position:',
                         emphasized=True,
-                        tooltip='Device Mode: SPS, Float RTK, Fixed RTK'),
-                    Item('mode', show_label=False, style='readonly'),
+                        tooltip='Device Position Mode: SPS, Float RTK, Fixed RTK'),
+                    Item('pos_mode', show_label=False, style='readonly'),
+                    Item(
+                        '',
+                        label='Baseline:',
+                        emphasized=True,
+                        tooltip='Device Baseline Mode: DGNSS, Float RTK, Fixed RTK'),
+                    Item('baseline_mode', show_label=False, style='readonly'),
                     Item(
                         '',
                         label='#Sats:',
@@ -471,10 +478,9 @@ class SwiftConsole(HasTraits):
         # * baseline if it's a differential solution but llh isn't
         # * otherwise llh (also if there is no solution, in which both are "None")
         if baseline_is_differential and not(llh_is_differential):
-            self.mode = baseline_display_mode
-            self.num_sats = baseline_num_sats
+            self.baseline_mode = baseline_display_mode
         else:
-            self.mode = llh_display_mode
+            self.pos_mode = llh_display_mode
             self.num_sats = llh_num_sats
 
         # --- end of status bar mode determination section ---
@@ -585,7 +591,7 @@ class SwiftConsole(HasTraits):
         self.connection_info = connection_info
         self.dev_id = cnx_desc
         self.num_sats = 0
-        self.mode = ''
+        self.pos_mode = ''
         self.forwarder = None
         self.age_of_corrections = '--'
         self.expand_json = expand_json
