@@ -5,7 +5,7 @@ import math
 from chaco.api import ArrayPlotData, Plot, DataLabel
 from enable.api import ComponentEditor
 from sbp.observation import MsgSvAzEl, SBP_MSG_SV_AZ_EL
-from traits.api import (Bool, Dict, HasTraits, Instance)
+from traits.api import (Bool, Dict, HasTraits, Instance, Str)
 from traitsui.api import (HGroup, Item, Spring, VGroup, View)
 
 from piksi_tools.console.utils import (code_is_gps,
@@ -26,6 +26,7 @@ class SkyplotView(HasTraits):
     gal_visible = Bool()
     bds_visible = Bool()
     sbas_visible = Bool()
+    hint = Str("Enabled with SBP message MSG_SV_AZ_EL (0x0097 | 151)")
     plot = Instance(Plot)
     plot_data = Instance(ArrayPlotData)
     traits_view = View(
@@ -34,6 +35,10 @@ class SkyplotView(HasTraits):
                 'plot',
                 editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8)),
                 show_label=False),
+            HGroup(
+                Spring(width=8, springy=False),
+                Item('hint', show_label=False, style='readonly',
+                     style_sheet='*{font-style:italic}')),
             HGroup(
                 Spring(width=8, springy=False),
                 Item('legend_visible', label="Show Legend:"),

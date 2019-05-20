@@ -224,7 +224,6 @@ class SwiftConsole(HasTraits):
                 Item('tracking_view', style='custom', label='Tracking'),
                 Item('solution_view', style='custom', label='Solution'),
                 Item('baseline_view', style='custom', label='Baseline'),
-                Item('skyplot_view', style='custom', label='Sky Plot'),
                 VSplit(
                     Item('observation_view', style='custom', show_label=False),
                     Item(
@@ -250,6 +249,7 @@ class SwiftConsole(HasTraits):
                         'spectrum_analyzer_view',
                         label='Spectrum Analyzer',
                         style='custom'),
+                    Item('skyplot_view', style='custom', label='Sky Plot'),
                     label='Advanced',
                     show_labels=False),
                 show_labels=False),
