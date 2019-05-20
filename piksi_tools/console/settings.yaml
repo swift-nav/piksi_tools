@@ -1702,6 +1702,20 @@
   Notes:
 
 - group: ethernet
+  name: interface_mode
+  expert: false
+  type: enum
+  enumerated possible values: Config,Active
+  units: N/A
+  default value: 'Active'
+  readonly: false
+  Description: Ethernet configuration mode.
+  Notes: |
+    "Config" IP configuration can be changed freely, but no change is made on the device. Returning to 'Active' mode will refresh ethernet connection with current values.
+
+    "Active" The current IP configuration is sent to the device and updated. Afterward, no IP settings can be changed until returned to 'Config' mode.
+
+- group: ethernet
   name: ip_config_mode
   expert: false
   type: enum
