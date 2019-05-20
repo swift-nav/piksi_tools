@@ -132,6 +132,15 @@ class ConsoleHandler(Handler):
             info.ui.title = (info.object.dev_id +
                              "(" + info.object.device_serial + ") " + CONSOLE_TITLE)
 
+    def object_dev_id_changed(self, info):
+        """
+        Update the window title with the device serial number.
+
+        This is a magic method called by the handler in response to any changes in
+        the `device_serial` variable in the underlying class.
+        """
+        info.ui.title = (info.object.dev_id + " " + CONSOLE_TITLE)
+
 
 class SwiftConsole(HasTraits):
     """Traits-defined Swift Console.
@@ -312,13 +321,6 @@ class SwiftConsole(HasTraits):
                         full_size=True), ),
                 HGroup(
                     Spring(width=4, springy=False),
-                    Item(
-                        '',
-                        label='Interface:',
-                        emphasized=True,
-                        tooltip='Interface for communicating with Swift device'
-                    ),
-                    Item('cnx_desc', show_label=False, style='readonly'),
                     Item(
                         '',
                         label='Position:',
@@ -612,7 +614,7 @@ class SwiftConsole(HasTraits):
             tfile=log_console, outdir=self.directory_name)
         sys.stdout = self.console_output
         self.console_output.write("Console: " + CONSOLE_VERSION +
-                                  " starting...")
+                                  " starting over " + cnx_desc + "...")
         if not error:
             sys.stderr = self.console_output
 
@@ -918,7 +920,6 @@ def main():
                     connection_info=cnx_data.connection_info,
                     expand_json=args.expand_json,
                     hide_legend=args.hide_legend) as console:
-
                 console.configure_traits()
 
     # TODO: solve this properly
