@@ -267,7 +267,7 @@ class TrackingView(CodeFiltered):
 
         return svs
 
-    def __init__(self, link):
+    def __init__(self, link, legend_visible=True):
         super(TrackingView, self).__init__()
         self._at_least_one_track_received = False
         self.t_init = monotonic()
@@ -293,7 +293,7 @@ class TrackingView(CodeFiltered):
         self.plot_data.set_data('t', self.time)
         self.plot.index_axis.title = 'seconds'
         self.legend_visible = True
-        self.plot.legend.visible = True
+        self.plot.legend.visible = legend_visible
         self.plot.legend.align = 'll'
         self.plot.legend.line_spacing = 1
         self.plot.legend.font = 'monospace 8'
