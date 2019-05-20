@@ -256,7 +256,7 @@ class TrackingView(CodeFiltered):
             self.plot.legend.tools.append(
                 LegendTool(self.plot.legend, drag_button="right"))
 
-    def __init__(self, link):
+    def __init__(self, link, legend_visible=True):
         super(TrackingView, self).__init__()
         self.t_init = monotonic()
         self.time = deque([x * 1 / TRK_RATE for x in range(-NUM_POINTS, 0, 1)], maxlen=NUM_POINTS)
@@ -281,7 +281,7 @@ class TrackingView(CodeFiltered):
         self.plot.index_axis.title = 'seconds'
         self.plot.index_range.bounds_func = lambda l, h, m, tb: (h - 100, h)
         self.legend_visible = True
-        self.plot.legend.visible = True
+        self.plot.legend.visible = legend_visible
         self.plot.legend.align = 'll'
         self.plot.legend.line_spacing = 1
         self.plot.legend.font = 'monospace 8'
