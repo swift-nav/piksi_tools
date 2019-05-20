@@ -177,7 +177,6 @@ class SwiftConsole(HasTraits):
     num_sats = Int(0)
     cnx_desc = Str('')
     age_of_corrections = Str('')
-    uuid = Str('')
     directory_name = Directory
     json_logging = Bool(True)
     csv_logging = Bool(False)
@@ -346,16 +345,6 @@ class SwiftConsole(HasTraits):
                         padding=2,
                         show_label=False,
                         style='readonly'),
-                    Item(
-                        '',
-                        label='Device UUID:',
-                        emphasized=True,
-                        tooltip='Universally Unique Device Identifier (UUID)'
-                    ), Item(
-                        'uuid',
-                        padding=2,
-                        show_label=False,
-                        style='readonly', width=6),
                     Spring(springy=True),
                     Item(
                         'cnx_icon',
@@ -680,8 +669,6 @@ class SwiftConsole(HasTraits):
             def update_serial():
                 mfg_id = None
                 try:
-                    self.uuid = self.settings_view.settings['system_info'][
-                        'uuid'].value
                     mfg_id = self.settings_view.settings['system_info'][
                         'serial_number'].value
                 except KeyError:
