@@ -1702,7 +1702,7 @@
   Notes:
 
 - group: ethernet
-  name: mode
+  name: interface_mode
   expert: false
   type: enum
   enumerated possible values: Config,Active
