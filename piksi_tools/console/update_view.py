@@ -14,8 +14,9 @@ from __future__ import absolute_import, print_function
 import os
 import errno
 import re
+import socket
 
-from threading import Thread
+from threading import Event, Thread
 from time import sleep
 from six.moves.urllib.error import URLError
 
@@ -52,6 +53,46 @@ V2_LINK = "https://www.swiftnav.com/resource-files/Piksi%20Multi/v2.0.0/Firmware
 
 def parse_version(version):
     return gitversion_parse(version)
+
+
+class NetworkCheck():
+
+    CONNECTION_TIMEOUT = 1.0
+    THREAD_INTERVAL = 25.0
+    SERVER = ("www.google.com", 80)
+
+    def __init__(self, log, cb):
+        self._cb = cb
+        self._log = log
+        self._prev_state = True
+        self._thd_trigger = Event()
+        self._check_done = Event()
+        self._worker = Thread(target=self._check_thd)
+        self._worker.daemon = True
+        self._worker.start()
+
+    def network_is_reachable(self):
+        self._check_done.clear()
+        self._thd_trigger.set()
+        self._check_done.wait()
+        return self._prev_state
+
+    def _check_thd(self):
+        while True:
+            try:
+                socket.create_connection(NetworkCheck.SERVER, NetworkCheck.CONNECTION_TIMEOUT).close()
+                if not self._prev_state:
+                    self._log("Network is reachable.")
+                self._prev_state = True
+                self._cb(True)
+            except Exception as ex:
+                if self._prev_state:
+                    self._log("Network is unreachable, please check your connection.")
+                self._prev_state = False
+                self._cb(False)
+            self._check_done.set()
+            self._thd_trigger.clear()
+            self._thd_trigger.wait(NetworkCheck.THREAD_INTERVAL)
 
 
 class FirmwareFileDialog(HasTraits):
@@ -287,6 +328,7 @@ class UpdateView(HasTraits):
         self.link = link
         self.connection_info = connection_info
         self.settings = {}
+        self.nw_chk = NetworkCheck(self._write, self.set_download_fw_en)
         self.prompt = prompt
         self.python_console_cmds = {'update': self}
         self.download_directory = download_dir
@@ -300,6 +342,9 @@ class UpdateView(HasTraits):
         self.stream.max_len = 1000
         self.last_call_fw_version = None
         self.link.add_callback(self.log_cb, SBP_MSG_LOG)
+
+    def set_download_fw_en(self, value):
+        self.download_fw_en = value
 
     def _choose_dir_fired(self):
         dialog = DirectoryDialog(
@@ -414,6 +459,9 @@ class UpdateView(HasTraits):
             self._update_stm_firmware_fn()
 
     def _replace_with_version_2(self):
+        if not self.nw_chk.network_is_reachable():
+            return
+
         self.downloading = True
         self._write('Downloading Multi firmware v2.0.0')
         filepath = self.update_dl._download_file_from_url(V2_LINK)
@@ -453,6 +501,9 @@ class UpdateView(HasTraits):
 
     def _download_firmware(self):
         """ Download latest firmware from swiftnav.com. """
+        if not self.nw_chk.network_is_reachable():
+            return
+
         self._write('')
 
         # Check that we received the index file from the website.
@@ -656,13 +707,17 @@ class UpdateView(HasTraits):
 
     def _get_latest_version_info(self):
         """ Get latest firmware / console version from website. """
+        self.update_dl = None
+
+        if not self.nw_chk.network_is_reachable():
+            return
+
         try:
             self.update_dl = UpdateDownloader(root_dir=self.download_directory)
         except RuntimeError:
             self._write(
                 "\nError: Failed to download latest file index from Swift Navigation's website. Please visit our website to check that you're running the latest Piksi firmware and Piksi console.\n"
             )
-            self.update_dl = None
             return
 
         # Make sure index contains all keys we are interested in.
