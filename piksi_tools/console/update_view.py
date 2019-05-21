@@ -689,10 +689,10 @@ class UpdateView(HasTraits):
                         self.update_dl.index[self.piksi_hw_rev]['nap_fw']['version']
 
                 fw_update_prompt.run()
-            
+
             # For timing aesthetics between windows popping up.
             sleep(0.5)
-            
+
             # Check if console is out of date and notify user if so.
             local_console_version = parse_version(CONSOLE_VERSION)
             remote_console_version = parse_version(self.newest_console_vers)

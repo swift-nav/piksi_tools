@@ -64,7 +64,7 @@ class UpdateDownloader:
     def download_console(self, hwrev, path=None):
         import sys
         platform = sys.platform
-        url = self.index[hwrev]['console'][platform+'_url']
+        url = self.index[hwrev]['console'][platform + '_url']
         return self._download_file_from_url(url, path)
 
     def _download_file_from_url(self, url, path=None):
