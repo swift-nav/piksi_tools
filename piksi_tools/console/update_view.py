@@ -64,7 +64,7 @@ class NetworkCheck():
     def __init__(self, log, cb):
         self._cb = cb
         self._log = log
-        self._prev_state = True
+        self._state = True
         self._thd_trigger = Event()
         self._check_done = Event()
         self._worker = Thread(target=self._check_thd)
@@ -75,21 +75,24 @@ class NetworkCheck():
         self._check_done.clear()
         self._thd_trigger.set()
         self._check_done.wait()
-        return self._prev_state
+        return self._state
 
     def _check_thd(self):
         while True:
+            prev_state = self._state
             try:
                 socket.create_connection(NetworkCheck.SERVER, NetworkCheck.CONNECTION_TIMEOUT).close()
-                if not self._prev_state:
-                    self._log("Network is reachable.")
-                self._prev_state = True
-                self._cb(True)
+                self._state = True
             except Exception as ex:
-                if self._prev_state:
+                self._state = False
+
+            if prev_state != self._state:
+                if self._state:
+                    self._log("Network is reachable.")
+                else:
                     self._log("Network is unreachable, please check your connection.")
-                self._prev_state = False
-                self._cb(False)
+                self._cb(self._state)
+
             self._check_done.set()
             self._thd_trigger.clear()
             self._thd_trigger.wait(NetworkCheck.THREAD_INTERVAL)
