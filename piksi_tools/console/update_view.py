@@ -72,9 +72,15 @@ class NetworkCheck():
         self._worker.start()
 
     def network_is_reachable(self):
-        self._check_done.clear()
+        # Wake up the checker thread. In case the checker is already awake this
+        # will cause another unnecessary immediate check but since there's no
+        # critical harm done we'll let it slide for the sake of keeping the
+        # sync logic otherwise as simple as possible.
         self._thd_trigger.set()
+
+        # Wait for a fresh state
         self._check_done.wait()
+        self._check_done.clear()
         return self._state
 
     def _check_thd(self):
@@ -86,16 +92,22 @@ class NetworkCheck():
             except Exception as ex:
                 self._state = False
 
+            # Gate the logging to state changes only to avoid spam
             if prev_state != self._state:
                 if self._state:
                     self._log("Network is reachable.")
                 else:
                     self._log("Network is unreachable, please check your connection.")
+
+                # Inform parent about the new state
                 self._cb(self._state)
 
+            # Wake up the possible check requester
             self._check_done.set()
-            self._thd_trigger.clear()
+
+            # Wait for check request or timeout
             self._thd_trigger.wait(NetworkCheck.THREAD_INTERVAL)
+            self._thd_trigger.clear()
 
 
 class FirmwareFileDialog(HasTraits):
