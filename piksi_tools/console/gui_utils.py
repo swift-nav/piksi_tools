@@ -8,6 +8,8 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+import itertools
+
 import numpy as np
 
 from pyface.api import GUI
@@ -29,24 +31,44 @@ class UpdateScheduler(object):
 
     def __init__(self):
         self._update_funcs = {}
+        self._update_counter = itertools.count()
+        self._rollback_data = self._update_funcs
+
+    def _record_update(self, ident, update_func, args):
+        was_empty = False
+        while True:
+            update_counter = next(self._update_counter) # "Thread safe" / atomic because of the GIL
+            was_empty = bool(self._update_funcs)
+            self._update_funcs[ident] = (update_func, args)
+            if update_counter+1 != next(self._update_counter):
+                self._update_funcs = self._rollback_data
+            else:
+                break
+        return was_empty
+
+    def _copy_and_clear(self):
+        while True:
+            update_counter = next(self._update_counter)
+            update_funcs = self._update_funcs.copy()
+            self._rollback_data = update_funcs
+            self._update_funcs.clear()
+            if update_counter+1 != next(self._update_counter):
+                self._update_funcs = update_funcs
+            else:
+                break
+        return update_funcs
 
     def schedule_update(self, ident, update_func, *args):
         '''Schedule a GUI update'''
-
         def _wrap_update():
-            update_funcs = self._update_funcs.copy()
-            self._update_funcs.clear()
+            update_funcs = self._copy_and_clear()
             for update in update_funcs.values():
                 update_func, args = update
                 update_func(*args)
             if self._update_funcs:
                 GUI.invoke_later(_wrap_update)
-
-        if not self._update_funcs:
-            self._update_funcs[ident] = (update_func, args)
+        if self._record_update(ident, update_func, args):
             GUI.invoke_later(_wrap_update)
-        else:
-            self._update_funcs[ident] = (update_func, args)
 
 
 class MultilineTextEditor(TextEditor):
