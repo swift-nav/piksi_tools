@@ -9,6 +9,7 @@
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
 import numpy as np
+import threading
 
 from pyface.api import GUI
 
@@ -29,24 +30,30 @@ class UpdateScheduler(object):
 
     def __init__(self):
         self._update_funcs = {}
+        # Protect the common resource _update_funcs
+        self._lock = threading.Lock()
 
     def schedule_update(self, ident, update_func, *args):
         '''Schedule a GUI update'''
 
         def _wrap_update():
+            self._lock.acquire()
             update_funcs = self._update_funcs.copy()
             self._update_funcs.clear()
+            self._lock.release()
             for update in update_funcs.values():
                 update_func, args = update
                 update_func(*args)
             if self._update_funcs:
                 GUI.invoke_later(_wrap_update)
 
-        if not self._update_funcs:
+        self._lock.acquire()
+        if self._update_funcs:
             self._update_funcs[ident] = (update_func, args)
-            GUI.invoke_later(_wrap_update)
         else:
             self._update_funcs[ident] = (update_func, args)
+            GUI.invoke_later(_wrap_update)
+        self._lock.release()
 
 
 class MultilineTextEditor(TextEditor):
