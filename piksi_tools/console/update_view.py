@@ -14,8 +14,9 @@ from __future__ import absolute_import, print_function
 import os
 import errno
 import re
+import socket
 
-from threading import Thread
+from threading import Event, Thread
 from time import sleep
 from six.moves.urllib.error import URLError
 
@@ -52,6 +53,61 @@ V2_LINK = "https://www.swiftnav.com/resource-files/Piksi%20Multi/v2.0.0/Firmware
 
 def parse_version(version):
     return gitversion_parse(version)
+
+
+class NetworkCheck():
+
+    CONNECTION_TIMEOUT = 1.0
+    THREAD_INTERVAL = 25.0
+    SERVER = ("www.google.com", 80)
+
+    def __init__(self, log, cb):
+        self._cb = cb
+        self._log = log
+        self._state = True
+        self._thd_trigger = Event()
+        self._check_done = Event()
+        self._worker = Thread(target=self._check_thd)
+        self._worker.daemon = True
+        self._worker.start()
+
+    def network_is_reachable(self):
+        # Wake up the checker thread. In case the checker is already awake this
+        # will cause another unnecessary immediate check but since there's no
+        # critical harm done we'll let it slide for the sake of keeping the
+        # sync logic otherwise as simple as possible.
+        self._thd_trigger.set()
+
+        # Wait for a fresh state
+        self._check_done.wait()
+        self._check_done.clear()
+        return self._state
+
+    def _check_thd(self):
+        while True:
+            prev_state = self._state
+            try:
+                socket.create_connection(NetworkCheck.SERVER, NetworkCheck.CONNECTION_TIMEOUT).close()
+                self._state = True
+            except Exception as ex:
+                self._state = False
+
+            # Gate the logging to state changes only to avoid spam
+            if prev_state != self._state:
+                if self._state:
+                    self._log("Network is reachable.")
+                else:
+                    self._log("Network is unreachable, please check your connection.")
+
+                # Inform parent about the new state
+                self._cb(self._state)
+
+            # Wake up the possible check requester
+            self._check_done.set()
+
+            # Wait for check request or timeout
+            self._thd_trigger.wait(NetworkCheck.THREAD_INTERVAL)
+            self._thd_trigger.clear()
 
 
 class FirmwareFileDialog(HasTraits):
@@ -287,6 +343,7 @@ class UpdateView(HasTraits):
         self.link = link
         self.connection_info = connection_info
         self.settings = {}
+        self.nw_chk = NetworkCheck(self._write, self.set_download_fw_en)
         self.prompt = prompt
         self.python_console_cmds = {'update': self}
         self.download_directory = download_dir
@@ -300,6 +357,9 @@ class UpdateView(HasTraits):
         self.stream.max_len = 1000
         self.last_call_fw_version = None
         self.link.add_callback(self.log_cb, SBP_MSG_LOG)
+
+    def set_download_fw_en(self, value):
+        self.download_fw_en = value
 
     def _choose_dir_fired(self):
         dialog = DirectoryDialog(
@@ -414,6 +474,9 @@ class UpdateView(HasTraits):
             self._update_stm_firmware_fn()
 
     def _replace_with_version_2(self):
+        if not self.nw_chk.network_is_reachable():
+            return
+
         self.downloading = True
         self._write('Downloading Multi firmware v2.0.0')
         filepath = self.update_dl._download_file_from_url(V2_LINK)
@@ -453,6 +516,9 @@ class UpdateView(HasTraits):
 
     def _download_firmware(self):
         """ Download latest firmware from swiftnav.com. """
+        if not self.nw_chk.network_is_reachable():
+            return
+
         self._write('')
 
         # Check that we received the index file from the website.
@@ -656,13 +722,17 @@ class UpdateView(HasTraits):
 
     def _get_latest_version_info(self):
         """ Get latest firmware / console version from website. """
+        self.update_dl = None
+
+        if not self.nw_chk.network_is_reachable():
+            return
+
         try:
             self.update_dl = UpdateDownloader(root_dir=self.download_directory)
         except RuntimeError:
             self._write(
                 "\nError: Failed to download latest file index from Swift Navigation's website. Please visit our website to check that you're running the latest Piksi firmware and Piksi console.\n"
             )
-            self.update_dl = None
             return
 
         # Make sure index contains all keys we are interested in.

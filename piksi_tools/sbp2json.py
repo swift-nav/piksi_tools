@@ -177,7 +177,7 @@ def main(args):
                 consumed = header_len + m.length + 2
             else:
                 consumed, payload_len, msg_type, sender, crc, crc_fail = \
-                    msg.SBP.unpack_payload(buf, unconsumed_offset, (read_offset - unconsumed_offset))
+                    msg.unpack_payload(buf, unconsumed_offset, (read_offset - unconsumed_offset))
 
                 if not crc_fail and msg_type != 0:
                     payload = buf[unconsumed_offset + header_len:unconsumed_offset + header_len + payload_len]
