@@ -58,6 +58,8 @@ def test_time_lt():
     assert (t2 < t1)
 
 def test_time():
+    import time
+    time.sleep(1)
     t1 = Time.now()
     t2 = Time.now()
     # For epoch time, seconds will "never" be zero
