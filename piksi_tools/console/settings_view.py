@@ -37,7 +37,7 @@ from pyface.api import FileDialog, OK
 
 from .settings_list import SettingsList
 from .utils import resource_filename
-from .gui_utils import PiksiBooleanEditor
+from .gui_utils import PiksiBooleanEditor, UpdateScheduler
 
 SETTINGS_REVERT_TIMEOUT = 5
 SETTINGS_RETRY_TIMEOUT = 10
@@ -718,14 +718,28 @@ class SettingsView(HasTraits):
                     GUI.invoke_later(cb)
                 else:
                     cb()
+        for each in self.settings_yaml.list_of_dicts:
+            if not each.get('received', False):
+                print("Setting {} not received from device".format(each))
 
     def settings_read_by_index_done_callback(self, sbp_msg, **metadata):
         if self.retry_pending_read_index_thread:
             self.retry_pending_read_index_thread.stop()
         # we should only setup the display once per iteration to avoid races
         if self.setup_pending:
-            self.settings_display_setup()
+            self.update_scheduler.schedule_update('settings_read_by_index_done_callback', self.settings_display_setup)
             self.setup_pending = False
+            with open("settings.csv", 'w') as f:
+              for grp in self.settings.keys():
+                for each in self.settings[grp]: 
+                  f.write("{0},{1}\n".format(grp,self.settings[grp][each].name))
+            with open("settings_yaml_not_used.csv", 'w') as f:
+              for each in self.settings_yaml.list_of_dicts:
+                try:
+                  if self.settings[each['group']][each['name']]:
+                    pass
+                except KeyError:
+                    f.write("{0},{1}\n".format(each['group'],each['name']))
 
     def settings_read_resp_callback(self, sbp_msg, **metadata):
         confirmed_set = True
@@ -911,3 +925,4 @@ class SettingsView(HasTraits):
                 )
                 print("Verify that write permissions exist on the port.")
         self.python_console_cmds = {'settings': self}
+        self.update_scheduler = UpdateScheduler()

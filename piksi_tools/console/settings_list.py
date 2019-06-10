@@ -39,6 +39,7 @@ class SettingsList():
             thisdict = self.get_dict(group, name)
             if thisdict and isinstance(thisdict, dict):
                 returnvar = thisdict.get(field, "")
+                thisdict['received'] = True
             else:
                 if not self.warned_dict.get(name + group, False):
                     print(("No settings documentation entry "

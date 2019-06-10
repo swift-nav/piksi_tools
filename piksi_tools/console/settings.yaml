@@ -1,5 +1,3 @@
----
-
 - group: surveyed_position
   name: broadcast
   expert: false
@@ -2178,7 +2176,7 @@
   Description: Maximum storage device usage.
   units: percent
   Notes: Sets a limit on how full the storage device can be before logging is stopped. If the drive is more than this percent full, no new log files will be created and a warning will be logged every 30 seconds.
-         If this setting is changed while logging is enabled, it will go into effect on the next file that’s created.
+         If this setting is changed while logging is enabled, it will go into effect on the next file that is created.
 
 - group: standalone_logging
   name: output_directory
@@ -2189,7 +2187,7 @@
   Description: Standalone logging path.
   units: N/A
   Notes: Sets the paths in which to write logs. A warning will be logged every 30 seconds if this path is invalid or unavailable. The system will not create a folder that does not exist.
-         If this setting is changed while logging is enabled, it will go into effect on the next file that’s created.
+         If this setting is changed while logging is enabled, it will go into effect on the next file that is created.
 
 - group: standalone_logging
   name: enable
@@ -2304,7 +2302,7 @@
   readonly: false
   units: N/A
   Description: Enables or disables the Over-The-Air upgrade daemon's verbose output.
-  Notes: The OTA daemon must be disabled in order to change this setting.
+  Notes: The "ota enabled" setting must be "False" in order to change this setting.
 
 - group: system
   name: ota_url

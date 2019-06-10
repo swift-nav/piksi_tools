@@ -38,4 +38,3 @@ optional arguments:
                         for network
   -h, --help            Show usage help in a GUI popup.
   -V, --version         show program's version number and exit
-
