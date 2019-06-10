@@ -47,6 +47,10 @@ def test_time_sub():
     assert (t7 - t11) == Time(1, 400)
 
 
+def test_time_to_float():
+    t6 = Time(1, 400)
+    t6.to_float() -1.4 <= 0.00001
+
 
 def test_time_ge():
     t4 = Time(1, 500)
