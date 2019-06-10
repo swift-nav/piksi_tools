@@ -1,0 +1,116 @@
+\documentclass{article}
+
+\usepackage{swiftnav}
+
+\usepackage{endnotes}
+\usepackage{moresize}
+\usepackage{standalone}
+\usepackage{longtable}
+\usepackage{register}
+\usepackage{bytefield}
+\usepackage{booktabs}
+\usepackage{minibox}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{caption}
+
+\setlength{\regWidth}{0.4\textwidth}
+
+\floatstyle{plain}
+\newfloat{field}{h}{fld}
+\floatname{field}{Field}
+
+\numberwithin{table}{subsection}
+\numberwithin{field}{subsection}
+
+\renewcommand{\regLabelFamily}{}
+\renewcommand\theversion{((( version )))}
+\newcommand*{\myfont}{\fontfamily{qtm}\selectfont}
+% ---------------------------------------------------------------------------
+\title{Piksi Multi Settings}
+\mysubtitle{Firmware Version  \theversion}
+\author{Swift Navigation}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{firstpage}
+
+\section{Introduction}
+\label{sec:settings}
+\begin{flushleft}
+Piksi{\myfont\raisebox{0.4ex}\tiny\textregistered} Multi and Duro{\myfont\raisebox{0.4ex}\tiny\textregistered} have a number of settings that can be controlled by the end user via the provided Swift Console or through the SBP binary message protocol. This document serves to enumerate these settings and provide a detailed description of the setting plus any relevant notes. If a setting is listed as "Expert" in this document, the "Show Advanced Settings" checkbox must be checked or the --expert command line argument must be passed to the Swift Console in order to see or modify the value.  Settings listed as "readonly" cannot be modified by the user and are available for information only.
+\end{flushleft}
+\section{Configure Settings Programmatically}
+\label{sec:settings}
+\begin{flushleft}
+  The Swift Binary Protocol (SBP) Settings messages are used to programmatically configure settings. Please refer to the SBP and settings document that corresponds to the firmware version in use. Each of the settings messages have a string field that is used to read and/or write a settings based upon the section of the setting, the name of the setting, and the intended or current value of the setting. This string field uses the null termination character as deliminator between each subfield.  For example, a user can send a settings write message (SBP Message ID 160) with the content "solution\textbackslash 0soln\textunderscore freq\textbackslash 010\textbackslash 0", where the "\textbackslash 0" escape sequence denotes the nullcharacter, in order to set the "soln\textunderscore freq" setting in the "solution" section to a value of 10.
+\end{flushleft}
+((* block settings_toc *))
+{
+\newpage
+\section{Settings Table}
+\centering
+  \begin{longtable}{p{0.14\textwidth}p{0.2\textwidth}p{0.60\textwidth}}
+    \toprule
+    Grouping & Name & Description \\
+    \midrule
+    ((*- for g in groups *))
+    \textbf{(((g|escape_tex_exp)))} & & \\
+    ((*- for m in setting *))
+    ((*- if m.group==g *))
+     & \hyperref[sec:(((m.group + m.name)))]{\texttt{(((m.name|escape_tex_exp|no_us)))}} & (((m.Description|escape_tex_exp))) \\ 
+    ((*- endif *))
+    ((*- endfor *))
+    ((*- endfor *))
+    \bottomrule
+    \caption{Summary of message types}
+  \end{longtable}
+}
+((* endblock *))
+
+% ---------------------------------------------------------------------------
+\newpage
+\section{Settings Detail}
+((* for g in groups *))
+\subsection{(((g|escape_tex_exp)))}
+
+((* for m in setting *))
+((* if m.group==g *))
+((* block settings_detail scoped *))
+\label{sec:(((m.group + m.name)))}
+\subsubsection{(((m.name|escape_tex_exp)))}
+{
+\textbf{Description:}
+(((m.Description|escape_tex_exp)))
+\begin{table}[H]
+  \centering
+  \begin{tabular}{p{4cm} p{7cm}}
+    \toprule
+    Label & Value \\
+    \midrule
+    \hbadness=20000
+    ((*- for key,value in m.iteritems() *))
+    ((*- if(key is defined and key != 'Notes' and key != 'Description' and value is defined and value != 'True') *))
+    (((key|escape_tex_exp))) & (((value|escape_tex_exp))) \\
+    ((*- endif *))
+    ((*- endfor *))
+    \midrule
+    & (((m.size))) \\
+    \bottomrule
+  \end{tabular}
+  \caption{(((m.name|escape_tex_exp)))}
+\end{table}
+\begin{flushleft}
+((* if m.Notes is defined and m.Notes != 'None'*))
+\textbf{Notes:}
+(((m.Notes|escape_tex_exp)))
+((* endif *))
+\end{flushleft}
+((* endblock *))
+((* endif *))
+((* endfor *))
+((* endfor *))
+
+\end{document}
