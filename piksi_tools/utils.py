@@ -96,7 +96,7 @@ class Time(object):
             yield next_time
 
     def to_float(self):
-        return self._seconds + (self._millis / 1000)
+        return self._seconds + (self._millis / 1000.0)
 
     def __hash__(self):
         return hash((self._seconds, self._millis))
