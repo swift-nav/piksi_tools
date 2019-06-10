@@ -817,6 +817,64 @@ class SettingsView(HasTraits):
             if this_section:
                 self.settings_list.append(SectionHeading(sec))
                 self.settings_list += this_section
+        # call read_finished_functions as needed
+        if do_read_finished:
+            for cb in self.read_finished_functions:
+                if self.gui_mode:
+                    GUI.invoke_later(cb)
+                else:
+                    cb()
+        for each in self.settings_yaml.list_of_dicts:
+            if not each.get('received', False):
+                print("Setting {} not received from device".format(each))
+
+    def settings_read_by_index_done_callback(self, sbp_msg, **metadata):
+        if self.retry_pending_read_index_thread:
+            self.retry_pending_read_index_thread.stop()
+        # we should only setup the display once per iteration to avoid races
+        if self.setup_pending:
+            self.update_scheduler.schedule_update('settings_read_by_index_done_callback', self.settings_display_setup)
+            self.setup_pending = False
+            with open("settings.csv", 'w') as f:
+              for grp in self.settings.keys():
+                for each in self.settings[grp]: 
+                  f.write("{0},{1}\n".format(grp,self.settings[grp][each].name))
+            with open("settings_yaml_not_used.csv", 'w') as f:
+              for each in self.settings_yaml.list_of_dicts:
+                try:
+                  if self.settings[each['group']][each['name']]:
+                    pass
+                except KeyError:
+                    f.write("{0},{1}\n".format(each['group'],each['name']))
+
+    def settings_read_resp_callback(self, sbp_msg, **metadata):
+        confirmed_set = True
+        settings_list_raw = sbp_msg.setting.split(b"\0")
+        if len(settings_list_raw) <= 3:
+            print("Received malformed settings read response {0}".format(
+                sbp_msg))
+            confirmed_set = False
+            return
+        settings_list = [settings_list_raw[0].decode(KEY_ENCODING),
+                         settings_list_raw[1].decode(KEY_ENCODING),
+                         settings_list_raw[2].decode(VALUE_ENCODING)]
+        try:
+            if self.settings[settings_list[0]][settings_list[1]].value != settings_list[2]:
+                try:
+                    float_val = float(self.settings[settings_list[0]][settings_list[1]].value)
+                    float_val2 = float(settings_list[2])
+                    if abs(float_val - float_val2) > 0.000001:
+                        confirmed_set = False
+                except ValueError:
+                    confirmed_set = False
+            if confirmed_set:
+                # If we verify the new values matches our expectation, we cancel the revert thread
+                if self.settings[settings_list[0]][settings_list[1]].timed_revert_thread:
+                    self.settings[settings_list[0]][settings_list[1]].timed_revert_thread.stop()
+                self.settings[settings_list[0]][settings_list[1]].confirmed_set = True
+        except KeyError:
+            return
+>>>>>>> ab79f414... Add Setting generation capability
 
         if do_read_finished:
             self.finish_read()

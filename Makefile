@@ -27,12 +27,16 @@ help:
 	@echo "  serial_deps    to install serial dependencies (no UI deps)"
 	@echo "  build_console  to build the console binary and installer"
 	@echo "  gen_readme     generate console command line options readme"
+	@echo "  docs           to build settings documentation from settings.yaml"
 	@echo
 
 all: deps
 
 deps:
 	cd $(SWIFTNAV_ROOT)/tasks && bash setup.sh && cd $(SWIFTNAV_ROOT)
+
+.conda_py27:
+	conda create -p $(PWD)/.conda_py27 python=2.7 --yes
 
 .conda_py35:
 	conda create -p $(PWD)/.conda_py35 python=3.5 --yes
@@ -50,6 +54,9 @@ tox: export PATH:=$(CURDIR)/.conda_py35/bin:$(PATH)
 tox: tox_$(UNAME)
 
 test: tox
+docs: piksi_tools/console/settings.yaml latex/settings_template.tex piksi_tools/generate_settings_doc.py 
+	rm -f docs/settings.pdf && cd $(SWIFTNAV_ROOT) && PYTHONPATH=. python piksi_tools/generate_settings_doc.py
+	mv docs/settings.pdf docs/PiksiMulti-settings-v2.2.17.pdf
 
 serial_deps:
 	pip install -r requirements.txt
