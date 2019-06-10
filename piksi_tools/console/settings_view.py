@@ -37,7 +37,7 @@ from pyface.api import FileDialog, OK
 
 from .settings_list import SettingsList
 from .utils import resource_filename
-from .gui_utils import PiksiBooleanEditor
+from .gui_utils import PiksiBooleanEditor, UpdateScheduler
 
 SETTINGS_REVERT_TIMEOUT = 5
 SETTINGS_RETRY_TIMEOUT = 10
@@ -724,7 +724,7 @@ class SettingsView(HasTraits):
             self.retry_pending_read_index_thread.stop()
         # we should only setup the display once per iteration to avoid races
         if self.setup_pending:
-            self.settings_display_setup()
+            self.update_scheduler.schedule_update('settings_read_by_index_done_callback', self.settings_display_setup)
             self.setup_pending = False
 
     def settings_read_resp_callback(self, sbp_msg, **metadata):
@@ -911,3 +911,4 @@ class SettingsView(HasTraits):
                 )
                 print("Verify that write permissions exist on the port.")
         self.python_console_cmds = {'settings': self}
+        self.update_scheduler = UpdateScheduler()
