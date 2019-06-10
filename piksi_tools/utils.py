@@ -109,7 +109,7 @@ class Time(object):
         return Time(seconds=(new_time // 1000), millis=(new_time % 1000))
 
     def __sub__(a, b):
-        new_time = (1000 * a._seconds) - (1000 * b._seconds) - a._millis - b._millis
+        new_time = (1000 * a._seconds) - (1000 * b._seconds) + (a._millis - b._millis)
         return Time(seconds=(new_time // 1000), millis=(new_time % 1000))
 
     def __eq__(a, b):
