@@ -1,5 +1,8 @@
 # Change Log
 
+## [v2.3.17](https://github.com/swift-nav/piksi_tools/tree/v2.3.17) (2019-06-11)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.2.0-develop-2019061023...v2.3.17)
+
 ## [v2.2.0-develop-2019061023](https://github.com/swift-nav/piksi_tools/tree/v2.2.0-develop-2019061023) (2019-06-10)
 [Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v2.3.16...v2.2.0-develop-2019061023)
 
@@ -1099,7 +1102,7 @@
 - Update settings.yaml [\#651](https://github.com/swift-nav/piksi_tools/pull/651)
 
 ## [v1.2.0rc3](https://github.com/swift-nav/piksi_tools/tree/v1.2.0rc3) (2017-09-16)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.2.0.rc2...v1.2.0rc3)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.2.0rc2...v1.2.0rc3)
 
 **Merged pull requests:**
 
@@ -1114,11 +1117,11 @@
 - observation\_view: restore total obs count [\#642](https://github.com/swift-nav/piksi_tools/pull/642)
 - improve console entry point and resource access [\#641](https://github.com/swift-nav/piksi_tools/pull/641)
 
-## [v1.2.0.rc2](https://github.com/swift-nav/piksi_tools/tree/v1.2.0.rc2) (2017-08-30)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.2.0rc2...v1.2.0.rc2)
-
 ## [v1.2.0rc2](https://github.com/swift-nav/piksi_tools/tree/v1.2.0rc2) (2017-08-30)
-[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.2.0rc1...v1.2.0rc2)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.2.0.rc2...v1.2.0rc2)
+
+## [v1.2.0.rc2](https://github.com/swift-nav/piksi_tools/tree/v1.2.0.rc2) (2017-08-30)
+[Full Changelog](https://github.com/swift-nav/piksi_tools/compare/v1.2.0rc1...v1.2.0.rc2)
 
 **Closed issues:**
 
