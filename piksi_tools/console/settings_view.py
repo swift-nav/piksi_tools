@@ -33,7 +33,7 @@ from pyface.api import FileDialog, OK
 
 from .settings_list import SettingsList
 from .utils import resource_filename
-from .gui_utils import PiksiBooleanEditor
+from .gui_utils import PiksiBooleanEditor, UpdateScheduler
 
 from libsettings import Settings, SettingsWriteResponseCodes
 
@@ -555,7 +555,7 @@ class SettingsView(HasTraits):
                 self.settings[section][name] = Setting(
                     name, section, value, settings=self, ordering=idx)
 
-        self.settings_display_setup()
+        self.update_scheduler.schedule_update('settings_read_by_index_done_callback', self.settings_display_setup)
 
     def _settings_read_button_fired(self):
         self._settings_read_all()
@@ -808,3 +808,4 @@ class SettingsView(HasTraits):
                 )
                 print("Verify that write permissions exist on the port.")
         self.python_console_cmds = {'settings': self}
+        self.update_scheduler = UpdateScheduler()
