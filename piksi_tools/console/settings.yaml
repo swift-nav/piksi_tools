@@ -419,42 +419,6 @@
     the device will only output the float ambiguity estimate.
 
 - group: solution
-  name: known_baseline_n
-  expert: false
-  type: double
-  units: meters
-  default value: '0'
-  readonly: false
-  enumerated possible values:
-  Description: Determines the baseline vector for the "init known baseline" feature.
-  Notes: This sets the number of meters that the rover is North from the
-    base station when the "init known baseline" feature is used.
-
-- group: solution
-  name: known_baseline_e
-  expert: false
-  type: double
-  units: meters
-  default value: '0'
-  readonly: false
-  enumerated possible values:
-  Description: Determines the baseline vector for the "init known baseline" feature.
-  Notes: This sets the number of meters that the rover is East from the
-    base station when the "init known baseline" feature is used.
-
-- group: solution
-  name: known_baseline_d
-  expert: false
-  type: double
-  units: meters
-  default value: '0'
-  readonly: false
-  enumerated possible values:
-  Description: Determines the baseline vector for the "init known baseline" feature.
-  Notes: This sets the number of meters that the rover is Down from the
-    base station when the "init known baseline" feature is used.
-
-- group: solution
   name: elevation_mask
   expert: false
   type: float
@@ -508,18 +472,6 @@
   Notes: |
     Adds an offset to the heading output to rotate the heading vector to align the
     baseline heading with a desired 0 heading. Valid values are -180.0 to 180.0 degrees
-
-- group: solution
-  name: disable_klobuchar_correction
-  expert: false
-  type: boolean
-  units: N/A
-  default value: 'False'
-  readonly: false
-  enumerated possible values: True,False
-  Description: Disable Klobuchar ionospheric corrections.
-  Notes: |
-      If True, Klobuchar ionospheric corrections will not be applied.
 
 - group: solution
   name: enable_glonass
@@ -1226,15 +1178,6 @@
   Notes: This parameter down weights GLONASS observations relative to GPS observations by this factor.
 
 - group: track
-  name: send_trk_detailed
-  expert: true
-  type: boolean
-  default value: false
-  readonly: false
-  Description: send detailed tracking state message.
-  Notes:
-
-- group: track
   name: mode
   expert: true
   type: enum
@@ -1254,180 +1197,6 @@
   enumerated possible values:
   Description: Output raw I/Q correlations.
   Notes: Bitmask of channel IDs (not PRNs)
-
-- group: track
-  name: max_pll_integration_time_ms
-  expert: true
-  type: integer
-  units: N/A
-  default value: '20'
-  readonly: false
-  enumerated possible values:
-  Description: Controls maximum possible integration time for a measurement.
-  Notes: This can be used to configure the sensitivity and dynamic tracking modes permitted to be used by receiver.
-     Lower values provide lower sensitivity and noisier phase measurements but better performance in dynamic conditions.
-
-- group: cn0_est
-  name: alpha
-  expert: true
-  Description: cn0 estimation parameter.
-  readonly: false
-
-- group: cn0_est
-  name: nbw
-  expert: true
-  Description: cn0 estimation parameter.
-  readonly: false
-
-- group: cn0_est
-  name: scale
-  expert: true
-  Description: cn0 estimation parameter.
-  readonly: false
-
-- group: cn0_est
-  name: cn0 shift
-  expert: true
-  Description: cn0 estimation parameter.
-  readonly: false
-
-- group: cn0_est
-  name: cn0_shift
-  expert: true
-  Description: cn0 estimation parameter.
-  readonly: false
-
-- group: cn0_est
-  name: cutoff
-  expert: true
-  Description: cn0 cutoff.
-  readonly: false
-
-- group: cn0_est
-  name: pri2sec_threshold
-  type: float
-  expert: true
-  Description: Cn0 threshold to transition to 2nd stage tracking.
-  readonly: false
-
-- group: cn0_est
-  name: sec2pri_threshold
-  type: float
-  expert: true
-  Description: Cn0 threshold to transition to out of 2nd stage tracking.
-  readonly: false
-
-- group: l1ca_track
-  name: show_unconfirmed
-  expert: true
-  type: boolean
-  Description: Show unconfirmed tracking channels in tracking state.
-  readonly: false
-
-- group: l1ca_track
-  name: xcorr_cof
-  expert: true
-  type: float
-  Description: cross correlation coefficient.
-  readonly: false
-
-- group: l1ca_track
-  name: xcorr_delta
-  expert: true
-  type: float
-  Description: cross correlation delta.
-  readonly: false
-
-- group: l1ca_track
-  name: xcorr_time
-  expert: true
-  type: float
-  Description: cross correlation time.
-  readonly: false
-
-- group: glo_l1of_track
-  name: show_unconfirmed
-  expert: true
-  type: boolean
-  Description: Show unconfirmed tracking channels in tracking state.
-  readonly: false
-
-- group: glo_l1of_track
-  name: xcorr_cof
-  expert: true
-  type: float
-  Description: cross correlation coefficient.
-  readonly: false
-
-- group: glo_l1of_track
-  name: xcorr_delta
-  expert: true
-  type: float
-  Description: cross correlation delta.
-  readonly: false
-
-- group: glo_l1of_track
-  name: xcorr_time
-  expert: true
-  type: float
-  Description: cross correlation time.
-  readonly: false
-
-- group: l2c_track
-  name: xcorr_cof
-  expert: true
-  type: float
-  Description: cross correlation coefficient.
-  readonly: false
-
-- group: l2c_track
-  name: xcorr_delta
-  expert: true
-  type: float
-  Description: cross correlation delta.
-  readonly: false
-
-- group: l2c_track
-  name: xcorr_time
-  expert: true
-  type: float
-  Description: cross correlation time.
-  readonly: false
-
-- group: l2c_track
-  name: show_unconfirmed
-  expert: true
-  type: bool
-  Description: Show unconfirmed tracking channels in tracking state.
-  readonly: false
-
-- group: glo_l2of_track
-  name: show_unconfirmed
-  expert: true
-  type: boolean
-  Description: Show unconfirmed tracking channels in tracking state.
-  readonly: false
-
-- group: glo_l2of_track
-  name: xcorr_cof
-  expert: true
-  type: float
-  Description: cross correlation coefficient.
-  readonly: false
-
-- group: glo_l2of_track
-  name: xcorr_delta
-  expert: true
-  type: float
-  Description: cross correlation delta.
-  readonly: false
-
-- group: glo_l2of_track
-  name: xcorr_time
-  expert: true
-  type: float
-  Description: cross correlation time.
-  readonly: false
 
 - group: nmea
   name: gpgsv_msg_rate
@@ -1510,17 +1279,6 @@
   enumerated possible values:
   Description: Number of Solution Periods between GSA NMEA messages being sent.
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz. If this setting is 0, the msg will be suppressed.
-
-- group: nmea
-  name: gpgsa_msg_rate
-  expert: false
-  type: integer
-  units: Solution Period
-  default value: '10'
-  readonly: false
-  enumerated possible values:
-  Description: Number of Solution Periods between GSA NMEA messages being sent.
-  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message.
 
 - group: nmea
   name: gpgst_msg_rate
@@ -2485,37 +2243,6 @@
                mounting bracket shipped with Duro is in use.
 
 - group: ins
-  name: vehicle_frame_offset_x
-  expert: false
-  type: double
-  units: meters
-  default value: '0'
-  readonly: false
-  Description: X component of vector from device frame to vehicle frame origin in which inertial outputs are provided  
-  Notes: The vector is measured in the device frame according to the markings on the device. In order to output inertial solutions at the antenna phase center, this should be the same value (both sign and magnitude) as antenna_offset_x setting. 
-
-- group: ins
-  name: vehicle_frame_offset_y
-  expert: false
-  type: double
-  units: meters
-  default value: '0'
-  readonly: false
-  Description: Y component of vector from device frame to vehicle frame origin in which inertial outputs are provided  
-  Notes: The vector is measured in the device frame according to the markings on the device. In order to output inertial solutions at the antenna phase center, this should be the same value (both sign and magnitude) as antenna_offset_x setting. 
-
-- group: ins
-  name: vehicle_frame_offset_z
-  expert: false
-  type: double
-  units: meters
-  default value: '-0.12674'
-  readonly: false
-  Description: Z component of vector from device frame to vehicle frame origin in which inertial outputs are provided  
-  Notes: The vector is measured in the device frame according to the markings on the device. In order to output inertial solutions at the antenna phase center, this should be the same value (both sign and magnitude) as antenna_offset_x setting. 
-         The default value represents vehicle outpus at the antenna phase center when the Duro antenna mounting bracket is in use.
-
-- group: ins
   name: constrain_vehicle_sideslip
   expert: true
   type: boolean
@@ -2592,86 +2319,6 @@
   readonly: false
   Description: Interval to run the resource monitor at
   Notes: Value of 0 disables the resource monitor
-
-- group: can0
-  name: mode
-  expert: true
-  type: enum
-  units: N/A
-  default value: 'Disabled'
-  readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 Out
-  Description: Communication protocol for CAN client 0. The client will send packets to a CAN bus.
-  Notes: |
-    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting.
-
-    "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
-
-    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
-
-    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
-
-- group: can0
-  name: enabled_sbp_messages
-  expert: true
-  type: string
-  units: N/A
-  default value: '72,74,117,522,527'
-  readonly: false
-  Description: Configure which messages should be sent to the server.
-  Notes: The enabled sbp messages settings is a list of message types
-    and rate divisors that will be sent out of the interface. If left blank, all
-    messages will be sent. If not blank, a comma separated list of
-    SBP message IDs in base 10 integer format should be provided. Optionally,
-    a divisor can be specified after the / character for each id. For example, an entry of
-    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
-    the default value is optimal for logging and communication with the console.
-
-- group: can1
-  name: mode
-  expert: true
-  type: enum
-  units: N/A
-  default value: 'Disabled'
-  readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 Out
-  Description: Communication protocol for CAN client 0. The client will send packets to a CAN bus.
-  Notes: |
-    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting.
-
-    "NMEA OUT" configures the interface to transmit the GGA, RMC, GGL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
-
-    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
-
-    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
-
-- group: can1
-  name: enabled_sbp_messages
-  expert: true
-  type: string
-  units: N/A
-  default value: '72,74,117,522,527'
-  readonly: false
-  Description: Configure which messages should be sent to the server.
-  Notes: The enabled sbp messages settings is a list of message types
-    and rate divisors that will be sent out of the interface. If left blank, all
-    messages will be sent. If not blank, a comma separated list of
-    SBP message IDs in base 10 integer format should be provided. Optionally,
-    a divisor can be specified after the / character for each id. For example, an entry of
-    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
-    the default value is optimal for logging and communication with the console.
-
-- group: can1
-  name: termination
-  expert: true
-  type: boolean
-  units: N/A
-  default value: 'false'
-  readonly: false
-  Description: Configure status of CAN termination resistor on Duro.
-  Notes: This setting toggles the 120 ohm termination resistor 
-    for the CAN interface available on the AUX connector of Duro.
-    It should only appear on Duro devices.
 
 - group: pps
   name: propagation_mode
