@@ -22,6 +22,36 @@ def test_time_add():
     assert (t4 + t5) == Time(3, 0)
 
 
+def test_time_sub():
+    t6 = Time(1, 400)
+    t7 = Time(2, 500)
+    t8 = (t7 - t6)
+    # confirm positive subraction result makes sense
+    assert t8 == Time(1, 100)
+    # adding then subtracking t6 should cancel out back to t7
+    assert (t8 + t6) == t7
+    # confirm negative result makes sense
+    t9 = t6 - t7
+    assert t9 == Time(-2, 900)
+    # TODO: result for t9 maybe should be normalized to -1 -100 in the util
+    # But at the very least float representation should match
+    assert t8.to_float() == -t9.to_float()
+    # adding then subtracking t7 should cancel out back to t6
+    assert (t9 + t7) == t6
+    # Confirm identity property of addition / subtraction
+    assert t8 + t9 == Time(0, 0)
+    # Confirm adding negative number is equivalent to subtracting positive number
+    t10 = Time(-1, -100)
+    t11 = Time(1,  100)
+    assert (t7 + t10) == Time(1, 400)
+    assert (t7 - t11) == Time(1, 400)
+
+
+def test_time_to_float():
+    t6 = Time(1, 400)
+    t6.to_float() -1.4 <= 0.00001
+
+
 def test_time_ge():
     t4 = Time(1, 500)
     t5 = Time(1, 500)

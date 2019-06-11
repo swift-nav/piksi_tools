@@ -281,7 +281,7 @@ class SelectiveRepeater(object):
         for check_time in Time.iter_since(self._last_check_time, time_now):
             pending_reqs = self._expire_map[check_time]
             retried_writes = []
-            for pending_req in pending_reqs.keys():
+            for pending_req in list(pending_reqs):
                 time_expire = pending_req.time + timeout_delta
                 if time_now >= time_expire:
                     if pending_req.tries >= MAXIMUM_RETRIES:
@@ -564,7 +564,8 @@ class FileIO(object):
                 if (progress_cb is not None and seq % sr.progress_cb_reduction_factor == 0):
                     progress_cb(offset, sr)
 
-            progress_cb(offset, sr)
+            if progress_cb is not None:
+                progress_cb(offset, sr)
             sr.flush()
 
 
@@ -683,7 +684,6 @@ def printable_text_from_device(data):
 
 
 def mk_progress_cb(file_length):
-
     time_last = [Time.now()]
     offset_last = [0]
 
