@@ -81,7 +81,7 @@ def main():
     with Handler(Framer(driver.read, driver.write, verbose=args.verbose)) as link:
         data = bytearray(open(args.file, 'rb').read())
 
-        def progress_cb(size):
+        def progress_cb(size, _):
             sys.stdout.write("\rProgress: %d%%    \r" %
                              (100 * size / len(data)))
             sys.stdout.flush()
