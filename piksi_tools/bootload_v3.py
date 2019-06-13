@@ -41,7 +41,7 @@ def get_args():
     """
     parser = serial_link.base_cl_options()
     parser.description = 'Piksi Bootloader'
-    parser.add_argument("file", help="the image set file to write to flash.")
+    parser.add_argument("firmware", help="the image set file to write to flash.")
     return parser.parse_args()
 
 
@@ -79,7 +79,7 @@ def main():
     # Driver with context
     # Handler with context
     with Handler(Framer(driver.read, driver.write, verbose=args.verbose)) as link:
-        data = bytearray(open(args.file, 'rb').read())
+        data = bytearray(open(args.firmware, 'rb').read())
 
         def progress_cb(size, _):
             sys.stdout.write("\rProgress: %d%%    \r" %
