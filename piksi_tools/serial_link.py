@@ -58,7 +58,7 @@ def base_cl_options(override_arg_parse=None, add_help=True,
     else:
         parserclass = argparse.ArgumentParser
     parser = parserclass(
-            description="Swift Navigation SBP Client version " + VERSION, add_help=add_help)
+        description="Swift Navigation SBP Client version " + VERSION, add_help=add_help)
     parser.add_argument(
         "-p", "--port", default=None, help="specify the serial port to use.")
     parser.add_argument(
