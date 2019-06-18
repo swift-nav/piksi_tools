@@ -33,6 +33,7 @@ from sbp.piksi import SBP_MSG_COMMAND_RESP, MsgCommandReq, MsgReset
 
 from piksi_tools import serial_link
 from piksi_tools.fileio import FileIO
+from piksi_tools import __version__ as VERSION
 
 
 def get_args():
@@ -40,7 +41,7 @@ def get_args():
     Get and parse arguments.
     """
     parser = serial_link.base_cl_options()
-    parser.description = 'Piksi Bootloader'
+    parser.description = 'Piksi Bootloader version ' + VERSION
     parser.add_argument("firmware", help="the image set file to write to flash.")
     return parser.parse_args()
 
