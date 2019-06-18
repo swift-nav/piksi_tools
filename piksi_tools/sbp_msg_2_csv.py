@@ -14,6 +14,7 @@ from sbp.client import Framer
 from sbp.client.drivers.file_driver import FileDriver
 from sbp.table import _SBP_TABLE
 import construct
+from piksi_tools import __version__ as VERSION
 
 
 def get_list_of_columns(msgClass, metadata):
@@ -48,7 +49,7 @@ class MsgExtractor(object):
 def get_args():
     import argparse
     parser = argparse.ArgumentParser(
-        description="write msg fields to a csv file, one column per field")
+        description="sbp_msg_2_csv version " + VERSION + ". Writes SBP msg fields to a csv file, one column per field.")
     parser.add_argument("file",
                         help="specify the SBP JSON/binary file for which to dump fields to CSV.")
     parser.add_argument("-o", "--outfile", default="out.csv",

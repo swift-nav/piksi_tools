@@ -31,6 +31,7 @@ from sbp.file_io import (SBP_MSG_FILEIO_READ_DIR_RESP, SBP_MSG_FILEIO_READ_RESP,
                          MsgFileioConfigReq, MsgFileioConfigResp)
 
 from piksi_tools import serial_link
+from piksi_tools import __version__ as VERSION
 from piksi_tools.utils import Time
 
 MAX_PAYLOAD_SIZE = 255
@@ -616,7 +617,7 @@ def get_args():
     Get and parse arguments.
     """
     import argparse
-    parser = argparse.ArgumentParser(description='Swift Nav File I/O Utility.')
+    parser = argparse.ArgumentParser(description='Swift Nav File I/O Utility version ' + VERSION)
     parser.add_argument(
         '-w',
         '--write',
