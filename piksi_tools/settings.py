@@ -78,7 +78,6 @@ class Settings(object):
                                SBP_MSG_SETTINGS_READ_BY_INDEX_RESP)
         self.link.add_callback(self._settings_done_callback,
                                SBP_MSG_SETTINGS_READ_BY_INDEX_DONE)
-        self.link.add_callback(self._print_callback, [SBP_MSG_LOG])
         return self
 
     def __exit__(self, *args):
