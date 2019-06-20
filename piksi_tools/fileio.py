@@ -419,7 +419,15 @@ class FileIO(object):
         closure = {'mostly_done': False, 'done': False, 'buf': {}, 'pending': set()}
 
         def cb(req, resp):
-            closure['pending'].remove(req.offset)
+            try:
+                closure['pending'].remove(req.offset)
+            except KeyError as k:
+                if (closure['buf'].get(req.offset, None) is not None
+                        and closure['buf'][req.offset] == resp.contents):
+                    return
+                else:
+                    print("Received read response that was not requested at offset {}".format(req.offset))
+                    return
             closure['buf'][req.offset] = resp.contents
             if req.chunk_size != len(resp.contents):
                 closure['mostly_done'] = True
