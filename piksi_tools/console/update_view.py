@@ -54,6 +54,62 @@ def parse_version(version):
     return gitversion_parse(version)
 
 
+class NetworkCheck():
+
+    CONNECTION_TIMEOUT = 1.0
+    THREAD_INTERVAL = 25.0
+    SERVER = ("www.google.com", 80)
+
+    def __init__(self, log, cb):
+        self._cb = cb
+        self._log = log
+        self._state = True
+        self._thd_trigger = Event()
+        self._check_done = Event()
+        self._worker = Thread(target=self._check_thd)
+        self._worker.daemon = True
+        self._worker.start()
+
+    def network_is_reachable(self):
+        # Wake up the checker thread. In case the checker is already awake this
+        # will cause another unnecessary immediate check but since there's no
+        # critical harm done we'll let it slide for the sake of keeping the
+        # sync logic otherwise as simple as possible.
+        self._thd_trigger.set()
+
+        # Wait for a fresh state
+        self._check_done.wait()
+        self._check_done.clear()
+        return self._state
+
+    def _check_thd(self):
+        while True:
+            prev_state = self._state
+            try:
+                socket.create_connection(
+                    NetworkCheck.SERVER, NetworkCheck.CONNECTION_TIMEOUT).close()
+                self._state = True
+            except Exception as ex:
+                self._state = False
+
+            # Gate the logging to state changes only to avoid spam
+            if prev_state != self._state:
+                if self._state:
+                    self._log("Network is reachable.")
+                else:
+                    self._log("Network is unreachable, please check your connection.")
+
+                # Inform parent about the new state
+                self._cb(self._state)
+
+            # Wake up the possible check requester
+            self._check_done.set()
+
+            # Wait for check request or timeout
+            self._thd_trigger.wait(NetworkCheck.THREAD_INTERVAL)
+            self._thd_trigger.clear()
+
+
 class FirmwareFileDialog(HasTraits):
     file_wildcard = String("Binary image set (*.bin)|*.bin|All files|*")
     status = Unicode('Please choose a file')
@@ -197,7 +253,7 @@ class UpdateView(HasTraits):
     stm_fw = Instance(FirmwareFileDialog)
 
     stream = Instance(OutputStream)
-    
+
     local_file_for_fileio = String()
     choose_local_file = Button(label='...', padding=-1)
     destination_path_for_fileio = '/persistent/licenses/smoothpose_license.json'
@@ -249,7 +305,7 @@ class UpdateView(HasTraits):
                     ),
                     label="Firmware Download",
                     show_border=True)
-                ),
+            ),
             HGroup(
                 VGroup(
                     Item(
@@ -263,13 +319,13 @@ class UpdateView(HasTraits):
             HGroup(
                 Item('local_file_for_fileio', label="Local File"),
                 Item('choose_local_file', show_label=False),
-                Item('destination_path_for_fileio', label="Destination Path"), 
+                Item('destination_path_for_fileio', label="Destination Path"),
                 Item("send_file_to_device", show_label=False),
                 show_border=True,
                 label="File IO and product feature unlock tool"
-                )
             )
         )
+    )
 
     def __init__(self,
                  link,
@@ -313,17 +369,18 @@ class UpdateView(HasTraits):
             self.download_directory = dialog.path
         else:
             self._write('Error while selecting firmware download location')
-    
+
     def _send_file(self):
         blob = open(self.local_file_for_fileio, 'rb').read()
         self.blob_size = float(len(blob))
         self.pcent_complete = 0
         FileIO(self.link).write(bytes(self.destination_path_for_fileio, 'ascii'),
-                                blob, 
+                                blob,
                                 progress_cb=self.file_transfer_progress_cb)
-    
+
     def _send_file_to_device_fired(self):
-        self._write("Initiating file transfer of {} to location {}".format(self.local_file_for_fileio, self.destination_path_for_fileio))
+        self._write("Initiating file transfer of {} to location {}".format(
+            self.local_file_for_fileio, self.destination_path_for_fileio))
         if not os.path.isfile(self.local_file_for_fileio):
             self._write("Error with path: {} is not a file".format(self.local_file_for_fileio))
             return
@@ -331,7 +388,6 @@ class UpdateView(HasTraits):
             self._send_file_thread = Thread(target=self._send_file)
             self._send_file_thread.start()
 
-    
     def _choose_local_file_fired(self):
         dialog = FileDialog(
             label='Choose local_file',
@@ -717,7 +773,8 @@ class UpdateView(HasTraits):
         new_pcent = float(offset) / float(self.blob_size) * 100
         if new_pcent - self.pcent_complete > 0.1:
             self.pcent_complete = new_pcent
-            self.stream.scrollback_write("{:2.1f} % of {:2.1f} MB transferred.".format(self.pcent_complete, self.blob_size * 1e-6))
+            self.stream.scrollback_write("{:2.1f} % of {:2.1f} MB transferred.".format(
+                self.pcent_complete, self.blob_size * 1e-6))
 
     def log_cb(self, msg, **kwargs):
         for regex in UPGRADE_WHITELIST:
@@ -737,7 +794,8 @@ class UpdateView(HasTraits):
         self.pcent_complete = 0
         # Set up progress dialog and transfer file to Piksi using SBP FileIO
         self._clear_stream()
-        self._write("Transferring image to device...\n\n00.0 of {:2.1f} MB trasnferred".format(self.blob_size * 1e-6))
+        self._write("Transferring image to device...\n\n00.0 of {:2.1f} MB trasnferred".format(
+            self.blob_size * 1e-6))
         try:
             FileIO(self.link).write(
                 b"upgrade.image_set.bin",
@@ -750,7 +808,8 @@ class UpdateView(HasTraits):
             print(traceback.format_exc())
             return -1
 
-        self.stream.scrollback_write("Image transfer complete: {:2.1f} MB transferred.\n".format(self.blob_size * 1e-6))
+        self.stream.scrollback_write(
+            "Image transfer complete: {:2.1f} MB transferred.\n".format(self.blob_size * 1e-6))
         # Setup up pulsed progress dialog and commit to flash
         self._write("Committing file to Flash...\n")
         self.link.add_callback(self.log_cb, SBP_MSG_LOG)
