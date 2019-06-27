@@ -607,7 +607,7 @@ class UpdateView(HasTraits):
             self.piksi_stm_vers = self.settings['system_info']['firmware_version'].value
         except KeyError:
             self._write(
-                "\nError: Settings received from Piksi don't contain firmware version keys. Please contact Swift Navigation.\n"
+                "\nWarning: Settings received from Piksi do not contain firmware version information. Unable to determine software update status.\n"
             )
             return
 
@@ -618,7 +618,7 @@ class UpdateView(HasTraits):
         # Check that we received the index file from the website.
         if self.update_dl is None:
             self._write(
-                "Error: No website index to use to compare versions with local firmware"
+                "\nWarning: Unable to fetch firmware release index from Swift to determine update status.\n"
             )
             return
         # Get local stm version
