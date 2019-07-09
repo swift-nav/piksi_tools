@@ -91,9 +91,9 @@ def test_time():
     t1 = Time.now()
     t2 = Time.now()
     # For epoch time, seconds will "never" be zero
-    assert t1._seconds != 0 and t2._seconds != 0
-    # Could land on 0 milliseconds, but probably never twice
-    assert t1._millis != 0 or t2._millis != 0
+    assert (    ((t1._seconds == 0 and t1._millis != 0) or (t1._seconds != 0))
+            and ((t2._seconds == 0 and t2._millis != 0) or (t2._seconds != 0))
+            and (t1._millis != 0 or t2._millis != 0)) # Could land on 0 milliseconds, but probably never twice
 
 
 def test_iter():
