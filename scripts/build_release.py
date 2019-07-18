@@ -12,18 +12,6 @@ def maybe_remove(path):
     if os.path.exists(path):
         shutil.rmtree(str(path))
 
-
-def _check_output(cmd, default=None):
-    try:
-        v = check_output(cmd, stderr=subprocess.STDOUT)
-        return v.strip().split()[-1]
-    except CalledProcessError as cpe:
-        print("Output:\n" + cpe.output)
-        print("Return Code:\n" + str(cpe.returncode))
-        raise CalledProcessError
-    return default
-
-
 def build(env):
     from six.moves import reload_module
     check_call(['tox', '-e', env])
@@ -81,7 +69,7 @@ def build_win():
 
 
 def build_cli_tools():
-    _check_output(['tox', '-e', 'pyinstaller-cmdline_tools'])
+    check_call(['tox', '-e', 'pyinstaller-cmdline_tools'])
 
 
 def main():
