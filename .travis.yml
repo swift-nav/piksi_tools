@@ -23,7 +23,7 @@ matrix:
         - sudo apt-get install python3.5 python3.5-dev
         - sudo apt-get install python3.7 python3.7-dev
         - sudo pip install tox
-     script: tox -v
+     script: tox -vvv
 
    - os: linux
      language: generic
@@ -42,7 +42,7 @@ matrix:
         - export DISPLAY=:0.0
         - Xvfb ${DISPLAY} -screen 0 800x600x16 & PID=$!
         - sleep 3  # give xvfb some time to start
-     script: tox -vv
+     script: tox -vvv
 
    - os: linux
      language: python
@@ -70,7 +70,7 @@ matrix:
      python: 3.5
      env: TESTENV=flake8
      before_install: pip install -r requirements_dev.txt
-     script: tox -vv -e flake8
+     script: tox -vvv -e flake8
 
 addons:
   artifacts:
