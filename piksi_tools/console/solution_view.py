@@ -31,6 +31,7 @@ from sbp.navigation import (
     SBP_MSG_VEL_NED_DEP_A, MsgAgeCorrections, MsgDops, MsgDopsDepA, MsgGPSTime,
     MsgGPSTimeDepA, MsgPosLLH, MsgPosLLHDepA, MsgUtcTime, MsgVelNED,
     MsgVelNEDDepA)
+from sbp.system import SBP_MSG_INS_STATUS, MsgInsStatus
 from traits.api import (Bool, Dict, File, HasTraits, Instance, Int, Float, List,
                         Str, Enum)
 from traitsui.api import (HGroup, HSplit, Item, TabularEditor, TextEditor,
@@ -543,6 +544,11 @@ class SolutionView(HasTraits):
                                ('VDOP', EMPTY_STR)]
 
         self.dops_table.append(('DOPS Flags', '0x%03x' % flags))
+        self.dops_table.append(('INS Status', '0x{:0}'.format(self.ins_status_flags)))
+    
+    def ins_status_callback(self, sbp_msg, **metadata):
+        status = MsgInsStatus(sbp_msg)
+        self.ins_status_flags = status.flags
 
     def vel_ned_callback(self, sbp_msg, **metadata):
         flags = 0
@@ -632,6 +638,7 @@ class SolutionView(HasTraits):
 
     def __init__(self, link, dirname=''):
         super(SolutionView, self).__init__()
+        self.ins_status_flags = 0
         self.pending_draw_modes = []
         self.recenter = False
         self.offset = (0, 0, 0)
@@ -867,6 +874,7 @@ class SolutionView(HasTraits):
 
         self.link = link
         self.link.add_callback(self.pos_llh_callback, [SBP_MSG_POS_LLH_DEP_A, SBP_MSG_POS_LLH])
+        self.link.add_callback(self.ins_status_callback, [SBP_MSG_INS_STATUS])
         self.link.add_callback(self.vel_ned_callback, [SBP_MSG_VEL_NED_DEP_A, SBP_MSG_VEL_NED])
         self.link.add_callback(self.dops_callback, [SBP_MSG_DOPS_DEP_A, SBP_MSG_DOPS])
         self.link.add_callback(self.gps_time_callback, [SBP_MSG_GPS_TIME_DEP_A, SBP_MSG_GPS_TIME])
