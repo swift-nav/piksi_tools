@@ -1,8 +1,11 @@
-FROM ubuntu:trusty
+FROM ubuntu:bionic
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV ETS_TOOLKIT=qt4
 
 WORKDIR /app
 
-RUN apt-get update && apt-get -y --force-yes install \
+RUN apt-get update && apt-get -y install \
   git \
   build-essential \
   python \
@@ -11,16 +14,13 @@ RUN apt-get update && apt-get -y --force-yes install \
   python-virtualenv \
   swig \
   libicu-dev \
-  libqt4-scripttools \
   python-enable \
   python-chaco \
-  python-vtk \
-  python-wxgtk2.8 \
+  python-vtk6 \
+  python-wxgtk3.0 \
   python-pyside \
-  python-qt4-dev \
   python-sip \
-  python-qt4-gl \
-  python-software-properties
+  libpythonqt-qt5-python2-dev
 
 RUN pip install \
   'pip>=1.5.6' \
@@ -32,6 +32,7 @@ RUN pip install \
   'pyparsing==1.5.7' \
   pygments \
   intelhex \
+  kiwisolver \
   six \
   construct \
   sbp==0.29
