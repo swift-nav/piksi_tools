@@ -59,7 +59,7 @@ function piksi_splash_linux () {
 
 
 function install_dev_libs(){
-    sudo apt-get install \
+    run_apt_install \
       build-essential \
       cmake \
       libgl1-mesa-dev \
@@ -68,11 +68,17 @@ function install_dev_libs(){
       libglu1-mesa-dev \
       libx11-dev \
       python2.7-dev \
-      python3.5-dev \
       qt4-qmake \
       qt4-default \
       qt4-dev-tools \
       x11-apps
+    if ! bionic_like; then
+        run_apt_install \
+          python3.5-dev
+    else
+        run_apt_install \
+          python3.6-dev
+    fi
 }
 
 function bionic_like() {
@@ -102,53 +108,80 @@ function validate_linux_mint19() {
 
 function install_pyside() {
     if linux_mint19; then
-        sudo apt-get install python-pyside
+        run_apt_install python-pyside python3-pyside
     else
-        pip install PySide==1.2.4
+        run_pip2_install PySide==1.2.4
     fi
 }
 
+function run_apt_install() {
+    export DEBIAN_FRONTEND=noninteractive
+    sudo -H -E apt-get install -y --force-yes $*
+}
+
+function run_pip2_install() {
+    sudo python2 -m pip install --ignore-installed $*
+}
+
+function run_pip3_install() {
+    sudo python3 -m pip install --ignore-installed $*
+}
+
 function all_dependencies_debian () {
-    sudo apt-get install git \
+    run_apt_install \
+         git \
          build-essential \
          python2.7 \
-         python3.5 \
          python-setuptools \
          python-virtualenv \
-         swig
-    sudo apt-get install git \
+         swig \
          libicu-dev \
          libqt4-scripttools \
          libffi-dev \
          libssl-dev \
          python-chaco
     if ! bionic_like; then
-        sudo apt-get install \
+        run_apt_install \
             python-software-properties \
             python-vtk \
-            python-pip
+            python-pip \
+            python3.5 \
+            python3-pip
     else
-        sudo apt-get install \
+        sudo apt-get install -y \
             software-properties-common \
-            python-vtk6
+            python-vtk6 \
+            python3.6 \
+            python3-pip
         sudo apt-get purge python-pip
         sudo python -m easy_install pip
     fi
+
     install_dev_libs
     validate_linux_mint19
-    pip install --upgrade pip
-    pip install PyInstaller
-    pip install -r ../requirements.txt
-    pip install -r ../requirements_gui.txt
+
+    if command -v python2; then
+        run_pip2_install --upgrade pip setuptools
+        run_pip2_install -r ../requirements.txt
+        run_pip2_install -r ../requirements_gui.txt
+        run_pip2_install --upgrade awscli
+    fi
+
+    if command -v python3; then
+        run_pip3_install --upgrade pip setuptools
+        run_pip3_install -r ../requirements.txt
+        run_pip3_install -r ../requirements_gui.txt
+        run_pip3_install --upgrade awscli
+    fi
 
     python_version=`python --version 2>&1`
+
     if [[ ${python_version} == *"2.7"* ]]; then
         install_pyside
-    elif [[ ${python_version} == *"3"* ]]; then
-        pip install pyqt5==5.10.0
-    else
-        echo "unsupported python version"
-        exit 1
+    fi
+
+    if command -v pip3; then
+        run_pip3_install pyqt5==5.10.0
     fi
 }
 
@@ -172,14 +205,11 @@ function piksi_splash_osx () {
     "
 }
 
-function bootstrap_osx () {
+function install_python_deps_osx () {
+
     log_info "Checking base OS X development tools..."
     sw_vers
-}
 
-function install_python_deps_osx () {
-    # Uses brew to install system-wide dependencies and pip to install
-    # python dependencies.
     log_info "Installing Python dependencies..."
 
     if ! command -v conda; then
@@ -200,7 +230,8 @@ function install_python_deps_osx () {
       six
 
     pip install --upgrade pip
-    pip install tox
+    pip install --upgrade tox
+    pip install --upgrade awscli
 
     local conda_env_name
     conda_env_name=$(echo "$ROOT" | sed -e "s@${HOME}/@@" -e 's@/@_@g')
@@ -247,7 +278,7 @@ function run_all_platforms () {
         piksi_splash_osx
         log_info "Checking system dependencies for OSX..."
         log_info ""
-        bootstrap_osx && install_python_deps_osx
+        install_python_deps_osx
     else
         log_error "This script does not support this platform. Please contact dev@swiftnav.com."
         exit 1
@@ -258,3 +289,5 @@ function run_all_platforms () {
 set -e -u
 
 run_all_platforms
+
+# vim: et:ts=4:sts=4:sw=4:ai:
