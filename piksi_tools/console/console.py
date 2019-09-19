@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
 # Copyright (C) 2011-2014 Swift Navigation Inc.
 # Contact: Fergus Noble <fergus@swift-nav.com>
 #
