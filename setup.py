@@ -122,9 +122,11 @@ def version_scheme_add_v(version):
 
 if __name__ == '__main__':
 
+    import io
+
     cwd = os.path.abspath(os.path.dirname(__file__))
 
-    with open(cwd + '/README.rst') as f:
+    with io.open(cwd + '/README.rst', encoding='utf8') as f:
         readme = f.read()
 
     with open(cwd + '/requirements.txt') as fp:
