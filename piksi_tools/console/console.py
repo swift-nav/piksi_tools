@@ -56,8 +56,8 @@ from piksi_tools.console.tracking_view import TrackingView
 from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
                                        mode_dict, ins_mode_dict, ins_type_dict,
-                                       resource_filename, icon, swift_path, 
-                                       DR_MODE, DIFFERENTIAL_MODES)
+                                       ins_error_dict, resource_filename, icon,
+                                       swift_path, DR_MODE, DIFFERENTIAL_MODES)
 
 
 class ArgumentParserError(Exception):
@@ -487,10 +487,14 @@ class SwiftConsole(HasTraits):
             ins_mode = ins_flags & 0x7
             ins_type = (ins_flags >> 29) & 0x7
             odo_status = (ins_flags >> 8) & 0x3
-            ins_status_string = ins_type_dict.get(ins_type, "unk") + "-"
-            ins_status_string += ins_mode_dict.get(ins_mode, "unk")
-            if odo_status == 1:
-                ins_status_string += "+Odo"
+            ins_error = (ins_flags >> 4) & 0xF
+            if ins_error != 0:
+                ins_status_string = ins_error_dict.get(ins_error, "Unk Error")
+            else:
+                ins_status_string = ins_type_dict.get(ins_type, "unk") + "-"
+                ins_status_string += ins_mode_dict.get(ins_mode, "unk")
+                if odo_status == 1:
+                    ins_status_string += "+Odo"
             self.ins_status_string = ins_status_string
 
         # select the solution mode displayed in the status bar:

@@ -464,6 +464,16 @@ ins_mode_dict = {
     GNSS_OUTAGE_MAX: "MaxDur"
 }
 
+IMU_DATA_ERROR = 1
+IMU_LICENSE_ERROR = 2
+IMU_CALIBRATION_ERROR = 3
+
+ins_error_dict = {
+        IMU_DATA_ERROR: "Data Error",
+        IMU_LICENSE_ERROR: "License Error",
+        IMU_CALIBRATION_ERROR: "Cal Error"
+        }
+
 SMOOTHPOSE = 0
 DR_RUNNER = 1
 
