@@ -451,6 +451,27 @@ mode_dict = {
     SBAS_MODE: 'SBAS'
 }
 
+
+AWAITING_INITIALIZATION = 0
+DYNAMICALLY_ALIGNING = 1
+READY = 2
+GNSS_OUTAGE_MAX = 3
+
+ins_mode_dict = {
+    AWAITING_INITIALIZATION: "Init",
+    DYNAMICALLY_ALIGNING: "Align",
+    READY: "Ready",
+    GNSS_OUTAGE_MAX: "MaxDur"
+}
+
+SMOOTHPOSE = 0
+DR_RUNNER = 1
+
+ins_type_dict = {
+    SMOOTHPOSE: "SP",
+    DR_RUNNER: "DR"
+    }
+
 color_dict = {
     NO_FIX_MODE: None,
     SPP_MODE: (0, 0, 1.0),
