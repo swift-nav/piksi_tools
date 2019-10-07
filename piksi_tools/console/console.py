@@ -18,6 +18,7 @@ import os
 import signal
 import sys
 import time
+from monotonic import monotonic
 # Shut chaco up for now
 import warnings
 
@@ -54,8 +55,9 @@ from piksi_tools.console.system_monitor_view import SystemMonitorView
 from piksi_tools.console.tracking_view import TrackingView
 from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
-                                       mode_dict, resource_filename,
-                                       icon, swift_path, DR_MODE, DIFFERENTIAL_MODES)
+                                       mode_dict, ins_mode_dict, ins_type_dict,
+                                       ins_error_dict, resource_filename, icon,
+                                       swift_path, DR_MODE, DIFFERENTIAL_MODES)
 
 
 class ArgumentParserError(Exception):
@@ -170,7 +172,8 @@ class SwiftConsole(HasTraits):
   """
 
     mode = Str('')
-    num_sats = Int(0)
+    ins_status_string = Str('')
+    num_sats_str = Str('')
     cnx_desc = Str('')
     age_of_corrections = Str('')
     uuid = Str('')
@@ -327,7 +330,7 @@ class SwiftConsole(HasTraits):
                         emphasized=True,
                         tooltip='Number of satellites used in solution'),
                     Item(
-                        'num_sats',
+                        'num_sats_str',
                         padding=2,
                         show_label=False,
                         style='readonly'),
@@ -344,11 +347,11 @@ class SwiftConsole(HasTraits):
                         style='readonly'),
                     Item(
                         '',
-                        label='Device UUID:',
+                        label='INS Status:',
                         emphasized=True,
-                        tooltip='Universally Unique Device Identifier (UUID)'
+                        tooltip='INS Status String'
                     ), Item(
-                        'uuid',
+                        'ins_status_string',
                         padding=2,
                         show_label=False,
                         style='readonly', width=6),
@@ -440,6 +443,9 @@ class SwiftConsole(HasTraits):
         # if our heartbeat hasn't changed since the last timer interval the connection must have dropped
         if self.heartbeat_count == self.last_timer_heartbeat:
             self.solid_connection = False
+            self.ins_status_string = "None"
+            self.mode = "None"
+            self.num_sats_str = EMPTY_STR
         else:
             self.solid_connection = True
         self.last_timer_heartbeat = self.heartbeat_count
@@ -474,15 +480,32 @@ class SwiftConsole(HasTraits):
                 baseline_num_sats = self.baseline_view.last_soln.n_sats
             baseline_is_differential = (baseline_solution_mode in DIFFERENTIAL_MODES)
 
+        # determine the latest INS mode
+        if self.solution_view and (monotonic() -
+                                   self.solution_view.last_ins_status_receipt_time) < 1:
+            ins_flags = self.solution_view.ins_status_flags
+            ins_mode = ins_flags & 0x7
+            ins_type = (ins_flags >> 29) & 0x7
+            odo_status = (ins_flags >> 8) & 0x3
+            ins_error = (ins_flags >> 4) & 0xF
+            if ins_error != 0:
+                ins_status_string = ins_error_dict.get(ins_error, "Unk Error")
+            else:
+                ins_status_string = ins_type_dict.get(ins_type, "unk") + "-"
+                ins_status_string += ins_mode_dict.get(ins_mode, "unk")
+                if odo_status == 1:
+                    ins_status_string += "+Odo"
+            self.ins_status_string = ins_status_string
+
         # select the solution mode displayed in the status bar:
         # * baseline if it's a differential solution but llh isn't
         # * otherwise llh (also if there is no solution, in which both are "None")
         if baseline_is_differential and not(llh_is_differential):
             self.mode = baseline_display_mode
-            self.num_sats = baseline_num_sats
+            self.num_sats_str = "{}".format(baseline_num_sats)
         else:
             self.mode = llh_display_mode
-            self.num_sats = llh_num_sats
+            self.num_sats_str = "{}".format(llh_num_sats)
 
         # --- end of status bar mode determination section ---
 
@@ -590,8 +613,9 @@ class SwiftConsole(HasTraits):
         self.cnx_desc = cnx_desc
         self.connection_info = connection_info
         self.dev_id = cnx_desc
-        self.num_sats = 0
+        self.num_sats_str = EMPTY_STR
         self.mode = ''
+        self.ins_status_string = "None"
         self.forwarder = None
         self.age_of_corrections = '--'
         self.expand_json = expand_json
