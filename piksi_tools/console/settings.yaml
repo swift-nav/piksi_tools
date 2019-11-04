@@ -2477,7 +2477,17 @@
   default value: false
   readonly: false
   Description: Experimental non-holonomic constraint feature that allows inertial system to make assumptions about vehicle dynamics 
-  Notes:       This settings should only be enabled provided the vehicle frame Euler angles are measured precisely and are correct. It assumes a vehicle can have no velocity in the direction aligned with the vehicle "y" axis (i.e no sideslip). This is a reasonable assumption for passenger vehicles and many tractors.
+  Notes: This settings should only be enabled provided the vehicle frame Euler angles are measured precisely and are correct. It assumes a vehicle can have no velocity in the direction aligned with the vehicle "y" axis (i.e no sideslip). This is a reasonable assumption for passenger vehicles and many tractors.
+
+- group: ins
+  name: stillness_detection_enable
+  expert: true
+  type: boolean
+  units: N/A
+  default value: false
+  readonly: false
+  Description: Experimental stillness detection feature
+  Notes: This settings attempts to automatically determine that a particular vehicle is still based upon its vibration and dynamics profile. It can improve performance on vehicles when stopped and/or idling.
 
 - group: ins
   name: dr_duration_max

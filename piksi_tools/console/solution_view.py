@@ -545,10 +545,11 @@ class SolutionView(HasTraits):
 
         self.dops_table.append(('DOPS Flags', '0x%03x' % flags))
         self.dops_table.append(('INS Status', '0x{:0}'.format(self.ins_status_flags)))
-    
+
     def ins_status_callback(self, sbp_msg, **metadata):
         status = MsgInsStatus(sbp_msg)
         self.ins_status_flags = status.flags
+        self.last_ins_status_receipt_time = monotonic()
 
     def vel_ned_callback(self, sbp_msg, **metadata):
         flags = 0
@@ -673,6 +674,7 @@ class SolutionView(HasTraits):
         self.directory_name_p = dirname
         self.vel_log_file = None
         self.last_stime_update = 0
+        self.last_ins_status_receipt_time = 0
         self.last_soln = None
 
         self.altitude = 0
