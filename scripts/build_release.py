@@ -26,7 +26,7 @@ def _check_output(cmd, default=None):
         v = check_output(cmd, stderr=subprocess.STDOUT)
         return v.strip().split()[-1]
     except CalledProcessError as cpe:
-        print("Output:\n" + cpe.output)
+        print("Output:\n" + str(cpe.output))
         print("Return Code:\n" + str(cpe.returncode))
         raise cpe
     return default
@@ -171,7 +171,7 @@ def zipdir(path, ziph):
 
 def build_cli_tools(plat):
     version = get_version()
-    _check_output(['tox', '-e', 'pyinstaller_cmdline_tools'])
+    _check_output(['tox', '-e', 'pyinstaller-cmdline_tools'])
     out = os.path.join('dist', 'cmd_line')
     fname = 'cmdline_tools_{}.zip'.format(version)
     if not plat.startswith('win'):
