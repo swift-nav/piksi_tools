@@ -16,5 +16,3 @@ ruamel.yaml==0.15.87
 setuptools>=41.0.1
 setuptools_scm==3.1.0
 monotonic==1.5
-pybase64==1.0.1
-python-rapidjson==0.9.1
