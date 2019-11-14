@@ -33,6 +33,8 @@ from __future__ import print_function
 import argparse
 
 import sbp.client.loggers.json_logger as json_logger
+from sbp.client.drivers.file_driver import FileDriver
+from sbp.client import Framer
 import sbp.observation as ob
 
 msgs_filter = [
@@ -77,7 +79,7 @@ def print_emit(msg):
     print(msg.to_json())
 
 
-def zip_json_generators(base_gen, rove_gen, emit_fn):
+def zip_generators(base_gen, rove_gen, emit_fn):
     '''
     Zips together two generators.
     Runs in constant space.
@@ -157,7 +159,14 @@ def zip_json_files(base_log_handle, rove_log_handle, emit_fn):
             base_gen = next(base_logger)
             rove_gen = next(rove_logger)
 
-            zip_json_generators(base_gen, rove_gen, emit_fn)
+            zip_generators(base_gen, rove_gen, emit_fn)
+
+def zip_binary_files(log1_handle, log2_handle, emit_fn):
+    log1_driver = FileDriver(log1_handle)
+    log2_driver = FileDriver(log2_handle)
+    iterator1 = Framer(log1_driver.read, log1_driver.write)
+    iterator2 = Framer(log2_driver.read, log2_driver.read)
+    zip_generators(iterator1, iterator2, emit_fn)
 
 
 def main():
@@ -165,12 +174,21 @@ def main():
         description="Swift Navigation SBP Rover-Base Log Zipper")
     parser.add_argument("base_log")
     parser.add_argument("rover_log")
+    parser.add_argument('--binary', 
+                     action='store_true',
+                     default=False,
+                     help='expect binary logs as input and output binary logs')
     args = parser.parse_args()
-
-    with open(args.base_log, 'r') as base_log_handle:
-        with open(args.rover_log, 'r') as rove_log_handle:
-            zip_json_files(base_log_handle, rove_log_handle, print_emit)
-
+    if args.binary:
+        open_type = 'rb'
+    else:
+        open_type = 'r'
+    with open(args.base_log, open_type) as base_log_handle:
+        with open(args.rover_log, open_type) as rover_log_handle:
+            if args.binary:
+                zip_binary_files(base_log_handle, rover_log_handle, print_emit)
+            else:
+                zip_json_files(base_log_handle, rover_log_handle, print_emit)
 
 if __name__ == "__main__":
     main()
