@@ -29,8 +29,8 @@ Requirements:
 
 """
 from __future__ import print_function
-
 import argparse
+import sys
 
 import sbp.client.loggers.json_logger as json_logger
 from sbp.client.drivers.file_driver import FileDriver
@@ -75,9 +75,11 @@ def compare_gpstime(g0, g1):
             return 0
 
 
-def print_emit(msg):
+def print_emit_json(msg):
     print(msg.to_json())
 
+def print_emit_bin(msg):
+    sys.stdout.write(msg.to_binary())
 
 def zip_generators(base_gen, rove_gen, emit_fn):
     '''
@@ -186,9 +188,9 @@ def main():
     with open(args.base_log, open_type) as base_log_handle:
         with open(args.rover_log, open_type) as rover_log_handle:
             if args.binary:
-                zip_binary_files(base_log_handle, rover_log_handle, print_emit)
+                zip_binary_files(base_log_handle, rover_log_handle, print_emit_bin)
             else:
-                zip_json_files(base_log_handle, rover_log_handle, print_emit)
+                zip_json_files(base_log_handle, rover_log_handle, print_emit_json)
 
 if __name__ == "__main__":
     main()
