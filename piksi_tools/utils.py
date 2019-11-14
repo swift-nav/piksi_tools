@@ -12,9 +12,10 @@
 from __future__ import print_function
 
 import errno
+import monotonic
 import os
 import socket
-import monotonic
+import sys
 
 from sbp.client.drivers.network_drivers import TCPDriver
 
@@ -53,7 +54,8 @@ def get_tcp_driver(host, port=None):
         return TCPDriver(host,
                          int(port),
                          raise_initial_timeout=True,
-                         reconnect=True)
+                         reconnect=True,
+                         max_reconnect=sys.maxsize)
     except ValueError:
         raise Exception('Invalid format (use ip_address:port): {}'.format(host))
     except socket.timeout:
