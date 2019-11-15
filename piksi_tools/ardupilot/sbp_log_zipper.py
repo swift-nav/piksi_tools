@@ -55,23 +55,33 @@ ins_msgs = [imu.SBP_MSG_IMU_RAW, imu.SBP_MSG_IMU_AUX ]
 
 last_time_stream_dict = {'base': {}, 'rover': {}}
 
-def extract_gpstime_wn_unk(msg, stream_id, last_gpstime=(0, 0)):
+#TODO: add a unit test for tow rollover, a common area of GNSS mistakes
+def extract_gpstime_wn_unknown(msg, stream_id, last_gpstime=(0, 0)):
     '''
     Returns (wn,tow) tuple. returns last_gpstime if none in this message
     '''
     if msg.msg_type == imu.SBP_MSG_IMU_RAW:
+        # time greater than the number of seconds in week 
+        # indicates invalid time or a time type not yet supported by this script
         # TODO: handle other kinds of timestamps other than absolute
-        if msg.tow > SECONDS_IN_WEEK: # time greater than seconds in week indicates invalid time at present
-            return last_gpstime # -1 will be invalid / unknown time
-    # first, check and see if we have a week number in our history dict for this message, if not, set one
+        if msg.tow > SECONDS_IN_WEEK * 1000: 
+            return last_gpstime 
+    if msg.msg_type == imu.SBP_MSG_IMU_AUX:
+        # no time in IMU_AUX so we just return most recent gpstime
+        return last_gpstime 
+    # first, check and see if we have a week number in our history dict for this message, if not, set it to 0
     last_time = last_time_stream_dict[stream_id].get(msg.msg_type, None)
-    if msg_type_last_time == None:
+    if last_time == None:
         last_time_stream_dict[stream_id].update({msg.msg_type: (0, msg.tow)})
-        last_time = last_time_stream_dict[stream_id].get(msg.msg_type, None)
-    # if we have gone back in time, increment week number in the last_time_stream_dict
+        last_time = last_time_stream_dict[stream_id].get(msg.msg_type)
+    current_wn = last_time[0]
+    # if we have gone back in time (i.e. a rollover has occured), increment 
+    # week number for this message type and stream in the last_time_stream_dict
     if msg.tow < last_time[1]:
-        current_wn = last_time[0] + 1
-        last_time_stream_dict[stream_id][msg.msg_type] = (current_wn, msg.tow)
+        current_wn += 1
+    # cache the last time for next time through the function
+    last_time_stream_dict[stream_id][msg.msg_type] = (current_wn, msg.tow)
+    # return a week number from the dict and this msg's time of week
     return (last_time_stream_dict[stream_id][msg.msg_type][0], msg.tow)
 
 
@@ -167,7 +177,6 @@ def zip_generators(base_gen, rove_gen, emit_fn, ins):
             except StopIteration:
                 rove_done = True
                 break
-
         if base_msg is None and rove_msg is None:
             return  # We are done.
 
