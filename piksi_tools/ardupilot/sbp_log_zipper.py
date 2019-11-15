@@ -36,12 +36,43 @@ import sbp.client.loggers.json_logger as json_logger
 from sbp.client.drivers.file_driver import FileDriver
 from sbp.client import Framer
 import sbp.observation as ob
+import sbp.navigation as nv
+import sbp.imu as imu 
 
-msgs_filter = [
+SECONDS_IN_WEEK = 7 * 24 * 60 * 60
+
+obs_msgs = [
     ob.SBP_MSG_OBS, ob.SBP_MSG_EPHEMERIS_GPS, ob.SBP_MSG_EPHEMERIS_SBAS,
     ob.SBP_MSG_EPHEMERIS_GLO, ob.SBP_MSG_IONO, ob.SBP_MSG_BASE_POS_LLH,
     ob.SBP_MSG_BASE_POS_ECEF
 ]
+
+pvt_msgs = [ nv.SBP_MSG_GPS_TIME, nv.SBP_MSG_UTC_TIME,
+    nv.SBP_MSG_POS_LLH_COV, nv.SBP_MSG_POS_ECEF_COV, nv.SBP_MSG_VEL_NED_COV, nv.SBP_MSG_VEL_ECEF_COV,
+    nv.SBP_MSG_POS_LLH, nv.SBP_MSG_POS_ECEF, nv.SBP_MSG_VEL_NED, nv.SBP_MSG_VEL_ECEF]
+
+ins_msgs = [imu.SBP_MSG_IMU_RAW, imu.SBP_MSG_IMU_AUX ]
+
+last_time_stream_dict = {'base': {}, 'rover': {}}
+
+def extract_gpstime_wn_unk(msg, stream_id, last_gpstime=(0, 0)):
+    '''
+    Returns (wn,tow) tuple. returns last_gpstime if none in this message
+    '''
+    if msg.msg_type == imu.SBP_MSG_IMU_RAW:
+        # TODO: handle other kinds of timestamps other than absolute
+        if msg.tow > SECONDS_IN_WEEK: # time greater than seconds in week indicates invalid time at present
+            return last_gpstime # -1 will be invalid / unknown time
+    # first, check and see if we have a week number in our history dict for this message, if not, set one
+    last_time = last_time_stream_dict[stream_id].get(msg.msg_type, None)
+    if msg_type_last_time == None:
+        last_time_stream_dict[stream_id].update({msg.msg_type: (0, msg.tow)})
+        last_time = last_time_stream_dict[stream_id].get(msg.msg_type, None)
+    # if we have gone back in time, increment week number in the last_time_stream_dict
+    if msg.tow < last_time[1]:
+        current_wn = last_time[0] + 1
+        last_time_stream_dict[stream_id][msg.msg_type] = (current_wn, msg.tow)
+    return (last_time_stream_dict[stream_id][msg.msg_type][0], msg.tow)
 
 
 def extract_gpstime(msg, last_gpstime=(0, 0)):
@@ -62,14 +93,18 @@ def compare_gpstime(g0, g1):
     '''
     Returns the index of the earlier GPSTIME (wn,tow) tow.
     '''
-    if g0[0] < g1[0]:
+    wn0 = g0[0]
+    tow0 = g0[1]
+    wn1 = g1[0]
+    tow1 = g1[1]
+    if wn0 < wn1:
         return 0
-    elif g0[0] > g1[0]:
+    elif wn0 > wn1:
         return 1
     else:
-        if g0[1] < g1[1]:
+        if tow0 < tow1:
             return 0
-        elif g0[1] > g1[1]:
+        elif tow0 > tow1:
             return 1
         else:
             return 0
@@ -81,7 +116,7 @@ def print_emit_json(msg):
 def print_emit_bin(msg):
     sys.stdout.write(msg.to_binary())
 
-def zip_generators(base_gen, rove_gen, emit_fn):
+def zip_generators(base_gen, rove_gen, emit_fn, ins):
     '''
     Zips together two generators.
     Runs in constant space.
@@ -94,6 +129,13 @@ def zip_generators(base_gen, rove_gen, emit_fn):
       We consume and discard the one with the oldest timestamp, keeping the other around
       Repeat!
     '''
+    if ins:
+        msg_filters_base = ins_msgs 
+        msg_filters_rover = pvt_msgs
+    else:
+        msg_filters_base = obs_msgs
+        msg_filters_rover = obs_msgs
+    
     base_msg = None
     rove_msg = None
 
@@ -104,9 +146,9 @@ def zip_generators(base_gen, rove_gen, emit_fn):
         while base_msg is None:
             try:
                 base_msg = base_gen.next()[0]
-                if base_msg.msg_type in msgs_filter:
-                    # Fix up base id
-                    base_msg.sender = 0
+                if base_msg.msg_type in msg_filters_base:
+                    if not ins: # Fix up base id for obs zipping
+                        base_msg.sender = 0
                     break
                 else:
                     base_msg = None
@@ -114,11 +156,11 @@ def zip_generators(base_gen, rove_gen, emit_fn):
                 base_done = True
                 break
 
-        # Get a rove_msg if we don't have one waiting
+        # Get a rover_msg if we don't have one waiting
         while rove_msg is None:
             try:
                 rove_msg = rove_gen.next()[0]
-                if rove_msg.msg_type in msgs_filter:
+                if rove_msg.msg_type in msg_filters_rover:
                     break
                 else:
                     rove_msg = None
@@ -140,9 +182,12 @@ def zip_generators(base_gen, rove_gen, emit_fn):
             continue  # Loop!
 
         # We have a message from both. Which one do we emit?
-        base_time = extract_gpstime(base_msg, last_gpstime)
-        rove_time = extract_gpstime(rove_msg, last_gpstime)
-
+        if ins:
+            base_time = extract_gpstime_wn_unknown(base_msg, 'base', last_gpstime)
+            rove_time = extract_gpstime_wn_unknown(rove_msg, 'rover', last_gpstime)
+        else:
+            base_time = extract_gpstime(base_msg, last_gpstime)
+            rove_time = extract_gpstime(rove_msg, last_gpstime)
         which = compare_gpstime(rove_time, base_time)
         if which == 1:
             emit_fn(base_msg)
@@ -154,22 +199,21 @@ def zip_generators(base_gen, rove_gen, emit_fn):
             last_gpstime = rove_time
 
 
-def zip_json_files(base_log_handle, rove_log_handle, emit_fn):
+def zip_json_files(base_log_handle, rove_log_handle, emit_fn, ins):
     with json_logger.JSONLogIterator(base_log_handle) as base_logger:
         with json_logger.JSONLogIterator(rove_log_handle) as rove_logger:
 
             base_gen = next(base_logger)
             rove_gen = next(rove_logger)
 
-            zip_generators(base_gen, rove_gen, emit_fn)
+            zip_generators(base_gen, rove_gen, emit_fn, ins)
 
-def zip_binary_files(log1_handle, log2_handle, emit_fn):
+def zip_binary_files(log1_handle, log2_handle, emit_fn, ins):
     log1_driver = FileDriver(log1_handle)
     log2_driver = FileDriver(log2_handle)
     iterator1 = Framer(log1_driver.read, log1_driver.write)
     iterator2 = Framer(log2_driver.read, log2_driver.read)
-    zip_generators(iterator1, iterator2, emit_fn)
-
+    zip_generators(iterator1, iterator2, emit_fn, ins)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -180,6 +224,11 @@ def main():
                      action='store_true',
                      default=False,
                      help='expect binary logs as input and output binary logs')
+    parser.add_argument('--ins',
+                     action='store_true',
+                     default=False,
+                     help='expect "base_log" to have ins meaurements, and "rover_log" to gnss pvt solutions')
+
     args = parser.parse_args()
     if args.binary:
         open_type = 'rb'
@@ -188,9 +237,9 @@ def main():
     with open(args.base_log, open_type) as base_log_handle:
         with open(args.rover_log, open_type) as rover_log_handle:
             if args.binary:
-                zip_binary_files(base_log_handle, rover_log_handle, print_emit_bin)
+                zip_binary_files(base_log_handle, rover_log_handle, print_emit_bin, args.ins)
             else:
-                zip_json_files(base_log_handle, rover_log_handle, print_emit_json)
+                zip_json_files(base_log_handle, rover_log_handle, print_emit_json, args.ins)
 
 if __name__ == "__main__":
     main()
