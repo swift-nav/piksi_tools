@@ -87,7 +87,8 @@ class NetworkCheck():
         while True:
             prev_state = self._state
             try:
-                socket.create_connection(NetworkCheck.SERVER, NetworkCheck.CONNECTION_TIMEOUT).close()
+                socket.create_connection(
+                    NetworkCheck.SERVER, NetworkCheck.CONNECTION_TIMEOUT).close()
                 self._state = True
             except Exception as ex:
                 self._state = False
@@ -254,6 +255,11 @@ class UpdateView(HasTraits):
 
     stream = Instance(OutputStream)
 
+    local_file_for_fileio = String()
+    choose_local_file = Button(label='...', padding=-1)
+    destination_path_for_fileio = '/persistent/licenses/smoothpose_license.json'
+    send_file_to_device = Button()
+
     view = View(
         VGroup(
             Item(
@@ -289,19 +295,6 @@ class UpdateView(HasTraits):
                     show_border=True,
                     label="Firmware Version"),
                 VGroup(
-                    Item(
-                        'local_console_vers',
-                        label='Current',
-                        resizable=True,
-                        editor_args={'enabled': False}),
-                    Item(
-                        'newest_console_vers',
-                        label='Latest',
-                        editor_args={'enabled': False}),
-                    label="Swift Console Version",
-                    show_border=True), ),
-            HGroup(
-                VGroup(
                     HGroup(
                         Item('download_directory', label="Directory", resizable=True),
                         UItem('choose_dir', width=-0.1),
@@ -312,7 +305,9 @@ class UpdateView(HasTraits):
                              show_label=False, resizable=True, springy=True)
                     ),
                     label="Firmware Download",
-                    show_border=True),
+                    show_border=True)
+            ),
+            HGroup(
                 VGroup(
                     Item(
                         'stream',
@@ -322,7 +317,15 @@ class UpdateView(HasTraits):
                     show_border=True,
                     label="Firmware Upgrade Status"),
             ),
-            show_border=True),
+            HGroup(
+                Item('local_file_for_fileio', label="Local File"),
+                Item('choose_local_file', show_label=False),
+                Item('destination_path_for_fileio', label="Destination Path"),
+                Item("send_file_to_device", show_label=False),
+                show_border=True,
+                label="File IO and product feature unlock tool"
+            )
+        )
     )
 
     def __init__(self,
@@ -371,6 +374,34 @@ class UpdateView(HasTraits):
             self.download_directory = dialog.path
         else:
             self._write('Error while selecting firmware download location')
+
+    def _send_file(self):
+        blob = open(self.local_file_for_fileio, 'rb').read()
+        self.blob_size = float(len(blob))
+        self.pcent_complete = 0
+        FileIO(self.link).write(bytes(self.destination_path_for_fileio, 'ascii'),
+                                blob,
+                                progress_cb=self.file_transfer_progress_cb)
+
+    def _send_file_to_device_fired(self):
+        self._write("Initiating file transfer of {} to location {}".format(
+            self.local_file_for_fileio, self.destination_path_for_fileio))
+        if not os.path.isfile(self.local_file_for_fileio):
+            self._write("Error with path: {} is not a file".format(self.local_file_for_fileio))
+            return
+        else:
+            self._send_file_thread = Thread(target=self._send_file)
+            self._send_file_thread.start()
+
+    def _choose_local_file_fired(self):
+        dialog = FileDialog(
+            label='Choose local_file',
+            action='open')
+        dialog.open()
+        if dialog.return_code == OK:
+            self.local_file_for_fileio = dialog.path
+        else:
+            self._write('Error while selecting local file.')
 
     def _manage_enables(self):
         """ Manages whether traits widgets are enabled in the UI or not. """
@@ -738,7 +769,8 @@ class UpdateView(HasTraits):
         new_pcent = float(offset) / float(self.blob_size) * 100
         if new_pcent - self.pcent_complete > 0.1:
             self.pcent_complete = new_pcent
-            self.stream.scrollback_write("{:2.1f} % of {:2.1f} MB transferred.".format(self.pcent_complete, self.blob_size * 1e-6))
+            self.stream.scrollback_write("{:2.1f} % of {:2.1f} MB transferred.".format(
+                self.pcent_complete, self.blob_size * 1e-6))
 
     def log_cb(self, msg, **kwargs):
         for regex in UPGRADE_WHITELIST:
@@ -758,7 +790,8 @@ class UpdateView(HasTraits):
         self.pcent_complete = 0
         # Set up progress dialog and transfer file to Piksi using SBP FileIO
         self._clear_stream()
-        self._write("Transferring image to device...\n\n00.0 of {:2.1f} MB trasnferred".format(self.blob_size * 1e-6))
+        self._write("Transferring image to device...\n\n00.0 of {:2.1f} MB trasnferred".format(
+            self.blob_size * 1e-6))
         try:
             FileIO(self.link).write(
                 b"upgrade.image_set.bin",
@@ -771,7 +804,8 @@ class UpdateView(HasTraits):
             print(traceback.format_exc())
             return -1
 
-        self.stream.scrollback_write("Image transfer complete: {:2.1f} MB transferred.\n".format(self.blob_size * 1e-6))
+        self.stream.scrollback_write(
+            "Image transfer complete: {:2.1f} MB transferred.\n".format(self.blob_size * 1e-6))
         # Setup up pulsed progress dialog and commit to flash
         self._write("Committing file to Flash...\n")
         self.link.add_callback(self.log_cb, SBP_MSG_LOG)
