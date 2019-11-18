@@ -52,7 +52,8 @@ Python version support
   would support all versions that Linux GUI supports, but some of those might
   need a manual GUI backend change/installation
 
-* Pre-built (pyinstaller) binaries for all platforms use Python 3.5
+* Pre-built (pyinstaller) binaries for most platforms use Python 3.5.  On Ubuntu,
+  Python 3.6 is used.
 
 Usage Examples
 --------------
@@ -86,11 +87,11 @@ those versions that you don't have installed, run::
 
 To run some extra tests for the GUI (excluding the non-graphical tests)::
 
-  $ PYTHONPATH=. tox -e gui27,gui35
+  $ PYTHONPATH=. tox -e gui35,gui37
 
 Finally, to run *all* tests for all supported Python versions::
 
-  $ PYTHONPATH=. tox -e py27,py35,py37,gui27,gui35
+  $ PYTHONPATH=. tox -e py27,py35,py37,gui35,gui37
 
 USB issues on OS X
 ------------------
@@ -98,7 +99,5 @@ The ftdi USB drivers are finicky on some versions of OS X. See their `docs <http
 
 License
 -------
-
-Copyright © 2015 Swift Navigation
-
-Distributed under LGPLv3.0.
+Copyright (C) 2019 Swift Navigation
+Distributed under LGPLv3.0

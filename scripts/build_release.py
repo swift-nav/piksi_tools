@@ -26,7 +26,7 @@ def _check_output(cmd, default=None):
         v = check_output(cmd, stderr=subprocess.STDOUT)
         return v.strip().split()[-1]
     except CalledProcessError as cpe:
-        print("Output:\n" + cpe.output)
+        print("Output:\n" + str(cpe.output))
         print("Return Code:\n" + str(cpe.returncode))
         raise cpe
     return default
@@ -161,7 +161,6 @@ def build_win():
         'misc/swift_console.nsi'
     ])
 
-
 def zipdir(path, ziph):
     # https://stackoverflow.com/questions/1855095/how-to-create-a-zip-archive-of-a-directory-in-python
     for root, dirs, files in os.walk(path):
@@ -169,10 +168,9 @@ def zipdir(path, ziph):
             arcname = os.path.relpath(os.path.join(root, file), os.path.join(path, '..')) 
             ziph.write(os.path.join(root, file), arcname)
 
-
 def build_cli_tools(plat):
     version = get_version()
-    _check_output(['tox', '-e', 'pyinstaller_cmdline_tools'])
+    _check_output(['tox', '-e', 'pyinstaller-cmdline_tools'])
     out = os.path.join('dist', 'cmd_line')
     fname = 'cmdline_tools_{}.zip'.format(version)
     if not plat.startswith('win'):
@@ -181,7 +179,6 @@ def build_cli_tools(plat):
         s3_path = 's3://{}/{}/{}/{}'.format(S3_BUCKET, version, plat, fname)
         print(">>> Uploading to {}".format(s3_path))
         check_call(['aws', 's3', 'cp', fname, s3_path])
-
 
 def main():
     plat = sys.platform
