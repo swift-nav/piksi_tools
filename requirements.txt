@@ -17,5 +17,3 @@ setuptools_scm==3.1.0
 enum34==1.1.6
 libsettings==0.1.12
 monotonic==1.5
-pybase64
-ujson
