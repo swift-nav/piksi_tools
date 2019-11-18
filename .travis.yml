@@ -15,39 +15,39 @@ matrix:
    - os: linux
      language: generic
      env: TESTENV=test_cli TOXENV=py27,py35,py37
-     before_install:
-        # a ppa is needed for python 3.7 under xenial
-        - sudo add-apt-repository -y ppa:deadsnakes/ppa
-        - sudo apt-get -qq update
-        - sudo apt-get install python2.7 python2.7-dev
-        - sudo apt-get install python3.5 python3.5-dev
-        - sudo apt-get install python3.7 python3.7-dev
-        - sudo pip install tox
-     script: tox -v
+     addons:
+       apt:
+         packages:
+           - docker-ce
+     script:
+       - cp tox.ini tox-cp27mu.ini
+       - echo '[testenv:py27]'                         >>tox-cp27mu.ini
+       - echo 'basepython = /opt/cp27mu/bin/python2.7' >>tox-cp27mu.ini
+       - docker run -it --rm -v $PWD:/work swiftnav/piksi-tools-buster:2019.07.09 tox -vv -c tox-cp27mu.ini
 
    - os: linux
      language: generic
-     env: TESTENV=test_gui TOXENV=py27-gui,py35-gui,py37-gui
+     env: TESTENV=test_gui TOXENV=gui35
      before_install:
-        # a ppa is needed for python 3.7 under xenial
-        - sudo add-apt-repository -y ppa:deadsnakes/ppa
-        - sudo apt-get -qq update
-        - sudo apt-get install -y python2.7 python2.7-dev
-        - sudo apt-get install -y python3.5 python3.5-dev
-        - sudo apt-get install -y python3.7 python3.7-dev
-        - sudo apt-get install -y swig mesa-common-dev libglu1-mesa-dev
-        - sudo apt-get install -y libqt4-opengl libqt4-opengl-dev
-        - sudo pip install tox
+       - sudo apt-get -qq update
+       - sudo apt-get install -y swig python2.7 python2.7-dev python3.5 python3.5-dev
+       - sudo apt-get install -y mesa-common-dev libglu1-mesa-dev
+       - sudo apt-get install -y libqt4-opengl libqt4-opengl-dev
+       - sudo pip install tox
      before_script:
-        - export DISPLAY=:0.0
-        - Xvfb ${DISPLAY} -screen 0 800x600x16 & PID=$!
-        - sleep 3  # give xvfb some time to start
+       - export DISPLAY=:0.0
+       - Xvfb ${DISPLAY} -screen 0 800x600x16 & PID=$!
+       - sleep 3  # give xvfb some time to start
      script: tox -vv
 
    - os: linux
      language: python
-     python: 3.5
      env: TESTENV=build_console
+     python: 3.5
+     addons:
+       apt:
+         packages:
+           - docker-ce
      before_install:
        - make deps
        - pip install -r requirements_dev.txt
@@ -56,14 +56,14 @@ matrix:
    - os: osx
      osx_image: Xcode 8.3.3
      language: generic
-     env: TESTENV=mac TOXENV=py27,py35,py37,py35-gui
+     env: TESTENV=mac TOXENV=py27,py35,py37,gui35
      before_install:
-        - export PATH="/Users/travis/miniconda3/bin:$PATH"
-        - make deps
+       - export PATH="/Users/travis/miniconda3/bin:$PATH"
+       - make deps
      script:
-        - export PATH="/Users/travis/miniconda3/bin:$PATH"
-        - make tox VERBOSE=y
-        - make build_console
+       - export PATH="/Users/travis/miniconda3/bin:$PATH"
+       - make tox VERBOSE=y
+       - make build_console
 
    - os: linux
      language: python
@@ -72,15 +72,14 @@ matrix:
      before_install: pip install -r requirements_dev.txt
      script: tox -vv -e flake8
 
-addons:
-  artifacts:
-    debug: false 
-    paths:
-      - $(ls ./dist/swift_console* | tr "\n" ":")
-      - $(ls ./dist/cmd_line | tr "\n" ":")
-    working_dir: $TRAVIS_BUILD_DIR
-    bucket: console-ci-builds
-    s3_region: us-west-2
+env:
+  global:
+    - AWS_DEFAULT_REGION=us-west-2
+    # AWS_SECRET_ACCESS_KEY
+    - secure: "TP5JdeWZbevii1kmb60llTYwdXW3Pwsz5a34qescoQmx1jTKMOXDO76aJsWiVaw0+alftU6kNzUdHSwiN81Y3fd+vh21hnzA8spSwq2pX5YaDpFvg+Ru1vwS+27dbvD6PDcL1bMWdMJp+9fl0xClYNL/L5zO2y5gk/IxozqtxaU="
+    # AWS_ACCSS_KEY_ID
+    - secure: "V/CLL/mc+Az9s090nR4wXxWkCGIXwNgB04trBTTxoToRQFBaM4aY3nvOzE7ap7l3wLJS80TnmxwJg7DqBdMWJ1Yyy30MNhClUgMgIazPwLjA6y/effojl6HFnwGBq8Pwmh4H7YdRluCCr/oeTpvnwgoFDS+Uw1t682RpBb1NQrE="
+
 notifications:
   email: false
   slack:
