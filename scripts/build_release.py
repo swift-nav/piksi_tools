@@ -168,7 +168,6 @@ def zipdir(path, ziph):
             arcname = os.path.relpath(os.path.join(root, file), os.path.join(path, '..')) 
             ziph.write(os.path.join(root, file), arcname)
 
-
 def build_cli_tools(plat):
     version = get_version()
     _check_output(['tox', '-e', 'pyinstaller-cmdline_tools'])
