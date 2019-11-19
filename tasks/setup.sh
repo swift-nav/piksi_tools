@@ -181,7 +181,7 @@ function all_dependencies_debian () {
     fi
 
     if command -v pip3; then
-        run_pip3_install pyqt5==5.10.0
+        run_pip3_install pyqt5==5.13.2
     fi
 }
 
@@ -249,7 +249,7 @@ function install_python_deps_osx () {
     pip install -r "$ROOT/requirements_gui.txt"
     pip install -e "$ROOT"
 
-    pip install PyQt5==5.10.0
+    pip install PyQt5==5.13.2
 
     log_info ""
     log_info "To run piksi_tools from source, do the following:"
