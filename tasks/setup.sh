@@ -59,6 +59,9 @@ function piksi_splash_linux () {
 
 
 function install_dev_libs(){
+#      qt4-qmake \
+#      qt4-default \
+#      qt4-dev-tools \
     run_apt_install \
       build-essential \
       cmake \
@@ -68,9 +71,6 @@ function install_dev_libs(){
       libglu1-mesa-dev \
       libx11-dev \
       python2.7-dev \
-      qt4-qmake \
-      qt4-default \
-      qt4-dev-tools \
       x11-apps
     if ! bionic_like; then
         run_apt_install \
@@ -128,6 +128,7 @@ function run_pip3_install() {
 }
 
 function all_dependencies_debian () {
+#         libqt4-scripttools \
     run_apt_install \
          git \
          build-essential \
@@ -136,7 +137,6 @@ function all_dependencies_debian () {
          python-virtualenv \
          swig \
          libicu-dev \
-         libqt4-scripttools \
          libffi-dev \
          libssl-dev \
          python-chaco
@@ -174,11 +174,11 @@ function all_dependencies_debian () {
         run_pip3_install --upgrade awscli
     fi
 
-    python_version=`python --version 2>&1`
-
-    if [[ ${python_version} == *"2.7"* ]]; then
-        install_pyside
-    fi
+#    python_version=`python --version 2>&1`
+#
+#    if [[ ${python_version} == *"2.7"* ]]; then
+#        install_pyside
+#    fi
 
     if command -v pip3; then
         run_pip3_install pyqt5==5.13.2

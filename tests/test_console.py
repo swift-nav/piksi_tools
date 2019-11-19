@@ -16,7 +16,8 @@ def test_console_smoke(filename):
     envs = {'PYTHONPATH': '.',
             'DISPLAY': display,
             'HOME': home,
-            'PATH': path
+            'PATH': path,
+            'QT_DEBUG_PLUGINS', '1'
            }
     if 'VIRTUAL_ENV' in os.environ.keys():
         envs['VIRTUAL_ENV'] = os.environ['VIRTUAL_ENV']
