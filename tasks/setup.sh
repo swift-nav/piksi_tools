@@ -71,6 +71,7 @@ function install_dev_libs(){
       libglu1-mesa-dev \
       libx11-dev \
       python2.7-dev \
+      libxkbcommon-x11-dev \
       x11-apps
     if ! bionic_like; then
         run_apt_install \
