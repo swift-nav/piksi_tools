@@ -311,7 +311,7 @@ class Settings(object):
         return False
 
 
-def get_args():
+def get_args(args=None):
     """
     Get and parse arguments.
     """
@@ -358,16 +358,18 @@ def get_args():
     write = subparsers.add_parser('write_from_file', help='write settings file to device.')
     write.add_argument("filename", help="Name of the file to read from.")
 
-    return parser.parse_args()
+    if args is not None:
+        return parser.parse_args(args)
+    else:
+        return parser.parse_args()
 
 
-def main():
+def main(args=None):
     """
     Get configuration, get driver, and build handler and start it.
     """
-    args = get_args()
+    args = get_args(args)
     command = args.command
-    return_code = 0
     driver = serial_link.get_base_args_driver(args)
     with Handler(Framer(driver.read, driver.write, verbose=args.verbose)) as link:
         settings = Settings(link, timeout=args.timeout)
