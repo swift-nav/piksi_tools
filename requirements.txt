@@ -9,7 +9,7 @@ pylibftdi==0.16.1.2
 pyparsing==2.2.0
 pygments==2.2.0
 requests==2.20.0
-six==1.10.0
+six==1.13.0
 libsettings==0.1.12
 sbp==2.7.3
 ruamel.yaml==0.15.87
