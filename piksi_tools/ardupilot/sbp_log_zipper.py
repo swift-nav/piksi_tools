@@ -34,11 +34,14 @@ import argparse
 
 import sbp.client.loggers.json_logger as json_logger
 import sbp.observation as ob
+import sbp.navigation as nav
+import sbp.imu as imu
 
 msgs_filter = [
-    ob.SBP_MSG_OBS, ob.SBP_MSG_EPHEMERIS_GPS, ob.SBP_MSG_EPHEMERIS_SBAS,
-    ob.SBP_MSG_EPHEMERIS_GLO, ob.SBP_MSG_IONO, ob.SBP_MSG_BASE_POS_LLH,
-    ob.SBP_MSG_BASE_POS_ECEF
+    ob.SBP_MSG_OBS, ob.SBP_MSG_EPHEMERIS_GPS, ob.SBP_MSG_EPHEMERIS_SBAS, ob.SBP_MSG_EPHEMERIS_GAL,
+    ob.SBP_MSG_EPHEMERIS_GLO, ob.SBP_MSG_EPHEMERIS_BDS, ob.SBP_MSG_IONO, ob.SBP_MSG_BASE_POS_LLH,
+    ob.SBP_MSG_BASE_POS_ECEF, nav.SBP_MSG_POS_LLH, nav.SBP_MSG_GPS_TIME, imu.SBP_MSG_IMU_AUX,imu.SBP_MSG_IMU_RAW,
+    nav.SBP_MSG_POS_ECEF, nav.SBP_MSG_POS_ECEF_COV, nav.SBP_MSG_VEL_ECEF, nav.SBP_MSG_VEL_ECEF_COV, nav.SBP_MSG_DOPS
 ]
 
 
@@ -48,11 +51,19 @@ def extract_gpstime(msg, last_gpstime=(0, 0)):
     '''
     if msg.msg_type == ob.SBP_MSG_OBS:
         return (msg.header.t.wn, msg.header.t.tow)
-    elif msg.msg_type == ob.SBP_MSG_EPHEMERIS_GPS or msg.msg_type == ob.SBP_MSG_EPHEMERIS_SBAS or msg.msg_type == ob.SBP_MSG_EPHEMERIS_GLO:
+    elif msg.msg_type == ob.SBP_MSG_EPHEMERIS_GPS or msg.msg_type == ob.SBP_MSG_EPHEMERIS_SBAS or msg.msg_type == ob.SBP_MSG_EPHEMERIS_GLO or msg.msg_type == ob.SBP_MSG_EPHEMERIS_GAL:
         return (msg.toc.wn, msg.toc.tow)
     elif msg.msg_type == ob.SBP_MSG_IONO:
         return (msg.t_nmct.wn, msg.t_nmct.tow)
-    elif msg.msg_type == ob.SBP_MSG_BASE_POS_ECEF or msg.msg_type == ob.SBP_MSG_BASE_POS_LLH:
+    elif msg.msg_type == nav.SBP_MSG_POS_LLH or msg.msg_type == nav.SBP_MSG_GPS_TIME\
+            or msg.msg_type == nav.SBP_MSG_POS_ECEF or msg.msg_type == nav.SBP_MSG_POS_ECEF_COV or msg.msg_type == nav.SBP_MSG_VEL_ECEF or msg.msg_type == nav.SBP_MSG_VEL_ECEF_COV or msg.msg_type == nav.SBP_MSG_DOPS:
+        return (last_gpstime[0],msg.tow)
+    elif msg.msg_type == imu.SBP_MSG_IMU_RAW:
+        if last_gpstime is not None:
+            return (last_gpstime[0],msg.tow + msg.tow_f/256)
+        else:
+            return last_gpstime
+    else:
         return last_gpstime
 
 
@@ -72,12 +83,26 @@ def compare_gpstime(g0, g1):
         else:
             return 0
 
+def introduce_latency(rover_time, base_time, latency):
+    '''
+    Returns the index of the earlier GPSTIME (wn,tow) tow.
+    '''
+    if base_time is None:
+           return 1
+    rover = rover_time[0] * 7.0*86400 + rover_time[1]/1000
+    base = base_time[0]*7.0*86400 + base_time[1]/1000
+
+    #Introduce latency to e.g. make sure we properly time-match in Starling
+    if rover < (base+latency):
+        return 0
+    else:
+        return 1
 
 def print_emit(msg):
     print(msg.to_json())
 
 
-def zip_json_generators(base_gen, rove_gen, emit_fn):
+def zip_json_generators(base_gen, rove_gen, emit_fn, base_log_sender_id, latency):
     '''
     Zips together two generators.
     Runs in constant space.
@@ -99,10 +124,10 @@ def zip_json_generators(base_gen, rove_gen, emit_fn):
         # Get a base_msg if we don't have one waiting
         while base_msg is None:
             try:
-                base_msg = base_gen.next()[0]
+                base_msg = base_gen.__next__()[0]
                 if base_msg.msg_type in msgs_filter:
                     # Fix up base id
-                    base_msg.sender = 0
+                    base_msg.sender = base_log_sender_id
                     break
                 else:
                     base_msg = None
@@ -113,7 +138,7 @@ def zip_json_generators(base_gen, rove_gen, emit_fn):
         # Get a rove_msg if we don't have one waiting
         while rove_msg is None:
             try:
-                rove_msg = rove_gen.next()[0]
+                rove_msg = rove_gen.__next__()[0]
                 if rove_msg.msg_type in msgs_filter:
                     break
                 else:
@@ -139,7 +164,7 @@ def zip_json_generators(base_gen, rove_gen, emit_fn):
         base_time = extract_gpstime(base_msg, last_gpstime)
         rove_time = extract_gpstime(rove_msg, last_gpstime)
 
-        which = compare_gpstime(rove_time, base_time)
+        which = introduce_latency(rove_time, base_time, latency)
         if which == 1:
             emit_fn(base_msg)
             base_msg = None
@@ -150,14 +175,14 @@ def zip_json_generators(base_gen, rove_gen, emit_fn):
             last_gpstime = rove_time
 
 
-def zip_json_files(base_log_handle, rove_log_handle, emit_fn):
+def zip_json_files(base_log_handle, rove_log_handle, emit_fn, base_log_sender_id , latency):
     with json_logger.JSONLogIterator(base_log_handle) as base_logger:
         with json_logger.JSONLogIterator(rove_log_handle) as rove_logger:
 
             base_gen = next(base_logger)
             rove_gen = next(rove_logger)
 
-            zip_json_generators(base_gen, rove_gen, emit_fn)
+            zip_json_generators(base_gen, rove_gen, emit_fn, base_log_sender_id, latency )
 
 
 def main():
@@ -165,11 +190,13 @@ def main():
         description="Swift Navigation SBP Rover-Base Log Zipper")
     parser.add_argument("base_log")
     parser.add_argument("rover_log")
+    parser.add_argument("-base_log_sender_id", type=int, default=0)
+    parser.add_argument("-latency", type=float, default=0.0)
     args = parser.parse_args()
 
     with open(args.base_log, 'r') as base_log_handle:
         with open(args.rover_log, 'r') as rove_log_handle:
-            zip_json_files(base_log_handle, rove_log_handle, print_emit)
+            zip_json_files(base_log_handle, rove_log_handle, print_emit, args.base_log_sender_id, args.latency)
 
 
 if __name__ == "__main__":
