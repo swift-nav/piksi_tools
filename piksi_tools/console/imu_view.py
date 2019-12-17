@@ -194,6 +194,15 @@ class IMUView(HasTraits):
         self.plot.legend.draw_layer = 'overlay'
         self.plot.legend.tools.append(
             LegendTool(self.plot.legend, drag_button="right"))
+        
+        self.legend_visible = True
+        self.plot2.legend.visible = True
+        self.plot2.legend.align = 'll'
+        self.plot2.legend.line_spacing = 1
+        self.plot2.legend.font = 'modern 8'
+        self.plot2.legend.draw_layer = 'overlay'
+        self.plot2.legend.tools.append(
+            LegendTool(self.plot2.legend, drag_button="right"))
 
         acc_x = self.plot.plot(
             ('t', 'acc_x'), type='line', color='auto', name='Accn. X')
@@ -211,8 +220,6 @@ class IMUView(HasTraits):
             ('t', 'v_h'), type='line', color='auto', name='Horizontal')
         vel_v = self.plot2.plot(
             ('t', 'v_z'), type='line', color='auto', name='Vertical')
-        self.plot2.legend.tools.append(
-            LegendTool(self.plot2.legend, drag_button="right"))
 
         self.link = link
         self.link.add_callback(self.imu_raw_callback, SBP_MSG_IMU_RAW)
