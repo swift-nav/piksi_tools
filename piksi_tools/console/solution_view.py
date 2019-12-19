@@ -98,6 +98,7 @@ class SolutionView(HasTraits):
     directory_name_v = File
 
     logging_p = Bool(False)
+    show_ins_only = Bool(True)
     directory_name_p = File
 
     lats_psuedo_abs = List()
@@ -175,6 +176,7 @@ class SolutionView(HasTraits):
                     Item('zoomall_button', show_label=False),
                     Item('center_button', show_label=False),
                     Item('display_units', label="Display Units"), ),
+                HGroup(Item('show_ins_only')),
                 Item(
                     'plot',
                     show_label=False,
@@ -296,7 +298,8 @@ class SolutionView(HasTraits):
             soln = MsgPosLLHDepA(sbp_msg)
         else:
             soln = MsgPosLLH(sbp_msg)
-
+        if self.show_ins_only and ((soln.flags & 0x18) >> 3) != 1:
+           return 
         self.last_pos_mode = get_mode(soln)
         if self.last_pos_mode != 0:
             self.last_soln = soln
@@ -559,6 +562,8 @@ class SolutionView(HasTraits):
         else:
             vel_ned = MsgVelNED(sbp_msg)
             flags = vel_ned.flags
+        if self.show_ins_only and ((flags & 0x18) >> 3) != 1:
+            return
         tow = vel_ned.tow * 1e-3
         if self.nsec is not None:
             tow += self.nsec * 1e-9
