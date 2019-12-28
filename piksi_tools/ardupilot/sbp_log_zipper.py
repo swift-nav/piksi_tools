@@ -31,11 +31,12 @@ Requirements:
 from __future__ import print_function
 
 import argparse
+import sys
 
 import sbp.client.loggers.json_logger as json_logger
 import sbp.observation as ob
 
-msgs_filter = [
+DEFAULT_MSGS_FILTER = [
     ob.SBP_MSG_OBS, ob.SBP_MSG_EPHEMERIS_GPS, ob.SBP_MSG_EPHEMERIS_SBAS,
     ob.SBP_MSG_EPHEMERIS_GLO, ob.SBP_MSG_IONO, ob.SBP_MSG_BASE_POS_LLH,
     ob.SBP_MSG_BASE_POS_ECEF
@@ -77,7 +78,7 @@ def print_emit(msg):
     print(msg.to_json())
 
 
-def zip_json_generators(base_gen, rove_gen, emit_fn):
+def zip_json_generators(base_gen, rove_gen, emit_fn, base_filter, rover_filter):
     '''
     Zips together two generators.
     Runs in constant space.
@@ -100,7 +101,7 @@ def zip_json_generators(base_gen, rove_gen, emit_fn):
         while base_msg is None:
             try:
                 base_msg = base_gen.next()[0]
-                if base_msg.msg_type in msgs_filter:
+                if base_filter is None or base_msg.msg_type in base_filter:
                     # Fix up base id
                     base_msg.sender = 0
                     break
@@ -114,7 +115,7 @@ def zip_json_generators(base_gen, rove_gen, emit_fn):
         while rove_msg is None:
             try:
                 rove_msg = rove_gen.next()[0]
-                if rove_msg.msg_type in msgs_filter:
+                if rover_filter is None or rove_msg.msg_type in rover_filter:
                     break
                 else:
                     rove_msg = None
@@ -150,26 +151,50 @@ def zip_json_generators(base_gen, rove_gen, emit_fn):
             last_gpstime = rove_time
 
 
-def zip_json_files(base_log_handle, rove_log_handle, emit_fn):
+def zip_json_files(base_log_handle, rove_log_handle, emit_fn, base_filter, rover_filter):
     with json_logger.JSONLogIterator(base_log_handle) as base_logger:
         with json_logger.JSONLogIterator(rove_log_handle) as rove_logger:
 
             base_gen = next(base_logger)
             rove_gen = next(rove_logger)
 
-            zip_json_generators(base_gen, rove_gen, emit_fn)
+            zip_json_generators(base_gen, rove_gen, emit_fn, base_filter, rover_filter)
+
+
+def parse_filter_str(filter_str):
+    '''
+    Attempt to parse 'filter_str' as a list of ints or as the special value "none"
+    '''
+    filter = None
+    if filter_str != "none":
+        try:
+            filter = map(int, filter_str.split(","))
+        except ValueError as e:
+            sys.stderr.write(str(e) + "\n")
+            sys.exit(1)
+    return filter
 
 
 def main():
     parser = argparse.ArgumentParser(
         description="Swift Navigation SBP Rover-Base Log Zipper")
+    default_filter_str = ','.join(str(n) for n in DEFAULT_MSGS_FILTER)
+    parser.add_argument("--base-filter",
+            help="list of SBP message IDs to use from base log. Default value is '{}'. Also supports the special value 'none'.".format(default_filter_str),
+            default=default_filter_str)
+    parser.add_argument("--rover-filter",
+            help="list of SBP message IDs to use from rover log. Default value is '{}'. Also supports the special value 'none'.".format(default_filter_str),
+            default=default_filter_str)
     parser.add_argument("base_log")
     parser.add_argument("rover_log")
     args = parser.parse_args()
 
+    base_filter = parse_filter_str(args.base_filter)
+    rover_filter = parse_filter_str(args.rover_filter)
+
     with open(args.base_log, 'r') as base_log_handle:
         with open(args.rover_log, 'r') as rove_log_handle:
-            zip_json_files(base_log_handle, rove_log_handle, print_emit)
+            zip_json_files(base_log_handle, rove_log_handle, print_emit, base_filter, rover_filter)
 
 
 if __name__ == "__main__":
