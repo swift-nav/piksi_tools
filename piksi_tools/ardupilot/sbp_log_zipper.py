@@ -48,11 +48,13 @@ def extract_gpstime(msg, last_gpstime=(0, 0)):
     '''
     if msg.msg_type == ob.SBP_MSG_OBS:
         return (msg.header.t.wn, msg.header.t.tow)
-    elif msg.msg_type == ob.SBP_MSG_EPHEMERIS_GPS or msg.msg_type == ob.SBP_MSG_EPHEMERIS_SBAS or msg.msg_type == ob.SBP_MSG_EPHEMERIS_GLO:
+    elif msg.msg_type == ob.SBP_MSG_EPHEMERIS_GPS or msg.msg_type == ob.SBP_MSG_EPHEMERIS_SBAS:
         return (msg.toc.wn, msg.toc.tow)
+    elif msg.msg_type == ob.SBP_MSG_EPHEMERIS_GLO:
+        return (msg.common.toe.wn, msg.common.toe.tow)
     elif msg.msg_type == ob.SBP_MSG_IONO:
         return (msg.t_nmct.wn, msg.t_nmct.tow)
-    elif msg.msg_type == ob.SBP_MSG_BASE_POS_ECEF or msg.msg_type == ob.SBP_MSG_BASE_POS_LLH:
+    else:
         return last_gpstime
 
 
