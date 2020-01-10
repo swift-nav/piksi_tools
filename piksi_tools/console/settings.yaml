@@ -665,7 +665,7 @@
   default value: N/A
   readonly: True
   enumerated possible values:
-  Description: firmware build date.
+  Description: Firmware build date.
   Notes: This is a read only setting.
 
 - group: system_info
@@ -754,6 +754,17 @@
   readonly: True
   enumerated possible values:
   Description: Number of channels in SwiftNap FPGA.
+  Notes: This is a read only setting.
+
+- group: system_info
+  name: build_variant
+  expert: true
+  type: string
+  units: N/A
+  default value: 'release'
+  readonly: True
+  enumerated possible values:
+  Description: The build variant type for the current firmware.
   Notes: This is a read only setting.
 
 - group: system_monitor
