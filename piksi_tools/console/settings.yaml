@@ -2663,4 +2663,49 @@
   units: N/A
   default value: 'false'
   readonly: false
-  Description: Enables or disables the CSAC daemon which can communicate with Microsemi timing devices on UART0
+  Description: Enables or disables the CSAC daemon which can communicate with Microsemi timing devices on UART0.
+
+- group: sample_daemon
+  name: enabled
+  expert: true
+  type: boolean
+  units: N/A
+  default value: 'false'
+  readonly: false
+  Description: Enables or disables the SDK sample daemon.
+
+- group: sample_daemon
+  name: enable_broadcast
+  expert: true
+  type: boolean
+  units: N/A
+  default value: 'false'
+  readonly: false
+  Description: Enables or disables UDP broadcast in the SDK sample daemon.
+
+- group: sample_daemon
+  name: offset
+  expert: true
+  type: float
+  units: meters
+  default value: '-32.1597'
+  readonly: false
+  Description: Sets the height offset for the SDK sample daemon.
+
+- group: sample_daemon
+  name: broadcast_hostname
+  expert: true
+  type: string
+  units: N/A
+  default value: '255.255.255.255'
+  readonly: false
+  Description: Sets the broadcast hostname for the SDK sample daemon.
+
+- group: sample_daemon
+  name: broadcast_port
+  expert: true
+  type: integer
+  units: N/A
+  default value: '56666'
+  readonly: false
+  Description: Sets the broadcast port for the SDK sample daemon.
