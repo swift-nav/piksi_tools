@@ -3,4 +3,3 @@ tox==3.2.1
 pytest==4.6.4
 pytest-faulthandler==1.6.0
 pre-commit==1.10.3
-setuptools-scm==3.3.3

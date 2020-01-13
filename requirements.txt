@@ -14,5 +14,5 @@ libsettings==0.1.12
 sbp==2.7.3
 ruamel.yaml==0.15.87
 setuptools>=41.0.1
-setuptools_scm==3.1.0
+setuptools-scm==3.3.3
 monotonic==1.5
