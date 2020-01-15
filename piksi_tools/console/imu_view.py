@@ -133,13 +133,14 @@ class IMUView(HasTraits):
         self.imu_set_data()
     
     def vel_ned_callback(self, sbp_msg, **metadata):
-        memoryview(self.v_h)[:-1] = memoryview(self.v_h)[1:]
-        memoryview(self.v_z)[:-1] = memoryview(self.v_z)[1:]
-        self.v_h[-1] = np.sqrt(sbp_msg.n * sbp_msg.n + sbp_msg.e * sbp_msg.e)/1000.0
-        self.v_z[-1] = -sbp_msg.d / 1000.0
-        if monotonic() - self.last_plot_update_time < GUI_UPDATE_PERIOD:
-            return
-        self.update_scheduler.schedule_update('update_plot', self.update_plot)
+        if sbp_msg.flags > 8:
+            memoryview(self.v_h)[:-1] = memoryview(self.v_h)[1:]
+            memoryview(self.v_z)[:-1] = memoryview(self.v_z)[1:]
+            self.v_h[-1] = np.sqrt(sbp_msg.n * sbp_msg.n + sbp_msg.e * sbp_msg.e)/1000.0
+            self.v_z[-1] = -sbp_msg.d / 1000.0
+            if monotonic() - self.last_plot_update_time < GUI_UPDATE_PERIOD:
+                return
+            self.update_scheduler.schedule_update('update_plot', self.update_plot)
 
     def __init__(self, link):
         super(IMUView, self).__init__()
