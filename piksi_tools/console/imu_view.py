@@ -38,12 +38,14 @@ colours_list = [
 ]
 
 velocity_units_list = ['m/s', 'mph', 'kph']
+ins_gnss_list = ['ins only', 'gnss only']
 
 class IMUView(HasTraits):
     python_console_cmds = Dict()
     plot = Instance(Plot)
     plot2 = Instance(Plot)
     velocity_units = Enum(velocity_units_list)
+    ins_gnss = Enum(ins_gnss_list)
     plot_data = Instance(ArrayPlotData)
     imu_temp = Float(0)
     imu_conf = Int(0)
@@ -72,7 +74,9 @@ class IMUView(HasTraits):
                     'plot2',
                     editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8)),
                     show_label=False),
-                HGroup(Item('velocity_units', editor=EnumEditor(values=velocity_units_list))),
+                HGroup(Item('velocity_units', editor=EnumEditor(values=velocity_units_list)),
+                Item('ins_gnss', editor=EnumEditor(values=ins_gnss_list))
+                ),
                 label="Velocity"
                 )
             )
@@ -133,7 +137,8 @@ class IMUView(HasTraits):
         self.imu_set_data()
     
     def vel_ned_callback(self, sbp_msg, **metadata):
-        if sbp_msg.flags > 8:
+        if (self.ins_gnss == "ins only" and sbp_msg.flags > 8 or
+            self.ins_gnss == "gnss only" and sbp_msg.flags < 8):
             memoryview(self.v_h)[:-1] = memoryview(self.v_h)[1:]
             memoryview(self.v_z)[:-1] = memoryview(self.v_z)[1:]
             self.v_h[-1] = np.sqrt(sbp_msg.n * sbp_msg.n + sbp_msg.e * sbp_msg.e)/1000.0
@@ -227,6 +232,6 @@ class IMUView(HasTraits):
         self.link.add_callback(self.imu_aux_callback, SBP_MSG_IMU_AUX)
         self.link.add_callback(self.vel_ned_callback, SBP_MSG_VEL_NED)
 
-        self.python_console_cmds = {'track': self}
+        self.python_console_cmds = {'imu': self}
 
         self.update_scheduler = UpdateScheduler()
