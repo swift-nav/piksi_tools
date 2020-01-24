@@ -8,6 +8,8 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+import sys
+
 import numpy as np
 import threading
 
@@ -66,7 +68,19 @@ class MultilineTextEditor(TextEditor):
         parent.multi_line = True
 
 
-def plot_square_axes(plot, xnames, ynames):
+def plot_square_axes(
+    plot,
+    xnames,
+    ynames,
+    index_range_epsilon=None,
+    value_range_epsilon=None):
+
+    if index_range_epsilon is None:
+        index_range_epsilon = plot.index_range.epsilon
+
+    if value_range_epsilon is None:
+        value_range_epsilon = plot.value_range.epsilon
+
     try:
         if type(xnames) is str:
             xs = plot.data.get_data(xnames)
@@ -82,8 +96,20 @@ def plot_square_axes(plot, xnames, ynames):
 
         minx = min(xs)
         maxx = max(xs)
+
+        # If position is pinned, add epsilon to prevent 0 range
+        if maxx - minx < index_range_epsilon:
+            minx -= index_range_epsilon
+            maxx += index_range_epsilon
+
         miny = min(ys)
         maxy = max(ys)
+
+        # If position is pinned, add epsilon to prevent 0 range
+        if maxy - miny < value_range_epsilon:
+            miny -= value_range_epsilon
+            maxy += value_range_epsilon
+
         rangex = maxx - minx
         rangey = maxy - miny
 
