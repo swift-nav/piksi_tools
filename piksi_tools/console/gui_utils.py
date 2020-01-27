@@ -1,5 +1,5 @@
-# Copyright (C) 2017 Swift Navigation Inc.
-# Contact: Pasi Miettinen  <pasi.miettinen@exafore.com>
+# Copyright (C) 2017, 2020 Swift Navigation Inc.
+# Contact: Swift Navigation <dev@swiftnav.com>
 #
 # This source is subject to the license found in the file 'LICENSE' which must
 # be be distributed together with this source. All other rights reserved.
@@ -66,7 +66,18 @@ class MultilineTextEditor(TextEditor):
         parent.multi_line = True
 
 
-def plot_square_axes(plot, xnames, ynames):
+def plot_square_axes(plot,
+                     xnames,
+                     ynames,
+                     index_range_epsilon=None,
+                     value_range_epsilon=None):
+
+    if index_range_epsilon is None:
+        index_range_epsilon = plot.index_range.epsilon
+
+    if value_range_epsilon is None:
+        value_range_epsilon = plot.value_range.epsilon
+
     try:
         if type(xnames) is str:
             xs = plot.data.get_data(xnames)
@@ -82,8 +93,20 @@ def plot_square_axes(plot, xnames, ynames):
 
         minx = min(xs)
         maxx = max(xs)
+
+        # If position is pinned, add epsilon to prevent 0 range
+        if maxx - minx < index_range_epsilon:
+            minx -= index_range_epsilon
+            maxx += index_range_epsilon
+
         miny = min(ys)
         maxy = max(ys)
+
+        # If position is pinned, add epsilon to prevent 0 range
+        if maxy - miny < value_range_epsilon:
+            miny -= value_range_epsilon
+            maxy += value_range_epsilon
+
         rangex = maxx - minx
         rangey = maxy - miny
 
