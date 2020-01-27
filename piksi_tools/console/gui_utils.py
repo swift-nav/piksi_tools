@@ -66,12 +66,11 @@ class MultilineTextEditor(TextEditor):
         parent.multi_line = True
 
 
-def plot_square_axes(
-    plot,
-    xnames,
-    ynames,
-    index_range_epsilon=None,
-    value_range_epsilon=None):
+def plot_square_axes(plot,
+                     xnames,
+                     ynames,
+                     index_range_epsilon=None,
+                     value_range_epsilon=None):
 
     if index_range_epsilon is None:
         index_range_epsilon = plot.index_range.epsilon
