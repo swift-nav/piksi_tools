@@ -384,7 +384,7 @@ class BaselineView(HasTraits):
 
         self.list_lock.release()
         # make the zoomall win over the position centered button
-        if not self.zoomall and self.position_centered and self.running:
+        if not self.zoomall and self.position_centered and self.running and self.last_soln:
             d = (self.plot.index_range.high - self.plot.index_range.low) / 2.
             self.plot.index_range.set_bounds(self.last_soln.e - d, self.last_soln.e + d)
             d = (self.plot.value_range.high - self.plot.value_range.low) / 2.
