@@ -28,16 +28,45 @@ git push upstream <release-tag-name> --tags
 
 ```
 
-The steps to build the console are roughly:
+Use conda, venv or virtualenv to development the console with Python 3.5+, that is:
+- ```
+  conda create -n piksi_tools python=3.7
+  conda activate piksi_tools
+  ```
+- ```
+  python3.7 -m venv .venv/piksi_tools
+  source .venv/piksi_tools/bin/activate
+  ```
+- ```
+  virtualenv -p `which python3.7` .venv/piksi_tools
+  source .venv/piksi_tools/bin/activate
+  ```
+
+The steps to run GUI from source are roughly:
 
 ```shell
 # Check out the repository and the current release tag
 git clone https://github.com/swift-nav/piksi_tools.git
-git checkout <release-tag-name>
+git checkout <release-tag-name> # optional
+
+# Activate isolated Python environment
+conda activate piksi_tools <or> source .venv/piksi_tools/bin/activate
 
 # Install the dependencies
 make deps
+pip install -r requirements.txt
+pip install -r requirements_dev.txt
+pip install pyinstaller==3.4            # get currently used version from tox.ini
+pip install pyqt5==5.10.0               # again, currently used version is in tox.ini
+pip install -r requirements_gui.txt
+pip install -e .
 
+# To run the console
+python -m piksi_tools.console
+```
+
+To build the console after getting setup to run it from source, roughly:
+```shell
 # Run the console to re-generate the RELEASE-VERSION file
 PYTHONPATH=. piksi_tools/console/console.py
 
