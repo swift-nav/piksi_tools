@@ -3,12 +3,10 @@ from __future__ import print_function
 
 import datetime
 import pkg_resources
-import time
 import os
 import locale
 
 from functools import partial
-from threading import Event, Thread
 
 from pyface.image_resource import ImageResource
 from sbp.navigation import (SBP_MSG_BASELINE_NED, SBP_MSG_BASELINE_NED_DEP_A,
@@ -652,19 +650,6 @@ def log_time_strings(week, tow):
     t = datetime.datetime.now()
     (t_local_date, t_local_secs) = datetime_2_str(t)
     return ((t_local_date, t_local_secs), (t_gps_date, t_gps_secs))
-
-
-def call_repeatedly(interval, func, *args):
-    stopped = Event()
-
-    def loop():
-        # https://stackoverflow.com/questions/29082268/python-time-sleep-vs-event-wait
-        while not stopped.is_set():
-            func(*args)
-            time.sleep(interval)
-
-    Thread(target=loop).start()
-    return stopped.set
 
 
 def get_label(key, extra={}):
