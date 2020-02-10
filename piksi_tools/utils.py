@@ -16,6 +16,9 @@ import monotonic
 import os
 import socket
 import sys
+import time
+
+from threading import Event, Thread
 
 from sbp.client.drivers.network_drivers import TCPDriver
 
@@ -62,6 +65,19 @@ def get_tcp_driver(host, port=None):
         raise Exception('TCP connection timed out. Check host: {}'.format(host))
     except Exception as e:
         raise Exception('Invalid host and/or port: {}'.format(str(e)))
+
+
+def call_repeatedly(interval, func, *args):
+    stopped = Event()
+
+    def loop():
+        # https://stackoverflow.com/questions/29082268/python-time-sleep-vs-event-wait
+        while not stopped.is_set():
+            func(*args)
+            time.sleep(interval)
+
+    Thread(target=loop).start()
+    return stopped.set
 
 
 class Time(object):
