@@ -30,7 +30,7 @@ from sbp.client.loggers.null_logger import NullLogger
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP, MsgLog
 from sbp.piksi import MsgReset
 
-from piksi_tools.utils import mkdir_p, get_tcp_driver
+from piksi_tools.utils import mkdir_p, get_tcp_driver, call_repeatedly
 from piksi_tools import __version__ as VERSION
 
 SERIAL_PORT = "/dev/ttyUSB0"
@@ -153,6 +153,11 @@ def get_args():
         "--timeout",
         default=None,
         help="exit after TIMEOUT seconds have elapsed.")
+    parser.add_argument(
+        "--status",
+        default=False,
+        action="store_true",
+        help="print periodic data rate to stdout.")
     return parser.parse_args()
 
 
@@ -353,7 +358,7 @@ def main(args):
     if log_dirname:
         log_filename = os.path.join(log_dirname, log_filename)
     driver = get_base_args_driver(args)
-    sender_id_filter_list = []
+    sender_id_filter = []
     if args.sender_id_filter is not None:
         sender_id_filter = [int(x) for x in args.sender_id_filter.split(",")]
     if args.json:
@@ -364,7 +369,13 @@ def main(args):
                         args.verbose,
                         skip_metadata=args.skip_metadata,
                         sender_id_filter_list=sender_id_filter)
-
+    last_bytes_read = [0]
+    if args.status:
+        def print_io_data(last_bytes_read):
+            print("{0:.2f} KB/s average data rate (2 second period).".format((driver.total_bytes_read -
+                                                                              last_bytes_read[0])/(2 * 1024.0)))
+            last_bytes_read[0] = driver.total_bytes_read
+        call_repeatedly(2, print_io_data, last_bytes_read)
     with Handler(source, autostart=False) as link, get_logger(args.log,
                                                               log_filename,
                                                               args.expand_json,
