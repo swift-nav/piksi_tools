@@ -38,6 +38,7 @@ from traitsui.api import (Handler, HGroup, ImageEditor,
                           Tabbed, TextEditor, UItem, VGroup, View, VSplit)
 
 import piksi_tools.serial_link as s
+from piksi_tools.utils import call_repeatedly
 from piksi_tools import __version__ as CONSOLE_VERSION
 from piksi_tools.console.baseline_view import BaselineView
 from piksi_tools.console.callback_prompt import CallbackPrompt, ok_button
@@ -56,9 +57,9 @@ from piksi_tools.console.spectrum_analyzer_view import SpectrumAnalyzerView
 from piksi_tools.console.system_monitor_view import SystemMonitorView
 from piksi_tools.console.tracking_view import TrackingView
 from piksi_tools.console.update_view import UpdateView
-from piksi_tools.console.utils import (EMPTY_STR, call_repeatedly,
-                                       mode_dict, ins_mode_dict, ins_type_dict,
-                                       ins_error_dict, resource_filename, icon,
+from piksi_tools.console.utils import (EMPTY_STR, mode_dict, ins_mode_dict,
+                                       ins_type_dict, ins_error_dict,
+                                       resource_filename, icon,
                                        swift_path, DR_MODE, DIFFERENTIAL_MODES)
 
 warnings.filterwarnings("ignore", ".*No message found for msg_type.")
@@ -187,6 +188,7 @@ class SwiftConsole(HasTraits):
     cnx_icon = Str('')
     heartbeat_count = Int()
     last_timer_heartbeat = Int()
+    driver_data_rate = Str()
     solid_connection = Bool(False)
 
     csv_logging_button = SVGButton(
@@ -362,6 +364,9 @@ class SwiftConsole(HasTraits):
                         show_label=False,
                         style='readonly', width=6),
                     Spring(springy=True),
+                    Item('driver_data_rate',
+                         style='readonly',
+                         show_label=False),
                     Item(
                         'cnx_icon',
                         show_label=False,
@@ -455,6 +460,9 @@ class SwiftConsole(HasTraits):
         else:
             self.solid_connection = True
         self.last_timer_heartbeat = self.heartbeat_count
+        total_bytes = self.driver.total_bytes_read
+        self.driver_data_rate = "{0:.2f} KB/s".format((total_bytes - self.last_driver_bytes_read) / (1.2 * 1024))
+        self.last_driver_bytes_read = total_bytes
 
     def update_on_heartbeat(self, sbp_msg, **metadata):
         self.heartbeat_count += 1
@@ -604,6 +612,7 @@ class SwiftConsole(HasTraits):
 
     def __init__(self,
                  link,
+                 driver,
                  update,
                  log_level_filter,
                  error=False,
@@ -628,6 +637,8 @@ class SwiftConsole(HasTraits):
         # if we have passed a logfile, we set our directory to it
         override_filename = override_filename
         self.last_status_update_time = 0
+        self.last_driver_bytes_read = 0
+        self.driver = driver
 
         if log_dirname:
             self.directory_name = log_dirname
@@ -814,6 +825,7 @@ class ShowConnectionError(HasTraits):
 
 class ConnectionData(object):
     '''Data class for connection information.'''
+
     def __init__(self, driver=None, description="", mode=None,
                  connection_info={}):
         self.driver = driver
@@ -947,6 +959,7 @@ def main():
             log_filter = args.initloglevel[0]
         with SwiftConsole(
                 link,
+                cnx_data.driver,
                 args.update,
                 log_filter,
                 cnx_desc=cnx_data.description,
