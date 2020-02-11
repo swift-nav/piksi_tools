@@ -14,7 +14,7 @@ from __future__ import print_function
 
 from monotonic import monotonic
 from sbp.observation import (SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B,
-                             SBP_MSG_OBS_DEP_C)
+                             SBP_MSG_OBS_DEP_C, SBP_MSG_OSR)
 from traits.api import Dict, Float, Int, List, Str
 from traitsui.api import HGroup, Item, UItem, Spring, TabularEditor, VGroup, View
 
@@ -176,7 +176,7 @@ class ObservationView(CodeFiltered):
             # Handle all the message specific stuff
             prn = o.sid.sat
             flags = 0
-            msdopp = 0
+            msdopp = None
 
             # Old PRN values had to add one for GPS
             if (code_is_gps(o.sid.code) and sbp_msg.msg_type in [
@@ -196,7 +196,8 @@ class ObservationView(CodeFiltered):
                 SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C
             ]:
                 flags = o.flags
-                msdopp = float(o.D.i) + float(o.D.f) / (1 << 8)
+                if getattr(o, 'D', None):
+                    msdopp = float(o.D.i) + float(o.D.f) / (1 << 8)
                 self.gps_tow += sbp_msg.header.t.ns_residual * 1e-9
                 self.update_scheduler.schedule_update('tow', self.gui_update_tow, self.gps_week, self.gps_tow)
 
@@ -251,8 +252,14 @@ class ObservationView(CodeFiltered):
 
             pr_str = "{:11.2f}".format(float(o.P) / divisor)
             cp_str = "{:13.2f}".format(cp)
-            cn0_str = "{:2.1f}".format(float(o.cn0) / 4)
-            msdopp_str = "{:9.2f}".format(msdopp)
+            if getattr(o, 'cn0', None):
+                cn0_str = "{:2.1f}".format(float(o.cn0) / 4)
+            else:
+                cn0_str = EMPTY_STR
+            if msdopp:
+                msdopp_str = "{:9.2f}".format(msdopp)
+            else:
+                msdopp_str = EMPTY_STR
             cpdopp_str = "{:9.2f}".format(cpdopp)
             lock_str = "{:5d}".format(o.lock)
 
@@ -298,7 +305,7 @@ class ObservationView(CodeFiltered):
         self.link = link
         self.link.add_callback(self.obs_packed_callback, [
             SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B,
-            SBP_MSG_OBS_DEP_C
+            SBP_MSG_OBS_DEP_C, SBP_MSG_OSR
         ])
         self.python_console_cmds = {'obs': self}
         self.prev_obs_count = 0
