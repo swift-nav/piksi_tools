@@ -81,19 +81,23 @@ class SettingBase(HasTraits):
 class Setting(SettingBase):
     full_name = Str()
     section = Str()
+    digits=Str()
     confirmed_set = Bool(True)
     readonly = Bool(False)
-    traits_view = View(
+
+    def trait_view(self, name=None, view_element=None):
+        return View(
         VGroup(
             Item('full_name', label='Name', style='readonly'),
             Item('value',
-                 editor=TextEditor(auto_set=False, enter_set=True),
+                 editor=TextEditor(auto_set=False, enter_set=True, format_func=self.format),
                  visible_when='confirmed_set and not readonly'),
             Item('value',
                  style='readonly',
                  visible_when='not confirmed_set or readonly',
-                 editor=TextEditor(readonly_allow_selection=True)),
+                 editor=TextEditor(readonly_allow_selection=True, format_func=self.format)),
             Item('units', style='readonly'),
+            Item('digits', style='readonly'),
             UItem('default_value',
                   style='readonly',
                   height=-1,
@@ -135,12 +139,24 @@ class Setting(SettingBase):
             section, name, 'Description')
         self.units = settings.settings_yaml.get_field(section, name, 'units')
         self.notes = settings.settings_yaml.get_field(section, name, 'Notes')
+
+        self.digits = settings.settings_yaml.get_field(section, name, 'digits')
+
         self.default_value = settings.settings_yaml.get_field(
             section, name, 'default value')
         readonly = settings.settings_yaml.get_field(section, name, 'readonly')
         # get_field returns empty string if field missing, so I need this check to assign bool to traits bool
         if readonly:
             self.readonly = True
+
+    def format(self, value):
+        try:
+            if self.digits:
+                value = str(round(float(value), int(self.digits)))
+
+            return value
+        except Exception as e:
+            print(e)
 
     def revert_to_prior_value(self, section, name, old, new, error_value):
         '''Revert setting to old value in the case we can't confirm new value'''
@@ -276,6 +292,22 @@ class SimpleAdapter(ReadOnlyTabularAdapter):
     SectionHeading_name_text = Property
     Setting_name_text = Property
     name_width = Float(175)
+
+    def get_text(self, object, name, row, column):
+
+        # Not interested in Name column
+        if 0 == column:
+            return super(SimpleAdapter, self).get_text(object, name, row, column)
+
+        settings_list = getattr(object, 'settings_list')
+        setting = settings_list[row]
+
+        digits = getattr(setting, 'digits', None)
+
+        if digits:
+            return f'%.{digits}f' % float(setting.value)
+
+        return super(SimpleAdapter, self).get_text(object, name, row, column)
 
     def _get_SectionHeading_name_text(self):
         return self.item.name.replace('_', ' ')
