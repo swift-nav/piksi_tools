@@ -1523,6 +1523,17 @@
   Description: Number of Solution Periods between GST NMEA messages being sent.
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message.
 
+- group: nmea
+  name: cog_output_min_speed
+  expert: true
+  type: float
+  units: Meters per second
+  default value: '0.1'
+  readonly: false
+  enumerated possible values:
+  Description: Minimum speed for outputting Course-Over-Ground values.
+  Notes: For value '0' Course-Over-Ground is output always when fix is available.
+
 - group: ntrip
   name: enable
   expert: false
