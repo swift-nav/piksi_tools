@@ -150,7 +150,7 @@ class Setting(SettingBase):
     def format(self, value):
         try:
             if self.digits:
-                value = str(round(float(value), int(self.digits)))
+                value = '%.{}f'.format(self.digits) % float(value)
 
             return value
         except Exception as e:
