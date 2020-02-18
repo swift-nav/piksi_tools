@@ -81,45 +81,43 @@ class SettingBase(HasTraits):
 class Setting(SettingBase):
     full_name = Str()
     section = Str()
-    digits=Str()
+    digits = Str()
     confirmed_set = Bool(True)
     readonly = Bool(False)
 
     def trait_view(self, name=None, view_element=None):
         return View(
-        VGroup(
-            Item('full_name', label='Name', style='readonly'),
-            Item('value',
-                 editor=TextEditor(auto_set=False, enter_set=True, format_func=self.format),
-                 visible_when='confirmed_set and not readonly'),
-            Item('value',
-                 style='readonly',
-                 visible_when='not confirmed_set or readonly',
-                 editor=TextEditor(readonly_allow_selection=True, format_func=self.format)),
-            Item('units', style='readonly'),
-            Item('digits', style='readonly'),
-            UItem('default_value',
-                  style='readonly',
-                  height=-1,
-                  editor=MultilineTextEditor(TextEditor(multi_line=True)),
-                  show_label=True,
-                  resizable=True),
-            UItem(
-                'description',
-                style='readonly',
-                editor=MultilineTextEditor(TextEditor(multi_line=True)),
-                show_label=True,
-                resizable=True),
-            UItem(
-                'notes',
-                label="Notes",
-                height=-1,
-                editor=MultilineTextEditor(TextEditor(multi_line=True)),
-                style='readonly',
-                show_label=True,
-                resizable=True),
-            show_border=True,
-            label='Setting', ), )
+            VGroup(
+                Item('full_name', label='Name', style='readonly'),
+                Item('value',
+                     editor=TextEditor(auto_set=False, enter_set=True, format_func=self.format),
+                     visible_when='confirmed_set and not readonly'),
+                Item('value',
+                     style='readonly',
+                     visible_when='not confirmed_set or readonly',
+                     editor=TextEditor(readonly_allow_selection=True, format_func=self.format)),
+                Item('units', style='readonly'),
+                Item('digits', style='readonly'),
+                UItem('default_value',
+                      style='readonly',
+                      height=-1,
+                      editor=MultilineTextEditor(TextEditor(multi_line=True)),
+                      show_label=True,
+                      resizable=True),
+                UItem('description',
+                      style='readonly',
+                      editor=MultilineTextEditor(TextEditor(multi_line=True)),
+                      show_label=True,
+                      resizable=True),
+                UItem('notes',
+                      label="Notes",
+                      height=-1,
+                      editor=MultilineTextEditor(TextEditor(multi_line=True)),
+                      style='readonly',
+                      show_label=True,
+                      resizable=True),
+                show_border=True,
+                label='Setting', ), )
 
     def __init__(self, name, section, value, ordering=0, settings=None):
         self.name = name
