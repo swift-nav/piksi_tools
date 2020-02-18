@@ -241,34 +241,34 @@ class Setting(SettingBase):
 
 class EnumSetting(Setting):
     values = List()
-    traits_view = View(
-        VGroup(
-            Item('full_name', label='Name', style='readonly'),
-            Item('value', editor=EnumEditor(name='values'),
-                 visible_when='confirmed_set and not readonly'),
-            Item('value', style='readonly',
-                 visible_when='not confirmed_set or readonly'),
-            UItem('default_value',
-                  style='readonly',
-                  editor=MultilineTextEditor(TextEditor(multi_line=True)),
-                  show_label=True,
-                  resizable=True),
-            UItem(
-                'description',
-                style='readonly',
-                editor=MultilineTextEditor(TextEditor(multi_line=True)),
-                show_label=True,
-                resizable=True),
-            UItem(
-                'notes',
-                label="Notes",
-                height=-1,
-                editor=MultilineTextEditor(TextEditor(multi_line=True)),
-                style='readonly',
-                show_label=True,
-                resizable=True),
-            show_border=True,
-            label='Setting', ), )
+
+    def trait_view(self, name=None, view_element=None):
+        return View(
+            VGroup(
+                Item('full_name', label='Name', style='readonly'),
+                Item('value', editor=EnumEditor(name='values'),
+                     visible_when='confirmed_set and not readonly'),
+                Item('value', style='readonly',
+                     visible_when='not confirmed_set or readonly'),
+                UItem('default_value',
+                      style='readonly',
+                      editor=MultilineTextEditor(TextEditor(multi_line=True)),
+                      show_label=True,
+                      resizable=True),
+                UItem('description',
+                      style='readonly',
+                      editor=MultilineTextEditor(TextEditor(multi_line=True)),
+                      show_label=True,
+                      resizable=True),
+                UItem('notes',
+                      label="Notes",
+                      height=-1,
+                      editor=MultilineTextEditor(TextEditor(multi_line=True)),
+                      style='readonly',
+                      show_label=True,
+                      resizable=True),
+                show_border=True,
+                label='Setting', ), )
 
     def __init__(self, name, section, value, values, **kwargs):
         self.values = values
