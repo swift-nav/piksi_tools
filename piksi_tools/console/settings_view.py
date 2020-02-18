@@ -11,6 +11,7 @@
 
 from __future__ import absolute_import, print_function
 
+import decimal
 import threading
 import time
 import configparser
@@ -81,9 +82,12 @@ class SettingBase(HasTraits):
 class Setting(SettingBase):
     full_name = Str()
     section = Str()
+    setting_type = Str()
     digits = Str()
+    value_on_device = Str()
     confirmed_set = Bool(True)
     readonly = Bool(False)
+    truncated = Bool(False)
 
     def trait_view(self, name=None, view_element=None):
         return View(
@@ -97,6 +101,8 @@ class Setting(SettingBase):
                      visible_when='not confirmed_set or readonly',
                      editor=TextEditor(readonly_allow_selection=True, format_func=self.format)),
                 Item('units', style='readonly'),
+                Item('value_on_device', style='readonly', visible_when='truncated'),
+                Item('setting_type', style='readonly'),
                 Item('digits', style='readonly'),
                 UItem('default_value',
                       style='readonly',
@@ -137,7 +143,7 @@ class Setting(SettingBase):
             section, name, 'Description')
         self.units = settings.settings_yaml.get_field(section, name, 'units')
         self.notes = settings.settings_yaml.get_field(section, name, 'Notes')
-
+        self.setting_type = settings.settings_yaml.get_field(section, name, 'type')
         self.digits = settings.settings_yaml.get_field(section, name, 'digits')
 
         self.default_value = settings.settings_yaml.get_field(
@@ -149,8 +155,18 @@ class Setting(SettingBase):
 
     def format(self, value):
         try:
-            if self.digits:
+            if not self.digits:
+                return value
+
+            exp = decimal.Decimal(value).as_tuple().exponent
+
+            if abs(exp) > int(self.digits):
+                self.value_on_device = value
+                self.truncated = True
                 value = '%.{}f'.format(self.digits) % float(value)
+            else:
+                self.value_on_device = ''
+                self.truncated = False
 
             return value
         except Exception as e:
@@ -210,8 +226,14 @@ class Setting(SettingBase):
         if (old is not Undefined and new is not Undefined):
             self.confirmed_set = False
             (error, section, name, value) = self.settings.settings_api.write(self.section, self.name, new)
+
             if error == SettingsWriteResponseCodes.SETTINGS_WR_OK:
-                self.value = new
+                # In case of floating point type, readback the actual value on device which
+                # can be different from the set value due to inherent precision restrictions
+                if self.setting_type == 'float' or self.setting_type == 'double':
+                    self.value = self.settings.settings_api.read(self.section, self.name)
+                else:
+                    self.value = new
             else:
                 self.revert_to_prior_value(self.section, self.name, old, new, error)
 

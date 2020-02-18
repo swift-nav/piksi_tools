@@ -294,6 +294,7 @@
   name: phase_sigma
   expert: false
   type: double
+  digits: '3'
   units: cycles
   default value: '0.03'
   readonly: false
