@@ -305,7 +305,7 @@ class SimpleAdapter(ReadOnlyTabularAdapter):
         digits = getattr(setting, 'digits', None)
 
         if digits:
-            return f'%.{digits}f' % float(setting.value)
+            return '%.{}f'.format(digits) % float(setting.value)
 
         return super(SimpleAdapter, self).get_text(object, name, row, column)
 
