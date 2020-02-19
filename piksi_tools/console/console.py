@@ -64,6 +64,8 @@ from piksi_tools.console.utils import (EMPTY_STR, mode_dict, ins_mode_dict,
 
 warnings.filterwarnings("ignore", ".*No message found for msg_type.")
 
+HEARTBEAT_CHECK_PERIOD_SECONDS = 1.2
+
 
 class ArgumentParserError(Exception):
     pass
@@ -460,9 +462,10 @@ class SwiftConsole(HasTraits):
         else:
             self.solid_connection = True
         self.last_timer_heartbeat = self.heartbeat_count
-        total_bytes = self.driver.total_bytes_read
-        self.driver_data_rate = "{0:.2f} KB/s".format((total_bytes - self.last_driver_bytes_read) / (1.2 * 1024))
-        self.last_driver_bytes_read = total_bytes
+        bytes_diff = self.driver.bytes_read_since(self.last_driver_bytes_read)
+        # 1024 bytes per KiloByte
+        self.driver_data_rate = "{0:.2f} KB/s".format((bytes_diff) / (HEARTBEAT_CHECK_PERIOD_SECONDS * 1024))
+        self.last_driver_bytes_read = self.driver.total_bytes_read
 
     def update_on_heartbeat(self, sbp_msg, **metadata):
         self.heartbeat_count += 1
@@ -707,7 +710,7 @@ class SwiftConsole(HasTraits):
                 self._start_json_logging(override_filename)
                 self.json_logging = True
             # we set timer interval to 1200 milliseconds because we expect a heartbeat each second
-            self.timer_cancel = call_repeatedly(1.2, self.check_heartbeat)
+            self.timer_cancel = call_repeatedly(HEARTBEAT_CHECK_PERIOD_SECONDS, self.check_heartbeat)
 
             # Once we have received the settings, update device_serial with
             # the Swift serial number which will be displayed in the window
