@@ -381,8 +381,9 @@ def main(args):
     last_bytes_read = [0]
     if args.status:
         def print_io_data(last_bytes_read):
-            print("{0:.2f} KB/s average data rate (2 second period).".format((driver.total_bytes_read -
-                                                                              last_bytes_read[0])/(2 * 1024.0)))
+            # bitrate is will be kilobytes per second. 2 second period, 1024 bytes per kilobyte
+            print(
+                "{0:.2f} KB/s average data rate (2 second period).".format((driver.bytes_read_since(last_bytes_read[0]))/(2 * 1024.0)))
             last_bytes_read[0] = driver.total_bytes_read
         stop_function = call_repeatedly(2, print_io_data, last_bytes_read)
     with Handler(source, autostart=False) as link, get_logger(args.log,
