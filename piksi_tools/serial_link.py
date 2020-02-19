@@ -280,7 +280,7 @@ def swriter(link):
     return scallback
 
 
-def run(args, link):
+def run(args, link, stop_function=None):
     """Spin loop for reading from the serial link.
 
     Parameters
@@ -304,6 +304,8 @@ def run(args, link):
                 time.sleep(1)
             else:
                 print("Timer expired!")
+                if stop_function is not None:
+                    stop_function()
                 break
 
             if link.is_alive():
@@ -311,11 +313,15 @@ def run(args, link):
 
             if getattr(args, 'file', None):
                 # If reading from a file it is expected to end at some point
+                if stop_function is not None:
+                    stop_function()
                 sys.exit(0)
 
             if args.verbose:
                 sys.stderr.write("ERROR: link is gone!\n")
 
+            if stop_function is not None:
+                stop_function()
             sys.exit(1)
     except KeyboardInterrupt:
         # Callbacks call thread.interrupt_main(), which throw a
@@ -323,6 +329,8 @@ def run(args, link):
         # condition, return exit code of 1. Note that the finally
         # block does get caught since exit itself throws a
         # SystemExit exception.
+        if stop_function is not None:
+            stop_function()
         sys.exit(1)
 
 
@@ -353,6 +361,7 @@ def main(args):
     """
     log_filename = args.logfilename
     log_dirname = args.log_dirname
+    stop_function = None
     if not log_filename:
         log_filename = logfilename()
     if log_dirname:
@@ -375,7 +384,7 @@ def main(args):
             print("{0:.2f} KB/s average data rate (2 second period).".format((driver.total_bytes_read -
                                                                               last_bytes_read[0])/(2 * 1024.0)))
             last_bytes_read[0] = driver.total_bytes_read
-        call_repeatedly(2, print_io_data, last_bytes_read)
+        stop_function = call_repeatedly(2, print_io_data, last_bytes_read)
     with Handler(source, autostart=False) as link, get_logger(args.log,
                                                               log_filename,
                                                               args.expand_json,
@@ -383,7 +392,7 @@ def main(args):
         link.add_callback(printer, SBP_MSG_PRINT_DEP)
         link.add_callback(log_printer, SBP_MSG_LOG)
         Forwarder(link, logger).start()
-        run(args, link)
+        run(args, link, stop_function=stop_function)
 
 
 if __name__ == "__main__":
