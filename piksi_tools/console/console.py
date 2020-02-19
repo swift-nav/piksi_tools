@@ -63,6 +63,8 @@ from piksi_tools.console.utils import (EMPTY_STR, pos_mode_dict,
                                        resource_filename, icon,
                                        swift_path, DR_MODE, RTK_MODES)
 
+HEARTBEAT_CHECK_PERIOD_SECONDS = 1.2
+
 
 class ArgumentParserError(Exception):
     pass
@@ -466,6 +468,9 @@ class SwiftConsole(HasTraits):
             self.observation_view.dirname = self.directory_name
             self.observation_view_base.dirname = self.directory_name
 
+    def update_on_heartbeat(self, sbp_msg, **metadata):
+        self.heartbeat_count += 1
+
     def check_heartbeat(self):
         # if our heartbeat hasn't changed since the last timer interval the connection must have dropped
         if self.heartbeat_count == self.last_timer_heartbeat and self.heartbeat_count != 0:
@@ -557,9 +562,6 @@ class SwiftConsole(HasTraits):
             self.settings_view.lat = self.solution_view.latitude
             self.settings_view.lon = self.solution_view.longitude
             self.settings_view.alt = self.solution_view.altitude
-
-    def update_on_heartbeat(self, sbp_msg, **metadata):
-        self.heartbeat_count += 1
 
     def _csv_logging_button_action(self):
         if self.csv_logging and self.baseline_view.logging_b and self.solution_view.logging_p and self.solution_view.logging_v:
@@ -737,7 +739,7 @@ class SwiftConsole(HasTraits):
                 self._start_json_logging(override_filename)
                 self.json_logging = True
             # we set timer interval to 1200 milliseconds because we expect a heartbeat each second
-            self.timer_cancel = call_repeatedly(1.2, self.check_heartbeat)
+            self.timer_cancel = call_repeatedly(HEARTBEAT_CHECK_PERIOD_SECONDS, self.check_heartbeat)
 
             # Once we have received the settings, update device_serial with
             # the Swift serial number which will be displayed in the window
