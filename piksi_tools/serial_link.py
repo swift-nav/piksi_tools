@@ -25,7 +25,7 @@ from sbp.client.drivers.cdc_driver import CdcDriver
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.file_driver import FileDriver
-from sbp.client.loggers.json_logger import JSONLogger, JSONBinLogger
+from sbp.client.loggers.json_logger import JSONLogger, JSONBinLogger, JSONLogIteratorConventional
 from sbp.client.loggers.null_logger import NullLogger
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP, MsgLog
 from sbp.piksi import MsgReset
@@ -88,6 +88,10 @@ def base_cl_options(override_arg_parse=None, add_help=True,
         "--file",
         help="Read with a filedriver rather than pyserial.",
         action="store_true")
+    parser.add_argument(
+        '--json',
+        action="store_true",
+        help="Input is SBP JSON")
     parser.add_argument(
         "-v",
         "--verbose",
@@ -337,20 +341,23 @@ def main(args):
     if log_dirname:
         log_filename = os.path.join(log_dirname, log_filename)
     driver = get_base_args_driver(args)
-    with Handler(Framer(driver.read,
+
+    if args.json:
+        source = JSONLogIteratorConventional(driver)
+    else:
+        source = Framer(driver.read,
                         driver.write,
                         args.verbose,
-                        skip_metadata=args.skip_metadata),
-                 autostart=False) as link:
-        # Logger with context
-        with get_logger(args.log,
-                        log_filename,
-                        args.expand_json,
-                        args.sort_keys) as logger:
-            link.add_callback(printer, SBP_MSG_PRINT_DEP)
-            link.add_callback(log_printer, SBP_MSG_LOG)
-            Forwarder(link, logger).start()
-            run(args, link)
+                        skip_metadata=args.skip_metadata)
+
+    with Handler(source, autostart=False) as link, get_logger(args.log,
+                                                              log_filename,
+                                                              args.expand_json,
+                                                              args.sort_keys) as logger:
+        link.add_callback(printer, SBP_MSG_PRINT_DEP)
+        link.add_callback(log_printer, SBP_MSG_LOG)
+        Forwarder(link, logger).start()
+        run(args, link)
 
 
 if __name__ == "__main__":
