@@ -25,7 +25,7 @@ from sbp.client.drivers.cdc_driver import CdcDriver
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.file_driver import FileDriver
-from sbp.client.loggers.json_logger import JSONLogger, JSONBinLogger, JSONLogIteratorConventional
+from sbp.client.loggers.json_logger import JSONLogger, JSONBinLogger, JSONLogIterator
 from sbp.client.loggers.null_logger import NullLogger
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP, MsgLog
 from sbp.piksi import MsgReset
@@ -343,7 +343,7 @@ def main(args):
     driver = get_base_args_driver(args)
 
     if args.json:
-        source = JSONLogIteratorConventional(driver)
+        source = JSONLogIterator(driver, conventional=True)
     else:
         source = Framer(driver.read,
                         driver.write,
