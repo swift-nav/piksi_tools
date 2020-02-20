@@ -45,7 +45,7 @@ def main():
     outfile = "{name}-expanded{ext}".format(name=name, ext=ext)
 
     with open(args.filename, 'r') as infile, open(outfile, 'w') as outfile:
-        for (msg, meta) in JSONLogIterator(infile).__next__():
+        for (msg, meta) in JSONLogIterator(infile, conventional=True):
 
             if msg.msg_type in args.ignore:
                 continue
