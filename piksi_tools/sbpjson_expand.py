@@ -14,6 +14,7 @@ import os
 
 from sbp.client.loggers.json_logger import JSONLogger, JSONLogIterator
 
+
 def get_args():
     """
     Get and parse arguments.
@@ -36,6 +37,7 @@ def get_args():
 
     return args
 
+
 def main():
     args = get_args()
     logger = JSONLogger(None)
@@ -52,6 +54,7 @@ def main():
 
             outfile.write(logger.dump(msg))
             outfile.write('\n')
+
 
 if __name__ == '__main__':
     main()
