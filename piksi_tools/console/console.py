@@ -928,7 +928,7 @@ def main():
     if args.json:
         source = JSONLogIterator(cnx_data.driver, conventional=True)
     else:
-        source = Framer(cnx_data.driver.read, cnx_data.driver.write, args.verbose)
+        source = sbpc.Framer(cnx_data.driver.read, cnx_data.driver.write, args.verbose)
 
     with sbpc.Handler(source) as link:
         if args.reset:
