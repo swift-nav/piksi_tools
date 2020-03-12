@@ -1,7 +1,7 @@
 Tools for the Piksi GNSS receiver
 =================================
 
-.. image:: https://travis-ci.org/swift-nav/piksi_tools.png
+.. image:: https://travis-ci.org/swift-nav/piksi_tools.svg?branch=master
     :target: https://travis-ci.org/swift-nav/piksi_tools
 
 .. image:: https://badge.fury.io/py/piksi_tools.png
