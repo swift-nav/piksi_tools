@@ -67,7 +67,6 @@ function install_dev_libs(){
       libgl1-mesa-dri \
       libglu1-mesa-dev \
       libx11-dev \
-      python2.7-dev \
       qt4-qmake \
       qt4-default \
       qt4-dev-tools \
@@ -100,27 +99,15 @@ function validate_linux_mint19() {
     if linux_mint19 && ! detect_virtualenv; then
         log_error "On Linux Mint, the console must be installed inside a virtualenv."
         log_error "Create one by running:"
-        log_error $'\t'"virtualenv py2 --system-site-packages"
-        log_error $'\t'"source py2/bin/activate"
+        log_error $'\t'"virtualenv -p python3.5 py3 --system-site-packages"
+        log_error $'\t'"source py3/bin/activate"
         exit 1
-    fi
-}
-
-function install_pyside() {
-    if linux_mint19; then
-        run_apt_install python-pyside python3-pyside
-    else
-        run_pip2_install PySide==1.2.4
     fi
 }
 
 function run_apt_install() {
     export DEBIAN_FRONTEND=noninteractive
     sudo -H -E apt-get install -y --force-yes $*
-}
-
-function run_pip2_install() {
-    sudo python2 -m pip install --ignore-installed $*
 }
 
 function run_pip3_install() {
@@ -131,7 +118,6 @@ function all_dependencies_debian () {
     run_apt_install \
          git \
          build-essential \
-         python2.7 \
          python-setuptools \
          python-virtualenv \
          swig \
@@ -160,13 +146,6 @@ function all_dependencies_debian () {
     install_dev_libs
     validate_linux_mint19
 
-    if command -v python2; then
-        run_pip2_install --upgrade pip setuptools
-        run_pip2_install -r ../requirements.txt
-        run_pip2_install -r ../requirements_gui.txt
-        run_pip2_install --upgrade awscli
-    fi
-
     if command -v python3; then
         run_pip3_install --upgrade pip setuptools
         run_pip3_install -r ../requirements.txt
@@ -175,10 +154,6 @@ function all_dependencies_debian () {
     fi
 
     python_version=`python --version 2>&1`
-
-    if [[ ${python_version} == *"2.7"* ]]; then
-        install_pyside
-    fi
 
     if command -v pip3; then
         run_pip3_install pyqt5==5.10.0
