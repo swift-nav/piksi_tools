@@ -2,7 +2,6 @@
 
 block_cipher = None
 
-
 from PyInstaller.compat import is_linux, is_darwin, is_win
 from PyInstaller.depend.bindepend import findLibrary
 from PyInstaller.utils.hooks import collect_data_files
@@ -17,9 +16,9 @@ resources = [
 ]
 
 if is_win:
-  icon = 'misc/icons/swift_console.ico'
+  icon = '../misc/icons/swift_console.ico'
 elif is_darwin:
-  icon = 'misc/icons/swift_console.icns'
+  icon = '../misc/icons/swift_console.icns'
 else:
   icon = None
 
