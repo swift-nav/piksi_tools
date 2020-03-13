@@ -13,6 +13,6 @@ six==1.13.0
 libsettings==0.1.12
 sbp==2.7.5
 ruamel.yaml==0.15.87
-setuptools>=41.0.1
+setuptools==41.0.1
 setuptools_scm==3.1.0
 monotonic==1.5
