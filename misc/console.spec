@@ -32,7 +32,7 @@ if is_linux:
 a = Analysis(['../piksi_tools/console/console.py'],
              binaries=binaries,
              datas=datas,
-             hiddenimports=[],
+             hiddenimports=['pkg_resources.py2_warn'],
              hookspath=['misc/pyi-hooks'],
              runtime_hooks=['misc/pyi-hooks/runtime-hook.py'],
              excludes=[],
