@@ -24,6 +24,7 @@ from monotonic import monotonic
 import warnings
 
 import sbp.client as sbpc
+from sbp.client.loggers.json_logger import JSONLogIterator
 from enable.savage.trait_defs.ui.svg_button import SVGButton
 from pyface.image_resource import ImageResource
 from sbp.ext_events import SBP_MSG_EXT_EVENT, MsgExtEvent
@@ -926,28 +927,31 @@ def main():
         print('Unable to Initialize Connection. Exiting...')
         sys.exit(1)
 
-    with cnx_data.driver as driver:
-        with sbpc.Handler(
-                sbpc.Framer(driver.read, driver.write, args.verbose)) as link:
-            if args.reset:
-                link(MsgReset(flags=0))
-            log_filter = DEFAULT_LOG_LEVEL_FILTER
-            if args.initloglevel[0]:
-                log_filter = args.initloglevel[0]
-            with SwiftConsole(
-                    link,
-                    args.update,
-                    log_filter,
-                    cnx_desc=cnx_data.description,
-                    error=args.error,
-                    json_logging=args.log,
-                    log_dirname=args.log_dirname,
-                    override_filename=args.logfilename,
-                    log_console=args.log_console,
-                    connection_info=cnx_data.connection_info,
-                    expand_json=args.expand_json) as console:
+    if args.json:
+        source = JSONLogIterator(cnx_data.driver, conventional=True)
+    else:
+        source = sbpc.Framer(cnx_data.driver.read, cnx_data.driver.write, args.verbose)
 
-                console.configure_traits()
+    with sbpc.Handler(source) as link:
+        if args.reset:
+            link(MsgReset(flags=0))
+        log_filter = DEFAULT_LOG_LEVEL_FILTER
+        if args.initloglevel[0]:
+            log_filter = args.initloglevel[0]
+        with SwiftConsole(
+                link,
+                args.update,
+                log_filter,
+                cnx_desc=cnx_data.description,
+                error=args.error,
+                json_logging=args.log,
+                log_dirname=args.log_dirname,
+                override_filename=args.logfilename,
+                log_console=args.log_console,
+                connection_info=cnx_data.connection_info,
+                expand_json=args.expand_json) as console:
+
+            console.configure_traits()
 
     # TODO: solve this properly
     # Force exit, even if threads haven't joined
