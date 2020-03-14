@@ -35,7 +35,8 @@ from sbp.system import SBP_MSG_INS_STATUS, MsgInsStatus
 from traits.api import (Bool, Dict, File, HasTraits, Instance, Int, Float, List,
                         Str, Enum)
 from traitsui.api import (HGroup, HSplit, Item, TabularEditor, TextEditor,
-                          VGroup, View)
+                          VGroup, View, Tabbed)
+from piksi_tools.console.velocity_view import VelocityView
 from piksi_tools.console.gui_utils import ReadOnlyTabularAdapter
 from piksi_tools.console.gui_utils import MultilineTextEditor, plot_square_axes
 from piksi_tools.console.utils import (
@@ -114,6 +115,7 @@ class SolutionView(HasTraits):
     )
 
     plot = Instance(Plot)
+    velocity_view = Instance(VelocityView)
     plot_data = Instance(ArrayPlotData)
     # Store plots we care about for legend
 
@@ -168,17 +170,29 @@ class SolutionView(HasTraits):
                     style='readonly',
                     width=0.3,
                     height=-40), ),
-            VGroup(
-                HGroup(
-                    Item('paused_button', show_label=False),
-                    Item('clear_button', show_label=False),
-                    Item('zoomall_button', show_label=False),
-                    Item('center_button', show_label=False),
-                    Item('display_units', label="Display Units"), ),
-                Item(
-                    'plot',
-                    show_label=False,
-                    editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8))), )))
+            Tabbed(
+                VGroup(
+                    HGroup(
+                        Item('paused_button', show_label=False),
+                        Item('clear_button', show_label=False),
+                        Item('zoomall_button', show_label=False),
+                        Item('center_button', show_label=False),
+                        Item('display_units', label="Display Units"),
+                        padding=0),
+                    Item(
+                        'plot',
+                        show_label=False,
+                        editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8)),
+                        label="Position"),
+                    label='Position',
+                ),
+                Item('velocity_view',
+                     show_label=False,
+                     style='custom',
+                     label="Velocity")
+            )
+        )
+    )
 
     def _zoomall_button_fired(self):
         self.zoomall = not self.zoomall
@@ -639,6 +653,7 @@ class SolutionView(HasTraits):
 
     def __init__(self, link, dirname=''):
         super(SolutionView, self).__init__()
+        self.velocity_view = VelocityView(link)
         self.ins_status_flags = 0
         self.pending_draw_modes = []
         self.recenter = False

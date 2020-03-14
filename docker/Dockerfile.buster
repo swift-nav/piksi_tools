@@ -23,87 +23,6 @@ RUN \
      echo '>>> Downlading get-pip.py...' \
   && wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py
 
-ENV OPENSSL_VER=1.0.2s
-ENV OPENSSL_PREFIX=/opt/openssl-${OPENSSL_VER}
-ENV OPENSSL_URL=https://www.openssl.org/source/openssl-${OPENSSL_VER}.tar.gz
-
-RUN \
-     echo ">>> Building OpenSSL ${OPENSSL_VER}..." \
-  && wget -O /tmp/openssl.tgz ${OPENSSL_URL} \
-  && mkdir /tmp/openssl-build-${OPENSSL_VER} \
-  && cd /tmp/openssl-build-${OPENSSL_VER} \
-  && tar -xzf /tmp/openssl.tgz \
-  && cd openssl-${OPENSSL_VER} \
-  && ./config shared --prefix=${OPENSSL_PREFIX} \
-  && make -j1 \
-  && make -j1 install \
-  && cd /work
-
-ENV PY34=3.4.10
-ENV PY34_URL=https://www.python.org/ftp/python/${PY34}/Python-${PY34}.tar.xz
-
-RUN \
-     echo '>>> Building Python 3.4...' \
-  && wget -O /tmp/python${PY34}.txz ${PY34_URL} \
-  && mkdir /tmp/python${PY34}-build && cd /tmp/python${PY34}-build \
-  && tar -xJf /tmp/python${PY34}.txz \
-  && cd Python-${PY34} \
-  && ./configure --enable-shared \
-      LDFLAGS="-L${OPENSSL_PREFIX}/lib -Wl,-rpath=/usr/local/lib -Wl,-rpath=${OPENSSL_PREFIX}/lib" \
-      CPPFLAGS="-I${OPENSSL_PREFIX}/include" \
-  \
-  && make -j${JOBS} \
-  && make altinstall \
-  && cd /work \
-  \
-  && /usr/local/bin/python3.4 /tmp/get-pip.py \
-  && /usr/local/bin/python3.4 -m pip install --upgrade pip \
-  && /usr/local/bin/python3.4 -m pip install wheel setuptools tox
-
-ENV PY27=2.7.16
-ENV PY27_URL=https://www.python.org/ftp/python/${PY27}/Python-${PY27}.tar.xz
-
-RUN \
-     echo '>>> Downlading Python 2.7...' \
-  && wget -O /tmp/python${PY27}.txz ${PY27_URL}
-
-RUN \
-     echo '>>> Building Python 2.7...' \
-  \
-  && mkdir /tmp/python${PY27}-build && cd /tmp/python${PY27}-build \
-  && tar -xJf /tmp/python${PY27}.txz \
-  && cd Python-${PY27} \
-  && ./configure --enable-shared \
-      LDFLAGS="-Wl,-rpath=/usr/local/lib" \
-  && make -j${JOBS} \
-  && make altinstall \
-  && cd /work \
-  \
-  && /usr/local/bin/python2.7 /tmp/get-pip.py \
-  && /usr/local/bin/python2.7 -m pip install --upgrade pip \
-  && /usr/local/bin/python2.7 -m pip install wheel setuptools tox
-
-ENV PY27MU=2.7.16-cp27mu
-ENV CP27MU_PREFIX=/opt/cp27mu
-
-RUN \
-     echo '>>> Building Python 2.7 (cp27mu)...' \
-  \
-  && mkdir /tmp/python${PY27MU}-build && cd /tmp/python${PY27MU}-build \
-  && tar -xJf /tmp/python${PY27}.txz \
-  && cd Python-${PY27} \
-  && ./configure --enable-shared \
-      LDFLAGS="-Wl,-rpath=/opt/cp27mu/lib" \
-      --enable-unicode=ucs4 \
-      --prefix=${CP27MU_PREFIX} \
-  && make -j${JOBS} \
-  && make altinstall \
-  && cd /work \
-  \
-  && ${CP27MU_PREFIX}/bin/python2.7 /tmp/get-pip.py \
-  && ${CP27MU_PREFIX}/bin/python2.7 -m pip install --upgrade pip \
-  && ${CP27MU_PREFIX}/bin/python2.7 -m pip install wheel setuptools tox
-
 ENV PY35=3.5.7
 ENV PY35_URL=https://www.python.org/ftp/python/${PY35}/Python-${PY35}.tar.xz
 
@@ -159,16 +78,10 @@ RUN \
   && /usr/local/bin/python3.7 -m pip install wheel setuptools tox
 
 RUN \
-     rm /tmp/python${PY27}.txz \
-  && rm -rf /tmp/python${PY27}-build \
-  && rm /tmp/python${PY34}.txz \
-  && rm -rf /tmp/python${PY34}-build \
   && rm /tmp/python${PY35}.txz \
   && rm -rf /tmp/python${PY35}-build \
   && rm /tmp/python${PY36}.txz \
   && rm -rf /tmp/python${PY36}-build \
   && rm /tmp/python${PY37}.txz \
   && rm -rf /tmp/python${PY37}-build \
-  && rm -rf /tmp/openssl.tgz \
-  && rm -rf /tmp/openssl-build-${OPENSSLVER} \
   && rm /tmp/get-pip.py
