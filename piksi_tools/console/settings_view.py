@@ -178,7 +178,7 @@ class Setting(SettingBase):
         if self.readonly:
             return
 
-        self.update_value(value, False)
+        self.update_value(old, False)
 
         invalid_setting_prompt = prompt.CallbackPrompt(
             title="Settings Write Error: {}.{}".format(section, name),
