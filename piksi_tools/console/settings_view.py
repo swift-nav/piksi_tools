@@ -178,9 +178,7 @@ class Setting(SettingBase):
         if self.readonly:
             return
 
-        self.skip_write_req = True
-        self.value = old
-        self.skip_write_req = False
+        self.update_value(value, False)
 
         invalid_setting_prompt = prompt.CallbackPrompt(
             title="Settings Write Error: {}.{}".format(section, name),
@@ -259,6 +257,11 @@ class Setting(SettingBase):
             return
 
         self.settings.workqueue.put(self._write_value, old, new)
+
+    def update_value(self, new, send_write_req):
+        self.skip_write_req = not send_write_req
+        self.value = new
+        self.skip_write_req = False
 
 
 class EnumSetting(Setting):
@@ -585,7 +588,7 @@ class SettingsView(HasTraits):
             # setting exists, we won't reinitilize it but rather update existing setting
             existing_setting = self.settings[section].get(name, False)
             if existing_setting:
-                existing_setting.value = value
+                existing_setting.update_value(value, False)
                 existing_setting.ordering = idx
                 if setting_type == 'enum':
                     enum_values = setting_format.split(',')
@@ -726,9 +729,7 @@ class SettingsView(HasTraits):
                 self._import_failure_write(error, section, name)
                 success = False
             else:
-                self.skip_write_req = True
-                self.settings.get(section, None).get(name, None).value = value
-                self.skip_write_req = False
+                self.settings.get(section, None).get(name, None).update_value(value, False)
 
         if success:
             self._import_success(len(ret))
