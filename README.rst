@@ -14,18 +14,9 @@ utilities (firmware bootloader, serial port data logging, etc.).
 Setup
 -----
 
-It is advised to install ``piksi_tools`` inside a virtualenv to avoid modifying global system state.  To create a virtualenv, run::
-
-  virtualenv py2
-  source py2/bin/activate
-
-Or, on Linux Mint, run::
-
-  virtualenv py2 --system-site-packages
-  source py2/bin/activate
-
-To setup a python 3.5 virtual environment if your default python is 2.7, first
-install python 3.5 via your package manager if needed, and then run::
+It is advised to install ``piksi_tools`` inside a virtualenv to avoid modifying
+global system state.  To setup a python 3.5 virtual environment first install
+python 3.5 via your package manager if needed, and then run::
 
   virtualenv -p python3.5 ~/py3
   source ~/py3/bin/activate
@@ -91,7 +82,7 @@ To run some extra tests for the GUI (excluding the non-graphical tests)::
 
 Finally, to run *all* tests for all supported Python versions::
 
-  $ PYTHONPATH=. tox -e py27,py35,py37,gui35,gui37
+  $ PYTHONPATH=. tox -e py35,py37,gui35,gui37
 
 USB issues on OS X
 ------------------

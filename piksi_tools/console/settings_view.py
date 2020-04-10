@@ -11,6 +11,7 @@
 
 from __future__ import absolute_import, print_function
 
+import decimal
 import threading
 import time
 import configparser
@@ -81,41 +82,48 @@ class SettingBase(HasTraits):
 class Setting(SettingBase):
     full_name = Str()
     section = Str()
+    setting_type = Str()
+    digits = Str()
+    value_on_device = Str()
     confirmed_set = Bool(True)
     readonly = Bool(False)
-    traits_view = View(
-        VGroup(
-            Item('full_name', label='Name', style='readonly'),
-            Item('value',
-                 editor=TextEditor(auto_set=False, enter_set=True),
-                 visible_when='confirmed_set and not readonly'),
-            Item('value',
-                 style='readonly',
-                 visible_when='not confirmed_set or readonly',
-                 editor=TextEditor(readonly_allow_selection=True)),
-            Item('units', style='readonly'),
-            UItem('default_value',
-                  style='readonly',
-                  height=-1,
-                  editor=MultilineTextEditor(TextEditor(multi_line=True)),
-                  show_label=True,
-                  resizable=True),
-            UItem(
-                'description',
-                style='readonly',
-                editor=MultilineTextEditor(TextEditor(multi_line=True)),
-                show_label=True,
-                resizable=True),
-            UItem(
-                'notes',
-                label="Notes",
-                height=-1,
-                editor=MultilineTextEditor(TextEditor(multi_line=True)),
-                style='readonly',
-                show_label=True,
-                resizable=True),
-            show_border=True,
-            label='Setting', ), )
+    truncated = Bool(False)
+
+    def trait_view(self, name=None, view_element=None):
+        return View(
+            VGroup(
+                Item('full_name', label='Name', style='readonly'),
+                Item('value',
+                     editor=TextEditor(auto_set=False, enter_set=True, format_func=self.format),
+                     visible_when='confirmed_set and not readonly'),
+                Item('value',
+                     style='readonly',
+                     visible_when='not confirmed_set or readonly',
+                     editor=TextEditor(readonly_allow_selection=True, format_func=self.format)),
+                Item('units', style='readonly'),
+                Item('value_on_device', style='readonly', visible_when='truncated'),
+                Item('setting_type', style='readonly'),
+                Item('digits', style='readonly'),
+                UItem('default_value',
+                      style='readonly',
+                      height=-1,
+                      editor=MultilineTextEditor(TextEditor(multi_line=True)),
+                      show_label=True,
+                      resizable=True),
+                UItem('description',
+                      style='readonly',
+                      editor=MultilineTextEditor(TextEditor(multi_line=True)),
+                      show_label=True,
+                      resizable=True),
+                UItem('notes',
+                      label="Notes",
+                      height=-1,
+                      editor=MultilineTextEditor(TextEditor(multi_line=True)),
+                      style='readonly',
+                      show_label=True,
+                      resizable=True),
+                show_border=True,
+                label='Setting', ), )
 
     def __init__(self, name, section, value, ordering=0, settings=None):
         self.name = name
@@ -135,6 +143,9 @@ class Setting(SettingBase):
             section, name, 'Description')
         self.units = settings.settings_yaml.get_field(section, name, 'units')
         self.notes = settings.settings_yaml.get_field(section, name, 'Notes')
+        self.setting_type = settings.settings_yaml.get_field(section, name, 'type')
+        self.digits = settings.settings_yaml.get_field(section, name, 'digits')
+
         self.default_value = settings.settings_yaml.get_field(
             section, name, 'default value')
         readonly = settings.settings_yaml.get_field(section, name, 'readonly')
@@ -142,15 +153,32 @@ class Setting(SettingBase):
         if readonly:
             self.readonly = True
 
+    def format(self, value):
+        try:
+            if not self.digits:
+                return value
+
+            exp = decimal.Decimal(value).as_tuple().exponent
+
+            if abs(exp) > int(self.digits):
+                self.value_on_device = value
+                self.truncated = True
+                value = '%.{}f'.format(self.digits) % float(value)
+            else:
+                self.value_on_device = ''
+                self.truncated = False
+
+            return value
+        except Exception as e:
+            print(e)
+
     def revert_to_prior_value(self, section, name, old, new, error_value):
         '''Revert setting to old value in the case we can't confirm new value'''
 
         if self.readonly:
             return
 
-        self.skip_write_req = True
-        self.value = old
-        self.skip_write_req = False
+        self.update_value_skip_write_req(old)
 
         invalid_setting_prompt = prompt.CallbackPrompt(
             title="Settings Write Error: {}.{}".format(section, name),
@@ -196,8 +224,14 @@ class Setting(SettingBase):
         if (old is not Undefined and new is not Undefined):
             self.confirmed_set = False
             (error, section, name, value) = self.settings.settings_api.write(self.section, self.name, new)
+
             if error == SettingsWriteResponseCodes.SETTINGS_WR_OK:
-                self.value = new
+                # In case of floating point type, readback the actual value on device which
+                # can be different from the set value due to inherent precision restrictions
+                if self.setting_type == 'float' or self.setting_type == 'double':
+                    self.value = self.settings.settings_api.read(self.section, self.name)
+                else:
+                    self.value = new
             else:
                 self.revert_to_prior_value(self.section, self.name, old, new, error)
 
@@ -224,37 +258,42 @@ class Setting(SettingBase):
 
         self.settings.workqueue.put(self._write_value, old, new)
 
+    def update_value_skip_write_req(self, new):
+        self.skip_write_req = True
+        self.value = new
+        self.skip_write_req = False
+
 
 class EnumSetting(Setting):
     values = List()
-    traits_view = View(
-        VGroup(
-            Item('full_name', label='Name', style='readonly'),
-            Item('value', editor=EnumEditor(name='values'),
-                 visible_when='confirmed_set and not readonly'),
-            Item('value', style='readonly',
-                 visible_when='not confirmed_set or readonly'),
-            UItem('default_value',
-                  style='readonly',
-                  editor=MultilineTextEditor(TextEditor(multi_line=True)),
-                  show_label=True,
-                  resizable=True),
-            UItem(
-                'description',
-                style='readonly',
-                editor=MultilineTextEditor(TextEditor(multi_line=True)),
-                show_label=True,
-                resizable=True),
-            UItem(
-                'notes',
-                label="Notes",
-                height=-1,
-                editor=MultilineTextEditor(TextEditor(multi_line=True)),
-                style='readonly',
-                show_label=True,
-                resizable=True),
-            show_border=True,
-            label='Setting', ), )
+
+    def trait_view(self, name=None, view_element=None):
+        return View(
+            VGroup(
+                Item('full_name', label='Name', style='readonly'),
+                Item('value', editor=EnumEditor(name='values'),
+                     visible_when='confirmed_set and not readonly'),
+                Item('value', style='readonly',
+                     visible_when='not confirmed_set or readonly'),
+                UItem('default_value',
+                      style='readonly',
+                      editor=MultilineTextEditor(TextEditor(multi_line=True)),
+                      show_label=True,
+                      resizable=True),
+                UItem('description',
+                      style='readonly',
+                      editor=MultilineTextEditor(TextEditor(multi_line=True)),
+                      show_label=True,
+                      resizable=True),
+                UItem('notes',
+                      label="Notes",
+                      height=-1,
+                      editor=MultilineTextEditor(TextEditor(multi_line=True)),
+                      style='readonly',
+                      show_label=True,
+                      resizable=True),
+                show_border=True,
+                label='Setting', ), )
 
     def __init__(self, name, section, value, values, **kwargs):
         self.values = values
@@ -276,6 +315,22 @@ class SimpleAdapter(ReadOnlyTabularAdapter):
     SectionHeading_name_text = Property
     Setting_name_text = Property
     name_width = Float(175)
+
+    def get_text(self, object, name, row, column):
+
+        # Not interested in Name column
+        if 0 == column:
+            return super(SimpleAdapter, self).get_text(object, name, row, column)
+
+        settings_list = getattr(object, 'settings_list')
+        setting = settings_list[row]
+
+        digits = getattr(setting, 'digits', None)
+
+        if digits:
+            return '%.{}f'.format(digits) % float(setting.value)
+
+        return super(SimpleAdapter, self).get_text(object, name, row, column)
 
     def _get_SectionHeading_name_text(self):
         return self.item.name.replace('_', ' ')
@@ -533,7 +588,7 @@ class SettingsView(HasTraits):
             # setting exists, we won't reinitilize it but rather update existing setting
             existing_setting = self.settings[section].get(name, False)
             if existing_setting:
-                existing_setting.value = value
+                existing_setting.update_value_skip_write_req(value)
                 existing_setting.ordering = idx
                 if setting_type == 'enum':
                     enum_values = setting_format.split(',')
@@ -674,9 +729,7 @@ class SettingsView(HasTraits):
                 self._import_failure_write(error, section, name)
                 success = False
             else:
-                self.skip_write_req = True
-                self.settings.get(section, None).get(name, None).value = value
-                self.skip_write_req = False
+                self.settings.get(section, None).get(name, None).update_value_skip_write_req(value)
 
         if success:
             self._import_success(len(ret))

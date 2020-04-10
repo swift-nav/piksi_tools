@@ -1527,6 +1527,7 @@
   name: cog_output_min_speed
   expert: true
   type: float
+  digits: '1'
   units: Meters per second
   default value: '0.1'
   readonly: false

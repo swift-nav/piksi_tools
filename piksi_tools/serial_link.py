@@ -24,7 +24,7 @@ from sbp.client import Forwarder, Framer, Handler
 from sbp.client.drivers.cdc_driver import CdcDriver
 from sbp.client.drivers.pyftdi_driver import PyFTDIDriver
 from sbp.client.drivers.pyserial_driver import PySerialDriver
-from sbp.client.drivers.file_driver import FileDriver
+from sbp.client.drivers.file_driver import FileDriver, PlaybackFileDriver
 from sbp.client.loggers.json_logger import JSONLogger, JSONBinLogger, JSONLogIterator
 from sbp.client.loggers.null_logger import NullLogger
 from sbp.logging import SBP_MSG_LOG, SBP_MSG_PRINT_DEP, MsgLog
@@ -93,6 +93,10 @@ def base_cl_options(override_arg_parse=None, add_help=True,
         action="store_true",
         help="Input is SBP JSON")
     parser.add_argument(
+        '--playback',
+        action="store_true",
+        help="Emulate real input")
+    parser.add_argument(
         "-v",
         "--verbose",
         action="store_true",
@@ -152,6 +156,7 @@ def get_driver(use_ftdi=False,
                port=SERIAL_PORT,
                baud=SERIAL_BAUD,
                use_file=False,
+               playback=False,
                rtscts=False):
     """
     Get a driver based on configuration options
@@ -169,6 +174,8 @@ def get_driver(use_ftdi=False,
         if use_ftdi:
             return PyFTDIDriver(baud)
         if use_file:
+            if playback:
+                return PlaybackFileDriver(open(port, 'rb'))
             return FileDriver(open(port, 'rb'))
     # HACK - if we are on OSX and the device appears to be a CDC device, open as a binary file
         for each in serial.tools.list_ports.comports():
@@ -321,6 +328,7 @@ def get_base_args_driver(args):
         driver_kwargs['port'] = getattr(args, 'port', None)
         driver_kwargs['baud'] = getattr(args, 'baud', None)
         driver_kwargs['use_file'] = getattr(args, 'file', None)
+        driver_kwargs['playback'] = getattr(args, 'playback', None)
         driver_kwargs['rtscts'] = getattr(args, 'rtscts', None)
         # trim none values
         driver_kwargs = {k: v

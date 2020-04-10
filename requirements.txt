@@ -1,5 +1,5 @@
 pip>=19.1.1
-numpy==1.16.4
+numpy~=1.18.1
 configparser
 future==0.17.1
 futures==3.1.1
@@ -11,8 +11,8 @@ pygments==2.2.0
 requests~=2.20.0
 six==1.13.0
 libsettings==0.1.12
-sbp==2.7.6
+sbp==2.7.7
 ruamel.yaml==0.15.87
-setuptools>=41.0.1
+setuptools==41.0.1
 setuptools-scm==3.3.3
 monotonic==1.5
