@@ -84,7 +84,7 @@ class SkyplotView(HasTraits):
 
     def azel_callback(self, sbp_msg, **metadata):
         svazelmsg = MsgSvAzEl(sbp_msg)
-        tracked = self._trk_view.get_tracked_svs()
+        tracked = self._trk_view.get_tracked_sv_labels()
 
         pending_update = {'x_gps': [],
                           'x_glo': [],

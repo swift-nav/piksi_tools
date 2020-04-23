@@ -236,7 +236,7 @@ class TrackingView(CodeFiltered):
             self.plot.legend.tools.append(
                 LegendTool(self.plot.legend, drag_button="right"))
 
-    def get_tracked_svs(self):
+    def get_tracked_sv_labels(self):
         svs = []
         with self.CN0_lock:
             for lbl in self.sv_labels:
