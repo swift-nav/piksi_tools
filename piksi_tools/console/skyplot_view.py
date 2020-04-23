@@ -12,10 +12,12 @@ from piksi_tools.console.utils import (code_is_gps,
                                        code_is_glo,
                                        code_is_bds,
                                        code_is_galileo,
-                                       code_is_sbas)
+                                       code_is_sbas,
+                                       get_label)
 
 
 DEG_SIGN = u"\N{DEGREE SIGN}"
+TRK_SIGN = "'"
 
 
 class SkyplotView(HasTraits):
@@ -26,7 +28,8 @@ class SkyplotView(HasTraits):
     gal_visible = Bool()
     bds_visible = Bool()
     sbas_visible = Bool()
-    hint = Str("Enabled with SBP message MSG_SV_AZ_EL (0x0097 | 151)")
+    hint = Str("Enabled with SBP message MSG_SV_AZ_EL (0x0097 | 151), "
+               f"{TRK_SIGN} indicates satellite is being tracked")
     plot = Instance(Plot)
     plot_data = Instance(ArrayPlotData)
     traits_view = View(
@@ -81,6 +84,7 @@ class SkyplotView(HasTraits):
 
     def azel_callback(self, sbp_msg, **metadata):
         svazelmsg = MsgSvAzEl(sbp_msg)
+        tracked = self._trk_view.get_tracked_svs()
 
         pending_update = {'x_gps': [],
                           'x_glo': [],
@@ -109,23 +113,23 @@ class SkyplotView(HasTraits):
             if code_is_gps(sid.code) and self.gps_visible:
                 pending_update['x_gps'].append(x)
                 pending_update['y_gps'].append(y)
-                sat_string = "G" + str(sid.sat)
             elif code_is_glo(sid.code) and self.glo_visible:
                 pending_update['x_glo'].append(x)
                 pending_update['y_glo'].append(y)
-                sat_string = "R" + str(sid.sat)
             elif code_is_galileo(sid.code) and self.gal_visible:
                 pending_update['x_gal'].append(x)
                 pending_update['y_gal'].append(y)
-                sat_string = "E" + str(sid.sat)
             elif code_is_bds(sid.code) and self.bds_visible:
                 pending_update['x_bds'].append(x)
                 pending_update['y_bds'].append(y)
-                sat_string = "C" + str(sid.sat)
             elif code_is_sbas(sid.code) and self.sbas_visible:
                 pending_update['x_sbas'].append(x)
                 pending_update['y_sbas'].append(y)
-                sat_string = "S" + str(sid.sat)
+
+            sat_string = get_label((sid.code, sid.sat))[2]
+
+            if sat_string in tracked:
+                sat_string += TRK_SIGN
 
             label = DataLabel(component=self.plot, data_point=(x, y),
                               label_text=sat_string,
@@ -150,7 +154,8 @@ class SkyplotView(HasTraits):
         if self.plot:
             self.plot.legend.visible = self.legend_visible
 
-    def __init__(self, link):
+    def __init__(self, link, trk_view):
+        self._trk_view = trk_view
         self.legend_visible = False
         self.gps_visible = True
         self.glo_visible = True
