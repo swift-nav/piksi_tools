@@ -29,7 +29,7 @@ class SkyplotView(HasTraits):
     bds_visible = Bool()
     sbas_visible = Bool()
     hint = Str("Enabled with SBP message MSG_SV_AZ_EL (0x0097 | 151), "
-               f"{TRK_SIGN} indicates satellite is being tracked")
+               "{} indicates satellite is being tracked".format(TRK_SIGN))
     plot = Instance(Plot)
     plot_data = Instance(ArrayPlotData)
     traits_view = View(
