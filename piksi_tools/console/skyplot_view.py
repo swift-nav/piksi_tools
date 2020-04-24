@@ -13,6 +13,7 @@ from piksi_tools.console.utils import (code_is_gps,
                                        code_is_bds,
                                        code_is_galileo,
                                        code_is_sbas,
+                                       code_is_qzss,
                                        get_label)
 
 
@@ -27,6 +28,7 @@ class SkyplotView(HasTraits):
     glo_visible = Bool()
     gal_visible = Bool()
     bds_visible = Bool()
+    qzss_visible = Bool()
     sbas_visible = Bool()
     hint = Str("Enabled with SBP message MSG_SV_AZ_EL (0x0097 | 151), "
                "{} indicates satellite is being tracked".format(TRK_SIGN))
@@ -50,6 +52,7 @@ class SkyplotView(HasTraits):
                 Item('glo_visible', label="GLONASS"),
                 Item('gal_visible', label="GALILEO"),
                 Item('bds_visible', label="BEIDOU"),
+                Item('qzss_visible', label="QZSS"),
                 Item('sbas_visible', label="SBAS"))))
 
     def azel_to_xy(self, az, el):
@@ -90,11 +93,13 @@ class SkyplotView(HasTraits):
                           'x_glo': [],
                           'x_gal': [],
                           'x_bds': [],
+                          'x_qzss': [],
                           'x_sbas': [],
                           'y_gps': [],
                           'y_glo': [],
                           'y_gal': [],
                           'y_bds': [],
+                          'y_qzss': [],
                           'y_sbas': []
                           }
 
@@ -122,6 +127,9 @@ class SkyplotView(HasTraits):
             elif code_is_bds(sid.code) and self.bds_visible:
                 pending_update['x_bds'].append(x)
                 pending_update['y_bds'].append(y)
+            elif code_is_qzss(sid.code) and self.qzss_visible:
+                pending_update['x_qzss'].append(x)
+                pending_update['y_qzss'].append(y)
             elif code_is_sbas(sid.code) and self.sbas_visible:
                 pending_update['x_sbas'].append(x)
                 pending_update['y_sbas'].append(y)
@@ -161,6 +169,7 @@ class SkyplotView(HasTraits):
         self.glo_visible = True
         self.gal_visible = True
         self.bds_visible = True
+        self.qzss_visible = True
         self.sbas_visible = True
 
         self.x_circle_0, self.y_circle_0 = self.create_circle(0)
@@ -180,11 +189,13 @@ class SkyplotView(HasTraits):
             x_glo=[],
             x_gal=[],
             x_bds=[],
+            x_qzss=[],
             x_sbas=[],
             y_gps=[],
             y_glo=[],
             y_gal=[],
             y_bds=[],
+            y_qzss=[],
             y_sbas=[],
             x_0=self.x_circle_0,
             y_0=self.y_circle_0,
@@ -239,6 +250,15 @@ class SkyplotView(HasTraits):
             type='scatter',
             name='',
             color='yellow',
+            marker='dot',
+            line_width=0.0,
+            marker_size=5.0
+        )
+        qzss = self.plot.plot(
+            ('x_qzss', 'y_qzss'),
+            type='scatter',
+            name='',
+            color='pink',
             marker='dot',
             line_width=0.0,
             marker_size=5.0
@@ -325,9 +345,9 @@ class SkyplotView(HasTraits):
             line_width=0.25
         )
 
-        plot_labels = ['GPS', 'GLONASS', 'GALILEO', 'BEIDOU', 'SBAS']
+        plot_labels = ['GPS', 'GLONASS', 'GALILEO', 'BEIDOU', 'QZSS', 'SBAS']
         plots_legend = dict(
-            zip(plot_labels, [gps, glo, gal, bds, sbas]))
+            zip(plot_labels, [gps, glo, gal, bds, qzss, sbas]))
         self.plot.legend.plots = plots_legend
         self.plot.legend.labels = plot_labels  # sets order
         self.plot.legend.visible = False
