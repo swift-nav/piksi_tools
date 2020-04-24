@@ -25,10 +25,7 @@ from piksi_tools.acq_results import SNR_THRESHOLD
 from piksi_tools.console.gui_utils import CodeFiltered, UpdateScheduler
 from piksi_tools.console.utils import (code_is_glo,
                                        code_is_sbas,
-                                       code_is_bds,
-                                       code_is_galileo,
                                        code_is_qzss,
-                                       code_to_str,
                                        get_label)
 
 NUM_POINTS = 200
@@ -223,8 +220,8 @@ class TrackingView(CodeFiltered):
                 else:
                     if key in list(self.plot.plots.keys()):
                         self.plot.delplot(key)
-            join = lambda labels: ' '.join(filter(None, labels))
-            plots = dict(list(zip(map(join, self.sv_labels), plots)))
+            labels = map(lambda labels: ' '.join(filter(None, labels)), self.sv_labels)
+            plots = dict(list(zip(labels, plots)))
             self.plot.legend.plots = plots
 
     def _legend_visible_changed(self):
