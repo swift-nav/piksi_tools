@@ -479,7 +479,7 @@ class SwiftConsole(HasTraits):
                 llh_display_mode += "+INS"
 
         # determine the latest baseline solution mode
-        if self.baseline_view:
+        if self.baseline_view and self.settings_view and self.settings_view.dgnss_enabled():
             baseline_solution_mode = self.baseline_view.last_mode
             baseline_display_mode = mode_dict.get(baseline_solution_mode, EMPTY_STR)
             if baseline_solution_mode > 0 and self.baseline_view.last_soln:
