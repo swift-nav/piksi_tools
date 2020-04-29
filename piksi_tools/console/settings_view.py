@@ -825,6 +825,12 @@ class SettingsView(HasTraits):
         """ Remove callbacks from serial link. """
         self.link.remove_callback(self.piksi_startup_callback, SBP_MSG_STARTUP)
 
+    def dgnss_enabled(self):
+        try:
+            return self.settings["solution"]["dgnss_solution_mode"].value != "No DGNSS"
+        except KeyError:
+            return False
+
     def __enter__(self):
         return self
 
