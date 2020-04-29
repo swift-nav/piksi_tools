@@ -25,10 +25,8 @@ from piksi_tools.acq_results import SNR_THRESHOLD
 from piksi_tools.console.gui_utils import CodeFiltered, UpdateScheduler
 from piksi_tools.console.utils import (code_is_glo,
                                        code_is_sbas,
-                                       code_is_bds,
-                                       code_is_galileo,
                                        code_is_qzss,
-                                       code_to_str)
+                                       get_label)
 
 NUM_POINTS = 200
 TRK_RATE = 2.0
@@ -91,28 +89,6 @@ def get_color(key):
     key = str((0, sat))
     color = color_dict.get(key, 0xff0000)
     return color
-
-
-def get_label(key, extra):
-    code, sat = key
-    lbl = '{code} '.format(code=code_to_str(code))
-
-    if code_is_glo(code):
-        lbl += 'F{sat:0=+3d}'.format(sat=sat)
-        if sat in extra:
-            lbl += ' R{slot:02d}'.format(slot=extra[sat])
-    elif code_is_sbas(code):
-        lbl += 'S{sat:3d}'.format(sat=sat)
-    elif code_is_bds(code):
-        lbl += 'C{sat:02d}'.format(sat=sat)
-    elif code_is_qzss(code):
-        lbl += 'J{sat:3d}'.format(sat=sat)
-    elif code_is_galileo(code):
-        lbl += 'E{sat:02d}'.format(sat=sat)
-    else:
-        lbl += 'G{sat:02d}'.format(sat=sat)
-
-    return lbl
 
 
 class TrackingView(CodeFiltered):
@@ -207,8 +183,8 @@ class TrackingView(CodeFiltered):
 
     def update_plot(self):
         with self.CN0_lock:
-            plot_labels = []
             plots = []
+            self.sv_labels.clear()
             # Update the underlying plot data from the CN0_dict for selected items
             new_plot_data = {'t': self.time}
             for k, cno_array in self.CN0_dict.items():
@@ -239,12 +215,13 @@ class TrackingView(CodeFiltered):
                     else:
                         pl = self.plot.plots[key]
                     plots.append(pl)
-                    plot_labels.append(get_label(k, self.glo_slot_dict))
+                    self.sv_labels.append(get_label(k, self.glo_slot_dict))
                 # if not selected or all 0, remove
                 else:
                     if key in list(self.plot.plots.keys()):
                         self.plot.delplot(key)
-            plots = dict(list(zip(plot_labels, plots)))
+            labels = map(lambda labels: ' '.join(filter(None, labels)), self.sv_labels)
+            plots = dict(list(zip(labels, plots)))
             self.plot.legend.plots = plots
 
     def _legend_visible_changed(self):
@@ -256,6 +233,15 @@ class TrackingView(CodeFiltered):
             self.plot.legend.tools.append(
                 LegendTool(self.plot.legend, drag_button="right"))
 
+    def get_tracked_sv_labels(self):
+        svs = []
+        with self.CN0_lock:
+            for lbl in self.sv_labels:
+                if lbl[2]:
+                    svs.append(lbl[2])
+
+        return svs
+
     def __init__(self, link):
         super(TrackingView, self).__init__()
         self.t_init = monotonic()
@@ -263,6 +249,7 @@ class TrackingView(CodeFiltered):
         self.CN0_lock = threading.Lock()
         self.CN0_dict = defaultdict(lambda: deque([0] * NUM_POINTS, maxlen=NUM_POINTS))
         self.CN0_age = defaultdict(lambda: -1)
+        self.sv_labels = []
         self.glo_fcn_dict = {}
         self.glo_slot_dict = {}
         self.n_channels = None
