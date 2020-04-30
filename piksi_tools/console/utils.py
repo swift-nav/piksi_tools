@@ -667,6 +667,33 @@ def call_repeatedly(interval, func, *args):
     return stopped.set
 
 
+def get_label(key, extra={}):
+    code, sat = key
+
+    code_lbl = '{code}'.format(code=code_to_str(code))
+    freq_lbl = None
+    id_lbl = None
+
+    if code_is_glo(code):
+        freq_lbl = 'F{sat:0=+3d}'.format(sat=sat)
+        if sat in extra:
+            id_lbl = 'R{slot:02d}'.format(slot=extra[sat])
+        else:
+            id_lbl = 'R{slot:02d}'.format(slot=sat)
+    elif code_is_sbas(code):
+        id_lbl = 'S{sat:3d}'.format(sat=sat)
+    elif code_is_bds(code):
+        id_lbl = 'C{sat:02d}'.format(sat=sat)
+    elif code_is_qzss(code):
+        id_lbl = 'J{sat:3d}'.format(sat=sat)
+    elif code_is_galileo(code):
+        id_lbl = 'E{sat:02d}'.format(sat=sat)
+    else:
+        id_lbl = 'G{sat:02d}'.format(sat=sat)
+
+    return (code_lbl, freq_lbl, id_lbl)
+
+
 resource_filename = partial(pkg_resources.resource_filename, 'piksi_tools')
 resource_stream = partial(pkg_resources.resource_stream, 'piksi_tools')
 icon = ImageResource(resource_filename('console/images/icon.png'))

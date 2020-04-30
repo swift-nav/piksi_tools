@@ -663,7 +663,7 @@ class SwiftConsole(HasTraits):
                 self.link, dirname=self.directory_name)
             self.baseline_view = BaselineView(
                 self.link, dirname=self.directory_name)
-            self.skyplot_view = SkyplotView(self.link)
+            self.skyplot_view = SkyplotView(self.link, self.tracking_view)
             self.observation_view = ObservationView(
                 self.link,
                 name='Local',
