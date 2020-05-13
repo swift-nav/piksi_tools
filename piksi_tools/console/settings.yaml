@@ -119,8 +119,8 @@
   readonly: false
   Description: Enable/Disable Clock Steering of RF frontend.
   Notes: This setting toggles the clock steering for the RF frontend. If timing drift
-  is detected in the onboard oscillator, the clock will be continuously adjusted to align
-  more precisely with clock data encoded within the GNSS signals received by the device.
+    is detected in the onboard oscillator, the clock will be continuously adjusted to align
+    more precisely with clock data encoded within the GNSS signals received by the device.
 
 - group: rtcm_out
   name: output_mode
