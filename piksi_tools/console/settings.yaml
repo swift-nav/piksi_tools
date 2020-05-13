@@ -112,7 +112,7 @@
 
 - group: frontend
   name: activate_clock_steering
-  expert: false
+  expert: true
   type: bool
   units: N/A
   default value: 'False'
