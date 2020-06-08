@@ -117,6 +117,7 @@ class TrackingView(CodeFiltered):
                 del self.CN0_age[k]
 
     def measurement_state_callback(self, sbp_msg, **metadata):
+        self._at_least_one_track_received = True
         with self.CN0_lock:
             codes_that_came = []
             t = monotonic() - self.t_init
@@ -148,7 +149,31 @@ class TrackingView(CodeFiltered):
             self.clean_cn0(t)
         self.update_scheduler.schedule_update('update_plot', self.update_plot)
 
+    def update_from_obs(self, obs_dict):
+        if not self._at_least_one_track_received:
+            with self.CN0_lock:
+                codes_that_came = []
+                t = monotonic() - self.t_init
+                self.time.append(t)
+                # first we loop over all the SIDs / channel keys we have stored and set 0 in for CN0
+                for i, (key, cn0) in enumerate(obs_dict.items()):
+                    code = key[0]
+                    codes_that_came.append(key)
+                    if cn0 != 0:
+                        self.CN0_dict[key].append(cn0)
+                        self.CN0_age[key] = t
+                    received_code_list = getattr(self, "received_codes", [])
+                    if code not in received_code_list:
+                        received_code_list.append(code)
+                        self.received_codes = received_code_list
+                for key, cno_array in list(self.CN0_dict.items()):
+                    if key not in codes_that_came:
+                        cno_array.append(0)
+                self.clean_cn0(t)
+            self.update_scheduler.schedule_update('update_plot', self.update_plot)
+
     def tracking_state_callback(self, sbp_msg, **metadata):
+        self._at_least_one_track_received = True
         with self.CN0_lock:
             codes_that_came = []
             t = monotonic() - self.t_init
@@ -244,6 +269,7 @@ class TrackingView(CodeFiltered):
 
     def __init__(self, link):
         super(TrackingView, self).__init__()
+        self._at_least_one_track_received = False
         self.t_init = monotonic()
         self.time = deque([x * 1 / TRK_RATE for x in range(-NUM_POINTS, 0, 1)], maxlen=NUM_POINTS)
         self.CN0_lock = threading.Lock()
