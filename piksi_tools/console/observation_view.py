@@ -155,6 +155,7 @@ class ObservationView(CodeFiltered):
             self.old_cp = dict(self.new_cp)
             self.new_cp.clear()
             self.incoming_obs.clear()
+            self.incoming_obs_cn0.clear()
 
         # Confirm this packet is good.
         # Assumes no out-of-order packets
@@ -185,6 +186,8 @@ class ObservationView(CodeFiltered):
                 prn += 1
 
             prn = (prn, o.sid.code)
+
+            self.incoming_obs_cn0[(prn[1], prn[0])] = float(o.cn0) / 4
 
             # DEP_B and DEP_A obs had different pseudorange scaling
             if sbp_msg.msg_type in [SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B]:
@@ -285,16 +288,21 @@ class ObservationView(CodeFiltered):
                 self.update_scheduler.schedule_update('update_obs', self.update_obs, self.incoming_obs.copy())
                 self.last_table_update_tow = self.gps_tow
                 self.last_table_update_time = monotonic()
+                if self.tracking_view is not None:
+                    self.tracking_view.update_from_obs(self.incoming_obs_cn0)
+
         return
 
-    def __init__(self, link, name='Local', relay=False, dirname=None):
+    def __init__(self, link, name='Local', relay=False, dirname=None, tracking_view=None):
         super(ObservationView, self).__init__()
+        self.tracking_view = tracking_view
         self.dirname = dirname
         self.last_table_update_tow = 0
         self.last_table_update_time = 0
         self.old_cp = {}
         self.new_cp = {}
         self.incoming_obs = {}
+        self.incoming_obs_cn0 = {}
         self.gps_tow = 0.0
         self.old_tow = 0.0
         self.gps_week = 0
