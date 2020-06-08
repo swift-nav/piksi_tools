@@ -137,6 +137,10 @@ def base_cl_options(override_arg_parse=None, add_help=True,
             "--sort-keys",
             action="store_true",
             help="Sort JSON log elements by keys.")
+        parser.add_argument(
+            "--sender-id-filter",
+            default=None,
+            help="comma separated List of base10 sender_ids: e.g: 4096,0")
     return parser
 
 
@@ -349,14 +353,17 @@ def main(args):
     if log_dirname:
         log_filename = os.path.join(log_dirname, log_filename)
     driver = get_base_args_driver(args)
-
+    sender_id_filter_list = []
+    if args.sender_id_filter is not None:
+        sender_id_filter = [int(x) for x in args.sender_id_filter.split(",")]
     if args.json:
         source = JSONLogIterator(driver, conventional=True)
     else:
         source = Framer(driver.read,
                         driver.write,
                         args.verbose,
-                        skip_metadata=args.skip_metadata)
+                        skip_metadata=args.skip_metadata,
+                        sender_id_filter_list=sender_id_filter)
 
     with Handler(source, autostart=False) as link, get_logger(args.log,
                                                               log_filename,
