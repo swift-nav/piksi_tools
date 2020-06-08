@@ -930,10 +930,14 @@ def main():
         print('Unable to Initialize Connection. Exiting...')
         sys.exit(1)
 
+    sender_id_filter = []
+    if args.sender_id_filter is not None:
+        sender_id_filter = [int(x) for x in args.sender_id_filter.split(",")]
     if args.json:
         source = JSONLogIterator(cnx_data.driver, conventional=True)
     else:
-        source = sbpc.Framer(cnx_data.driver.read, cnx_data.driver.write, args.verbose)
+        source = sbpc.Framer(cnx_data.driver.read, cnx_data.driver.write,
+                             args.verbose, sender_id_filter_list=sender_id_filter)
 
     with sbpc.Handler(source) as link:
         if args.reset:
