@@ -670,7 +670,8 @@ class SwiftConsole(HasTraits):
                 self.link,
                 name='Local',
                 relay=False,
-                dirname=self.directory_name)
+                dirname=self.directory_name,
+                tracking_view=self.tracking_view)
             self.observation_view_base = ObservationView(
                 self.link,
                 name='Remote',
