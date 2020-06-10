@@ -280,7 +280,7 @@ def swriter(link):
     return scallback
 
 
-def run(args, link, stop_function=None):
+def run(args, link, stop_function=lambda: None):
     """Spin loop for reading from the serial link.
 
     Parameters
@@ -304,8 +304,7 @@ def run(args, link, stop_function=None):
                 time.sleep(1)
             else:
                 print("Timer expired!")
-                if stop_function is not None:
-                    stop_function()
+                stop_function()
                 break
 
             if link.is_alive():
@@ -313,15 +312,13 @@ def run(args, link, stop_function=None):
 
             if getattr(args, 'file', None):
                 # If reading from a file it is expected to end at some point
-                if stop_function is not None:
-                    stop_function()
+                stop_function()
                 sys.exit(0)
 
             if args.verbose:
                 sys.stderr.write("ERROR: link is gone!\n")
 
-            if stop_function is not None:
-                stop_function()
+            stop_function()
             sys.exit(1)
     except KeyboardInterrupt:
         # Callbacks call thread.interrupt_main(), which throw a
@@ -329,8 +326,7 @@ def run(args, link, stop_function=None):
         # condition, return exit code of 1. Note that the finally
         # block does get caught since exit itself throws a
         # SystemExit exception.
-        if stop_function is not None:
-            stop_function()
+        stop_function()
         sys.exit(1)
 
 
@@ -361,7 +357,9 @@ def main(args):
     """
     log_filename = args.logfilename
     log_dirname = args.log_dirname
-    stop_function = None
+
+    stop_function = lambda: None # noqa
+
     if not log_filename:
         log_filename = logfilename()
     if log_dirname:
@@ -382,8 +380,8 @@ def main(args):
     if args.status:
         def print_io_data(last_bytes_read):
             # bitrate is will be kilobytes per second. 2 second period, 1024 bytes per kilobyte
-            print(
-                "{0:.2f} KB/s average data rate (2 second period).".format((driver.bytes_read_since(last_bytes_read[0]))/(2 * 1024.0)))
+            kbs_avg = driver.bytes_read_since(last_bytes_read[0]) / (2 * 1024.0)
+            print("{0:.2f} KB/s average data rate (2 second period).".format(kbs_avg))
             last_bytes_read[0] = driver.total_bytes_read
         stop_function = call_repeatedly(2, print_io_data, last_bytes_read)
     with Handler(source, autostart=False) as link, get_logger(args.log,
