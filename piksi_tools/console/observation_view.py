@@ -187,7 +187,8 @@ class ObservationView(CodeFiltered):
 
             prn = (prn, o.sid.code)
 
-            self.incoming_obs_cn0[(prn[1], prn[0])] = float(o.cn0) / 4
+            if getattr(o, 'cn0', None) is not None:
+                self.incoming_obs_cn0[(prn[1], prn[0])] = float(o.cn0) / 4
 
             # DEP_B and DEP_A obs had different pseudorange scaling
             if sbp_msg.msg_type in [SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B]:
