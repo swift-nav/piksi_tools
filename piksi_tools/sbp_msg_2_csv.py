@@ -16,33 +16,40 @@ from sbp.table import _SBP_TABLE
 import construct
 from piksi_tools import __version__ as VERSION
 
+base_class_slots = ['sender', 'length']
+metadata_slots = ['time']
+
 
 def get_list_of_columns(msgClass, metadata):
     if metadata:
-        return ['time', 'sender', 'length'] + msgClass.__slots__
+        return metadata_slots + base_class_slots + msgClass.__slots__
     else:
-        return ['sender', 'length'] + msgClass.__slots__
+        return base_class_slots + msgClass.__slots__
 
 
 class MsgExtractor(object):
-    def __init__(self, outfile, msgclass, metadata=False):
+    def __init__(self, outfile, msgClass, metadata=False):
+        self.msgClass = msgClass
         self.outfile = outfile
-        self.columns = get_list_of_columns(msgclass, metadata)
-        print("selected columns are: {}".format("\n    ".join(self.columns)))
+        self.columns = get_list_of_columns(self.msgClass, metadata)
+        print("selected columns are:\n    {}".format("\n    ".join(self.columns)))
         self.outfile.write(",".join(self.columns) + "\n")
 
-    def _callback(self, msg, data):
+    def _callback(self, msg, metadata):
+        msg_object = self.msgClass(msg)
         outstringlist = []
         for each in self.columns:
-            try:
-                attr = getattr(msg, each)
+            if each in base_class_slots:
+                outstringlist.append("{0}".format(getattr(msg, each)))
+            elif each in metadata_slots:
+                outstringlist.append("{0}".format(metadata.get(each)))
+            else:
+                attr = getattr(msg_object, each)
                 if isinstance(attr, construct.lib.ListContainer):
                     for list_element in attr:
                         outstringlist.append("{0}".format(list_element))
                 else:
                     outstringlist.append("{0}".format(attr))
-            except AttributeError:
-                outstringlist.append("{0}".format(data[each]))
         self.outfile.write(",".join(outstringlist) + "\n")
 
 
@@ -52,8 +59,8 @@ def get_args():
         description="sbp_msg_2_csv version " + VERSION + ". Writes SBP msg fields to a csv file, one column per field.")
     parser.add_argument("file",
                         help="specify the SBP JSON/binary file for which to dump fields to CSV.")
-    parser.add_argument("-o", "--outfile", default="out.csv",
-                        help="Output .csv file postfix")
+    parser.add_argument("-o", "--outfile", default="out",
+                        help="Output .csv file postfix (.csv will be appended automatically)")
     parser.add_argument("-t", "--type", default=None,
                         help="Message Type to csvify (classname)")
     parser.add_argument("-i", "--id", default=None,
@@ -66,30 +73,38 @@ def get_args():
 def main():
     args = get_args()
     open_args = 'rb' if args.format == 'bin' else 'r'
+    json = False
     with open(args.file, open_args) as fd:
         if args.format == 'json':
-            iterator = JSONLogIterator(fd)
+            json = True
+            iterator = JSONLogIterator(fd, conventional=True)
         elif args.format == 'bin':
             driver = FileDriver(fd)
-            iterator = Framer(driver.read, driver.write)
+            iterator = Framer(driver.read, driver.write, dispatcher=None)
         else:
             raise Exception(
                 "Usage Error: Unknown input format. Valid input formats for -f arg are bin and json.")
         msg_class = None
-        for my_id, my_class in _SBP_TABLE.iteritems():
+        msg_id = None
+        for my_id, my_class in _SBP_TABLE.items():
             if my_class.__name__ == args.type or (args.id and my_id == int(args.id)):
-                print("Extracing class {} with msg_id {}".format(my_class, my_id))
                 msg_class = my_class
+                msg_id = my_id
+        outfile = msg_class.__name__
+        if args.outfile:
+            outfile += "_" + args.outfile
+        outfile += ".csv"
         assert msg_class is not None, "Invalid message type specified"
-        with open(msg_class.__name__ + "_" + args.outfile, 'w+') as outfile:
-            conv = MsgExtractor(outfile, msg_class, metadata=(args.format == 'json'))
-            if args.format == 'json':
-                iterator = iterator.next()
+        print("Extracing class {} with msg_id {} to csv file {}".format(my_class, my_id, outfile))
+        with open(outfile, 'w+') as outfp:
+            conv = MsgExtractor(outfp, msg_class, metadata=json)
             while True:
                 try:
-                    (msg, data) = iterator.next()
-                    if isinstance(msg, msg_class):
+                    msg, data = iterator.__next__()
+                    if msg.msg_type == msg_id:
                         conv._callback(msg, data)
+                    if msg is None:
+                        break
                 except StopIteration:
                     break
 
