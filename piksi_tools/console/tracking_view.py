@@ -292,7 +292,6 @@ class TrackingView(CodeFiltered):
         self.plot.value_axis.title = 'dB-Hz'
         self.plot_data.set_data('t', self.time)
         self.plot.index_axis.title = 'seconds'
-        self.plot.index_range.bounds_func = lambda l, h, m, tb: (h - 100, h)
         self.legend_visible = True
         self.plot.legend.visible = True
         self.plot.legend.align = 'll'
