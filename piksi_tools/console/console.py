@@ -41,7 +41,6 @@ import piksi_tools.serial_link as s
 from piksi_tools.utils import call_repeatedly
 from piksi_tools import __version__ as CONSOLE_VERSION
 from piksi_tools.console.baseline_view import BaselineView
-from piksi_tools.console.callback_prompt import CallbackPrompt, ok_button
 from piksi_tools.console.port_chooser import get_args_from_port_chooser
 from piksi_tools.console.deprecated import DeprecatedMessageHandler
 from piksi_tools.console.imu_view import IMUView
@@ -593,25 +592,13 @@ class SwiftConsole(HasTraits):
 
     def _json_logging_button_fired(self):
         if not os.path.exists(self.directory_name) and not self.json_logging:
-            confirm_prompt = CallbackPrompt(
-                title="Logging directory creation",
-                actions=[ok_button],
-                callback=self._json_logging_button_action)
-            confirm_prompt.text = "\nThe selected logging directory does not exist and will be created."
-            confirm_prompt.run(block=False)
-        else:
-            self._json_logging_button_action()
+            print("The selected logging directory does not exist and will be created.")
+        self._json_logging_button_action()
 
     def _csv_logging_button_fired(self):
         if not os.path.exists(self.directory_name) and not self.csv_logging:
-            confirm_prompt = CallbackPrompt(
-                title="Logging directory creation",
-                actions=[ok_button],
-                callback=self._csv_logging_button_action)
-            confirm_prompt.text = "\nThe selected logging directory does not exist and will be created."
-            confirm_prompt.run(block=False)
-        else:
-            self._csv_logging_button_action()
+            print("The selected logging directory does not exist and will be created.")
+        self._csv_logging_button_action()
 
     def __enter__(self):
         return self
