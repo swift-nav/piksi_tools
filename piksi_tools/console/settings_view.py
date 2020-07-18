@@ -540,13 +540,16 @@ class SettingsView(HasTraits):
 
         confirm_prompt2.run(block=False)
 
-    def _read_all_fail(self):
+    def _read_all_fail_gui(self):
         confirm_prompt = prompt.CallbackPrompt(
             title="Failed to read settings from device",
             actions=[prompt.close_button])
         confirm_prompt.text = "\n" \
             "  Check connection and refresh settings.  \n"
         confirm_prompt.run(block=False)
+
+    def _read_all_fail_text(self):
+        print("Failed to read settings from device: Check connection and refresh settings.\n")
 
     def _settings_unconfirm_all(self):
         # Clear the tabular editor
@@ -563,7 +566,10 @@ class SettingsView(HasTraits):
         settings_list = self.settings_api.read_all()
 
         if not settings_list:
-            self._read_all_fail()
+            if self.gui_mode:
+                self._read_all_fail_gui()
+            else:
+                self._read_all_fail_text()
             return
 
         idx = 0
@@ -795,10 +801,7 @@ class SettingsView(HasTraits):
 
     def finish_read(self):
         for cb in self.read_finished_functions:
-            if self.gui_mode:
-                GUI.invoke_later(cb)
-            else:
-                cb()
+            GUI.invoke_later(cb)
 
     # Callbacks for receiving messages
     def settings_display_setup(self, do_read_finished=True):
@@ -842,7 +845,7 @@ class SettingsView(HasTraits):
                  read_finished_functions=[],
                  name_of_yaml_file="settings.yaml",
                  expert=False,
-                 gui_mode=True,
+                 gui_mode=False,
                  skip_read=False):
         super(SettingsView, self).__init__()
         self.settings_api = Settings(link)
