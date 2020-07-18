@@ -56,11 +56,11 @@ from piksi_tools.console.spectrum_analyzer_view import SpectrumAnalyzerView
 from piksi_tools.console.system_monitor_view import SystemMonitorView
 from piksi_tools.console.tracking_view import TrackingView
 from piksi_tools.console.update_view import UpdateView
-from piksi_tools.console.utils import (EMPTY_STR, mode_dict, pos_mode_dict,
+from piksi_tools.console.utils import (EMPTY_STR, pos_mode_dict,
                                        rtk_mode_dict, ins_mode_dict,
                                        ins_type_dict, ins_error_dict,
                                        resource_filename, icon,
-                                       swift_path, DR_MODE, DIFFERENTIAL_MODES)
+                                       swift_path, DR_MODE, RTK_MODES)
 
 warnings.filterwarnings("ignore", ".*No message found for msg_type.")
 
@@ -487,38 +487,40 @@ class SwiftConsole(HasTraits):
         # a good connection and we should age out the data from the views
         if not self.solid_connection or self.driver_data_rate == 0:
             return
-
+        # -- grab current time to use in logic
+        current_time = monotonic()
         # --- determining which mode, llh or baseline, to show in the status bar ---
         llh_display_mode = "None"
         llh_num_sats = 0
-        llh_is_differential = False
+        llh_is_rtk = False
 
         baseline_display_mode = "None"
-        baseline_num_sats = 0
-        baseline_is_differential = False
 
         ins_status_string = EMPTY_STR
 
         # determine the latest llh solution mode
-        if self.solution_view:
+        if self.solution_view and (current_time -
+                                   self.solution_view.last_stime_update) < 1:
             llh_solution_mode = self.solution_view.last_pos_mode
             llh_display_mode = pos_mode_dict.get(llh_solution_mode, EMPTY_STR)
             if llh_solution_mode > 0 and self.solution_view.last_soln:
                 llh_num_sats = self.solution_view.last_soln.n_sats
-            llh_is_differential = (llh_solution_mode in DIFFERENTIAL_MODES)
+            llh_is_rtk = (llh_solution_mode in RTK_MODES)
             if getattr(self.solution_view, 'ins_used', False) and llh_solution_mode != DR_MODE:
                 llh_display_mode += "+INS"
 
         # determine the latest baseline solution mode
-        if self.baseline_view and self.settings_view and self.settings_view.dgnss_enabled():
+        if (self.baseline_view and self.settings_view and
+                self.settings_view.dgnss_enabled and (current_time - self.baseline_view.last_btime_update) < 1):
             baseline_solution_mode = self.baseline_view.last_mode
             baseline_display_mode = rtk_mode_dict.get(baseline_solution_mode, EMPTY_STR)
-            if baseline_solution_mode > 0 and self.baseline_view.last_soln:
-                baseline_num_sats = self.baseline_view.last_soln.n_sats
-            baseline_is_differential = (baseline_solution_mode in DIFFERENTIAL_MODES)
+
+        # if baseline solution mode is empty and POS mode is RTK, get the RTK mode from pos
+        if baseline_display_mode not in rtk_mode_dict.values() and llh_is_rtk:
+            baseline_display_mode = rtk_mode_dict.get(llh_solution_mode)
 
         # determine the latest INS mode
-        if self.solution_view and (monotonic() -
+        if self.solution_view and (current_time -
                                    self.solution_view.last_ins_status_receipt_time) < 1:
             ins_flags = self.solution_view.ins_status_flags
             ins_mode = ins_flags & 0x7
@@ -533,9 +535,10 @@ class SwiftConsole(HasTraits):
                 if odo_status == 1:
                     ins_status_string += "+Odo"
 
-       # get age of corrections from baseline view
+        # get age of corrections from baseline view
         if self.baseline_view:
-            if self.baseline_view.age_corrections is not None:
+            if (self.baseline_view.age_corrections is not None and
+                    (current_time - self.baseline_view.last_age_corr_receipt_time) < 1):
                 self.age_of_corrections = "{0} s".format(
                     self.baseline_view.age_corrections)
             else:
