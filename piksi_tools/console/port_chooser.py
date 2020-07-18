@@ -27,6 +27,8 @@ flow_control_options_list = ['None', 'Hardware RTS/CTS']
 cnx_type_list = ['Serial/USB', 'TCP/IP']
 
 BAUD_LIST = [57600, 115200, 230400, 921600, 1000000]
+DEFAULT_IP = '192.168.0.222'
+DEFAULT_PORT = 55555
 
 
 class PortChooser(HasTraits):
@@ -34,8 +36,8 @@ class PortChooser(HasTraits):
     ports = List()
     mode = Enum(cnx_type_list)
     flow_control = Enum(flow_control_options_list)
-    ip_port = Int(55555)
-    ip_address = Str('192.168.0.222')
+    ip_port = Int(DEFAULT_PORT)
+    ip_address = Str(DEFAULT_IP)
     choose_baud = Bool(True)
     baudrate = Int()
     refresh_ports_button = SVGButton(label='',
@@ -123,9 +125,15 @@ class PortChooser(HasTraits):
     def _refresh_ports_button_fired(self):
         self.refresh_ports()
 
-    def __init__(self, baudrate=None):
+    def __init__(self, baudrate=None, mode=None, ip_address=None, ip_port=None):
         self.refresh_ports()
-        # As default value, use the first city in the list:
+        if mode:
+            self.mode = mode
+        if ip_address:
+            self.ip_address = ip_address
+        if ip_port:
+            self.ip_port = ip_port
+        # As default value, use the first item in the list:
         try:
             self.port = self.ports[0]
         except IndexError:
@@ -137,7 +145,11 @@ class PortChooser(HasTraits):
 
 def get_args_from_port_chooser(args):
     # Use the gui to get our driver args
-    port_chooser = PortChooser(baudrate=int(args.baud))
+    # if args are passed, autopopulate what we can
+    mode = cnx_type_list[1] if args.tcp else cnx_type_list[0]
+    last_ip_address = args.port.split(":")[0] if args.port else DEFAULT_IP
+    last_port = args.port.split(":")[1] if args.port else DEFAULT_PORT
+    port_chooser = PortChooser(baudrate=int(args.baud), mode=mode, ip_address=last_ip_address, ip_port=int(last_port))
     is_ok = port_chooser.configure_traits()
     ip_address = port_chooser.ip_address
     ip_port = port_chooser.ip_port
