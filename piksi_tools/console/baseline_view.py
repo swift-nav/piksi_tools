@@ -209,6 +209,7 @@ class BaselineView(HasTraits):
             self.age_corrections = age_msg.age / 10.0
         else:
             self.age_corrections = None
+        self.last_age_corr_receipt_time = monotonic()
 
     def gps_time_callback(self, sbp_msg, **metadata):
         if sbp_msg.msg_type == SBP_MSG_GPS_TIME_DEP_A:
@@ -402,6 +403,7 @@ class BaselineView(HasTraits):
         self.num_hyps = 0
         self.last_hyp_update = 0
         self.last_btime_update = 0
+        self.last_age_corections_receipt_time = 0
         self.last_soln = None
         self.last_mode = 0
         self.last_plot_update_time = 0
