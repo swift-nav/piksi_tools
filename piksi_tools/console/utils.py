@@ -449,6 +449,21 @@ mode_dict = {
     SBAS_MODE: 'SBAS'
 }
 
+pos_mode_dict = {
+    NO_FIX_MODE: 'No Fix',
+    SPP_MODE: 'SPP',
+    DGNSS_MODE: 'DGPS',
+    FLOAT_MODE: 'RTK',
+    FIXED_MODE: 'RTK',
+    DR_MODE: 'DR',
+    SBAS_MODE: 'SBAS'
+}
+
+rtk_mode_dict = {
+    FLOAT_MODE: 'Float',
+    FIXED_MODE: 'Fixed',
+}
+
 
 AWAITING_INITIALIZATION = 0
 DYNAMICALLY_ALIGNING = 1
