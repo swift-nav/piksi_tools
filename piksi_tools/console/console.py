@@ -56,7 +56,8 @@ from piksi_tools.console.spectrum_analyzer_view import SpectrumAnalyzerView
 from piksi_tools.console.system_monitor_view import SystemMonitorView
 from piksi_tools.console.tracking_view import TrackingView
 from piksi_tools.console.update_view import UpdateView
-from piksi_tools.console.utils import (EMPTY_STR, mode_dict, ins_mode_dict,
+from piksi_tools.console.utils import (EMPTY_STR, mode_dict, pos_mode_dict,
+                                       rtk_mode_dict, ins_mode_dict,
                                        ins_type_dict, ins_error_dict,
                                        resource_filename, icon,
                                        swift_path, DR_MODE, DIFFERENTIAL_MODES)
@@ -181,7 +182,8 @@ class SwiftConsole(HasTraits):
 
   """
 
-    mode = Str('')
+    pos_mode = Str('')
+    rtk_mode = Str('')
     ins_status_string = Str('')
     num_sats_str = Str('')
     cnx_desc = Str('')
@@ -328,20 +330,26 @@ class SwiftConsole(HasTraits):
                     Spring(width=4, springy=False),
                     Item(
                         '',
-                        label='Interface:',
+                        label='Port:',
                         emphasized=True,
                         tooltip='Interface for communicating with Swift device'
                     ),
                     Item('cnx_desc', show_label=False, style='readonly'),
                     Item(
                         '',
-                        label='FIX TYPE:',
+                        label='Pos:',
                         emphasized=True,
-                        tooltip='Device Mode: SPS, Float RTK, Fixed RTK'),
-                    Item('mode', show_label=False, style='readonly'),
+                        tooltip='Device Position Mode: SPS, DGNSS, or RTK'),
+                    Item('pos_mode', show_label=False, style='readonly'),
                     Item(
                         '',
-                        label='#Sats:',
+                        label='RTK:',
+                        emphasized=True,
+                        tooltip='Device RTK Mode: Float or Fixed'),
+                    Item('rtk_mode', show_label=False, style='readonly'),
+                    Item(
+                        '',
+                        label='Sats:',
                         emphasized=True,
                         tooltip='Number of satellites used in solution'),
                     Item(
@@ -362,7 +370,7 @@ class SwiftConsole(HasTraits):
                         style='readonly'),
                     Item(
                         '',
-                        label='INS Status:',
+                        label='INS:',
                         emphasized=True,
                         tooltip='INS Status String'
                     ), Item(
@@ -459,21 +467,26 @@ class SwiftConsole(HasTraits):
 
     def check_heartbeat(self):
         # if our heartbeat hasn't changed since the last timer interval the connection must have dropped
-        if self.heartbeat_count == self.last_timer_heartbeat:
+        if self.heartbeat_count == self.last_timer_heartbeat and self.heartbeat_count != 0:
             self.solid_connection = False
             self.ins_status_string = "None"
-            self.mode = "None"
+            self.pos_mode = "None"
+            self.ins_mode = "None"
             self.num_sats_str = EMPTY_STR
+            self.last_timer_heartbeat = self.heartbeat_count
         else:
             self.solid_connection = True
-        self.last_timer_heartbeat = self.heartbeat_count
+            self.last_timer_heartbeat = self.heartbeat_count
+
         bytes_diff = self.driver.bytes_read_since(self.last_driver_bytes_read)
         # 1024 bytes per KiloByte
         self.driver_data_rate = "{0:.2f} KB/s".format((bytes_diff) / (HEARTBEAT_CHECK_PERIOD_SECONDS * 1024))
         self.last_driver_bytes_read = self.driver.total_bytes_read
 
-    def update_on_heartbeat(self, sbp_msg, **metadata):
-        self.heartbeat_count += 1
+        # if we aren't getting heartbeats and we have at some point gotten heartbeats, we don't have
+        # a good connection and we should age out the data from the views
+        if not self.solid_connection or self.driver_data_rate == 0:
+            return
 
         # --- determining which mode, llh or baseline, to show in the status bar ---
         llh_display_mode = "None"
@@ -484,10 +497,12 @@ class SwiftConsole(HasTraits):
         baseline_num_sats = 0
         baseline_is_differential = False
 
+        ins_status_string = EMPTY_STR
+
         # determine the latest llh solution mode
         if self.solution_view:
             llh_solution_mode = self.solution_view.last_pos_mode
-            llh_display_mode = mode_dict.get(llh_solution_mode, EMPTY_STR)
+            llh_display_mode = pos_mode_dict.get(llh_solution_mode, EMPTY_STR)
             if llh_solution_mode > 0 and self.solution_view.last_soln:
                 llh_num_sats = self.solution_view.last_soln.n_sats
             llh_is_differential = (llh_solution_mode in DIFFERENTIAL_MODES)
@@ -497,7 +512,7 @@ class SwiftConsole(HasTraits):
         # determine the latest baseline solution mode
         if self.baseline_view and self.settings_view and self.settings_view.dgnss_enabled():
             baseline_solution_mode = self.baseline_view.last_mode
-            baseline_display_mode = mode_dict.get(baseline_solution_mode, EMPTY_STR)
+            baseline_display_mode = rtk_mode_dict.get(baseline_solution_mode, EMPTY_STR)
             if baseline_solution_mode > 0 and self.baseline_view.last_soln:
                 baseline_num_sats = self.baseline_view.last_soln.n_sats
             baseline_is_differential = (baseline_solution_mode in DIFFERENTIAL_MODES)
@@ -517,16 +532,19 @@ class SwiftConsole(HasTraits):
                 ins_status_string += ins_mode_dict.get(ins_mode, "unk")
                 if odo_status == 1:
                     ins_status_string += "+Odo"
-            self.ins_status_string = ins_status_string
 
-        # select the solution mode displayed in the status bar:
-        # * baseline if it's a differential solution but llh isn't
-        # * otherwise llh (also if there is no solution, in which both are "None")
-        if baseline_is_differential and not(llh_is_differential):
-            self.mode = baseline_display_mode
-            self.num_sats_str = "{}".format(baseline_num_sats)
-        else:
-            self.mode = llh_display_mode
+       # get age of corrections from baseline view
+        if self.baseline_view:
+            if self.baseline_view.age_corrections is not None:
+                self.age_of_corrections = "{0} s".format(
+                    self.baseline_view.age_corrections)
+            else:
+                self.age_of_corrections = EMPTY_STR
+
+        # populate modes and #sats on status bar
+            self.ins_status_string = ins_status_string
+            self.rtk_mode = baseline_display_mode
+            self.pos_mode = llh_display_mode
             self.num_sats_str = "{}".format(llh_num_sats)
 
         # --- end of status bar mode determination section ---
@@ -535,12 +553,9 @@ class SwiftConsole(HasTraits):
             self.settings_view.lat = self.solution_view.latitude
             self.settings_view.lon = self.solution_view.longitude
             self.settings_view.alt = self.solution_view.altitude
-        if self.baseline_view:
-            if self.baseline_view.age_corrections is not None:
-                self.age_of_corrections = "{0} s".format(
-                    self.baseline_view.age_corrections)
-            else:
-                self.age_of_corrections = EMPTY_STR
+
+    def update_on_heartbeat(self, sbp_msg, **metadata):
+        self.heartbeat_count += 1
 
     def _csv_logging_button_action(self):
         if self.csv_logging and self.baseline_view.logging_b and self.solution_view.logging_p and self.solution_view.logging_v:
