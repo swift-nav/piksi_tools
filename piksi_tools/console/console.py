@@ -98,6 +98,10 @@ def get_args():
         action='store_true',
         help="Log console stdout/err to file.")
     parser.add_argument(
+        '--show-csv-log',
+        action='store_true',
+        help="Show CSV logging button.")
+    parser.add_argument(
         '-h',
         '--help',
         action='store_true',
@@ -183,6 +187,7 @@ class SwiftConsole(HasTraits):
     directory_name = Directory
     json_logging = Bool(True)
     csv_logging = Bool(False)
+    show_csv_log = Bool(False)
     cnx_icon = Str('')
     heartbeat_count = Int()
     last_timer_heartbeat = Int()
@@ -282,6 +287,7 @@ class SwiftConsole(HasTraits):
                             'csv_logging_button',
                             emphasized=True,
                             show_label=False,
+                            visible_when='show_csv_log',
                             width=12,
                             height=-30,
                             padding=0),
@@ -616,6 +622,7 @@ class SwiftConsole(HasTraits):
                  error=False,
                  cnx_desc=None,
                  json_logging=False,
+                 show_csv_log=False,
                  log_dirname=None,
                  override_filename=None,
                  log_console=False,
@@ -625,6 +632,7 @@ class SwiftConsole(HasTraits):
         self.error = error
         self.cnx_desc = cnx_desc
         self.connection_info = connection_info
+        self.show_csv_log = show_csv_log
         self.dev_id = cnx_desc
         self.num_sats_str = EMPTY_STR
         self.mode = ''
@@ -963,6 +971,7 @@ def main():
                 cnx_desc=cnx_data.description,
                 error=args.error,
                 json_logging=args.log,
+                show_csv_log=args.show_csv_log,
                 log_dirname=args.log_dirname,
                 override_filename=args.logfilename,
                 log_console=args.log_console,
