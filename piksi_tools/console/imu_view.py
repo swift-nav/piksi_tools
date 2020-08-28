@@ -86,6 +86,9 @@ class IMUView(HasTraits):
         if sbp_msg.imu_type == 0:
             self.imu_temp = 23 + sbp_msg.temp / 2. ** 9
             self.imu_conf = sbp_msg.imu_conf
+        elif sbp_msg.imu_type == 1:
+            self.imu_temp = 25.0 + sbp_msg.temp / 256.0
+            self.imu_conf = sbp_msg.imu_conf
         else:
             print("IMU type %d not known" % sbp_msg.imu_type)
 
