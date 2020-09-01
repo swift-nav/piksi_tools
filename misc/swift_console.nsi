@@ -49,6 +49,7 @@ inst:
   CreateDirectory "$SMPROGRAMS\Swift Navigation"
   CreateShortCut "$SMPROGRAMS\Swift Navigation\Swift Console.lnk" "$INSTDIR\console.exe"
   CreateShortCut "$SMPROGRAMS\Swift Navigation\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
+  CreateShortCut "$INSTDIR\README.txt" "$INSTDIR\piksi_tools\console\README.txt"
 
   ;create desktop shortcut
   CreateShortCut "$DESKTOP\Swift Console.lnk" "$INSTDIR\console.exe" ""
