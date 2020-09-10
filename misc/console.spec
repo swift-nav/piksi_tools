@@ -9,7 +9,7 @@ from PyInstaller.utils.hooks import collect_data_files
 # collect the package_data of piksi_tools.
 # This allows us to use pack
 datas = collect_data_files('piksi_tools')
-datas.append(('piksi_tools/console/README.txt', '.'))
+datas.append(('../piksi_tools/console/README.txt', '.'))
 
 resources = [
   ('configure_udev_rules.sh', 'tasks/configure_udev_rules.sh', 'DATA'),
