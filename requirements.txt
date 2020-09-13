@@ -11,7 +11,7 @@ pygments==2.2.0
 requests~=2.20.0
 six==1.13.0
 libsettings==0.1.12
-git+git://github.com/swift-nav/libsbp@3a2217935450ec8361afa726bfd4bf6dc5e8b4ee#egg=sbp
+git+git://github.com/swift-nav/libsbp@3a2217935450ec8361afa726bfd4bf6dc5e8b4ee#egg=sbp&subdirectory=python
 ruamel.yaml==0.15.87
 setuptools==41.0.1
 setuptools_scm==3.1.0
