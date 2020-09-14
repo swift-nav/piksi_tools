@@ -143,6 +143,17 @@ class ConsoleHandler(Handler):
             info.ui.title = (info.object.dev_id +
                              "(" + info.object.device_serial + ") " + CONSOLE_TITLE)
 
+    def object_dev_id_changed(self, info):
+        """
+        Update the window title with the dev_id.
+
+        This is a magic method called by the handler in response to any changes in
+        the `device_id` variable in the underlying class. Will only be called if
+        object_device_serial_changed hasn't been called
+        """
+        if info.ui.title.find(info.object.dev_id) == -1:
+            info.ui.title = (info.object.dev_id + " " + CONSOLE_TITLE)
+
 
 class SwiftConsole(HasTraits):
     """Traits-defined Swift Console.
