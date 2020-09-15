@@ -9,12 +9,17 @@
 # EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 
+import json
 import os
+
 import requests
+
 from six.moves.urllib.parse import urlparse
 
 from piksi_tools.utils import sopen
 from piksi_tools.console.utils import swift_path
+
+
 INDEX_URL = 'https://s3-us-west-1.amazonaws.com/downloads.swiftnav.com/index_https.json'
 
 
@@ -26,7 +31,7 @@ class UpdateDownloader:
             f.raise_for_status()
             self.root_dir = root_dir
             f.close()
-        except requests.ConnectionError as ce:
+        except (requests.ConnectionError, json.decoder.JSONDecodeError) as ce:
             self.index = None
             raise RuntimeError("Unable to download index from {0}.".format(INDEX_URL))
             return
