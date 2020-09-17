@@ -161,11 +161,11 @@ def build_win():
     nsis = 'C:\\Program Files (x86)\\NSIS\\makensis.exe'
 
     fname = 'swift_console_{}_windows.exe'.format(version)
-    installer_path = '../dist/{}'.format(fname)
+    installer_path = 'dist/{}'.format(fname)
 
     check_call([
         nsis,
-        '-XOutfile {}'.format(installer_path),
+        '-XOutfile ../{}'.format(installer_path),
         'misc/swift_console.nsi'
     ])
 
