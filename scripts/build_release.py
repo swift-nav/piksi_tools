@@ -15,13 +15,13 @@ from six.moves import reload_module
 BIONIC_DOCKER_TAG = 'swiftnav/piksi-tools-bionic:2019.06.20'
 S3_BUCKET = 'swiftnav-artifacts'
 
-appveyor_pr = os.environ.get("APPVEYOR_PULL_REQUEST_NUMBER", "")
-travis_pr = os.environ.get("TRAVIS_PULL_REQUEST", "false")
+APPVEYOR_PR = os.environ.get("APPVEYOR_PULL_REQUEST_NUMBER", "")
+TRAVIS_PR = os.environ.get("TRAVIS_PULL_REQUEST", "false")
 
-if (appveyor_pr != "" or travis_pr != "false"):
+if (APPVEYOR_PR != "" or TRAVIS_PR != "false"):
     S3_BUCKET = 'swiftnav-artifacts-pull-requests'
 
-print("S3_BUCKET: {} (APPVEYOR_PULL_REQUEST_NUMBER: {}, TRAVIS_PULL_REQUEST: {})".format(S3_BUCKET, appveyor_pr, travis_pr))
+print("S3_BUCKET: {} (APPVEYOR_PULL_REQUEST_NUMBER: {}, TRAVIS_PULL_REQUEST: {})".format(S3_BUCKET, APPVEYOR_PR, TRAVIS_PR))
 
 
 def maybe_remove(path):
@@ -171,6 +171,10 @@ def build_win():
         '-XOutfile ../{}'.format(installer_path),
         'misc/swift_console.nsi'
     ])
+
+    if APPVEYOR_PR:
+        print("skipping upload to AWS for AppVeyor PR (secure variable are not decrypted in PRs: https://www.appveyor.com/docs/how-to/secure-files)")
+        return
 
     check_call(['where', 'aws'])
 
