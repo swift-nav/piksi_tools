@@ -12,7 +12,6 @@ environment:
       PYTHON_VERSION: 3.5
       PYTHON_ARCH: 32
 
-
 cache:
   # Cache downloaded pip packages and built wheels.
   - '%LOCALAPPDATA%\pip\Cache\http'
@@ -29,7 +28,7 @@ install:
   - SET PYTHONPATH=.
   - python --version
   # Upgrade to the latest pip.
-  - '%CMD_IN_ENV% python -m pip install -U pip setuptools wheel tox'
+  - '%CMD_IN_ENV% python -m pip install -U pip setuptools wheel tox awscli'
   - powershell .\\tasks\\missing-headers.ps1
   - '%CMD_IN_ENV% python scripts\build_release.py'
 

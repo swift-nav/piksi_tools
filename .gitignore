@@ -86,3 +86,5 @@ swift_nap_*.hex
 # Conda
 .conda_py27
 .conda_py35
+
+.*.sw?
