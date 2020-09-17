@@ -15,10 +15,13 @@ from six.moves import reload_module
 BIONIC_DOCKER_TAG = 'swiftnav/piksi-tools-bionic:2019.06.20'
 S3_BUCKET = 'swiftnav-artifacts'
 
-if (os.environ.get("APPVEYOR_PULL_REQUEST_NUMBER", "") != "" or
-    os.environ.get("TRAVIS_PULL_REQUEST", "false") != "false"):
+appveyor_pr = os.environ.get("APPVEYOR_PULL_REQUEST_NUMBER", "")
+travis_pr = os.environ.get("TRAVIS_PULL_REQUEST", "false")
+
+if (appveyor_pr != "" or travis_pr != "false"):
     S3_BUCKET = 'swiftnav-artifacts-pull-requests'
-    pass
+
+print("S3_BUCKET: {} (APPVEYOR_PULL_REQUEST_NUMBER: {}, TRAVIS_PULL_REQUEST: {})".format(S3_BUCKET, appveyor_pr, travis_pr))
 
 
 def maybe_remove(path):
