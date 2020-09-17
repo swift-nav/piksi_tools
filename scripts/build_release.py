@@ -193,7 +193,7 @@ def build_cli_tools(plat):
     if not plat.startswith('win'):
         with zipfile.ZipFile(fname, 'w') as ziph:
             zipdir(out, ziph)
-        s3_path = 's3://{}/{}/{}/{}'.format(S3_BUCKET, version, plat, fname)
+        s3_path = 's3://{}/piksi_tools/{}/{}/{}'.format(S3_BUCKET, version, plat, fname)
         print(">>> Uploading to {}".format(s3_path))
         check_call(['aws', 's3', 'cp', fname, s3_path])
 
@@ -206,6 +206,7 @@ def main():
     elif plat.startswith('darwin'):
         build_macos()
     elif plat.startswith('win'):
+        plat = "windows"
         build_win()
     build_cli_tools(plat)
 
