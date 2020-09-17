@@ -13,7 +13,12 @@ from subprocess import check_call, check_output, CalledProcessError
 from six.moves import reload_module
 
 BIONIC_DOCKER_TAG = 'swiftnav/piksi-tools-bionic:2019.06.20'
-S3_BUCKET = 'console-ci-builds'
+S3_BUCKET = 'swiftnav-artifacts'
+
+if (os.environ.get("APPVEYOR_PULL_REQUEST_NUMBER", "") != "" or
+    os.environ.get("TRAVIS_PULL_REQUEST", "false") != "false"):
+    S3_BUCKET = 'swiftnav-artifacts-pull-requests'
+    pass
 
 
 def maybe_remove(path):
@@ -49,10 +54,10 @@ def build(env):
 
 def build_linux():
 
-    print('>>> Building console for Generic Linux')
+    print('>>> Building console for Legacy Linux (Ubuntu 16.04)')
 
     out_pyi, version = build('pyinstaller-linux')
-    out_dist = os.path.join('dist', 'swift_console_{}_linux'.format(version))
+    out_dist = os.path.join('dist', 'swift_console_{}_linux_legacy'.format(version))
     out = os.path.join(os.getcwd(), out_dist)
     maybe_remove(out)
 
@@ -64,7 +69,7 @@ def build_linux():
 
     fname = '{}.tar.gz'.format(out)
 
-    print('>>> Creating tar archive Generic Linux')
+    print('>>> Creating tar archive Legacy Linux (Ubuntu 16.04)')
     with tarfile.open(fname, 'w:gz') as tar:
         tar.add(out, arcname=os.path.basename(out))
 
@@ -72,7 +77,7 @@ def build_linux():
     print(os.listdir("dist"))
 
     s3_fname = "{}.tar.gz".format(os.path.basename(out_dist))
-    s3_path = 's3://{}/{}/linux_generic/{}'.format(S3_BUCKET, version, s3_fname)
+    s3_path = 's3://{}/piksi_tools/{}/linux_legacy/{}'.format(S3_BUCKET, version, s3_fname)
 
     print(">>> Uploading to {}".format(s3_path))
     check_call(['aws', 's3', 'cp', fname, s3_path])
@@ -81,7 +86,7 @@ def build_linux():
 
 def build_linux_bionic():
 
-    print('>>> Building console for Ubuntu Bionic (18.04)')
+    print('>>> Building console for Linux (Ubuntu 18.04)')
 
     cwd = os.getcwd()
     check_call(['docker', 'run', '-e', 'AWS_SECRET_ACCESS_KEY', '-e', 'AWS_ACCSS_KEY_ID', '-e', 'AWS_DEFAULT_REGION',
@@ -91,7 +96,7 @@ def build_linux_bionic():
     version = get_version()
     print("build version:", version)
 
-    out_dist = os.path.join('dist', 'swift_console_{}_ubuntu1804'.format(version))
+    out_dist = os.path.join('dist', 'swift_console_{}_linux'.format(version))
     out = os.path.join(os.getcwd(), out_dist)
     out_pyi = os.path.join(os.getcwd(), os.path.join('dist', 'console'))
 
@@ -113,7 +118,7 @@ def build_linux_bionic():
     print(os.listdir("dist"))
 
     s3_fname = "{}.tar.gz".format(os.path.basename(out_dist))
-    s3_path = 's3://{}/{}/linux_ubuntu_1804/{}'.format(S3_BUCKET, version, s3_fname)
+    s3_path = 's3://{}/piksi_tools/{}/linux/{}'.format(S3_BUCKET, version, s3_fname)
 
     print(">>> Uploading to {}".format(s3_path))
     check_call(['aws', 's3', 'cp', fname, s3_path])
@@ -137,7 +142,7 @@ def build_macos():
     print(">>> Verify AWS CLI tool is in path")
     check_call(['command', '-v', 'aws'])
 
-    s3_path = 's3://{}/{}/darwin/{}'.format(S3_BUCKET, version, fname)
+    s3_path = 's3://{}/piksi_tools/{}/darwin/{}'.format(S3_BUCKET, version, fname)
 
     print(">>> Uploading to {}".format(s3_path))
     check_call(['aws', 's3', 'cp', dmg_rel_path, s3_path])
@@ -155,11 +160,22 @@ def build_win():
 
     nsis = 'C:\\Program Files (x86)\\NSIS\\makensis.exe'
 
+    fname = 'swift_console_{}_windows.exe'.format(version)
+    installer_path = '../dist/{}'.format(fname)
+
     check_call([
         nsis,
-        '-XOutfile ../dist/swift_console_{}_windows.exe'.format(version),
+        '-XOutfile {}'.format(installer_path),
         'misc/swift_console.nsi'
     ])
+
+    check_call(['where', 'aws'])
+
+    s3_path = 's3://{}/piksi_tools/{}/windows/{}'.format(S3_BUCKET, version, fname)
+
+    print(">>> Uploading to {}".format(s3_path))
+    check_call(['aws', 's3', 'cp', dmg_rel_path, s3_path])
+
 
 def zipdir(path, ziph):
     # https://stackoverflow.com/questions/1855095/how-to-create-a-zip-archive-of-a-directory-in-python
@@ -167,6 +183,7 @@ def zipdir(path, ziph):
         for file in files:
             arcname = os.path.relpath(os.path.join(root, file), os.path.join(path, '..')) 
             ziph.write(os.path.join(root, file), arcname)
+
 
 def build_cli_tools(plat):
     version = get_version()
@@ -179,6 +196,7 @@ def build_cli_tools(plat):
         s3_path = 's3://{}/{}/{}/{}'.format(S3_BUCKET, version, plat, fname)
         print(">>> Uploading to {}".format(s3_path))
         check_call(['aws', 's3', 'cp', fname, s3_path])
+
 
 def main():
     plat = sys.platform
