@@ -125,7 +125,7 @@ def build_linux_bionic():
 
 
 def build_macos():
-    out, version = build('pyinstaller-macos')
+    _out, version = build('pyinstaller-macos')
     fname = 'swift_console_{}_macos.dmg'.format(version)
     check_call([
         'sudo',
@@ -174,7 +174,7 @@ def build_win():
     s3_path = 's3://{}/piksi_tools/{}/windows/{}'.format(S3_BUCKET, version, fname)
 
     print(">>> Uploading to {}".format(s3_path))
-    check_call(['aws', 's3', 'cp', dmg_rel_path, s3_path])
+    check_call(['aws', 's3', 'cp', installer_path, s3_path])
 
 
 def zipdir(path, ziph):
