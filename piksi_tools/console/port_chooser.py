@@ -26,7 +26,7 @@ from piksi_tools.console.utils import resource_filename, icon
 flow_control_options_list = ['None', 'Hardware RTS/CTS']
 cnx_type_list = ['Serial/USB', 'TCP/IP']
 
-BAUD_LIST = [57600, 115200, 230400, 921600, 1000000]
+BAUD_LIST = [57600, 115200, 230400, 460800, 921600, 1000000]
 
 
 class PortChooser(HasTraits):
