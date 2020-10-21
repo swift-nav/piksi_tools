@@ -32,6 +32,7 @@ from sbp.navigation import (
     MsgGPSTimeDepA, MsgPosLLH, MsgPosLLHDepA, MsgUtcTime, MsgVelNED,
     MsgVelNEDDepA)
 from sbp.system import SBP_MSG_INS_STATUS, MsgInsStatus
+from sbp.system import SBP_MSG_INS_UPDATES, MsgInsUpdates
 from traits.api import (Bool, Dict, File, HasTraits, Instance, Int, Float, List,
                         Str, Enum)
 from traitsui.api import (HGroup, HSplit, Item, TabularEditor, TextEditor,
@@ -565,6 +566,12 @@ class SolutionView(HasTraits):
         self.ins_status_flags = status.flags
         self.last_ins_status_receipt_time = monotonic()
 
+    def ins_update_callback(self, sbp_msg, **metadata):
+        ins_updates = MsgInsUpdates(sbp_msg)
+        tic = ins_updates.wheelticks
+        if ((tic & 0xF0) >> 4) > (tic & 0x0F):
+            self.last_odo_update_time = monotonic()
+
     def vel_ned_callback(self, sbp_msg, **metadata):
         flags = 0
         if sbp_msg.msg_type == SBP_MSG_VEL_NED_DEP_A:
@@ -661,6 +668,7 @@ class SolutionView(HasTraits):
         self.sf = (1, 1)
         self.list_lock = threading.Lock()
         self.scaling_lock = threading.Lock()
+        self.last_odo_update_time = 0
         self.slns = {'lat_spp': deque(maxlen=PLOT_HISTORY_MAX),
                      'lng_spp': deque(maxlen=PLOT_HISTORY_MAX),
                      'alt_spp': deque(maxlen=PLOT_HISTORY_MAX),
@@ -893,6 +901,7 @@ class SolutionView(HasTraits):
         self.link.add_callback(self.pos_llh_callback, [SBP_MSG_POS_LLH_DEP_A, SBP_MSG_POS_LLH])
         self.link.add_callback(self.ins_status_callback, [SBP_MSG_INS_STATUS])
         self.link.add_callback(self.vel_ned_callback, [SBP_MSG_VEL_NED_DEP_A, SBP_MSG_VEL_NED])
+        self.link.add_callback(self.ins_update_callback, [SBP_MSG_INS_UPDATES])
         self.link.add_callback(self.dops_callback, [SBP_MSG_DOPS_DEP_A, SBP_MSG_DOPS])
         self.link.add_callback(self.gps_time_callback, [SBP_MSG_GPS_TIME_DEP_A, SBP_MSG_GPS_TIME])
         self.link.add_callback(self.utc_time_callback, [SBP_MSG_UTC_TIME])
