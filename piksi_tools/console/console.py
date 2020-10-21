@@ -542,6 +542,11 @@ class SwiftConsole(HasTraits):
             ins_mode = ins_flags & 0x7
             ins_type = (ins_flags >> 29) & 0x7
             odo_status = (ins_flags >> 8) & 0x3
+            # ins_status has bug in odo.
+            # If it says no odo, check if we have had tics in last 10 seconds from INS_UPDATES
+            if odo_status != 1:
+                if (current_time - self.solution_view.last_odo_update_time) < 10:
+                    odo_status = 1
             ins_error = (ins_flags >> 4) & 0xF
             if ins_error != 0:
                 ins_status_string = ins_error_dict.get(ins_error, "Unk Error")
