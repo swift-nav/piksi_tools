@@ -11,7 +11,7 @@ pygments==2.2.0
 requests~=2.20.0
 six==1.13.0
 libsettings==0.1.12
-sbp~=3.4.1
+sbp~=3.4.4
 ruamel.yaml==0.15.87
 setuptools==41.0.1
 setuptools-scm==3.3.3
