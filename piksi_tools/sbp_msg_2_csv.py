@@ -22,34 +22,40 @@ metadata_slots = ['time']
 
 def get_list_of_columns(msgClass, metadata):
     if metadata:
-        return metadata_slots + base_class_slots + msgClass.__slots__
+        return (metadata_slots, base_class_slots, msgClass.__slots__)
     else:
-        return base_class_slots + msgClass.__slots__
+        return ([], base_class_slots, msgClass.__slots__)
 
 
 class MsgExtractor(object):
     def __init__(self, outfile, msgClass, metadata=False):
         self.msgClass = msgClass
         self.outfile = outfile
-        self.columns = get_list_of_columns(self.msgClass, metadata)
-        print("selected columns are:\n    {}".format("\n    ".join(self.columns)))
-        self.outfile.write(",".join(self.columns) + "\n")
+        self.metadata_columns, self.base_class_slots, self.msg_slots = get_list_of_columns(self.msgClass, metadata)
+        columns = self.metadata_columns + self.base_class_slots + self.msg_slots
+        headers = []
+        for i, col in enumerate(columns):
+            if col not in headers:
+                headers.append(col)
+            else:
+                headers.append(col + str(headers.count(col)))
+        print("selected columns are:\n    {}".format("\n    ".join(headers)))
+        self.outfile.write(",".join(headers) + "\n")
 
     def _callback(self, msg, metadata):
         msg_object = self.msgClass(msg)
         outstringlist = []
-        for each in self.columns:
-            if each in base_class_slots:
-                outstringlist.append("{0}".format(getattr(msg, each)))
-            elif each in metadata_slots:
-                outstringlist.append("{0}".format(metadata.get(each)))
+        for each in self.metadata_columns:
+            outstringlist.append("{0}".format(metadata.get(each)))
+        for each in self.base_class_slots:
+            outstringlist.append("{0}".format(getattr(msg, each)))
+        for each in self.msg_slots:
+            attr = getattr(msg_object, each)
+            if isinstance(attr, construct.lib.ListContainer):
+                for list_element in attr:
+                    outstringlist.append("{0}".format(list_element))
             else:
-                attr = getattr(msg_object, each)
-                if isinstance(attr, construct.lib.ListContainer):
-                    for list_element in attr:
-                        outstringlist.append("{0}".format(list_element))
-                else:
-                    outstringlist.append("{0}".format(attr))
+                outstringlist.append("{0}".format(attr))
         self.outfile.write(",".join(outstringlist) + "\n")
 
 
@@ -90,12 +96,12 @@ def main():
             if my_class.__name__ == args.type or (args.id and my_id == int(args.id)):
                 msg_class = my_class
                 msg_id = my_id
+        assert msg_class is not None, "Invalid message type specified"
         outfile = msg_class.__name__
         if args.outfile:
             outfile += "_" + args.outfile
         outfile += ".csv"
-        assert msg_class is not None, "Invalid message type specified"
-        print("Extracing class {} with msg_id {} to csv file {}".format(my_class, my_id, outfile))
+        print("Extracing class {} with msg_id {} to csv file {}".format(msg_class, msg_id, outfile))
         with open(outfile, 'w+') as outfp:
             conv = MsgExtractor(outfp, msg_class, metadata=json)
             while True:
