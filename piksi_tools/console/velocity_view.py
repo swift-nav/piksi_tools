@@ -18,6 +18,8 @@ from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
 from sbp.navigation import SBP_MSG_VEL_NED
+from sbp.vehicle import SBP_MSG_ODOMETRY
+from sbp.vehicle import SBP_MSG_WHEELTICK
 from traits.api import Dict, HasTraits, Instance, Enum
 from traitsui.api import HGroup, Item, VGroup, View, Spring
 
@@ -25,7 +27,7 @@ from .gui_utils import GUI_UPDATE_PERIOD, UpdateScheduler
 NUM_POINTS = 200
 MPS2MPH = 2.236934
 MPS2KPH = 3.6
-velocity_units_list = ['m/s', 'mph', 'kph']
+velocity_units_list = ['odo', 'tic', 'freq']
 
 colors_list = [
     0xE41A1C,
@@ -46,7 +48,7 @@ class VelocityView(HasTraits):
                 Spring(width=-3, height=8, springy=False),
                 Spring(springy=False, width=135),
                 Item('velocity_units',
-                     label="Display Units"),
+                     label="ODO or TIC?"),
                 padding=0),
             Item(
                 'plot',
@@ -56,51 +58,57 @@ class VelocityView(HasTraits):
         )
     )
 
-    def _velocity_units_changed(self):
-        if self.velocity_units == 'm/s':
-            self.vel_sf = 1.0
-        elif self.velocity_units == 'mph':
-            self.vel_sf = MPS2MPH
-        elif self.velocity_units == 'kph':
-            self.vel_sf = MPS2KPH
-        self.plot.value_axis.title = self.velocity_units
-
     def update_plot(self):
         self.last_plot_update_time = monotonic()
-        self.plot_data.set_data('v_h', self.v_h * self.vel_sf)
-        self.plot_data.set_data('v_z', self.v_z * self.vel_sf)
-        if any(self.t == 0):
-            pass
-        else:
-            self.plot_data.set_data('t', self.t)
+        if self.velocity_units == 'odo':
+            self.plot_data.set_data('val', self.odo)
+            #t = self.t_odo
+        if self.velocity_units == "tic":
+            self.plot_data.set_data('val', self.tic)
+            #t = self.t_tic
+        if self.velocity_units == "freq":
+            self.plot_data.set_data('val', self.tic_freq)
 
-    def vel_ned_callback(self, sbp_msg, **metadata):
-        if sbp_msg.flags != 0:
-            memoryview(self.v_h)[:-1] = memoryview(self.v_h)[1:]
-            memoryview(self.v_z)[:-1] = memoryview(self.v_z)[1:]
-            memoryview(self.t)[:-1] = memoryview(self.t)[1:]
-            self.v_h[-1] = np.sqrt(sbp_msg.n * sbp_msg.n + sbp_msg.e * sbp_msg.e) / 1000.0
-            self.v_z[-1] = -sbp_msg.d / 1000.0
-            self.t[-1] = sbp_msg.tow / 1000.0
+    def odo_callback(self, sbp_msg, **metadata):
+        memoryview(self.odo)[:-1] = memoryview(self.odo)[1:]
+        memoryview(self.t_odo)[:-1] = memoryview(self.t_odo)[1:]
+        self.odo[-1] = sbp_msg.velocity
+        self.t_odo[-1] = sbp_msg.tow / 1000.0
 
         if monotonic() - self.last_plot_update_time < GUI_UPDATE_PERIOD:
             return
         self.update_scheduler.schedule_update('update_plot', self.update_plot)
+        self.last_plot_update_time = monotonic()
+    
+    def tic_callback(self, sbp_msg, **metadata):
+        memoryview(self.tic)[:-1] = memoryview(self.tic)[1:]
+        memoryview(self.t_tic)[:-1] = memoryview(self.t_tic)[1:]
+        memoryview(self.tic_freq)[:-1] = memoryview(self.tic_freq)[1:]
+        self.tic[-1] = sbp_msg.ticks
+        self.t_tic[-1] = sbp_msg.time / 1000000.0
+        if np.isfinite(self.t_tic).all():
+          self.tic_freq[-1] = (self.tic[-1] - self.tic[-2])/(self.t_tic[-1] - self.t_tic[-2])
+
+        if monotonic() - self.last_plot_update_time < GUI_UPDATE_PERIOD:
+            return
+        self.update_scheduler.schedule_update('update_plot', self.update_plot)
+        self.last_plot_update_time = monotonic()
 
     def __init__(self, link):
         super(VelocityView, self).__init__()
-        self.velocity_units = 'm/s'
+        self.velocity_units = "tic"
         self.vel_sf = 1.0
-        self.v_h = np.zeros(NUM_POINTS)
-        self.v_z = np.zeros(NUM_POINTS)
-        self.t = np.zeros(NUM_POINTS)
+        self.odo = np.zeros(NUM_POINTS)
+        self.t_odo = np.zeros(NUM_POINTS)
+        self.tic = np.zeros(NUM_POINTS)
+        self.t_tic = np.zeros(NUM_POINTS)
+        self.tic_freq = np.zeros(NUM_POINTS)
 
         self.last_plot_update_time = 0
 
         self.plot_data = ArrayPlotData(
             t=np.arange(NUM_POINTS),
-            v_h=[0.0],
-            v_z=[0.0]
+            val=[0.0]
         )
         self.plot = Plot(
             self.plot_data, auto_colors=colors_list, emphasized=True)
@@ -129,12 +137,11 @@ class VelocityView(HasTraits):
         self.plot.padding_right = 60
 
         vel_h = self.plot.plot(
-            ('t', 'v_h'), type='line', color='auto', name='Horizontal')
-        vel_v = self.plot.plot(
-            ('t', 'v_z'), type='line', color='auto', name='Vertical')
+            ('t', 'val'), type='line', color='auto', name='value')
 
         self.link = link
-        self.link.add_callback(self.vel_ned_callback, SBP_MSG_VEL_NED)
+        self.link.add_callback(self.odo_callback, SBP_MSG_ODOMETRY)
+        self.link.add_callback(self.tic_callback, SBP_MSG_WHEELTICK)
 
         self.python_console_cmds = {'vel': self}
 
