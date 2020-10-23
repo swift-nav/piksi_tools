@@ -19,7 +19,7 @@ from traits.api import Dict, HasTraits, Int, Float, List, Bool
 from traits.etsconfig.api import ETSConfig
 from traitsui.api import HGroup, Item, TabularEditor, VGroup, View
 from piksi_tools.console.gui_utils import ReadOnlyTabularAdapter
-
+from piksi_tools.utils import call_repeatedly
 from .utils import resource_filename
 
 if ETSConfig.toolkit != 'null':
@@ -225,5 +225,6 @@ class SystemMonitorView(HasTraits):
                                SBP_MSG_CSAC_TELEMETRY)
         self.link.add_callback(self.csac_header_callback,
                                SBP_MSG_CSAC_TELEMETRY_LABELS)
+        call_repeatedly(2.0, self.heartbeat_callback, None)
 
         self.python_console_cmds = {'mon': self}
