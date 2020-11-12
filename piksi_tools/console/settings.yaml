@@ -2352,6 +2352,19 @@
                default address is used.
   Notes: The OTA daemon must be disabled in order to change this setting.
 
+- group: system
+  name: heading_forward
+  type: boolean 
+  expert: false 
+  default value: false
+  readonly: false
+  units: N/A
+  Description: Resend any SBP_MSG_HEADING or SBP_MSG_BASELINE_NED messages
+               received by this device to this device's output interfaces
+  Notes: This is intended to enable a dual piksi / duro installation so a consumer
+         can read both RTK heading or moving baseline and RTK position
+         from the same communication interface.
+
 - group: ins
   name: output_mode
   expert: false
