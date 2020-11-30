@@ -59,7 +59,7 @@ from piksi_tools.console.update_view import UpdateView
 from piksi_tools.console.utils import (EMPTY_STR, pos_mode_dict,
                                        rtk_mode_dict, ins_mode_dict,
                                        ins_type_dict, ins_error_dict,
-                                       resource_filename, icon,
+                                       resource_filename, icon, home_path,
                                        swift_path, DR_MODE, RTK_MODES)
 
 HEARTBEAT_CHECK_PERIOD_SECONDS = 1.2
@@ -949,6 +949,7 @@ def do_connection(args):
 
 
 def main():
+    os.chdir(home_path)
     warnings.simplefilter(action="ignore", category=FutureWarning)
     logging.basicConfig()
     args = None
