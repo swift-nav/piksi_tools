@@ -4,6 +4,7 @@ from __future__ import print_function
 import datetime
 import pkg_resources
 import os
+import sys
 import locale
 
 from functools import partial
@@ -701,5 +702,7 @@ icon = ImageResource(resource_filename('console/images/icon.png'))
 
 (language_code, encoding) = locale.getdefaultlocale()
 home_path_raw = os.path.expanduser(b"~")
+if sys.platform == 'win32' or sys.platform == 'cygwin':
+    home_path_raw = os.environ['USERPROFILE']
 home_path = home_path_raw.decode(encoding if encoding is not None else 'ascii')
 swift_path = os.path.normpath(os.path.join(home_path, 'SwiftNav'))
