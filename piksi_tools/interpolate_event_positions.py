@@ -422,7 +422,7 @@ if __name__ == '__main__':
                 iterator = Framer(driver.read, driver.write, args.verbose)
             else:
                 infile = open(args.filename[0], 'r')
-                iterator = JSONLogIterator(infile).next()
+                iterator = JSONLogIterator(infile, conventional=True)
             a, b, c, d, e, f, g, h = collect_positions(iterator, args.type[0], args.debouncetime[0])
             display_data(a, b, c, d, e, f, g, h, args.type[0], args.outfile[0])
         else:
