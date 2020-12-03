@@ -2353,7 +2353,7 @@
   Notes: The OTA daemon must be disabled in order to change this setting.
 
 - group: system
-  name: heading_forward
+  name: heading_forwarding
   type: boolean 
   expert: false 
   default value: false
