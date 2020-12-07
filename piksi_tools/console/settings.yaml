@@ -2356,7 +2356,7 @@
   name: heading_forwarding
   type: boolean 
   expert: false 
-  default value: false
+  default value: 'False'
   readonly: false
   units: N/A
   Description: Resend any SBP_MSG_HEADING or SBP_MSG_BASELINE_NED messages
