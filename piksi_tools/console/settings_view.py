@@ -874,7 +874,6 @@ class SettingsView(HasTraits):
                 self.settings[settings_list[0]][settings_list[1]].confirmed_set = True
         except KeyError:
             return
->>>>>>> ab79f414... Add Setting generation capability
 
         if do_read_finished:
             self.finish_read()
