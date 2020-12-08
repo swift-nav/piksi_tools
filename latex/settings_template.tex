@@ -91,7 +91,7 @@ Piksi{\myfont\raisebox{0.4ex}\tiny\textregistered} Multi and Duro{\myfont\raiseb
     Label & Value \\
     \midrule
     \hbadness=20000
-    ((*- for key,value in m.iteritems() *))
+    ((*- for key,value in m.items() *))
     ((*- if(key is defined and key != 'Notes' and key != 'Description' and value is defined and value != 'True') *))
     (((key|escape_tex_exp))) & (((value|escape_tex_exp))) \\
     ((*- endif *))
