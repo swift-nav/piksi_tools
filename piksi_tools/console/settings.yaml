@@ -1291,18 +1291,6 @@
   Description: Number of Solution Periods between GST NMEA messages being sent.
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message.
 
-- group: nmea
-  name: cog_output_min_speed
-  expert: true
-  type: float
-  digits: '1'
-  units: Meters per second
-  default value: '0.1'
-  readonly: false
-  enumerated possible values:
-  Description: Minimum speed for outputting Course-Over-Ground values.
-  Notes: For value '0' Course-Over-Ground is output always when fix is available.
-
 - group: ntrip
   name: enable
   expert: false
@@ -1817,14 +1805,6 @@
   Description: The data rate (in Hz) for magnetometer raw output.
 
 - group: ndb
-  name: erase_ephemeris
-  expert: true
-  type: boolean
-  default value: 'True'
-  readonly: false
-  Description: Erase stored ephmerides during boot.
-
-- group: ndb
   name: erase_almanac
   expert: true
   type: boolean
@@ -1847,14 +1827,6 @@
   default value: 'False'
   readonly: false
   Description: Erase stored ionospheric parameters during boot.
-
-- group: ndb
-  name: erase_lgf
-  expert: true
-  type: boolean
-  default value: 'True'
-  readonly: false
-  Description: Erase stored last fix information during boot.
 
 - group: ndb
   name: erase_gnss_capb
@@ -2337,15 +2309,6 @@
   default value: '5'
   readonly: false
   Description: Configures the timeout length of the PPS when using the "Time Limited" propagation mode.
-
-- group: csac
-  name: telemetry_enabled
-  expert: false
-  type: boolean
-  units: N/A
-  default value: 'false'
-  readonly: false
-  Description: Enables or disables the CSAC daemon which can communicate with Microsemi timing devices on UART0.
 
 - group: sample_daemon
   name: enabled
