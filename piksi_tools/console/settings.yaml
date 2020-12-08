@@ -2354,3 +2354,111 @@
   default value: '56666'
   readonly: false
   Description: Sets the broadcast port for the SDK sample daemon.
+
+- group: ins
+  name:  filter_vel_max_half_life_ms
+  expert: true
+  type: float
+  units: milliseconds
+  default_value: 20000
+  Description: Time constant parameter for low-speed velocity filtering
+
+- group: ins
+  name:  filter_vel_half_life_alpha
+  expert: true
+  type: float
+  units: N/A
+  default_value: 0.02
+  Description: Parameter for low-speed velocity filtering
+
+- group: ins
+  name:  filter_vel_max
+  expert: true
+  type: float
+  units: m/s
+  default_value: 0.4
+  Description: Velocity above which to disable velocity filtering
+
+- group: ins
+  name:  filter_vel_min
+  expert: true
+  type: float
+  units: m/s
+  default_value: 0.1
+  Description: Velocity below whih to enable advanced velocity filtering
+
+- group: ins
+  name:  filter_vel
+  expert: true
+  type: boolean 
+  default_value: false
+  Description: Enabled low-speed velocity filtering (advanced use only)
+
+- group: ins
+  name:  filter_pos
+  expert: true
+  type: boolean 
+  default_value: false
+  Description: Enabled low-speed position filtering (advanced use only)
+
+- group: ins
+  name:  stillness_autotune
+  expert: true
+  type: boolean 
+  default_value: false
+  Description: Automatically attempt to tune stillness detection thresholds
+
+- group: ins
+  name:  gyro_still_threshold
+  expert: true
+  type: float
+  units: rad/sec
+  default_value: 0.0005
+  Description: Gyro magnitude stillness thresold
+
+- group: ins
+  name:  accel_still_threshold
+  expert: true
+  type: float
+  units: Gs
+  default_value: 0.01
+  readonly: false
+  Description: Gyro magnitude stillness thresold
+
+- group: ins
+  name:  vel_still_threshold
+  expert: true
+  type: float
+  units: m/s
+  default_value: 0.02
+  Description: Gyro magnitude stillness thresold
+
+- group: ins
+  name:  stillness_detection_use_accel
+  expert: true
+  type: boolean
+  default_value: False
+  Description: Use accelermoter in detecting stillness
+
+- group: ins
+  name:  stillness_detection_use_gyro
+  expert: true
+  type: boolean
+  default_value: False
+  Description: Use gyro in detecting stillness
+
+- group: ins
+  name:  accel_noise
+  expert: true
+  type: float
+  units: Gs
+  default_value: 0.08
+  Description: Noise estimate for raw sensor
+
+- group: ins
+  name:  gyro_noise
+  expert: true
+  type: float
+  units: deg/s
+  default_value: 0.002
+  Description: Noise estimate for raw sensor
