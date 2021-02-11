@@ -28,7 +28,9 @@ from sbp.navigation import (
     SBP_MSG_AGE_CORRECTIONS, SBP_MSG_DOPS, SBP_MSG_DOPS_DEP_A,
     SBP_MSG_GPS_TIME, SBP_MSG_GPS_TIME_DEP_A, SBP_MSG_POS_LLH,
     SBP_MSG_POS_LLH_DEP_A, SBP_MSG_UTC_TIME, SBP_MSG_VEL_NED,
-    SBP_MSG_VEL_NED_DEP_A, MsgAgeCorrections, MsgDops, MsgDopsDepA, MsgGPSTime,
+    SBP_MSG_VEL_NED_DEP_A, SBP_MSG_POS_LLH_GNSS, SBP_MSG_VEL_NED_GNSS,
+    SBP_MSG_UTC_TIME_GNSS,
+    MsgAgeCorrections, MsgDops, MsgDopsDepA, MsgGPSTime,
     MsgGPSTimeDepA, MsgPosLLH, MsgPosLLHDepA, MsgUtcTime, MsgVelNED,
     MsgVelNEDDepA)
 from sbp.system import SBP_MSG_INS_STATUS, MsgInsStatus
@@ -658,7 +660,7 @@ class SolutionView(HasTraits):
             self.utc_time = None
             self.utc_source = None
 
-    def __init__(self, link, dirname=''):
+    def __init__(self, link, dirname='', use_gnss_only=False):
         super(SolutionView, self).__init__()
         self.velocity_view = VelocityView(link)
         self.ins_status_flags = 0
@@ -669,6 +671,7 @@ class SolutionView(HasTraits):
         self.list_lock = threading.Lock()
         self.scaling_lock = threading.Lock()
         self.last_odo_update_time = 0
+        self.use_gnss_only=use_gnss_only
         self.slns = {'lat_spp': deque(maxlen=PLOT_HISTORY_MAX),
                      'lng_spp': deque(maxlen=PLOT_HISTORY_MAX),
                      'alt_spp': deque(maxlen=PLOT_HISTORY_MAX),
@@ -898,13 +901,18 @@ class SolutionView(HasTraits):
         self.plot.overlays.append(zt)
 
         self.link = link
-        self.link.add_callback(self.pos_llh_callback, [SBP_MSG_POS_LLH_DEP_A, SBP_MSG_POS_LLH])
-        self.link.add_callback(self.ins_status_callback, [SBP_MSG_INS_STATUS])
-        self.link.add_callback(self.vel_ned_callback, [SBP_MSG_VEL_NED_DEP_A, SBP_MSG_VEL_NED])
-        self.link.add_callback(self.ins_update_callback, [SBP_MSG_INS_UPDATES])
+        if self.use_gnss_only:
+            self.link.add_callback(self.pos_llh_callback, [SBP_MSG_POS_LLH_GNSS])
+            self.link.add_callback(self.vel_ned_callback, [SBP_MSG_VEL_NED_GNSS])
+            self.link.add_callback(self.utc_time_callback, [SBP_MSG_UTC_TIME_GNSS])
+        else:
+            self.link.add_callback(self.pos_llh_callback, [SBP_MSG_POS_LLH_DEP_A, SBP_MSG_POS_LLH])
+            self.link.add_callback(self.vel_ned_callback, [SBP_MSG_VEL_NED])
+            self.link.add_callback(self.ins_status_callback, [SBP_MSG_INS_STATUS])
+            self.link.add_callback(self.ins_update_callback, [SBP_MSG_INS_UPDATES])
+            self.link.add_callback(self.utc_time_callback, [SBP_MSG_UTC_TIME])
         self.link.add_callback(self.dops_callback, [SBP_MSG_DOPS_DEP_A, SBP_MSG_DOPS])
         self.link.add_callback(self.gps_time_callback, [SBP_MSG_GPS_TIME_DEP_A, SBP_MSG_GPS_TIME])
-        self.link.add_callback(self.utc_time_callback, [SBP_MSG_UTC_TIME])
         self.link.add_callback(self.age_corrections_callback, SBP_MSG_AGE_CORRECTIONS)
         self.week = None
         self.utc_time = None

@@ -10,7 +10,8 @@ from functools import partial
 
 from pyface.image_resource import ImageResource
 from sbp.navigation import (SBP_MSG_BASELINE_NED, SBP_MSG_BASELINE_NED_DEP_A,
-                            SBP_MSG_POS_LLH, SBP_MSG_POS_LLH_DEP_A)
+                            SBP_MSG_POS_LLH, SBP_MSG_POS_LLH_DEP_A, 
+                            SBP_MSG_POS_LLH_GNSS)
 
 # Copyright (C) 2011-2014, 2016 Swift Navigation Inc.
 # Contact: Gareth McMullin <gareth@swift-nav.com>
@@ -629,7 +630,7 @@ def get_mode(msg):
             mode = 3
     elif msg.msg_type not in [
         SBP_MSG_BASELINE_NED_DEP_A, SBP_MSG_POS_LLH_DEP_A, SBP_MSG_POS_LLH,
-        SBP_MSG_BASELINE_NED
+        SBP_MSG_BASELINE_NED, SBP_MSG_POS_LLH_GNSS
     ]:
         print("called get_mode with unsupported message type: {0}".format(
             msg.msg_type))

@@ -104,6 +104,11 @@ def get_args():
         action='store_true',
         help="Show CSV logging button.")
     parser.add_argument(
+        '--use-gnss-only',
+        action='store_true',
+        help="On Position and Velocity tabs Show GNSS-ONLY data",
+        )
+    parser.add_argument(
         '--hide-legend',
         action='store_true',
         help="Hide tracking view legend initially.")
@@ -656,7 +661,8 @@ class SwiftConsole(HasTraits):
                  log_console=False,
                  connection_info=None,
                  expand_json=False,
-                 hide_legend=False
+                 hide_legend=False,
+                 use_gnss_only=False,
                  ):
         self.error = error
         self.cnx_desc = cnx_desc
@@ -674,6 +680,7 @@ class SwiftConsole(HasTraits):
         self.last_status_update_time = 0
         self.last_driver_bytes_read = 0
         self.driver = driver
+        self.use_gnss_only = use_gnss_only
 
         if log_dirname:
             self.directory_name = log_dirname
@@ -708,7 +715,7 @@ class SwiftConsole(HasTraits):
             settings_read_finished_functions = []
             self.tracking_view = TrackingView(self.link, legend_visible=(not hide_legend))
             self.solution_view = SolutionView(
-                self.link, dirname=self.directory_name)
+                self.link, dirname=self.directory_name, use_gnss_only=self.use_gnss_only)
             self.baseline_view = BaselineView(
                 self.link, dirname=self.directory_name)
             self.skyplot_view = SkyplotView(self.link, self.tracking_view)
@@ -1006,7 +1013,8 @@ def main():
                 log_console=args.log_console,
                 connection_info=cnx_data.connection_info,
                 expand_json=args.expand_json,
-                hide_legend=args.hide_legend) as console:
+                hide_legend=args.hide_legend,
+                use_gnss_only=args.use_gnss_only) as console:
             console.configure_traits()
 
     # TODO: solve this properly
