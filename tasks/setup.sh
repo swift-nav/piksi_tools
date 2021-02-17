@@ -147,7 +147,7 @@ function all_dependencies_debian () {
     validate_linux_mint19
 
     if command -v python3; then
-        run_pip3_install --upgrade pip setuptools
+        run_pip3_install setuptools
         run_pip3_install -r ../requirements.txt
         run_pip3_install -r ../requirements_gui.txt
         run_pip3_install --upgrade awscli

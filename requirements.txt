@@ -1,4 +1,6 @@
 pip>=19.1.1,<21
+setuptools==41.0.1
+setuptools-scm==3.3.3
 numpy~=1.18.1
 configparser
 future==0.17.1
@@ -13,6 +15,4 @@ six==1.13.0
 libsettings==0.1.12
 sbp~=3.4.4
 ruamel.yaml==0.15.87
-setuptools==41.0.1
-setuptools-scm==3.3.3
 monotonic==1.5
