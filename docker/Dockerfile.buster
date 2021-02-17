@@ -39,7 +39,7 @@ RUN \
   && make altinstall \
   && cd /work \
   \
-  && /usr/local/bin/python3.5 -m pip install --upgrade pip \
+  && /usr/local/bin/python3.5 -m pip install --upgrade pip>=19.1.1,<21 \
   && /usr/local/bin/python3.5 -m pip install wheel setuptools tox
 
 ENV PY36=3.6.8
