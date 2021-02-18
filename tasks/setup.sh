@@ -201,7 +201,7 @@ function install_python_deps_osx () {
     conda install --yes \
       virtualenv \
       pytest \
-      swig \
+      swig=3.0.12 \
       six
 
     pip install --upgrade pip
