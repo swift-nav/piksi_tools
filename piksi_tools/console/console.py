@@ -43,6 +43,7 @@ from piksi_tools import __version__ as CONSOLE_VERSION
 from piksi_tools.console.baseline_view import BaselineView
 from piksi_tools.console.port_chooser import get_args_from_port_chooser
 from piksi_tools.console.deprecated import DeprecatedMessageHandler
+from piksi_tools.console.fusion_engine_status import FusionEngineStatus
 from piksi_tools.console.imu_view import IMUView
 from piksi_tools.console.mag_view import MagView
 from piksi_tools.console.observation_view import ObservationView
@@ -194,13 +195,13 @@ class SwiftConsole(HasTraits):
   csv_logging : enable CSV logging
 
   """
-
     pos_mode = Str('')
     rtk_mode = Str('')
     ins_status_string = Str('')
     num_sats_str = Str('')
     cnx_desc = Str('')
     age_of_corrections = Str('')
+    fusion_engine_status = Instance(FusionEngineStatus)
     uuid = Str('')
     directory_name = Directory
     json_logging = Bool(True)
@@ -391,6 +392,13 @@ class SwiftConsole(HasTraits):
                         padding=2,
                         show_label=False,
                         style='readonly', width=6),
+                    Item(
+                        '',
+                        label='Fusion Engine:',
+                        emphasized=True,
+                        tooltip='The status of the fusion engine.\nYellow indicates a fusion engine update was rejected in the past second. Grey indicates no updates in the past second.'
+                    ),
+                    Item(name='fusion_engine_status', show_label=False, style='custom'),
                     Spring(springy=True),
                     Item('driver_data_rate',
                          style='readonly',
@@ -704,6 +712,7 @@ class SwiftConsole(HasTraits):
             self.link.add_callback(self.cmd_resp_callback,
                                    SBP_MSG_COMMAND_RESP)
             self.link.add_callback(self.update_on_heartbeat, SBP_MSG_HEARTBEAT)
+            self.fusion_engine_status = FusionEngineStatus(link)
             self.dep_handler = DeprecatedMessageHandler(link)
             settings_read_finished_functions = []
             self.tracking_view = TrackingView(self.link, legend_visible=(not hide_legend))
