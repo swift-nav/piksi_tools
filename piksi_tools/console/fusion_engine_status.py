@@ -1,19 +1,18 @@
 from threading import Timer
 
-from pyface.image_resource import ImageResource
 from sbp.system import SBP_MSG_INS_UPDATES, MsgInsUpdates
 from traits.api import Enum, HasTraits
-from traitsui.api import (Item, View, ImageEditor)
+from traitsui.api import (Item, View)
 
 from .utils import resource_filename
 
 
 # No updates have been attempted in the past `STATUS_PERIOD`
-UNKNOWN = 'UNKNOWN'
+UNKNOWN = u'\u2B1B' # Unicode Character “⬛” (U+2B1B)
 # There have been attempted updates in the past `STATUS_PERIOD` but at least one was rejected
-WARNING = 'WARNING'
+WARNING = u'\u26A0' # Unicode Character “⚠” (U+26A0)
 # There have been updates in the past `STATUS_PERIOD` and none were rejected
-OK = 'OK'
+OK = u'\u26AB' # Unicode Character “⚫” (U+26AB)
 
 MSG_UPDATE_FLAGS = [
     'gnsspos',
@@ -48,18 +47,18 @@ def status_item(status):
         show_label=False,
         visible_when='status == \'{}\''.format(status),
         springy=False,
-        editor=ImageEditor(allow_clipping=False, image=status_to_image(status))
+        style='readonly',
+        style_sheet=status_to_style(status)
     )
 
 
-def status_to_image(status):
-    root = 'console/images/status/'
+def status_to_style(status):
     if status == OK:
-        return ImageResource(resource_filename(root + 'green.svg'))
+        return '* { color: green; }'
     elif status == WARNING:
-        return ImageResource(resource_filename(root + 'yellow.svg'))
+        return '* { color: orange; }'
     else:
-        return ImageResource(resource_filename(root + 'grey.svg'))
+        return '* { color: grey; }'
 
 
 class FusionEngineStatus(HasTraits):
