@@ -4,8 +4,6 @@ from sbp.system import SBP_MSG_INS_UPDATES, MsgInsUpdates
 from traits.api import Enum, HasTraits
 from traitsui.api import (Item, View)
 
-from .utils import resource_filename
-
 
 # No updates have been attempted in the past `STATUS_PERIOD`
 UNKNOWN = u'\u2B1B'  # Unicode Character “⬛” (U+2B1B)
