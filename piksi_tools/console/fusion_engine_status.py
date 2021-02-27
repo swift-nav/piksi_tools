@@ -8,11 +8,11 @@ from .utils import resource_filename
 
 
 # No updates have been attempted in the past `STATUS_PERIOD`
-UNKNOWN = u'\u2B1B' # Unicode Character “⬛” (U+2B1B)
+UNKNOWN = u'\u2B1B'  # Unicode Character “⬛” (U+2B1B)
 # There have been attempted updates in the past `STATUS_PERIOD` but at least one was rejected
-WARNING = u'\u26A0' # Unicode Character “⚠” (U+26A0)
+WARNING = u'\u26A0'  # Unicode Character “⚠” (U+26A0)
 # There have been updates in the past `STATUS_PERIOD` and none were rejected
-OK = u'\u26AB' # Unicode Character “⚫” (U+26AB)
+OK = u'\u26AB'  # Unicode Character “⚫” (U+26AB)
 
 MSG_UPDATE_FLAGS = [
     'gnsspos',
