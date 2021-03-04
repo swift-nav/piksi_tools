@@ -1,8 +1,8 @@
 from threading import Timer
 
 from sbp.system import SBP_MSG_INS_UPDATES, MsgInsUpdates
-from traits.api import Enum, HasTraits
-from traitsui.api import (Item, View)
+from traits.api import Enum, HasTraits, List, Instance, Dict, Str
+from traitsui.api import (Item, View, HGroup)
 
 
 # No updates have been attempted in the past `STATUS_PERIOD`
@@ -12,23 +12,34 @@ WARNING = u'\u26A0'  # Unicode Character “⚠” (U+26A0)
 # There have been updates in the past `STATUS_PERIOD` and none were rejected
 OK = u'\u26AB'  # Unicode Character “⚫” (U+26AB)
 
-MSG_UPDATE_FLAGS = [
-    'gnsspos',
-    'gnssvel',
-    'wheelticks',
-    'speed',
-    'nhc',
-    'zerovel',
+
+# MsgInsUpdates flags
+GNSSPOS = 'gnsspos'
+GNSSVEL = 'gnssvel'
+WHEELTICKS = 'wheelticks'
+SPEED = 'speed'
+NHC = 'nhc'
+ZEROVEL = 'zerovel'
+
+ALL_FLAGS = [
+    GNSSPOS,
+    GNSSVEL,
+    WHEELTICKS,
+    SPEED,
+    NHC,
+    ZEROVEL,
 ]
 
+FLAG_LABELS = {
+    GNSSPOS: 'GNSS Pos',
+    GNSSVEL: 'GNSS Vel',
+    WHEELTICKS: 'Wheelticks',
+    SPEED: 'Wheelspeed',
+    NHC: 'nhc',
+    ZEROVEL: 'Static Detection',
+}
+
 STATUS_PERIOD = 1
-
-
-def filter_rejection(msg_ins_updates):
-    for flag in MSG_UPDATE_FLAGS:
-        if getattr(msg_ins_updates, flag) & 0b1111:
-            return True
-    return False
 
 
 def delayed(old, func, delay=STATUS_PERIOD):
@@ -59,11 +70,19 @@ def status_to_style(status):
         return '* { color: grey; }'
 
 
+def check_flag(flag):
+    return lambda msg: (getattr(msg, flag) & 0b1111) == 0
+
+
+def stats_key(flag):
+    return f'stats_{flag}'
+
+
 class FusionEngineStatus(HasTraits):
     status = Enum(UNKNOWN, WARNING, OK)
     view = View(status_item(UNKNOWN), status_item(WARNING), status_item(OK))
 
-    def __init__(self, link):
+    def __init__(self, link, status_fn):
         # The last status received, but not nessesarly the one that's displayed if we are in the middle of a warning
         self._last_status = UNKNOWN
 
@@ -73,14 +92,17 @@ class FusionEngineStatus(HasTraits):
         # Timer to trigger the unknown state
         self._set_unknown_timer = None
 
+        self._status_fn = status_fn
+
         link.add_callback(self._receive_ins_updates, SBP_MSG_INS_UPDATES)
 
     def _receive_ins_updates(self, sbp_msg, **metadata):
-        if filter_rejection(MsgInsUpdates(sbp_msg)):
-            self._set_status(WARNING)
-        else:
+        ok = self._status_fn(MsgInsUpdates(sbp_msg))
+        if ok:
             self._set_status(OK)
-        self._start_unknown_timer()
+        else:
+            self._set_status(WARNING)
+        self._restart_unknown_timer()
 
     def _set_status(self, status):
         self._last_status = status
@@ -102,14 +124,30 @@ class FusionEngineStatus(HasTraits):
         self._set_status(self._last_status)
 
     def _start_warning_timer(self):
-        self._warning_timer = delayed(
-            self._warning_timer, self._end_warning
-        )
+        self._warning_timer = delayed(self._warning_timer, self._end_warning)
 
-    def _start_unknown_timer(self):
+    def _restart_unknown_timer(self):
         self._set_unknown_timer = delayed(
             self._set_unknown_timer,
             lambda: self._set_status(UNKNOWN))
 
     def _active_warning(self):
         return self._warning_timer is not None
+
+
+class FusionEngineStatusBar(HasTraits):
+    stats_ = Instance(FusionEngineStatus)
+
+    def traits_view(self):
+        return View(
+            HGroup(
+                *[
+                    Item(name=stats_key(flag), label=FLAG_LABELS[flag], width=-12, style="custom")
+                    for flag in ALL_FLAGS
+                ]
+            )
+        )
+
+    def __init__(self, link):
+        for flag in ALL_FLAGS:
+            setattr(self, stats_key(flag), FusionEngineStatus(link, check_flag(flag)))

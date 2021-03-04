@@ -43,8 +43,7 @@ from piksi_tools import __version__ as CONSOLE_VERSION
 from piksi_tools.console.baseline_view import BaselineView
 from piksi_tools.console.port_chooser import get_args_from_port_chooser
 from piksi_tools.console.deprecated import DeprecatedMessageHandler
-from piksi_tools.console.fusion_engine_status import FusionEngineStatus
-from piksi_tools.console.imu_view import IMUView
+from piksi_tools.console.ins_view import INSView
 from piksi_tools.console.mag_view import MagView
 from piksi_tools.console.observation_view import ObservationView
 from piksi_tools.console.output_list import (
@@ -182,7 +181,7 @@ class SwiftConsole(HasTraits):
     system_monitor_view = Instance(SystemMonitorView)
     settings_view = Instance(SettingsView)
     update_view = Instance(UpdateView)
-    imu_view = Instance(IMUView)
+    ins_view = Instance(INSView)
     mag_view = Instance(MagView)
     spectrum_analyzer_view = Instance(SpectrumAnalyzerView)
     log_level_filter = Enum(list(SYSLOG_LEVELS.values()))
@@ -201,7 +200,6 @@ class SwiftConsole(HasTraits):
     num_sats_str = Str('')
     cnx_desc = Str('')
     age_of_corrections = Str('')
-    fusion_engine_status = Instance(FusionEngineStatus)
     uuid = Str('')
     directory_name = Directory
     json_logging = Bool(True)
@@ -272,7 +270,7 @@ class SwiftConsole(HasTraits):
                         'system_monitor_view',
                         style='custom',
                         label='System Monitor'),
-                    Item('imu_view', style='custom', label='IMU'),
+                    Item('ins_view', style='custom', label='INS'),
                     Item('mag_view', style='custom', label='Magnetometer'),
                     Item(
                         'networking_view',
@@ -392,13 +390,6 @@ class SwiftConsole(HasTraits):
                         padding=2,
                         show_label=False,
                         style='readonly', width=6),
-                    Item(
-                        '',
-                        label='Fusion Engine:',
-                        emphasized=True,
-                        tooltip='The status of the fusion engine.\nYellow indicates a fusion engine update was rejected in the past second. Grey indicates no updates in the past second.'
-                    ),
-                    Item(name='fusion_engine_status', show_label=False, style='custom'),
                     Spring(springy=True),
                     Item('driver_data_rate',
                          style='readonly',
@@ -712,7 +703,6 @@ class SwiftConsole(HasTraits):
             self.link.add_callback(self.cmd_resp_callback,
                                    SBP_MSG_COMMAND_RESP)
             self.link.add_callback(self.update_on_heartbeat, SBP_MSG_HEARTBEAT)
-            self.fusion_engine_status = FusionEngineStatus(link)
             self.dep_handler = DeprecatedMessageHandler(link)
             settings_read_finished_functions = []
             self.tracking_view = TrackingView(self.link, legend_visible=(not hide_legend))
@@ -738,7 +728,7 @@ class SwiftConsole(HasTraits):
                 download_dir=swift_path,
                 prompt=update,
                 connection_info=self.connection_info)
-            self.imu_view = IMUView(self.link)
+            self.ins_view = INSView(self.link)
             self.mag_view = MagView(self.link)
             self.spectrum_analyzer_view = SpectrumAnalyzerView(self.link)
             settings_read_finished_functions.append(
@@ -801,7 +791,7 @@ class SwiftConsole(HasTraits):
                 self.system_monitor_view.python_console_cmds)
             self.python_console_env.update(
                 self.update_view.python_console_cmds)
-            self.python_console_env.update(self.imu_view.python_console_cmds)
+            self.python_console_env.update(self.ins_view.python_console_cmds)
             self.python_console_env.update(self.mag_view.python_console_cmds)
             self.python_console_env.update(
                 self.settings_view.python_console_cmds)
