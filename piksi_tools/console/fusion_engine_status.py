@@ -75,7 +75,7 @@ def check_flag(flag):
 
 
 def stats_key(flag):
-    return f'stats_{flag}'
+    return 'stats_{}'.format(flag)
 
 
 class FusionEngineStatus(HasTraits):
