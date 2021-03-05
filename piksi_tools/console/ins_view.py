@@ -18,8 +18,8 @@ from chaco.api import ArrayPlotData, Plot
 from chaco.tools.api import LegendTool
 from enable.api import ComponentEditor
 from sbp.imu import SBP_MSG_IMU_AUX, SBP_MSG_IMU_RAW
-from traits.api import Dict, Float, HasTraits, Instance, Int, List
-from traitsui.api import HGroup, Item, VGroup, View, Spring
+from traits.api import Dict, Float, HasTraits, Instance, Int
+from traitsui.api import HGroup, Item, VGroup, View
 
 from .fusion_engine_status import FusionEngineStatusBar
 from .gui_utils import GUI_UPDATE_PERIOD, UpdateScheduler
@@ -38,20 +38,12 @@ colours_list = [
 ]
 
 
-# Item(
-#     '',
-#     label='Fusion Engine:',
-#     emphasized=True,
-#     tooltip='The status of the fusion engine.\nYellow indicates a fusion engine update was rejected in the past second. Grey indicates no updates in the past second.'
-# ),
-# Item(name='fusion_engine_status', show_label=False, style='custom'),
-
 class INSView(HasTraits):
     python_console_cmds = Dict()
     plot = Instance(Plot)
     plot_data = Instance(ArrayPlotData)
     status_bar = Instance(FusionEngineStatusBar)
-    satimu_temp = Float(0)
+    imu_temp = Float(0)
     imu_conf = Int(0)
     rms_acc_x = Float(0)
     rms_acc_y = Float(0)
