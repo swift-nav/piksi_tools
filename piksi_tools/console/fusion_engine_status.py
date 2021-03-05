@@ -1,7 +1,7 @@
 from threading import Timer
 
 from sbp.system import SBP_MSG_INS_UPDATES, MsgInsUpdates
-from traits.api import Enum, HasTraits, List, Instance, Dict, Str
+from traits.api import Enum, HasTraits, Instance
 from traitsui.api import (Item, View, HGroup)
 
 
