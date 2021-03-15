@@ -1,3 +1,11 @@
+"""This module provides a status bar showing a high-level overview of the INS status.
+
+`FusionEngineStatusBar` contains an icon for each of the INS update types. If there has been a rejected update
+within the past second, the icon for that update type will show a `WARNING` symbol. If there has
+been an update within the last second, and it was accepted, that type will be displayed as `OK`.
+If no updates have been attempted in the past second it will be shown as `UNKNOWN`.
+"""
+
 from threading import Timer
 
 from sbp.system import SBP_MSG_INS_UPDATES, MsgInsUpdates
@@ -71,7 +79,20 @@ def status_to_style(status):
 
 
 def check_flag(flag):
-    return lambda msg: (getattr(msg, flag) & 0b1111) == 0
+    def check(msg):
+        f = getattr(msg, flag)
+
+        rejected = f & 0b00001111
+        if rejected:
+            return WARNING
+
+        attempted = f & 0b11110000
+        if attempted:
+            return OK
+
+        return UNKNOWN
+
+    return check
 
 
 def stats_key(flag):
@@ -97,12 +118,13 @@ class FusionEngineStatus(HasTraits):
         link.add_callback(self._receive_ins_updates, SBP_MSG_INS_UPDATES)
 
     def _receive_ins_updates(self, sbp_msg, **metadata):
-        ok = self._status_fn(MsgInsUpdates(sbp_msg))
-        if ok:
+        status = self._status_fn(MsgInsUpdates(sbp_msg))
+        if status == OK:
             self._set_status(OK)
-        else:
+            self._restart_unknown_timer()
+        elif status == WARNING:
             self._set_status(WARNING)
-        self._restart_unknown_timer()
+            self._restart_unknown_timer()
 
     def _set_status(self, status):
         self._last_status = status
