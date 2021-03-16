@@ -559,7 +559,7 @@ class SolutionView(HasTraits):
                                ('VDOP', EMPTY_STR)]
 
         self.dops_table.append(('DOPS Flags', '0x%03x' % flags))
-        self.dops_table.append(('INS Status', '0x{:0}'.format(self.ins_status_flags)))
+        self.dops_table.append(('INS Status', '0x{:08x}'.format(self.ins_status_flags)))
 
     def ins_status_callback(self, sbp_msg, **metadata):
         status = MsgInsStatus(sbp_msg)
