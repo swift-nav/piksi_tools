@@ -21,7 +21,9 @@ from sbp.imu import SBP_MSG_IMU_AUX, SBP_MSG_IMU_RAW
 from traits.api import Dict, Float, HasTraits, Instance, Int
 from traitsui.api import HGroup, Item, VGroup, View
 
+from .fusion_engine_status import FusionEngineStatusBar
 from .gui_utils import GUI_UPDATE_PERIOD, UpdateScheduler
+
 NUM_POINTS = 200
 
 colours_list = [
@@ -36,10 +38,11 @@ colours_list = [
 ]
 
 
-class IMUView(HasTraits):
+class INSView(HasTraits):
     python_console_cmds = Dict()
     plot = Instance(Plot)
     plot_data = Instance(ArrayPlotData)
+    status_bar = Instance(FusionEngineStatusBar)
     imu_temp = Float(0)
     imu_conf = Int(0)
     rms_acc_x = Float(0)
@@ -53,12 +56,13 @@ class IMUView(HasTraits):
                 editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8)),
                 show_label=False),
             HGroup(
-                Item('imu_temp', format_str='%.2f C', height=-16, width=4),
-                Item('imu_conf', format_str='0x%02X', height=-16, width=4),
-                Item('rms_acc_x', format_str='%.2f g', height=-16, width=4),
-                Item('rms_acc_y', format_str='%.2f g', height=-16, width=4),
-                Item('rms_acc_z', format_str='%.2f g', height=-16, width=4),
+                Item('imu_temp', format_str='%.2f C', width=4),
+                Item('imu_conf', format_str='0x%02X', width=4),
+                Item('rms_acc_x', format_str='%.2f g', width=4),
+                Item('rms_acc_y', format_str='%.2f g', width=4),
+                Item('rms_acc_z', format_str='%.2f g', width=4),
             ),
+            Item('status_bar', show_label=False, style='custom'),
         )
     )
 
@@ -108,7 +112,7 @@ class IMUView(HasTraits):
         self.imu_set_data()
 
     def __init__(self, link):
-        super(IMUView, self).__init__()
+        super(INSView, self).__init__()
 
         self.acc_x = np.zeros(NUM_POINTS)
         self.acc_y = np.zeros(NUM_POINTS)
@@ -116,6 +120,8 @@ class IMUView(HasTraits):
         self.gyro_x = np.zeros(NUM_POINTS)
         self.gyro_y = np.zeros(NUM_POINTS)
         self.gyro_z = np.zeros(NUM_POINTS)
+
+        self.status_bar = FusionEngineStatusBar(link)
 
         self.last_plot_update_time = 0
 
