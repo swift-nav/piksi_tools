@@ -44,6 +44,7 @@ from piksi_tools.console.baseline_view import BaselineView
 from piksi_tools.console.port_chooser import get_args_from_port_chooser
 from piksi_tools.console.deprecated import DeprecatedMessageHandler
 from piksi_tools.console.ins_view import INSView
+from piksi_tools.console.odo_view import ODOView
 from piksi_tools.console.mag_view import MagView
 from piksi_tools.console.observation_view import ObservationView
 from piksi_tools.console.output_list import (
@@ -182,6 +183,7 @@ class SwiftConsole(HasTraits):
     settings_view = Instance(SettingsView)
     update_view = Instance(UpdateView)
     ins_view = Instance(INSView)
+    odo_view = Instance(ODOView)
     mag_view = Instance(MagView)
     spectrum_analyzer_view = Instance(SpectrumAnalyzerView)
     log_level_filter = Enum(list(SYSLOG_LEVELS.values()))
@@ -271,6 +273,7 @@ class SwiftConsole(HasTraits):
                         style='custom',
                         label='System Monitor'),
                     Item('ins_view', style='custom', label='INS'),
+                    Item('odo_view', style='custom', label='ODO'),
                     Item('mag_view', style='custom', label='Magnetometer'),
                     Item(
                         'networking_view',
@@ -729,6 +732,7 @@ class SwiftConsole(HasTraits):
                 prompt=update,
                 connection_info=self.connection_info)
             self.ins_view = INSView(self.link)
+            self.odo_view = ODOView(self.link)
             self.mag_view = MagView(self.link)
             self.spectrum_analyzer_view = SpectrumAnalyzerView(self.link)
             settings_read_finished_functions.append(

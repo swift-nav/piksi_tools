@@ -35,7 +35,7 @@ colors_list = [
 ]
 
 
-class VelocityView(HasTraits):
+class ODOView(HasTraits):
     python_console_cmds = Dict()
     plot = Instance(Plot)
     velocity_units = Enum(velocity_units_list)
@@ -53,7 +53,7 @@ class VelocityView(HasTraits):
             Item(
                 'plot',
                 editor=ComponentEditor(bgcolor=(0.8, 0.8, 0.8)),
-                label='Velocity',
+                label='Odo',
                 show_label=False),
         )
     )
@@ -92,7 +92,7 @@ class VelocityView(HasTraits):
         self.update_scheduler.schedule_update('update_plot', self.update_plot)
 
     def __init__(self, link):
-        super(VelocityView, self).__init__()
+        super(ODOView, self).__init__()
         self.velocity_units = "tic"
         self.vel_sf = 1.0
         self.odo = np.zeros(NUM_POINTS)
@@ -139,6 +139,6 @@ class VelocityView(HasTraits):
         self.link.add_callback(self.odo_callback, SBP_MSG_ODOMETRY)
         self.link.add_callback(self.tic_callback, SBP_MSG_WHEELTICK)
 
-        self.python_console_cmds = {'vel': self}
+        self.python_console_cmds = {'odo': self}
 
         self.update_scheduler = UpdateScheduler()
