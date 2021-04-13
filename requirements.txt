@@ -22,5 +22,5 @@ six==1.10.*
 construct==2.5.*
 sbp==0.51.10
 # pyinstaller requirements
-pyinstaller==3.0
-cryptography==1.1.1
+# pyinstaller==3.0
+# cryptography==1.1.1
