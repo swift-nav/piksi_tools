@@ -54,7 +54,7 @@ def main():
     sock = socket.socket(
         socket.AF_INET,  # Internet
         socket.SOCK_DGRAM)  # UDP
-    sock.bind((args.address[0], args.udp_port[0]))
+    sock.bind((address, port))
     try:
         while True:
             data, addr = sock.recvfrom(1024)

@@ -155,17 +155,17 @@ class INSView(HasTraits):
         self.plot.legend.tools.append(
             LegendTool(self.plot.legend, drag_button="right"))
 
-        acc_x = self.plot.plot(
+        self.plot.plot(
             ('t', 'acc_x'), type='line', color='auto', name='Accn. X')
-        acc_x = self.plot.plot(
+        self.plot.plot(
             ('t', 'acc_y'), type='line', color='auto', name='Accn. Y')
-        acc_x = self.plot.plot(
+        self.plot.plot(
             ('t', 'acc_z'), type='line', color='auto', name='Accn. Z')
-        acc_x = self.plot.plot(
+        self.plot.plot(
             ('t', 'gyr_x'), type='line', color='auto', name='Gyro X')
-        acc_x = self.plot.plot(
+        self.plot.plot(
             ('t', 'gyr_y'), type='line', color='auto', name='Gyro Y')
-        acc_x = self.plot.plot(
+        self.plot.plot(
             ('t', 'gyr_z'), type='line', color='auto', name='Gyro Z')
 
         self.link = link

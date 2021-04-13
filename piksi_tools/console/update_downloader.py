@@ -31,7 +31,7 @@ class UpdateDownloader:
             f.raise_for_status()
             self.root_dir = root_dir
             f.close()
-        except (requests.ConnectionError, json.decoder.JSONDecodeError) as ce:
+        except (requests.ConnectionError, json.decoder.JSONDecodeError):
             self.index = None
             raise RuntimeError("Unable to download index from {0}.".format(INDEX_URL))
             return

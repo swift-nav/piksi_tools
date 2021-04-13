@@ -214,7 +214,6 @@ class Settings(object):
                            "may be read-only or the value could be out of bounds.".format(setting, section,
                                                                                           value, write_retries))
         self.link.remove_callback(cb, SBP_MSG_SETTINGS_WRITE_RESP)
-        return
 
     def save(self):
         """Save settings to flash"""
@@ -241,7 +240,7 @@ class Settings(object):
             parser.read_file(f)
         for section, settings in parser.items():
             for setting, value in settings.items():
-                return_code = self.write(section, setting, value, verbose=verbose)
+                self.write(section, setting, value, verbose=verbose)
         return
 
     def _print_callback(self, msg, **metadata):
@@ -335,17 +334,17 @@ def get_args(args=None):
         action="store_true",
         help='Save settings to flash after successful write or write_from_file')
     subparsers = parser.add_subparsers(dest="command")
-    save = subparsers.add_parser(
+    subparsers.add_parser(
         'save', help='save all the current settings to flash.')
 
-    reset = subparsers.add_parser(
+    subparsers.add_parser(
         'reset', help='reset settings to factory defaults.')
 
     read = subparsers.add_parser('read', help='read the current setting.')
     read.add_argument("section", help="the setting section.")
     read.add_argument("setting", help="the setting name.")
 
-    read_all = subparsers.add_parser('all', help='read all the settings.')
+    subparsers.add_parser('all', help='read all the settings.')
 
     write = subparsers.add_parser('write', help='write the current setting.')
     write.add_argument("section", help="the setting section.")

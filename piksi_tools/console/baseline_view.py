@@ -436,21 +436,21 @@ class BaselineView(HasTraits):
 
         self.list_lock = threading.Lock()
         self.plot = Plot(self.plot_data)
-        pts_float = self.plot.plot(  # noqa: F841
+        self.plot.plot(
             ('e_float', 'n_float'),
             type='scatter',
             color=color_dict[FLOAT_MODE],
             marker='dot',
             line_width=0.0,
             marker_size=1.0)
-        pts_fixed = self.plot.plot(  # noqa: F841
+        self.plot.plot(
             ('e_fixed', 'n_fixed'),
             type='scatter',
             color=color_dict[FIXED_MODE],
             marker='dot',
             line_width=0.0,
             marker_size=1.0)
-        pts_dgnss = self.plot.plot(  # noqa: F841
+        self.plot.plot(
             ('e_dgnss', 'n_dgnss'),
             type='scatter',
             color=color_dict[DGNSS_MODE],

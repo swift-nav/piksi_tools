@@ -102,11 +102,11 @@ class MagView(HasTraits):
         self.plot.legend.tools.append(
             LegendTool(self.plot.legend, drag_button="right"))
 
-        mag_x = self.plot.plot(
+        self.plot.plot(
             ('t', 'mag_x'), type='line', color='auto', name='Mag. X (uT)')
-        mag_y = self.plot.plot(
+        self.plot.plot(
             ('t', 'mag_y'), type='line', color='auto', name='Mag. Y (uT)')
-        mag_z = self.plot.plot(
+        self.plot.plot(
             ('t', 'mag_z'), type='line', color='auto', name='Mag. Z (uT)')
 
         self.link = link

@@ -24,19 +24,12 @@ def extractMAVLINK(filename, outfile, msg_types_to_save):
         list of string identifiers of Mavlink Messages to put in Pandas Frame
     """
     log = DFReader_binary(filename)
-    last_m = None
-    num_msgs = 0
     out_dict = {}
-    first = True
-    init_time = 0
     while True:
         # we use mavlinks recv_match function to iterate through logs
         m = log.recv_match(type=msg_types_to_save)
         if m:
             timestamp = m._timestamp
-            if first:
-                init_time = timestamp
-            delta = timestamp - init_time
             dt = datetime.datetime.utcfromtimestamp(timestamp + NUMLEAPSECONDS)
             msg_timestamp_dict = out_dict.get(m.get_type(), {})
             msg_timestamp_dict[dt] = m.to_dict()

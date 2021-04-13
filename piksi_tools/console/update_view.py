@@ -90,7 +90,7 @@ class NetworkCheck():
                 socket.create_connection(
                     NetworkCheck.SERVER, NetworkCheck.CONNECTION_TIMEOUT).close()
                 self._state = True
-            except Exception as ex:
+            except Exception:
                 self._state = False
 
             # Gate the logging to state changes only to avoid spam

@@ -128,9 +128,9 @@ class VelocityView(HasTraits):
         self.plot_paddint_top = -1
         self.plot.padding_right = 60
 
-        vel_h = self.plot.plot(
+        self.plot.plot(
             ('t', 'v_h'), type='line', color='auto', name='Horizontal')
-        vel_v = self.plot.plot(
+        self.plot.plot(
             ('t', 'v_z'), type='line', color='auto', name='Vertical')
 
         self.link = link
