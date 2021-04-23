@@ -64,6 +64,11 @@ from piksi_tools.console.utils import (EMPTY_STR, pos_mode_dict,
 
 HEARTBEAT_CHECK_PERIOD_SECONDS = 1.2
 
+# Age out old data if it hasn't been updated for this long Assumes that the
+# lowest output rate is 1hz, so (like the heatbeat check period) gives a little
+# leeway
+UPDATE_TOLERANCE_SECONDS = 1.2
+
 warnings.filterwarnings("ignore", ".*No message found for msg_type.")
 
 
@@ -517,7 +522,7 @@ class SwiftConsole(HasTraits):
 
         # determine the latest llh solution mode
         if self.solution_view and (current_time -
-                                   self.solution_view.last_stime_update) < 1:
+                                   self.solution_view.last_stime_update) < UPDATE_TOLERANCE_SECONDS:
             llh_solution_mode = self.solution_view.last_pos_mode
             llh_display_mode = pos_mode_dict.get(llh_solution_mode, EMPTY_STR)
             if llh_solution_mode > 0 and self.solution_view.last_soln:
@@ -528,7 +533,7 @@ class SwiftConsole(HasTraits):
 
         # determine the latest baseline solution mode
         if (self.baseline_view and self.settings_view and
-                self.settings_view.dgnss_enabled and (current_time - self.baseline_view.last_btime_update) < 1):
+                self.settings_view.dgnss_enabled and (current_time - self.baseline_view.last_btime_update) < UPDATE_TOLERANCE_SECONDS):
             baseline_solution_mode = self.baseline_view.last_mode
             baseline_display_mode = rtk_mode_dict.get(baseline_solution_mode, EMPTY_STR)
 
@@ -538,7 +543,7 @@ class SwiftConsole(HasTraits):
 
         # determine the latest INS mode
         if self.solution_view and (current_time -
-                                   self.solution_view.last_ins_status_receipt_time) < 1:
+                                   self.solution_view.last_ins_status_receipt_time) < UPDATE_TOLERANCE_SECONDS:
             ins_flags = self.solution_view.ins_status_flags
             ins_mode = ins_flags & 0x7
             ins_type = (ins_flags >> 29) & 0x7
@@ -560,7 +565,7 @@ class SwiftConsole(HasTraits):
         # get age of corrections from baseline view
         if self.baseline_view:
             if (self.baseline_view.age_corrections is not None and
-                    (current_time - self.baseline_view.last_age_corr_receipt_time) < 1):
+                    (current_time - self.baseline_view.last_age_corr_receipt_time) < UPDATE_TOLERANCE_SECONDS):
                 self.age_of_corrections = "{0} s".format(
                     self.baseline_view.age_corrections)
             else:
