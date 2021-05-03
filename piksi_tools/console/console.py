@@ -69,6 +69,7 @@ HEARTBEAT_CHECK_PERIOD_SECONDS = 1.2
 # leeway
 UPDATE_TOLERANCE_SECONDS = 1.2
 
+
 class ArgumentParserError(Exception):
     pass
 
