@@ -2569,7 +2569,7 @@
   name: antenna_offset_deviation
   type: double
   units: meters
-  default value: 0.05
+  default value: '0.05'
   readonly: False
   Description: Standard deviation of antenna lever arm measurement.
   Notes: |
@@ -2581,7 +2581,7 @@
   name: vehicle_frame_deviation
   type: double
   units: degrees
-  default value: 1
+  default value: '1'
   readonly: False
   Description: Standard deviation of misalignment measurement.
   Notes: |
