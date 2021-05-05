@@ -2266,7 +2266,7 @@
   name: antenna_offset_deviation
   type: double
   units: meters
-  default value: 0.05
+  default value: '0.05'
   readonly: False
   Description: Standard deviation of antenna lever arm measurement.
   Notes: |
