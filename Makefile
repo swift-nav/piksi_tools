@@ -54,7 +54,8 @@ tox: export PATH:=$(CURDIR)/.conda_py35/bin:$(PATH)
 tox: tox_$(UNAME)
 
 test: tox
-docs: piksi_tools/console/settings.yaml latex/settings_template.tex piksi_tools/generate_settings_doc.py 
+.PHONY: docs 
+docs: piksi_tools/console/settings.yaml latex/settings_template.tex piksi_tools/generate_settings_doc.py
 	rm -f docs/settings.pdf && cd $(SWIFTNAV_ROOT) && PYTHONPATH=. python piksi_tools/generate_settings_doc.py
 	mv docs/settings.pdf docs/PiksiMulti-settings-v2.5.x.pdf
 
