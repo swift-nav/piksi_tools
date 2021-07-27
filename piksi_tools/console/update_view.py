@@ -257,7 +257,7 @@ class UpdateView(HasTraits):
 
     local_file_for_fileio = String()
     choose_local_file = Button(label='...', padding=-1)
-    destination_path_for_fileio = '/persistent/licenses/smoothpose_license.json'
+    destination_path_for_fileio = ''
     send_file_to_device = Button()
 
     view = View(
