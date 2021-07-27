@@ -488,11 +488,9 @@ ins_error_dict = {
     IMU_CALIBRATION_ERROR: "Cal Error"
 }
 
-SMOOTHPOSE = 0
 DR_RUNNER = 1
 
 ins_type_dict = {
-    SMOOTHPOSE: "SP",
     DR_RUNNER: "DR"
 }
 

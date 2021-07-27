@@ -462,17 +462,17 @@ class SettingsView(HasTraits):
         except AttributeError:
             pass
 
-    def update_required_smoothpose_settings(self):
+    def update_required_ins_settings(self):
         """
-        Update any recommended settings for smoothpose
+        Update any recommended ins settings
         """
-        list = self._determine_smoothpose_recommended_settings()
+        list = self._determine_ins_recommended_settings()
         for each_setting in list:
             self.settings[each_setting.section][each_setting.name].value = each_setting.rec_value
 
-    def _determine_smoothpose_recommended_settings(self):
+    def _determine_ins_recommended_settings(self):
         """
-        Returns a list of settings that should change for smoothpose
+        Returns a list of ins settings that should change
         """
 
         recommended_settings = {'imu_raw_output': Setting('imu_raw_output', 'imu', 'True'),
@@ -495,12 +495,12 @@ class SettingsView(HasTraits):
         """
         Display helpful hint messages to help a user set up inertial product
         """
-        settings_list = self._determine_smoothpose_recommended_settings()
+        settings_list = self._determine_ins_recommended_settings()
         if len(settings_list) > 0:
             confirm_prompt = prompt.CallbackPrompt(
                 title="Update Recommended Inertial Navigation Settings?",
                 actions=[prompt.close_button, prompt.update_button],
-                callback=self.update_required_smoothpose_settings)
+                callback=self.update_required_ins_settings)
             confirm_prompt.settings_list = settings_list
             confirm_prompt.text = "\n\n" \
                 "    In order to enable INS output, it is necessary to enable and configure the imu.    \n" \
