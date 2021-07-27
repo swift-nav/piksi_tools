@@ -347,13 +347,6 @@ class SwiftConsole(HasTraits):
                     Spring(width=4, springy=False),
                     Item(
                         '',
-                        label='Port:',
-                        emphasized=True,
-                        tooltip='Interface for communicating with Swift device'
-                    ),
-                    Item('cnx_desc', show_label=False, style='readonly'),
-                    Item(
-                        '',
                         label='Pos:',
                         emphasized=True,
                         tooltip='Device Position Mode: SPS, DGNSS, or RTK'),
