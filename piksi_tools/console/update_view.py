@@ -546,7 +546,7 @@ class UpdateView(HasTraits):
         # Get firmware files from Swift Nav's website, save to disk, and load.
         if 'fw' in self.update_dl.index[self.piksi_hw_rev]:
             if not os.path.exists(self.update_dl.root_dir):
-                os.mkdir(self.update_dl.root_dir)
+                os.makedirs(self.update_dl.root_dir, exist_ok=True)
                 self._write("Creating directory {}".format(self.update_dl.root_dir))
             try:
                 self._write('Downloading Latest Multi firmware')
