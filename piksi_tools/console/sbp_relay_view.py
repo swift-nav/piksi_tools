@@ -22,7 +22,6 @@ from traitsui.api import (HGroup, Item, TextEditor, UItem, VGroup,
 
 from piksi_tools.console.callback_prompt import CallbackPrompt, close_button
 from piksi_tools.console.gui_utils import MultilineTextEditor, ReadOnlyTabularAdapter
-from piksi_tools.console.cellmodem_view import CellModemView
 from traits.etsconfig.api import ETSConfig
 from .utils import resource_filename, sizeof_fmt
 
@@ -75,7 +74,6 @@ class SbpRelayView(HasTraits):
         width=16,
         height=16,
         aligment='center')
-    cell_modem_view = Instance(CellModemView)
     view = View(
         VGroup(spring,
                HGroup(
@@ -114,8 +112,8 @@ class SbpRelayView(HasTraits):
                    )
                ),
                spring,
-               HGroup(Item('cell_modem_view', style='custom', show_label=False),
-                      VGroup(
+               HGroup(
+                   VGroup(
                           Item(
                               '_network_info',
                               style='readonly',
@@ -126,9 +124,10 @@ class SbpRelayView(HasTraits):
                               'network_refresh_button', show_label=False,
                               width=0.50),
                           show_border=True,
-                          label="Network"),
-                      )
-               )
+                          label="Network"
+                    )
+                )
+            )
     )
 
     def _network_callback(self, m, **metadata):
@@ -165,8 +164,6 @@ class SbpRelayView(HasTraits):
 
         """
         self.link = link
-        # Whitelist used for UDP broadcast view
-        self.cell_modem_view = CellModemView(link)
         self.msgs = OBS_MSGS
         # register a callback when the msg_enum trait changes
         self.on_trait_change(self.update_msgs, 'msg_enum')
