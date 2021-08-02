@@ -124,8 +124,8 @@ class SbpRelayView(HasTraits):
                               'network_refresh_button', show_label=False,
                               width=0.50),
                           show_border=True,
-                          label="Network"
-                    )
+                          label="Network",
+                    ),
                 )
             )
     )
