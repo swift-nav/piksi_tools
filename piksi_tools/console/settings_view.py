@@ -749,7 +749,7 @@ class SettingsView(HasTraits):
         # Prompt user for file
         file = FileDialog(action='open',
                           default_directory=swift_path,
-                          default_filename='config.ini',
+                          default_filename='*.ini',
                           wildcard='*.ini')
         if file.open() != OK:
             # No error message here because user likely pressed cancel when choosing file
