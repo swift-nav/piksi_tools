@@ -442,6 +442,8 @@ class UpdateView(HasTraits):
         text : string
           Text to be written to screen.
         """
+        if self.stream is None:
+            return
         self.stream.write(text)
         self.stream.write('\n')
         self.stream.flush()
@@ -632,9 +634,6 @@ class UpdateView(HasTraits):
 
         # Check that we received the index file from the website.
         if self.update_dl is None:
-            self._write(
-                "\nWarning: Unable to fetch firmware release index from Swift to determine update status.\n"
-            )
             return
         # Get local stm version
         local_stm_version = None

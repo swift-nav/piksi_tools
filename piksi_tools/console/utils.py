@@ -492,8 +492,8 @@ SMOOTHPOSE = 0
 DR_RUNNER = 1
 
 ins_type_dict = {
-    SMOOTHPOSE: "SP",
-    DR_RUNNER: "INS"
+    SMOOTHPOSE: "SP-",
+    DR_RUNNER: ""
 }
 
 color_dict = {
