@@ -232,11 +232,11 @@ class UpdateView(HasTraits):
 
     piksi_stm_vers = String(
         'Waiting for Piksi to send settings...', width=COLUMN_WIDTH)
-    newest_stm_vers = String('Downloading Latest Firmware info...')
+    newest_stm_vers = String('Downloading latest firmware info...')
     piksi_nap_vers = String('Waiting for Piksi to send settings...')
-    newest_nap_vers = String('Downloading Latest Firmware info...')
+    newest_nap_vers = String('Downloading latest firmware info...')
     local_console_vers = String(CONSOLE_VERSION)
-    newest_console_vers = String('Downloading Latest Console info...')
+    newest_console_vers = String('Downloading latest console info...')
     download_directory_label = String('Firmware Download Directory:')
 
     update_stm_firmware = Button(label='Update Firmware')
@@ -634,6 +634,9 @@ class UpdateView(HasTraits):
 
         # Check that we received the index file from the website.
         if self.update_dl is None:
+            self._write(
+                "\nNote: Internet access is required to determine the latest firmware version.\n"
+            )
             return
         # Get local stm version
         local_stm_version = None
