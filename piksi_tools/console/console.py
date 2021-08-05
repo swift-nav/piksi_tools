@@ -146,7 +146,7 @@ class ConsoleHandler(Handler):
         This is a magic method called by the handler in response to any changes in
         the `device_id` variable in the underlying class.
         """
-        info.ui.title = (info.object.dev_id + " " + CONSOLE_TITLE)
+        info.ui.title = (info.object.dev_id + " - " + CONSOLE_TITLE)
 
 
 class SwiftConsole(HasTraits):

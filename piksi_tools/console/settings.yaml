@@ -103,11 +103,11 @@
   default value: 'False'
   readonly: false
   Description: Enable/Disable External Clock Input.
-  Notes: This setting toggles the hardware switch for Piksi Multi 10Mhz clock source. 
-    When true, Piksi Multi will be configured to use an external clock source rather 
-    than its onboard oscillator. It is only available on Piksi Multi hardware versions 
-    greater than or equal to 5.1 (00108-05 rev 1). The external clock input signal can 
-    be provided on the Piksi Multi evaluation board through a labeled SMA connector. 
+  Notes: This setting toggles the hardware switch for Piksi Multi 10Mhz clock source.
+    When true, Piksi Multi will be configured to use an external clock source rather
+    than its onboard oscillator. It is only available on Piksi Multi hardware versions
+    greater than or equal to 5.1 (00108-05 rev 1). The external clock input signal can
+    be provided on the Piksi Multi evaluation board through a labeled SMA connector.
     It is not exposed on Duro.
 
 - group: frontend
@@ -131,7 +131,7 @@
   readonly: false
   enumerated possible values: Legacy, MSM4, MSM5
   Description: Selects the format of RTCM observation messages for the RTCMv3 OUT protocol
-  Notes: Legacy mode outputs the RTCMv3.1 1004 & 1012 observation messages (GPS&GLO only),  
+  Notes: Legacy mode outputs the RTCMv3.1 1004 & 1012 observation messages (GPS&GLO only),
     whereas the RTCMv3.2 MSM4 and MSM5 modes send observations from all constellations.
 
 - group: rtcm_out
@@ -166,7 +166,7 @@
   readonly: false
   enumerated possible values:
   Description: Antenna height to be sent out in RTCMv3 message 1006.
-  Notes: The Antenna Height field provides the height of the Antenna Reference Point 
+  Notes: The Antenna Height field provides the height of the Antenna Reference Point
     above the marker used in the survey campaign.
 
 - group: sbp
@@ -533,7 +533,7 @@
   enumerated possible values: True,False
   Description: Enable GLONASS measurement processing in the navigation filter.
   Notes: If set to True, GLONASS measurements are processed in the navigation filter for SPP and RTK.
-  
+
 - group: solution
   name: enable_galileo
   expert: false
@@ -544,7 +544,7 @@
   enumerated possible values: True,False
   Description: Enable Galileo measurement processing in the navigation filter.
   Notes: If set to True, Galileo measurements are processed in the navigation filter for SPP and RTK.
-  
+
 - group: solution
   name: enable_beidou
   expert: false
@@ -1539,7 +1539,6 @@
   name: cog_output_min_speed
   expert: true
   type: float
-  digits: '1'
   units: Meters per second
   default value: '0.1'
   readonly: false
@@ -1551,7 +1550,6 @@
   name: cog_update_min_speed
   expert: true
   type: float
-  digits: '1'
   units: Meters per second
   default value: '0.1'
   readonly: false
@@ -2338,7 +2336,7 @@
   readonly: false
   Description: Sources for Linux System Time.
   units: N/A
-  Notes: Configures the possible sources for Linux system time on the Swift Device. 
+  Notes: Configures the possible sources for Linux system time on the Swift Device.
          Linux system time is required for HTTPS certification validation and other Linux system functionality.
 
 - group: system
@@ -2421,8 +2419,8 @@
 
 - group: system
   name: heading_forwarding
-  type: boolean 
-  expert: false 
+  type: boolean
+  expert: false
   default value: 'False'
   readonly: false
   units: N/A
@@ -2439,12 +2437,11 @@
   units: N/A
   default value: 'Disabled'
   readonly: false
-  enumerated possible values: Disabled, Loosely Coupled, Debug
-  Description: Determines output mode of the inertial navigation outputs. 
+  enumerated possible values: Disabled, Loosely Coupled
+  Description: Determines output mode of the inertial navigation outputs.
   Notes: |
          Disabled - output GNSS-only solutions.
          Loosely Coupled - output loosely coupled solutions, utilizing GNSS and inertial data.
-         Debug - output both GNSS-only and loosely coupled solutions, with identical timestamps. The "Inertial Navigation Mode" flags differentiate between GNSS-only and loosley coupled messages.
 
 - group: ins
   name: odometry_noise_1
@@ -2489,11 +2486,11 @@
   units: degrees
   default value: '0'
   readonly: false
-  Description: Roll angle representing rotation from vehicle frame to device frame. 
+  Description: Roll angle representing rotation from vehicle frame to device frame.
   Notes:       The euler angles are applied extrinsically in order roll, pitch, then yaw
                about the defined vehicle axes to describe how the vehicle should rotate to align
                with the device frame as mounted in the vehicle. These rotations directly affect
-               body velocities, attitude outputs, and the "Constrain Vehicle Sideslip" feature.
+               body velocities, attitude outputs.
 
 - group: ins
   name: vehicle_frame_pitch
@@ -2502,11 +2499,11 @@
   units: degrees
   default value: '0'
   readonly: false
-  Description: Pitch angle representing rotation from vehicle frame to device frame. 
+  Description: Pitch angle representing rotation from vehicle frame to device frame.
   Notes:       The euler angles are applied extrinsically in order roll, pitch, then yaw
                about the defined vehicle axes to describe how the vehicle should rotate to align
                with the device frame as mounted in the vehicle. These rotations directly affect
-               body velocities, attitude outputs, and the "Constrain Vehicle Sideslip" feature.
+               body velocities, attitude outputs.
 
 - group: ins
   name: vehicle_frame_yaw
@@ -2515,11 +2512,11 @@
   units: degrees
   default value: '0'
   readonly: false
-  Description: Yaw angle representing rotation from vehicle frame to device frame. 
+  Description: Yaw angle representing rotation from vehicle frame to device frame.
   Notes:       The euler angles are applied extrinsically in order roll, pitch, then yaw
                about the defined vehicle axes to describe how the vehicle should rotate to align
                with the device frame as mounted in the vehicle. These rotations directly affect
-               body velocities, attitude outputs, and the "Constrain Vehicle Sideslip" feature.
+               body velocities, attitude outputs.
 
 - group: ins
   name: antenna_offset_x
@@ -2528,7 +2525,7 @@
   units: meters
   default value: '0'
   readonly: false
-  Description: X component of vector from device frame to antenna phase center  
+  Description: X component of vector from device frame to antenna phase center
   Notes:       The vector is measured in the device frame according to the markings on the device.
 
 - group: ins
@@ -2538,7 +2535,7 @@
   units: meters
   default value: '0'
   readonly: false
-  Description: Y component of vector from device frame to antenna phase center 
+  Description: Y component of vector from device frame to antenna phase center
   Notes:       The vector is measured in the device frame according to the markings on the device.
 
 - group: ins
@@ -2548,7 +2545,7 @@
   units: meters
   default value: '-0.12674'
   readonly: false
-  Description: Z component of vector from device frame to antenna phase center  
+  Description: Z component of vector from device frame to antenna phase center
   Notes:       The vector is measured in the device frame according to the markings on the device. The default
                value represents the offset from the Duro Device Frame to the antenna phase center when the antenna
                mounting bracket shipped with Duro is in use.
@@ -2560,8 +2557,8 @@
   units: meters
   default value: '0'
   readonly: false
-  Description: X component of vector from device frame to vehicle frame origin in which inertial outputs are provided  
-  Notes: The vector is measured in the device frame according to the markings on the device. In order to output inertial solutions at the antenna phase center, this should be the same value (both sign and magnitude) as antenna_offset_x setting. 
+  Description: X component of vector from device frame to vehicle frame origin in which inertial outputs are provided
+  Notes: The vector is measured in the device frame according to the markings on the device. In order to output inertial solutions at the antenna phase center, this should be the same value (both sign and magnitude) as antenna_offset_x setting.
 
 - group: ins
   name: vehicle_frame_offset_y
@@ -2570,8 +2567,8 @@
   units: meters
   default value: '0'
   readonly: false
-  Description: Y component of vector from device frame to vehicle frame origin in which inertial outputs are provided  
-  Notes: The vector is measured in the device frame according to the markings on the device. In order to output inertial solutions at the antenna phase center, this should be the same value (both sign and magnitude) as antenna_offset_x setting. 
+  Description: Y component of vector from device frame to vehicle frame origin in which inertial outputs are provided
+  Notes: The vector is measured in the device frame according to the markings on the device. In order to output inertial solutions at the antenna phase center, this should be the same value (both sign and magnitude) as antenna_offset_x setting.
 
 - group: ins
   name: vehicle_frame_offset_z
@@ -2580,8 +2577,8 @@
   units: meters
   default value: '-0.12674'
   readonly: false
-  Description: Z component of vector from device frame to vehicle frame origin in which inertial outputs are provided  
-  Notes: The vector is measured in the device frame according to the markings on the device. In order to output inertial solutions at the antenna phase center, this should be the same value (both sign and magnitude) as antenna_offset_x setting. 
+  Description: Z component of vector from device frame to vehicle frame origin in which inertial outputs are provided
+  Notes: The vector is measured in the device frame according to the markings on the device. In order to output inertial solutions at the antenna phase center, this should be the same value (both sign and magnitude) as antenna_offset_x setting.
          The default value represents vehicle outpus at the antenna phase center when the Duro antenna mounting bracket is in use.
 
 - group: ins
@@ -2591,7 +2588,7 @@
   units: N/A
   default value: false
   readonly: false
-  Description: Experimental non-holonomic constraint feature that allows inertial system to make assumptions about vehicle dynamics 
+  Description: Experimental non-holonomic constraint feature that allows inertial system to make assumptions about vehicle dynamics
   Notes: This settings should only be enabled provided the vehicle frame Euler angles are measured precisely and are correct. It assumes a vehicle can have no velocity in the direction aligned with the vehicle "y" axis (i.e no sideslip). This is a reasonable assumption for passenger vehicles and many tractors.
 
 - group: ins
@@ -2609,10 +2606,10 @@
   expert: true
   type: double
   units: seconds
-  default value: '10'
+  default value: '600'
   readonly: false
   Description: Indicates the maximum duration in seconds for which the inertial system will dead reckon
-  Notes:       The default value of 10 seconds was chosen as the expected duration for which the Duro Inertial solution can maintain sub-meter accuracy.
+  Notes:       The default value of 600 seconds was chosen as the expected duration for which the Duro Inertial solution can maintain sub-meter accuracy.
 
 - group: ins
   name: build_name
@@ -2762,7 +2759,7 @@
   default value: 'false'
   readonly: false
   Description: Configure status of CAN termination resistor on Duro.
-  Notes: This setting toggles the 120 ohm termination resistor 
+  Notes: This setting toggles the 120 ohm termination resistor
     for the CAN interface available on the AUX connector of Duro.
     It should only appear on Duro devices.
 
@@ -2778,7 +2775,7 @@
 - group: pps
   name: propagation_timeout
   expert: false
-  type: float 
+  type: float
   units: seconds
   default value: '5'
   readonly: false
@@ -2873,21 +2870,21 @@
 - group: ins
   name:  filter_vel
   expert: true
-  type: boolean 
+  type: boolean
   default_value: false
   Description: Enabled low-speed velocity filtering (advanced use only)
 
 - group: ins
   name:  filter_pos
   expert: true
-  type: boolean 
+  type: boolean
   default_value: false
   Description: Enabled low-speed position filtering (advanced use only)
 
 - group: ins
   name:  stillness_autotune
   expert: true
-  type: boolean 
+  type: boolean
   default_value: false
   Description: Automatically attempt to tune stillness detection thresholds
 

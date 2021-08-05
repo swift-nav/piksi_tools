@@ -585,7 +585,7 @@ class SolutionView(HasTraits):
 
     def angular_rate_callback(self, sbp_msg, **metadata):
         msg = MsgAngularRate(sbp_msg)
-        if msg.flags != 0:
+        if (msg.flags & 0x03) != 0:
             self.angular_rate_table = [('X Angular Rate', msg.x / 1000000),
                                        ('Y Angular Rate', msg.y / 1000000),
                                        ('Z Angular Rate', msg.z / 1000000)]
@@ -596,7 +596,7 @@ class SolutionView(HasTraits):
 
     def orient_euler_callback(self, sbp_msg, **metadata):
         msg = MsgOrientEuler(sbp_msg)
-        if msg.flags != 0:
+        if (msg.flags & 0x07) != 0:
             self.orient_euler_table = [('Roll', msg.roll / 1000000),
                                        ('Roll Accuracy', msg.roll_accuracy),
                                        ('Pitch', msg.pitch / 1000000),
