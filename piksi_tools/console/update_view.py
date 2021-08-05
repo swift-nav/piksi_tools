@@ -666,7 +666,7 @@ class UpdateView(HasTraits):
                         "Your console is out of date and may be incompatible\n" + \
                         "with current firmware. We highly recommend upgrading to\n" + \
                         "ensure proper behavior.\n\n" + \
-                        "Please visit http://support.swiftnav.com to\n" + \
+                        "Please visit support.swiftnav.com to " + \
                         "download the latest version.\n\n" + \
                         "Local Console Version :\n\t" + \
                         CONSOLE_VERSION + \
@@ -682,7 +682,7 @@ class UpdateView(HasTraits):
                         "Your console is incompatible with your hardware revision.\n" + \
                         "We highly recommend using a compatible console version\n" + \
                         "to ensure proper behavior.\n\n" + \
-                        "Please visit http://support.swiftnav.com to\n" + \
+                        "Please visit support.swiftnav.com to " + \
                         "download the latest compatible version.\n\n" + \
                         "Current Hardware revision :\n\t" + \
                         self.piksi_hw_rev + \
