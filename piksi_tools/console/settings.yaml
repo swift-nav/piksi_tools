@@ -1540,6 +1540,7 @@
   expert: true
   type: float
   units: Meters per second
+  digits: '2'
   default value: '0.1'
   readonly: false
   enumerated possible values:
@@ -1551,6 +1552,7 @@
   expert: true
   type: float
   units: Meters per second
+  digits: '2'
   default value: '0.1'
   readonly: false
   enumerated possible values:
