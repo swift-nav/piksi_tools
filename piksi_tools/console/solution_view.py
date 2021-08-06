@@ -46,7 +46,7 @@ from piksi_tools.console.gui_utils import MultilineTextEditor, plot_square_axes
 from piksi_tools.console.utils import (
     DGNSS_MODE, EMPTY_STR, FIXED_MODE, FLOAT_MODE, SBAS_MODE, DR_MODE,
     SPP_MODE, color_dict, datetime_2_str, get_mode, log_time_strings,
-    mode_dict)
+    mode_dict, microdegrees_2_degrees)
 from piksi_tools.utils import sopen
 from .utils import resource_filename
 from .gui_utils import GUI_UPDATE_PERIOD, STALE_DATA_PERIOD, UpdateScheduler
@@ -586,9 +586,9 @@ class SolutionView(HasTraits):
     def angular_rate_callback(self, sbp_msg, **metadata):
         msg = MsgAngularRate(sbp_msg)
         if (msg.flags & 0x03) != 0:
-            self.angular_rate_table = [('X Angular Rate', msg.x / 1000000),
-                                       ('Y Angular Rate', msg.y / 1000000),
-                                       ('Z Angular Rate', msg.z / 1000000)]
+            self.angular_rate_table = [('X Angular Rate', microdegrees_2_degrees(msg.x)),
+                                       ('Y Angular Rate', microdegrees_2_degrees(msg.y)),
+                                       ('Z Angular Rate', microdegrees_2_degrees(msg.z))]
         else:
             self.angular_rate_table = [('X Angular Rate', EMPTY_STR),
                                        ('Y Angular Rate', EMPTY_STR),
@@ -597,12 +597,12 @@ class SolutionView(HasTraits):
     def orient_euler_callback(self, sbp_msg, **metadata):
         msg = MsgOrientEuler(sbp_msg)
         if (msg.flags & 0x07) != 0:
-            self.orient_euler_table = [('Roll', msg.roll / 1000000),
-                                       ('Roll Accuracy', msg.roll_accuracy),
-                                       ('Pitch', msg.pitch / 1000000),
-                                       ('Pitch Accuracy', msg.pitch_accuracy),
-                                       ('Yaw', msg.yaw / 1000000),
-                                       ('Yaw Accuracy', msg.yaw_accuracy)]
+            self.orient_euler_table = [('Roll', microdegrees_2_degrees(msg.roll)),
+                                       ('Roll Accuracy', round(msg.roll_accuracy, 2)),
+                                       ('Pitch', microdegrees_2_degrees(msg.pitch)),
+                                       ('Pitch Accuracy', round(msg.pitch_accuracy, 2)),
+                                       ('Yaw', microdegrees_2_degrees(msg.yaw)),
+                                       ('Yaw Accuracy', round(msg.yaw_accuracy, 2))]
         else:
             self.orient_euler_table = [('Roll', EMPTY_STR),
                                        ('Roll Accuracy', EMPTY_STR),
