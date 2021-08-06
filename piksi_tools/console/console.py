@@ -137,27 +137,14 @@ class ConsoleHandler(Handler):
     response to changes in the underlying class/data.
     """
 
-    def object_device_serial_changed(self, info):
-        """
-        Update the window title with the device serial number.
-
-        This is a magic method called by the handler in response to any changes in
-        the `device_serial` variable in the underlying class.
-        """
-        if info.initialized:
-            info.ui.title = (info.object.dev_id +
-                             "(" + info.object.device_serial + ") " + CONSOLE_TITLE)
-
     def object_dev_id_changed(self, info):
         """
         Update the window title with the dev_id.
 
         This is a magic method called by the handler in response to any changes in
-        the `device_id` variable in the underlying class. Will only be called if
-        object_device_serial_changed hasn't been called
+        the `device_id` variable in the underlying class.
         """
-        if info.ui.title.find(info.object.dev_id) == -1:
-            info.ui.title = (info.object.dev_id + " " + CONSOLE_TITLE)
+        info.ui.title = (info.object.dev_id + " - " + CONSOLE_TITLE)
 
 
 class SwiftConsole(HasTraits):
@@ -201,6 +188,7 @@ class SwiftConsole(HasTraits):
   """
     pos_mode = Str('')
     rtk_mode = Str('')
+    ant_status_string = Str('')
     ins_status_string = Str('')
     num_sats_str = Str('')
     cnx_desc = Str('')
@@ -347,13 +335,6 @@ class SwiftConsole(HasTraits):
                     Spring(width=4, springy=False),
                     Item(
                         '',
-                        label='Port:',
-                        emphasized=True,
-                        tooltip='Interface for communicating with Swift device'
-                    ),
-                    Item('cnx_desc', show_label=False, style='readonly'),
-                    Item(
-                        '',
                         label='Pos:',
                         emphasized=True,
                         tooltip='Device Position Mode: SPS, DGNSS, or RTK'),
@@ -392,6 +373,16 @@ class SwiftConsole(HasTraits):
                         tooltip='INS Status String'
                     ), Item(
                         'ins_status_string',
+                        padding=2,
+                        show_label=False,
+                        style='readonly', width=6),
+                    Item(
+                        '',
+                        label='Ant:',
+                        emphasized=True,
+                        tooltip='Ant Status String'
+                    ), Item(
+                        'ant_status_string',
                         padding=2,
                         show_label=False,
                         style='readonly', width=6),
@@ -483,12 +474,14 @@ class SwiftConsole(HasTraits):
             self.observation_view_base.dirname = self.directory_name
 
     def update_on_heartbeat(self, sbp_msg, **metadata):
+        self.last_heartbeat_msg_flags = sbp_msg.flags
         self.heartbeat_count += 1
 
     def check_heartbeat(self):
         # if our heartbeat hasn't changed since the last timer interval the connection must have dropped
         if self.heartbeat_count == self.last_timer_heartbeat and self.heartbeat_count != 0:
             self.solid_connection = False
+            self.ant_status_string = "None"
             self.ins_status_string = "None"
             self.pos_mode = "None"
             self.ins_mode = "None"
@@ -516,7 +509,19 @@ class SwiftConsole(HasTraits):
 
         baseline_display_mode = "None"
 
+        ant_status_string = EMPTY_STR
         ins_status_string = EMPTY_STR
+
+        # determine the antenna status
+        if self.last_heartbeat_msg_flags is not None:
+            if self.last_heartbeat_msg_flags & 0x40000000:
+                ant_status_string = "Short"
+            elif self.last_heartbeat_msg_flags & 0x80000000:
+                ant_status_string = "Ok"
+            else:
+                ant_status_string = "Open"
+        self.ant_status_string = ant_status_string
+
 
         # determine the latest llh solution mode
         if self.solution_view and (current_time -
@@ -555,8 +560,8 @@ class SwiftConsole(HasTraits):
             if ins_error != 0:
                 ins_status_string = ins_error_dict.get(ins_error, "Unk Error")
             else:
-                ins_status_string = ins_type_dict.get(ins_type, "unk") + "-"
-                ins_status_string += ins_mode_dict.get(ins_mode, "unk")
+                ins_status_string = ins_type_dict.get(ins_type, "Unk-")
+                ins_status_string += ins_mode_dict.get(ins_mode, "Unk")
                 if odo_status == 1:
                     ins_status_string += "+Odo"
 
@@ -669,12 +674,14 @@ class SwiftConsole(HasTraits):
         self.dev_id = cnx_desc
         self.num_sats_str = EMPTY_STR
         self.mode = ''
+        self.ant_status_string = "None"
         self.ins_status_string = "None"
         self.forwarder = None
         self.age_of_corrections = '--'
         self.expand_json = expand_json
         # if we have passed a logfile, we set our directory to it
         override_filename = override_filename
+        self.last_heartbeat_msg_flags = None
         self.last_status_update_time = 0
         self.last_driver_bytes_read = 0
         self.driver = driver

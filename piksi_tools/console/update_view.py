@@ -232,11 +232,11 @@ class UpdateView(HasTraits):
 
     piksi_stm_vers = String(
         'Waiting for Piksi to send settings...', width=COLUMN_WIDTH)
-    newest_stm_vers = String('Downloading Latest Firmware info...')
+    newest_stm_vers = String('Downloading latest firmware info...')
     piksi_nap_vers = String('Waiting for Piksi to send settings...')
-    newest_nap_vers = String('Downloading Latest Firmware info...')
+    newest_nap_vers = String('Downloading latest firmware info...')
     local_console_vers = String(CONSOLE_VERSION)
-    newest_console_vers = String('Downloading Latest Console info...')
+    newest_console_vers = String('Downloading latest console info...')
     download_directory_label = String('Firmware Download Directory:')
 
     update_stm_firmware = Button(label='Update Firmware')
@@ -257,7 +257,7 @@ class UpdateView(HasTraits):
 
     local_file_for_fileio = String()
     choose_local_file = Button(label='...', padding=-1)
-    destination_path_for_fileio = '/persistent/licenses/smoothpose_license.json'
+    destination_path_for_fileio = ''
     send_file_to_device = Button()
 
     view = View(
@@ -442,6 +442,8 @@ class UpdateView(HasTraits):
         text : string
           Text to be written to screen.
         """
+        if self.stream is None:
+            return
         self.stream.write(text)
         self.stream.write('\n')
         self.stream.flush()
@@ -546,7 +548,7 @@ class UpdateView(HasTraits):
         # Get firmware files from Swift Nav's website, save to disk, and load.
         if 'fw' in self.update_dl.index[self.piksi_hw_rev]:
             if not os.path.exists(self.update_dl.root_dir):
-                os.mkdir(self.update_dl.root_dir)
+                os.makedirs(self.update_dl.root_dir, exist_ok=True)
                 self._write("Creating directory {}".format(self.update_dl.root_dir))
             try:
                 self._write('Downloading Latest Multi firmware')
@@ -633,7 +635,7 @@ class UpdateView(HasTraits):
         # Check that we received the index file from the website.
         if self.update_dl is None:
             self._write(
-                "\nWarning: Unable to fetch firmware release index from Swift to determine update status.\n"
+                "\nNote: Internet access is required to determine the latest firmware version.\n"
             )
             return
         # Get local stm version
@@ -664,7 +666,7 @@ class UpdateView(HasTraits):
                         "Your console is out of date and may be incompatible\n" + \
                         "with current firmware. We highly recommend upgrading to\n" + \
                         "ensure proper behavior.\n\n" + \
-                        "Please visit http://support.swiftnav.com to\n" + \
+                        "Please visit support.swiftnav.com to " + \
                         "download the latest version.\n\n" + \
                         "Local Console Version :\n\t" + \
                         CONSOLE_VERSION + \
@@ -680,7 +682,7 @@ class UpdateView(HasTraits):
                         "Your console is incompatible with your hardware revision.\n" + \
                         "We highly recommend using a compatible console version\n" + \
                         "to ensure proper behavior.\n\n" + \
-                        "Please visit http://support.swiftnav.com to\n" + \
+                        "Please visit support.swiftnav.com to " + \
                         "download the latest compatible version.\n\n" + \
                         "Current Hardware revision :\n\t" + \
                         self.piksi_hw_rev + \

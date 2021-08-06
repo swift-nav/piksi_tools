@@ -31,6 +31,9 @@ from sbp.navigation import (
     SBP_MSG_VEL_NED_DEP_A, MsgAgeCorrections, MsgDops, MsgDopsDepA, MsgGPSTime,
     MsgGPSTimeDepA, MsgPosLLH, MsgPosLLHDepA, MsgUtcTime, MsgVelNED,
     MsgVelNEDDepA)
+from sbp.orientation import (
+    SBP_MSG_ANGULAR_RATE, SBP_MSG_ORIENT_EULER, MsgAngularRate,
+    MsgOrientEuler)
 from sbp.system import SBP_MSG_INS_STATUS, MsgInsStatus
 from sbp.system import SBP_MSG_INS_UPDATES, MsgInsUpdates
 from traits.api import (Bool, Dict, File, HasTraits, Instance, Int, Float, List,
@@ -43,7 +46,7 @@ from piksi_tools.console.gui_utils import MultilineTextEditor, plot_square_axes
 from piksi_tools.console.utils import (
     DGNSS_MODE, EMPTY_STR, FIXED_MODE, FLOAT_MODE, SBAS_MODE, DR_MODE,
     SPP_MODE, color_dict, datetime_2_str, get_mode, log_time_strings,
-    mode_dict)
+    mode_dict, microdegrees_2_degrees)
 from piksi_tools.utils import sopen
 from .utils import resource_filename
 from .gui_utils import GUI_UPDATE_PERIOD, STALE_DATA_PERIOD, UpdateScheduler
@@ -110,6 +113,8 @@ class SolutionView(HasTraits):
     dops_table = List()
     pos_table = List()
     vel_table = List()
+    angular_rate_table = List()
+    orient_euler_table = List()
 
     rtk_pos_note = Str(
         "It is necessary to enter the \"Surveyed Position\" settings for the base station in order to view the RTK Positions in this tab."
@@ -298,7 +303,13 @@ class SolutionView(HasTraits):
             self.age_corrections = None
 
     def update_table(self):
-        self.table = self.pos_table + self.vel_table + self.dops_table
+        self.table = (
+            self.pos_table
+            + self.vel_table
+            + self.dops_table
+            + self.angular_rate_table
+            + self.orient_euler_table
+        )
 
     def auto_survey(self):
         if len(self.lats) != 0:
@@ -571,6 +582,34 @@ class SolutionView(HasTraits):
         tic = ins_updates.wheelticks
         if ((tic & 0xF0) >> 4) > (tic & 0x0F):
             self.last_odo_update_time = monotonic()
+
+    def angular_rate_callback(self, sbp_msg, **metadata):
+        msg = MsgAngularRate(sbp_msg)
+        if (msg.flags & 0x03) != 0:
+            self.angular_rate_table = [('X Angular Rate', microdegrees_2_degrees(msg.x)),
+                                       ('Y Angular Rate', microdegrees_2_degrees(msg.y)),
+                                       ('Z Angular Rate', microdegrees_2_degrees(msg.z))]
+        else:
+            self.angular_rate_table = [('X Angular Rate', EMPTY_STR),
+                                       ('Y Angular Rate', EMPTY_STR),
+                                       ('Z Angular Rate', EMPTY_STR)]
+
+    def orient_euler_callback(self, sbp_msg, **metadata):
+        msg = MsgOrientEuler(sbp_msg)
+        if (msg.flags & 0x07) != 0:
+            self.orient_euler_table = [('Roll', microdegrees_2_degrees(msg.roll)),
+                                       ('Roll Accuracy', round(msg.roll_accuracy, 2)),
+                                       ('Pitch', microdegrees_2_degrees(msg.pitch)),
+                                       ('Pitch Accuracy', round(msg.pitch_accuracy, 2)),
+                                       ('Yaw', microdegrees_2_degrees(msg.yaw)),
+                                       ('Yaw Accuracy', round(msg.yaw_accuracy, 2))]
+        else:
+            self.orient_euler_table = [('Roll', EMPTY_STR),
+                                       ('Roll Accuracy', EMPTY_STR),
+                                       ('Pitch', EMPTY_STR),
+                                       ('Pitch Accuracy', EMPTY_STR),
+                                       ('Yaw', EMPTY_STR),
+                                       ('Yaw Accuracy', EMPTY_STR)]
 
     def vel_ned_callback(self, sbp_msg, **metadata):
         flags = 0
@@ -906,6 +945,8 @@ class SolutionView(HasTraits):
         self.link.add_callback(self.gps_time_callback, [SBP_MSG_GPS_TIME_DEP_A, SBP_MSG_GPS_TIME])
         self.link.add_callback(self.utc_time_callback, [SBP_MSG_UTC_TIME])
         self.link.add_callback(self.age_corrections_callback, SBP_MSG_AGE_CORRECTIONS)
+        self.link.add_callback(self.angular_rate_callback, SBP_MSG_ANGULAR_RATE)
+        self.link.add_callback(self.orient_euler_callback, SBP_MSG_ORIENT_EULER)
         self.week = None
         self.utc_time = None
         self.age_corrections = None
