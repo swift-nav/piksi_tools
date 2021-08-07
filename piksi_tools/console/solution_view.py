@@ -304,11 +304,11 @@ class SolutionView(HasTraits):
 
     def update_table(self):
         self.table = (
-            self.pos_table
-            + self.vel_table
-            + self.dops_table
-            + self.angular_rate_table
-            + self.orient_euler_table
+            self.pos_table +
+            self.vel_table +
+            self.dops_table +
+            self.angular_rate_table +
+            self.orient_euler_table
         )
 
     def auto_survey(self):
