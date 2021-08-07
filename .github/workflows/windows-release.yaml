@@ -1,0 +1,117 @@
+name: main
+
+on:
+  push:
+    branches:
+      - 'main'
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+*'
+  pull_request:
+
+jobs:
+
+  build:
+
+    name: Build Binaries
+
+    strategy:
+      matrix:
+        os:
+          - windows-2016
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+
+      - name: Checkout source
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          ssh-key: ${{ secrets.SSH_KEY }}
+          ssh-strict: false
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.5'
+          architecture: 'x86' # optional x64 or x86. Defaults to x64 if not specified
+
+
+      # - name: Cache pip
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: ${{ env.PIP_CACHE_DIR }}
+      #     key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt', 'requirements_dev.txt', 'requirements_gui.txt') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-pip-
+      #       ${{ runner.os }}-
+      - name: Install Deps
+        env:
+          TESTENV: build_console
+          TOXENV: py35,py37,gui35
+        run: |
+          make deps
+          pip install -r requirements_dev.txt
+      - name: Build Release
+        run: |
+          make tox VERBOSE=y
+          make build_console | true
+      - name: Store release
+        shell: bash
+        run: |
+          ls -l
+          ls -l dist/
+          echo dist/*.exe >release-archive.filename;
+          echo "RELEASE_ARCHIVE=$(cat release-archive.filename)" >>$GITHUB_ENV
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ runner.os }}-artifacts
+          path: |
+            ${{ env.RELEASE_ARCHIVE }}
+            release-archive.filename
+  
+  # release:
+  #   name: Create Release
+  #   needs:
+  #     - frontend_bench
+  #   if: github.event_name == 'push' && contains(github.ref, 'refs/tags')
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - name: Store git tag and date vars.
+  #       run: |
+  #         DATE="$(date '+%Y-%m-%d')";
+  #         echo "DATE=${DATE}" >> $GITHUB_ENV
+  #         echo "VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
+  #     - name: Pull Windows Artifacts
+  #       uses: actions/download-artifact@v2
+  #       with:
+  #         name: Windows-artifacts
+  #         path: |
+  #           windows
+  #     - name: Pull Linux Artifacts
+  #       uses: actions/download-artifact@v2
+  #       with:
+  #         name: Linux-artifacts
+  #         path: |
+  #           linux
+  #     - name: Pull macOS Artifacts
+  #       uses: actions/download-artifact@v2
+  #       with:
+  #         name: macOS-artifacts
+  #         path: |
+  #           macos
+  #     - name: Store Env Vars
+  #       shell: bash
+  #       run: |
+  #         echo "WINDOWS_ARCHIVE=$(cat windows/release-archive.filename)" >>$GITHUB_ENV
+  #         echo "LINUX_ARCHIVE=$(cat linux/release-archive.filename)" >>$GITHUB_ENV
+  #         echo "MACOS_ARCHIVE=$(cat macos/release-archive.filename)" >>$GITHUB_ENV
+  #     - name: Release
+  #       uses: softprops/action-gh-release@v1
+  #       with:
+  #         name: "${{ env.VERSION }}-${{ env.DATE }}"
+  #         files: |
+  #           windows/${{ env.WINDOWS_ARCHIVE }}
+  #           linux/${{ env.LINUX_ARCHIVE }}
+  #           macos/${{ env.MACOS_ARCHIVE }}
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
