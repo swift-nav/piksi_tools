@@ -118,7 +118,7 @@ function all_dependencies_debian () {
     run_apt_install \
          git \
          build-essential \
-         python-setuptools \
+         python-setuptools=50.0 \
          python-virtualenv \
          swig \
          libicu-dev \
