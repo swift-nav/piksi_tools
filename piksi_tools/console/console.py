@@ -522,7 +522,6 @@ class SwiftConsole(HasTraits):
                 ant_status_string = "Open"
         self.ant_status_string = ant_status_string
 
-
         # determine the latest llh solution mode
         if self.solution_view and (current_time -
                                    self.solution_view.last_stime_update) < UPDATE_TOLERANCE_SECONDS:

@@ -639,8 +639,10 @@ def get_mode(msg):
 def datetime_2_str(datetm):
     return (datetm.strftime('%Y-%m-%d %H:%M'), datetm.strftime('%S.%f'))
 
+
 def microdegrees_2_degrees(deg):
     return round(deg / 1000000, 2)
+
 
 # Modified based on https://stackoverflow.com/a/1094933
 def sizeof_fmt(num, suffix='B'):

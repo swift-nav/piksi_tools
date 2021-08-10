@@ -15,8 +15,7 @@ from sbp.client.loggers.udp_logger import UdpLogger
 from sbp.observation import (SBP_MSG_BASE_POS_ECEF, SBP_MSG_BASE_POS_LLH,
                              SBP_MSG_OBS, SBP_MSG_OBS_DEP_B, SBP_MSG_OBS_DEP_C)
 from sbp.piksi import (SBP_MSG_NETWORK_STATE_RESP, MsgNetworkStateReq)
-from traits.api import Bool, Button, Enum, HasTraits, Int, String, List, \
-    Instance
+from traits.api import Bool, Button, Enum, HasTraits, Int, String, List
 from traitsui.api import (HGroup, Item, TextEditor, UItem, VGroup,
                           View, spring, TabularEditor)
 
@@ -75,59 +74,61 @@ class SbpRelayView(HasTraits):
         height=16,
         aligment='center')
     view = View(
-        VGroup(spring,
-               HGroup(
-                   VGroup(
-                       Item(
-                           'msg_enum',
-                           label="Messages to broadcast",
-                           style='custom',
-                           enabled_when='not running'),
-                       Item(
-                           'ip_ad',
-                           label='IP Address',
-                           enabled_when='not running'),
-                       Item('port', label="Port", enabled_when='not running'),
-                       HGroup(spring,
-                              UItem(
-                                  'start',
-                                  enabled_when='not running',
-                                  show_label=False),
-                              UItem(
-                                  'stop',
-                                  enabled_when='running',
-                                  show_label=False), spring)),
-                   VGroup(
-                       Item(
-                           'information',
-                           label="Notes",
-                           height=10,
-                           editor=MultilineTextEditor(
-                               TextEditor(multi_line=True)),
-                           style='readonly',
-                           show_label=False,
-                           resizable=True,
-                           padding=15),
-                       spring,
-                   )
-               ),
-               spring,
-               HGroup(
-                   VGroup(
-                          Item(
-                              '_network_info',
-                              style='readonly',
-                              editor=TabularEditor(
-                                  adapter=SimpleNetworkAdapter()),
-                              show_label=False, ),
-                          Item(
-                              'network_refresh_button', show_label=False,
-                              width=0.50),
-                          show_border=True,
-                          label="Network",
-                    ),
+        VGroup(
+            spring,
+            HGroup(
+                VGroup(
+                    Item(
+                        'msg_enum',
+                        label="Messages to broadcast",
+                        style='custom',
+                        enabled_when='not running'),
+                    Item(
+                        'ip_ad',
+                        label='IP Address',
+                        enabled_when='not running'),
+                    Item('port', label="Port", enabled_when='not running'),
+                    HGroup(
+                        spring,
+                        UItem(
+                            'start',
+                            enabled_when='not running',
+                            show_label=False),
+                        UItem(
+                            'stop',
+                            enabled_when='running',
+                            show_label=False), spring)),
+                VGroup(
+                    Item(
+                        'information',
+                        label="Notes",
+                        height=10,
+                        editor=MultilineTextEditor(
+                            TextEditor(multi_line=True)),
+                        style='readonly',
+                        show_label=False,
+                        resizable=True,
+                        padding=15),
+                    spring,
                 )
+            ),
+            spring,
+            HGroup(
+                VGroup(
+                    Item(
+                        '_network_info',
+                        style='readonly',
+                        editor=TabularEditor(
+                            adapter=SimpleNetworkAdapter()),
+                        show_label=False, ),
+                    Item(
+                        'network_refresh_button', show_label=False,
+                        width=0.50),
+                    show_border=True,
+                    label="Network",
+                ),
             )
+        )
     )
 
     def _network_callback(self, m, **metadata):
