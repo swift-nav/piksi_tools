@@ -349,6 +349,16 @@ class SwiftConsole(HasTraits):
                     Item('rtk_mode', show_label=False, style='readonly'),
                     Item(
                         '',
+                        label='INS:',
+                        emphasized=True,
+                        tooltip='INS Status String'
+                    ), Item(
+                        'ins_status_string',
+                        padding=2,
+                        show_label=False,
+                        style='readonly', width=6),
+                    Item(
+                        '',
                         label='Sats:',
                         emphasized=True,
                         tooltip='Number of satellites used in solution'),
@@ -368,16 +378,6 @@ class SwiftConsole(HasTraits):
                         padding=2,
                         show_label=False,
                         style='readonly'),
-                    Item(
-                        '',
-                        label='INS:',
-                        emphasized=True,
-                        tooltip='INS Status String'
-                    ), Item(
-                        'ins_status_string',
-                        padding=2,
-                        show_label=False,
-                        style='readonly', width=6),
                     Item(
                         '',
                         label='Ant:',
@@ -483,10 +483,10 @@ class SwiftConsole(HasTraits):
         # if our heartbeat hasn't changed since the last timer interval the connection must have dropped
         if self.heartbeat_count == self.last_timer_heartbeat and self.heartbeat_count != 0:
             self.solid_connection = False
-            self.ant_status_string = "None"
-            self.ins_status_string = "None"
-            self.pos_mode = "None"
-            self.ins_mode = "None"
+            self.ant_status_string = EMPTY_STR
+            self.ins_status_string = EMPTY_STR
+            self.pos_mode = EMPTY_STR
+            self.ins_mode = EMPTY_STR
             self.num_sats_str = EMPTY_STR
             self.last_timer_heartbeat = self.heartbeat_count
         else:
@@ -505,11 +505,11 @@ class SwiftConsole(HasTraits):
         # -- grab current time to use in logic
         current_time = monotonic()
         # --- determining which mode, llh or baseline, to show in the status bar ---
-        llh_display_mode = "None"
+        llh_display_mode = EMPTY_STR
         llh_num_sats = 0
         llh_is_rtk = False
 
-        baseline_display_mode = "None"
+        baseline_display_mode = EMPTY_STR
 
         ant_status_string = EMPTY_STR
         ins_status_string = EMPTY_STR
