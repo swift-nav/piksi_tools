@@ -597,19 +597,13 @@ class SolutionView(HasTraits):
     def orient_euler_callback(self, sbp_msg, **metadata):
         msg = MsgOrientEuler(sbp_msg)
         if (msg.flags & 0x07) != 0:
-            self.orient_euler_table = [('Roll', microdegrees_2_degrees(msg.roll)),
-                                       ('Roll Accuracy', round(msg.roll_accuracy, 2)),
-                                       ('Pitch', microdegrees_2_degrees(msg.pitch)),
-                                       ('Pitch Accuracy', round(msg.pitch_accuracy, 2)),
-                                       ('Yaw', microdegrees_2_degrees(msg.yaw)),
-                                       ('Yaw Accuracy', round(msg.yaw_accuracy, 2))]
+            self.orient_euler_table = [('Roll (Accuracy)', "{roll} ({roll_acc})".format(roll=microdegrees_2_degrees(msg.roll), roll_acc=round(msg.roll_accuracy, 1))),
+                                       ('Pitch (Accuracy)', "{pitch} ({pitch_acc})".format(pitch=microdegrees_2_degrees(msg.pitch), pitch_acc=round(msg.pitch_accuracy, 1))),
+                                       ('Yaw (Accuracy)', "{yaw} ({yaw_acc})".format(yaw=microdegrees_2_degrees(msg.yaw), yaw_acc=round(msg.yaw_accuracy, 1)))]
         else:
-            self.orient_euler_table = [('Roll', EMPTY_STR),
-                                       ('Roll Accuracy', EMPTY_STR),
-                                       ('Pitch', EMPTY_STR),
-                                       ('Pitch Accuracy', EMPTY_STR),
-                                       ('Yaw', EMPTY_STR),
-                                       ('Yaw Accuracy', EMPTY_STR)]
+            self.orient_euler_table = [('Roll (Accuracy)', EMPTY_STR),
+                                       ('Pitch (Accuracy)', EMPTY_STR),
+                                       ('Yaw (Accuracy)', EMPTY_STR)]
 
     def vel_ned_callback(self, sbp_msg, **metadata):
         flags = 0

@@ -486,6 +486,8 @@ class SwiftConsole(HasTraits):
             self.pos_mode = EMPTY_STR
             self.ins_mode = EMPTY_STR
             self.num_sats_str = EMPTY_STR
+            self.age_of_corrections = EMPTY_STR
+            self.rtk_mode = EMPTY_STR
             self.last_timer_heartbeat = self.heartbeat_count
         else:
             self.solid_connection = True
