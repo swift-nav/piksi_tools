@@ -146,8 +146,19 @@ class ConsoleHandler(Handler):
         This is a magic method called by the handler in response to any changes in
         the `device_id` variable in the underlying class.
         """
-        info.ui.title = (info.object.dev_id + " - " + CONSOLE_TITLE)
+        info.ui.title = ConsoleHandler.title(info)
 
+    def object_json_logging_changed(self, info):
+        info.ui.title = ConsoleHandler.title(info)
+
+    def object_csv_logging_changed(self, info):
+        info.ui.title = ConsoleHandler.title(info)
+
+    def title(info):
+        if info.object.json_logging or info.object.csv_logging:
+            return "[L] " + info.object.dev_id + " - " + CONSOLE_TITLE
+        else:
+            return info.object.dev_id + " - " + CONSOLE_TITLE
 
 class SwiftConsole(HasTraits):
     """Traits-defined Swift Console.
