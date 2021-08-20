@@ -84,7 +84,6 @@ class Setting(SettingBase):
     section = Str()
     setting_type = Str()
     digits = Str()
-    value_on_device = Str()
     confirmed_set = Bool(True)
     readonly = Bool(False)
     truncated = Bool(False)
@@ -101,9 +100,7 @@ class Setting(SettingBase):
                      visible_when='not confirmed_set or readonly',
                      editor=TextEditor(readonly_allow_selection=True, format_func=self.format)),
                 Item('units', style='readonly'),
-                Item('value_on_device', style='readonly', visible_when='truncated'),
                 Item('setting_type', style='readonly'),
-                Item('digits', style='readonly'),
                 UItem('default_value',
                       style='readonly',
                       height=-1,
@@ -154,23 +151,9 @@ class Setting(SettingBase):
             self.readonly = True
 
     def format(self, value):
-        try:
-            if not self.digits:
-                return value
-
-            exp = decimal.Decimal(value).as_tuple().exponent
-
-            if abs(exp) > int(self.digits):
-                self.value_on_device = value
-                self.truncated = True
-                value = '%.{}f'.format(self.digits) % float(value)
-            else:
-                self.value_on_device = ''
-                self.truncated = False
-
+        if not self.digits:
             return value
-        except Exception as e:
-            print(e)
+        return '%.{}f'.format(self.digits) % float(value)
 
     def revert_to_prior_value(self, section, name, old, new, error_value):
         '''Revert setting to old value in the case we can't confirm new value'''
