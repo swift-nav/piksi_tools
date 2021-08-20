@@ -154,6 +154,7 @@ class ConsoleHandler(Handler):
     def object_csv_logging_changed(self, info):
         info.ui.title = ConsoleHandler.title(info)
 
+    @staticmethod
     def title(info):
         if info.object.json_logging or info.object.csv_logging:
             return "[L] " + info.object.dev_id + " - " + CONSOLE_TITLE
