@@ -11,7 +11,6 @@
 
 from __future__ import absolute_import, print_function
 
-import decimal
 import threading
 import time
 import configparser
