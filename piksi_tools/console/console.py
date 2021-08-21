@@ -161,6 +161,7 @@ class ConsoleHandler(Handler):
         else:
             return info.object.dev_id + " - " + CONSOLE_TITLE
 
+
 class SwiftConsole(HasTraits):
     """Traits-defined Swift Console.
 
