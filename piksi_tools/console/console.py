@@ -144,7 +144,20 @@ class ConsoleHandler(Handler):
         This is a magic method called by the handler in response to any changes in
         the `device_id` variable in the underlying class.
         """
-        info.ui.title = (info.object.dev_id + " - " + CONSOLE_TITLE)
+        info.ui.title = ConsoleHandler.title(info)
+
+    def object_json_logging_changed(self, info):
+        info.ui.title = ConsoleHandler.title(info)
+
+    def object_csv_logging_changed(self, info):
+        info.ui.title = ConsoleHandler.title(info)
+
+    @staticmethod
+    def title(info):
+        if info.object.json_logging or info.object.csv_logging:
+            return "[L] " + info.object.dev_id + " - " + CONSOLE_TITLE
+        else:
+            return info.object.dev_id + " - " + CONSOLE_TITLE
 
 
 class SwiftConsole(HasTraits):
@@ -297,7 +310,6 @@ class SwiftConsole(HasTraits):
                             'csv_logging_button',
                             emphasized=True,
                             show_label=False,
-                            visible_when='show_csv_log',
                             width=12,
                             height=-30,
                             padding=0),
@@ -329,8 +341,7 @@ class SwiftConsole(HasTraits):
                         style='custom',
                         editor=InstanceEditor(),
                         height=125,
-                        show_label=False,
-                        full_size=True), ),
+                        show_label=False), ),
                 HGroup(
                     Spring(width=4, springy=False),
                     Item(
@@ -758,7 +769,6 @@ class SwiftConsole(HasTraits):
             # the Swift serial number which will be displayed in the window
             # title. This callback will also update the header route as used
             # by the networking view.
-
             def update_serial():
                 mfg_id = None
                 try:
