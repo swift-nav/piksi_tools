@@ -2253,7 +2253,7 @@
   Notes: Cell modem 'enable' must be 'False' in order to change this setting.
 
 - group: standalone_logging
-  name: blacklist_sdcard
+  name: sdcard_enable
   expert: true
   type: boolean
   default value: 'False'
