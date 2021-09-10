@@ -34,8 +34,8 @@ all: deps
 deps:
 	cd $(SWIFTNAV_ROOT)/tasks && bash setup.sh && cd $(SWIFTNAV_ROOT)
 
-.conda_py35:
-	conda create -p $(PWD)/.conda_py35 python=3.5 --yes
+.conda_py36:
+	conda create -p $(PWD)/.conda_py36 python=3.6 --yes
 
 tox_all:
 	@echo Using TESTENV=$(TESTENV), TOXENV=$(TOXENV)...
@@ -45,8 +45,8 @@ tox_Darwin: export TESTENV:=$(TESTENV)
 tox_Darwin: export TOXENV:=$(TOXENV)
 tox_Darwin: tox_all
 
-tox: .conda_py35
-tox: export PATH:=$(CURDIR)/.conda_py35/bin:$(PATH)
+tox: .conda_py36
+tox: export PATH:=$(CURDIR)/.conda_py36/bin:$(PATH)
 tox: tox_$(UNAME)
 
 test: tox
@@ -61,8 +61,8 @@ gen_readme:
 build_console_all:
 	python ./scripts/build_release.py
 
-build_console_Darwin: export PATH:=$(CURDIR)/.conda_py35/bin:$(PATH)
-build_console_Darwin: .conda_py35
+build_console_Darwin: export PATH:=$(CURDIR)/.conda_py36/bin:$(PATH)
+build_console_Darwin: .conda_py36
 build_console_Darwin: build_console_all
 
 build_console_Linux: build_console_all
