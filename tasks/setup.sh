@@ -71,13 +71,6 @@ function install_dev_libs(){
       qt4-default \
       qt4-dev-tools \
       x11-apps
-    if ! bionic_like; then
-        run_apt_install \
-          python3.5-dev
-    else
-        run_apt_install \
-          python3.6-dev
-    fi
 }
 
 function bionic_like() {
@@ -99,7 +92,7 @@ function validate_linux_mint19() {
     if linux_mint19 && ! detect_virtualenv; then
         log_error "On Linux Mint, the console must be installed inside a virtualenv."
         log_error "Create one by running:"
-        log_error $'\t'"virtualenv -p python3.5 py3 --system-site-packages"
+        log_error $'\t'"virtualenv -p python3.6 py3 --system-site-packages"
         log_error $'\t'"source py3/bin/activate"
         exit 1
     fi
@@ -111,53 +104,35 @@ function run_apt_install() {
 }
 
 function run_pip3_install() {
-    sudo python3 -m pip install --ignore-installed $*
+    python3.6 -m pip install --ignore-installed $*
 }
 
 function all_dependencies_debian () {
     run_apt_install \
          git \
          build-essential \
-         python-setuptools \
-         python-virtualenv \
          swig \
          libicu-dev \
          libqt4-scripttools \
          libffi-dev \
          libssl-dev \
-         python-chaco
+         python-software-properties
     if ! bionic_like; then
-        run_apt_install \
-            python-software-properties \
-            python-vtk \
-            python-pip \
-            python3.5 \
-            python3-pip
+        run_apt_install python-vtk
     else
-        sudo apt-get install -y \
-            software-properties-common \
-            python-vtk6 \
-            python3.6 \
-            python3-pip
-        sudo apt-get purge python-pip
-        sudo python -m easy_install pip
+        sudo apt-get install -y python-vtk6
     fi
-
+    sudo add-apt-repository -y ppa:deadsnakes/ppa
+    sudo apt-get update
+    sudo apt-get install -y python3.6-dev python3.6-venv
+    curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.6
     install_dev_libs
     validate_linux_mint19
-
-    if command -v python3; then
-        run_pip3_install setuptools==41.0.1
-        run_pip3_install -r ../requirements.txt
-        run_pip3_install -r ../requirements_gui.txt
-        run_pip3_install --upgrade awscli
-    fi
-
-    python_version=`python --version 2>&1`
-
-    if command -v pip3; then
-        run_pip3_install pyqt5==5.10.0
-    fi
+    run_pip3_install setuptools==41.0.1
+    run_pip3_install -r ../requirements.txt
+    run_pip3_install -r ../requirements_gui.txt
+    run_pip3_install --upgrade awscli
+    run_pip3_install pyqt5==5.10.0
 }
 
 
@@ -211,7 +186,7 @@ function install_python_deps_osx () {
     local conda_env_name
     conda_env_name=$(echo "$ROOT" | sed -e "s@${HOME}/@@" -e 's@/@_@g')
 
-    conda create -n "$conda_env_name" python=3.5 --yes
+    conda create -n "$conda_env_name" python=3.6 --yes
     {
       export PS1=''
 
@@ -224,7 +199,7 @@ function install_python_deps_osx () {
     pip install -r "$ROOT/requirements_gui.txt"
     pip install -e "$ROOT"
 
-    pip install PyQt5==5.10.0
+    pip install PySide2==5.15.2
 
     log_info ""
     log_info "To run piksi_tools from source, do the following:"

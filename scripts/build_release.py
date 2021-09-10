@@ -92,9 +92,10 @@ def build_linux_bionic():
     print('>>> Building console for Linux (Ubuntu 18.04)')
 
     cwd = os.getcwd()
-    check_call(['docker', 'run', '-e', 'AWS_SECRET_ACCESS_KEY', '-e', 'AWS_ACCSS_KEY_ID', '-e', 'AWS_DEFAULT_REGION',
+    check_call(['docker', 'run', '-e', 'AWS_SECRET_ACCESS_KEY',
+                '-e', 'AWS_ACCSS_KEY_ID', '-e', 'AWS_DEFAULT_REGION',
                 '-v', cwd + ':/work', '-it', '--rm', BIONIC_DOCKER_TAG,
-                'tox', '-e', 'pyinstaller36-linux', '-vv'])
+                'tox', '-e', 'pyinstaller-linux', '-vv'])
 
     version = get_version()
     print("build version:", version)
