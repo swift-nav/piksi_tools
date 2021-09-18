@@ -312,6 +312,7 @@ class SwiftConsole(HasTraits):
                             'csv_logging_button',
                             emphasized=True,
                             show_label=False,
+                            visible_when='show_csv_log',
                             width=12,
                             height=-30,
                             padding=0),
