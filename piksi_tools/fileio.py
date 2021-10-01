@@ -134,7 +134,7 @@ class SelectiveRepeater(object):
       ID of the thread that handles link writes
     """
 
-    def __init__(self, link, msg_type, cb=None):
+    def __init__(self, link, msg_type, cb=None, skip_config=False):
         """
         Args
         ---
@@ -164,6 +164,7 @@ class SelectiveRepeater(object):
         self._total_retries = 0
 
         self._config_retry_time = None
+        self._skip_config = skip_config
 
     def _init_fileio_config(self, window_size, batch_size, progress_cb_reduction_factor):
         self._pending_map = [PendingRequest(X) for X in range(window_size)]
@@ -329,6 +330,8 @@ class SelectiveRepeater(object):
         return self._config_msg is not None
 
     def _wait_config_received(self):
+        if self._skip_config:
+            return
         while not self._config_received():
             time.sleep(WAIT_SLEEP_S)
 
@@ -371,7 +374,7 @@ class SelectiveRepeater(object):
         if msg is not None:
             self._batch_msgs.append(msg)
         if len(self._batch_msgs) >= batch_size:
-            self._wait_window_available(batch_size)
+            self._wait_window_available(max(len(self._batch_msgs), batch_size))
             time_now = Time.now()
             expiration_time = time_now + Time(SBP_FILEIO_TIMEOUT)
             for msg in self._batch_msgs:
@@ -416,17 +419,21 @@ class FileIO(object):
         """
         offset = 0
         chunksize = MAX_PAYLOAD_SIZE - 4
+        lock = threading.Lock()
         closure = {'mostly_done': False, 'done': False, 'buf': {}, 'pending': set()}
 
         def cb(req, resp):
-            closure['pending'].remove(req.offset)
-            closure['buf'][req.offset] = resp.contents
-            if req.chunk_size != len(resp.contents):
-                closure['mostly_done'] = True
-            if closure['mostly_done'] and len(closure['pending']) == 0:
-                closure['done'] = True
+            with lock:
+                if req.offset not in closure['pending']:
+                    return
+                closure['pending'].remove(req.offset)
+                closure['buf'][req.offset] = resp.contents
+                if req.chunk_size != len(resp.contents):
+                    closure['mostly_done'] = True
+                if closure['mostly_done'] and len(closure['pending']) == 0:
+                    closure['done'] = True
 
-        with SelectiveRepeater(self.link, SBP_MSG_FILEIO_READ_RESP, cb) as sr:
+        with SelectiveRepeater(self.link, SBP_MSG_FILEIO_READ_RESP, cb, skip_config=True) as sr:
             while not closure['mostly_done']:
                 seq = self.next_seq()
                 msg = MsgFileioReadReq(
@@ -437,6 +444,7 @@ class FileIO(object):
                 closure['pending'].add(offset)
                 sr.send(msg)
                 offset += chunksize
+            sr.flush()
             while not closure['done']:
                 time.sleep(WAIT_SLEEP_S)
             sorted_buffers = sorted(closure['buf'].items(), key=lambda kv: kv[0])
@@ -716,7 +724,11 @@ def mk_progress_cb(file_length):
         time_delta = time_current - time_last[0]
         percent_done = 100 * (offset / float(file_length))
         mb_confirmed = offset / b_to_mb
-        speed_kbs = offset_delta / time_delta.to_float() / 1024
+        time_delta = time_delta.to_float()
+        if time_delta > 0:
+            speed_kbs = offset_delta / time_delta / 1024
+        else:
+            speed_kbs = 0
         rolling_avg = compute_rolling_average(speed_kbs)
         fmt_str = "\r[{:02.02f}% ({:.02f}/{:.02f} MB) at {:.02f} kB/s ({:0.02f}% retried)]"
         percent_retried = 100 * (repeater.total_retries / repeater.total_sends)
