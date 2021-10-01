@@ -716,7 +716,11 @@ def mk_progress_cb(file_length):
         time_delta = time_current - time_last[0]
         percent_done = 100 * (offset / float(file_length))
         mb_confirmed = offset / b_to_mb
-        speed_kbs = offset_delta / time_delta.to_float() / 1024
+        time_delta = time_delta.to_float()
+        if time_delta > 0:
+            speed_kbs = offset_delta / time_delta / 1024
+        else:
+            speed_kbs = 0
         rolling_avg = compute_rolling_average(speed_kbs)
         fmt_str = "\r[{:02.02f}% ({:.02f}/{:.02f} MB) at {:.02f} kB/s ({:0.02f}% retried)]"
         percent_retried = 100 * (repeater.total_retries / repeater.total_sends)
