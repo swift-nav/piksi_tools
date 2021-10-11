@@ -1,5 +1,6 @@
-enable==4.8.1
-chaco==4.8.0
-traits==4.6.0 
-traitsui==6.0.0
-pyface==6.0.0
+enable==5.2.1
+chaco==5.0.0
+traits==6.3.0
+traitsui==7.2.1
+pyface==7.3.0
+pyqt5==5.15.4
