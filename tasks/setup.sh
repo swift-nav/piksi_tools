@@ -92,7 +92,7 @@ function validate_linux_mint19() {
     if linux_mint19 && ! detect_virtualenv; then
         log_error "On Linux Mint, the console must be installed inside a virtualenv."
         log_error "Create one by running:"
-        log_error $'\t'"virtualenv -p python3.6 py3 --system-site-packages"
+        log_error $'\t'"virtualenv -p python3.7 py3 --system-site-packages"
         log_error $'\t'"source py3/bin/activate"
         exit 1
     fi
@@ -104,7 +104,7 @@ function run_apt_install() {
 }
 
 function run_pip3_install() {
-    python3.6 -m pip install --ignore-installed $*
+    python3.7 -m pip install --ignore-installed $*
 }
 
 function all_dependencies_debian () {
@@ -124,8 +124,8 @@ function all_dependencies_debian () {
     fi
     sudo add-apt-repository -y ppa:deadsnakes/ppa
     sudo apt-get update
-    sudo apt-get install -y python3.6-dev python3.6-venv
-    curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.6
+    sudo apt-get install -y python3.7-dev python3.7-venv
+    curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.7
     install_dev_libs
     validate_linux_mint19
     run_pip3_install setuptools==41.0.1
@@ -186,7 +186,7 @@ function install_python_deps_osx () {
     local conda_env_name
     conda_env_name=$(echo "$ROOT" | sed -e "s@${HOME}/@@" -e 's@/@_@g')
 
-    conda create -n "$conda_env_name" python=3.6 --yes
+    conda create -n "$conda_env_name" python=3.7 --yes
     {
       export PS1=''
 
@@ -198,8 +198,6 @@ function install_python_deps_osx () {
     pip install -r "$ROOT/requirements.txt"
     pip install -r "$ROOT/requirements_gui.txt"
     pip install -e "$ROOT"
-
-    pip install PySide2==5.15.2
 
     log_info ""
     log_info "To run piksi_tools from source, do the following:"

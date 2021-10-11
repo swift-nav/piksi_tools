@@ -15,10 +15,10 @@ Setup
 -----
 
 It is advised to install ``piksi_tools`` inside a virtualenv to avoid modifying
-global system state.  To setup a python 3.5 virtual environment first install
+global system state.  To setup a python 3.7 virtual environment first install
 python 3.5 via your package manager if needed, and then run::
 
-  virtualenv -p python3.5 ~/py3
+  virtualenv -p python3.7 ~/py3
   source ~/py3/bin/activate
 
 To install the dependencies for the basic tools: ``pip install -r requirements.txt``
@@ -35,16 +35,14 @@ Python version support
 ~~~~~~~~~~~~~~~~~~~~~~
 
 * The most important command line tools - ``bootload_v3.py``, ``fileio.py``,
-  ``serial_link.py``, and ``settings.py`` - support Python 2.7, 3.5, and 3.7
+  ``serial_link.py``, and ``settings.py`` - supports 3.7 (and probably any
+  version of Python 3)
 
-* Console GUI under Linux supports 2.7 and 3.5. Experimental support for Python 3.7
+* Console GUI under Linux supports Pyhthon 3.7
 
-* Console GUI under MacOS and Windows is tested against Python 3.5 but probably
-  would support all versions that Linux GUI supports, but some of those might
-  need a manual GUI backend change/installation
+* Console GUI under MacOS and Windows is tested against Python 3.7
 
-* Pre-built (pyinstaller) binaries for most platforms use Python 3.5.  On Ubuntu,
-  Python 3.6 is used.
+* Pre-built (pyinstaller) binaries for most platforms use Python 3.7
 
 Usage Examples
 --------------
@@ -78,11 +76,11 @@ those versions that you don't have installed, run::
 
 To run some extra tests for the GUI (excluding the non-graphical tests)::
 
-  $ PYTHONPATH=. tox -e gui35,gui37
+  $ PYTHONPATH=. tox -e gui37
 
 Finally, to run *all* tests for all supported Python versions::
 
-  $ PYTHONPATH=. tox -e py35,py37,gui35,gui37
+  $ PYTHONPATH=. tox -e py37,gui37
 
 USB issues on OS X
 ------------------
@@ -90,5 +88,5 @@ The ftdi USB drivers are finicky on some versions of OS X. See their `docs <http
 
 License
 -------
-Copyright (C) 2019 Swift Navigation
+Copyright (C) 2019-2021 Swift Navigation
 Distributed under LGPLv3.0
