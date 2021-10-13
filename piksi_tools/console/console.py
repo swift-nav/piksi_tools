@@ -14,9 +14,11 @@ from __future__ import print_function
 
 import argparse
 # Logging
+import json
 import logging
 import os
 import signal
+import subprocess
 import sys
 import time
 from monotonic import monotonic
@@ -124,6 +126,32 @@ def get_args():
         version='Swift Console {}'.format(CONSOLE_VERSION)
     )
     return parser
+
+
+def _is_macos11():
+    usr_bin_python3 = '/usr/bin/python3'
+    if not os.path.exists(usr_bin_python3):
+        return False
+    child = subprocess.run([usr_bin_python3, '-c',
+                            'import platform; import json; print(json.dumps(platform.mac_ver()))'],
+                           check=False,
+                           stdout=subprocess.PIPE,
+                           stderr=subprocess.PIPE,
+                           stdin=subprocess.DEVNULL)
+    if child.returncode == 0:
+        try:
+            mac_ver = json.loads(child.stdout)
+        except json.decoder.JSONDecodeError:
+            return False
+        if len(mac_ver) > 0:
+            mac_ver = mac_ver[0]
+            try:
+                mac_ver = float(mac_ver)
+                return mac_ver >= 11.0
+            except ValueError:
+                return False
+        return False
+    return False
 
 
 CONSOLE_TITLE = 'Swift Console ' + CONSOLE_VERSION
@@ -253,6 +281,26 @@ class SwiftConsole(HasTraits):
         width=8,
         height=8)
 
+    macos11_blue = '#277cf6'
+
+    macos11_qt_style_sheet = '''
+      QTabBar::tab:selected {
+         background-color: %(color)s;
+         color: white;
+         border-top-left-radius: 4px;
+         border-bottom-left-radius: 4px;
+         border-top-right-radius: 4px;
+         border-bottom-right-radius: 4px;
+         padding-left: 6px;
+         padding-right: 6px;
+      }
+    ''' % {'color': macos11_blue}
+
+    qt_style_sheet = ''
+
+    if _is_macos11():
+        qt_style_sheet = macos11_qt_style_sheet
+
     view = View(
         VSplit(
             Tabbed(
@@ -289,7 +337,8 @@ class SwiftConsole(HasTraits):
                         style='custom'),
                     label='Advanced',
                     show_labels=False),
-                show_labels=False),
+                show_labels=False,
+                style_sheet=qt_style_sheet),
             VGroup(
                 VGroup(
                     HGroup(
