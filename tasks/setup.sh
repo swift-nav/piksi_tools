@@ -199,7 +199,7 @@ function install_python_deps_osx () {
     pip install -r "$ROOT/requirements_gui.txt"
     pip install -e "$ROOT"
 
-    pip install PySide2==5.15.2
+    pip install pyqt5==5.10.0
 
     log_info ""
     log_info "To run piksi_tools from source, do the following:"
