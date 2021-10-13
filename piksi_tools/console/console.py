@@ -130,12 +130,19 @@ def get_args():
     return parser
 
 
-def is_macos11():
-    cp = subprocess.run(['/usr/bin/python3', '-c', 'import platform; import json; print(json.dumps(platform.mac_ver()))'],
-                        check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.DEVNULL)
-    if cp.returncode == 0:
+def _is_macos11():
+    usr_bin_python3 = '/usr/bin/python3'
+    if not os.path.exists(usr_bin_python3):
+        return False
+    child = subprocess.run([usr_bin_python3, '-c',
+                            'import platform; import json; print(json.dumps(platform.mac_ver()))'],
+                           check=False,
+                           stdout=subprocess.PIPE,
+                           stderr=subprocess.PIPE,
+                           stdin=subprocess.DEVNULL)
+    if child.returncode == 0:
         try:
-            mac_ver = json.loads(cp.stdout)
+            mac_ver = json.loads(child.stdout)
         except json.decoder.JSONDecodeError:
             return False
         if len(mac_ver) > 0:
@@ -289,11 +296,11 @@ class SwiftConsole(HasTraits):
          padding-left: 6px;
          padding-right: 6px;
       }
-    ''' % { 'color': macos11_blue }
+    ''' % {'color': macos11_blue}
 
     qt_style_sheet = ''
 
-    if is_macos11():
+    if _is_macos11():
         qt_style_sheet = macos11_qt_style_sheet
 
     view = View(
