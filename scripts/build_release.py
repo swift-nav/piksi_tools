@@ -198,12 +198,11 @@ def build_cli_tools(plat):
     _check_output(['tox', '-e', 'pyinstaller-cmdline_tools'])
     out = os.path.join('dist', 'cmd_line')
     fname = 'cmdline_tools_{}.zip'.format(version)
-    if not plat.startswith('win'):
-        with zipfile.ZipFile(fname, 'w') as ziph:
-            zipdir(out, ziph)
-        s3_path = 's3://{}/piksi_tools/{}/{}/{}'.format(S3_BUCKET, version, plat, fname)
-        print(">>> Uploading to {}".format(s3_path))
-        check_call(['aws', 's3', 'cp', fname, s3_path])
+    with zipfile.ZipFile(fname, 'w') as ziph:
+        zipdir(out, ziph)
+    s3_path = 's3://{}/piksi_tools/{}/{}/{}'.format(S3_BUCKET, version, plat, fname)
+    print(">>> Uploading to {}".format(s3_path))
+    check_call(['aws', 's3', 'cp', fname, s3_path])
 
 
 def main():
