@@ -247,12 +247,15 @@ class Settings(object):
         print(msg.text.decode('ascii'))
 
     def _settings_callback(self, sbp_msg, **metadata):
-        section, setting, value, format_type = sbp_msg.payload.split(b'\0')[:4]
+        section, setting, value, *format_type = sbp_msg.payload.split(b'\0')[:4]
+        section = section.decode(KEY_ENCODING)
+        setting = setting.decode(KEY_ENCODING)
+        value = value.decode(VALUE_ENCODING) if format_type else None
         self.read_response_wait_dict[(
-            section.decode(KEY_ENCODING), setting.decode(KEY_ENCODING))] = value.decode(VALUE_ENCODING)
+            section, setting)] = value
 
     def _settings_list_callback(self, sbp_msg, **metadata):
-        section_b, setting_b, value_b, format_type_b = sbp_msg.payload[2:].split(b'\0')[:4]
+        section_b, setting_b, value_b, *format_type_b = sbp_msg.payload[2:].split(b'\0')[:4]
         section = section_b.decode(KEY_ENCODING)
         setting = setting_b.decode(KEY_ENCODING)
         value = value_b.decode(VALUE_ENCODING)
