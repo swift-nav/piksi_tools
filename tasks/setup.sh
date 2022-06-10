@@ -107,6 +107,10 @@ function run_pip3_install() {
     python3.6 -m pip install --ignore-installed $*
 }
 
+function run_pip3_uninstall() {
+    python3.6 -m pip uninstall -y $*
+}
+
 function all_dependencies_debian () {
     run_apt_install \
          git \
@@ -122,16 +126,21 @@ function all_dependencies_debian () {
     else
         sudo apt-get install -y python-vtk6
     fi
-    sudo add-apt-repository -y ppa:deadsnakes/ppa
-    sudo apt-get update
+    sudo add-apt-repository -y ppa:fkrull/deadsnakes
+    sudo apt update
     sudo apt-get install -y python3.6-dev python3.6-venv
-    curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.6
+    sudo apt-get install -y awscli
     install_dev_libs
     validate_linux_mint19
-    run_pip3_install setuptools==41.0.1
+    run_pip3_uninstall setuptools
+    run_pip3_install setuptools==58.0.0
+    run_pip3_install traits==4.6.0
+    run_pip3_install traitsui==6.0.0
+    run_pip3_install pyface==6.0.0
+    run_pip3_uninstall setuptools
+    run_pip3_install setuptools==59.6.0
     run_pip3_install -r ../requirements.txt
     run_pip3_install -r ../requirements_gui.txt
-    run_pip3_install --upgrade awscli
     run_pip3_install pyqt5==5.10.0
 }
 
@@ -236,7 +245,7 @@ function run_all_platforms () {
     log_info "Done!"
 }
 
-set -e -u
+set -e -u -x
 
 run_all_platforms
 

@@ -19,10 +19,6 @@ RUN \
                         libatlas-base-dev libsqlite3-dev tk-dev libgdbm-dev \
                         libc6-dev git
 
-RUN \
-     echo '>>> Downlading get-pip.py...' \
-  && wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py
-
 ENV PY35=3.5.7
 ENV PY35_URL=https://www.python.org/ftp/python/${PY35}/Python-${PY35}.tar.xz
 
@@ -83,5 +79,4 @@ RUN \
   && rm /tmp/python${PY36}.txz \
   && rm -rf /tmp/python${PY36}-build \
   && rm /tmp/python${PY37}.txz \
-  && rm -rf /tmp/python${PY37}-build \
-  && rm /tmp/get-pip.py
+  && rm -rf /tmp/python${PY37}-build
