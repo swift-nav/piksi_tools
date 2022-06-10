@@ -122,13 +122,12 @@ function all_dependencies_debian () {
     else
         sudo apt-get install -y python-vtk6
     fi
-    sudo add-apt-repository -y ppa:deadsnakes/ppa
-    sudo apt-get update
+    sudo add-apt-repository -y ppa:fkrull/deadsnakes
+    sudo apt update
     sudo apt-get install -y python3.6-dev python3.6-venv
-    curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.6
     install_dev_libs
     validate_linux_mint19
-    run_pip3_install setuptools==41.0.1
+    run_pip3_install setuptools==59
     run_pip3_install -r ../requirements.txt
     run_pip3_install -r ../requirements_gui.txt
     run_pip3_install --upgrade awscli
@@ -236,7 +235,7 @@ function run_all_platforms () {
     log_info "Done!"
 }
 
-set -e -u
+set -e -u -x
 
 run_all_platforms
 
