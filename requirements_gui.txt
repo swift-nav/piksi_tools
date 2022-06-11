@@ -1,5 +1,5 @@
-enable==4.8.1
-chaco==4.8.0
-traits==4.6.0 
-traitsui==6.0.0
-pyface==6.0.0
+enable
+chaco
+traits
+traitsui
+pyface

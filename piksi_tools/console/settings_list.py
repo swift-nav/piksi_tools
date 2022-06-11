@@ -13,11 +13,9 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import pprint
-from ruamel.yaml import YAML
+import yaml
 
 from .utils import resource_filename, resource_stream
-
-yaml = YAML(typ='safe')
 
 
 class SettingsList():
@@ -63,7 +61,7 @@ class SettingsList():
     def __init__(self, filename):
         try:
             stram = resource_stream('console/settings.yaml')
-            temp_dict = yaml.load(stram)
+            temp_dict = yaml.safe_load(stram)
             self.list_of_dicts = temp_dict
             self.warned_dict = {}
             # inform user of success or failure

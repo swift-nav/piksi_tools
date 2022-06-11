@@ -1,5 +1,5 @@
 setuptools-scm==3.3.3
-numpy==1.18.1
+numpy
 configparser
 future==0.17.1
 futures==3.1.1
@@ -13,5 +13,5 @@ six==1.13.0
 libsettings==0.1.12
 pybase64==1.1.4
 sbp==4.0.2
-ruamel.yaml==0.15.87
+pyyaml
 monotonic==1.5
