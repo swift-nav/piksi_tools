@@ -4,9 +4,15 @@ This was build using Python standalone installer from here: <https://github.com/
 
 A few custom `pip install` commands where needed:
 
+![app-diagram](./pipinstall.png)
+
 In addition:
 
+![app-diagram](./pipinstall2.png)
+
 Finally:
+
+![app-diagram](./pipinstall3.png)
 
 ---
 
