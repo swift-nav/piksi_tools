@@ -10,16 +10,17 @@ import jinja2
 
 from .settings_list import SettingsList
 
-swift_nav_style_path = "../libsbp/docs"
-environment_variables_to_append = ["PATH"]
-myenviron = os.environ
-for each in environment_variables_to_append:
-    try:
-        texinputs = myenviron[each]
-        print(texinputs)
-        myenviron[each] = ".:" + swift_nav_style_path + ":" + texinputs
-    except KeyError:
-        myenviron[each] = ".:" + swift_nav_style_path
+#swift_nav_style_path = "../libsbp/docs"
+#environment_variables_to_append = ["TEXINPUTS", "PATH"]
+#myenviron = os.environ
+#for each in environment_variables_to_append:
+#    try:
+#        texinputs = myenviron[each]
+#        print(texinputs)
+#        myenviron[each] = ".:" + swift_nav_style_path + ":" + texinputs
+#    except KeyError:
+#        myenviron[each] = ".:" + swift_nav_style_path
+
 settings = SettingsList("settings.yaml")
 groups = settings.return_groups()
 
@@ -75,9 +76,8 @@ with open("settings_out.tex", 'w') as f:
     f.write(
         latex_template.render(
             groups=sorted(groups),
-            setting=sorted(X.items() for X in settings.list_of_dicts),
-            version='v0.15'))
+            setting=sorted(settings.list_of_dicts, key=lambda x: repr(x)),
+            version='v3.0.11'))
 
-subprocess.Popen(
-    ["pdflatex", "--shell-escape", "settings_out.tex"], env=myenviron).wait()
+subprocess.call(["pdflatex", "--shell-escape", "settings_out.tex"])
 subprocess.call(["mv", "settings_out.pdf", "../docs/settings.pdf"])
