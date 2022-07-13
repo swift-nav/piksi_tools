@@ -23,9 +23,9 @@
 \numberwithin{table}{subsection}
 \numberwithin{field}{subsection}
 
-\usepackage{draftwatermark}
-\SetWatermarkLightness{0.9}
-\SetWatermarkScale{1}
+% \usepackage{draftwatermark}
+% \SetWatermarkLightness{0.9}
+% \SetWatermarkScale{1}
 
 \renewcommand{\regLabelFamily}{}
 \renewcommand\theversion{((( version )))}
@@ -88,9 +88,9 @@ Piksi Firmware has a number of settings that can be controlled by the end user v
     Label & Value \\
     \midrule
     \hbadness=20000
-    ((*- for key,value in m.iteritems() *))
+    ((*- for key,value in m.items() *))
     ((*- if(key is defined and key != 'Notes' and key != 'Description' and value is defined) *))
-    (((key|escape_tex_exp|no_us))) & $(((value|escape_tex_exp|no_us)))$ \\
+    (((key|escape_tex_exp|no_us))) & $(((value|escape_tex_exp|no_us))) $ \\
     ((*- endif *))
     ((*- endfor *))
     \midrule
@@ -105,6 +105,7 @@ Piksi Firmware has a number of settings that can be controlled by the end user v
 (((m.Notes|escape_tex_exp)))
 ((* endif *))
 \end{flushleft}
+}
 ((* endblock *))
 ((* endif *))
 ((* endfor *))
