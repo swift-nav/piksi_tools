@@ -49,74 +49,18 @@ PACKAGE_DATA = {
     ]
 }
 
-
-def scmtools_parse(root,
-                   describe_command=None,
-                   config=None):
-    """
-    rewriting of setuptools_scm.git.parse method to remove -branch string
-    from any tags.  This library is clearly not designed for people to adjust
-    its function so I had to lift entire function from Aug 8 master with SHA
-    a91b40c99ea9bfc4289272285f17e1d43c243b76
-    """
-
-    from setuptools_scm.git import GitWorkdir, _git_parse_describe
-    from setuptools_scm.config import Configuration
-    from setuptools_scm.utils import has_command
-    from setuptools_scm.version import meta
-
-    if describe_command is None:
-        from setuptools_scm.git import DEFAULT_DESCRIBE
-        describe_command = DEFAULT_DESCRIBE
-
-    if not config:
-        config = Configuration(root=root)
-
-    if not has_command("git"):
-        return
-
-    wd = GitWorkdir.from_potential_worktree(config.absolute_root)
-    if wd is None:
-        return
-
-    out, unused_err, ret = wd.do_ex(describe_command)
-    if ret:
-        # If 'git describe' failed, try to get the information otherwise.
-        rev_node = wd.node()
-        dirty = wd.is_dirty()
-
-        if rev_node is None:
-            return meta("0.0", distance=0, dirty=dirty, config=config)
-
-        return meta(
-            "0.0",
-            distance=wd.count_all_nodes(),
-            node="g" + rev_node,
-            dirty=dirty,
-            branch=wd.get_branch(),
-            config=config,
-        )
-    else:
-        tag, number, node, dirty = _git_parse_describe(out)
-        branch = wd.get_branch()
-        if number:
-            return meta(
-                tag.replace('-branch', ''),
-                config=config,
-                distance=number,
-                node=node,
-                dirty=dirty,
-                branch=branch,
-            )
-        else:
-            return meta(tag.replace('-branch', ''), config=config, node=node, dirty=dirty, branch=branch)
-
-
+   
 def version_scheme_add_v(version):
     from setuptools_scm.version import guess_next_dev_version
     scm_version = guess_next_dev_version(version)
     v_version = scm_version if scm_version[0] == 'v' else "v" + scm_version
     return v_version
+
+
+
+tag_regex = r"^([\w-]+-)?(?P<prefix>[vV])?(?P<version>\d+(\.\d+){0,2}[^+]+?)(?P<suffix>-(devel.*|release|branch|))$"
+
+
 
 
 if __name__ == '__main__':
@@ -145,7 +89,7 @@ if __name__ == '__main__':
         long_description=readme,
         use_scm_version={
             'write_to': 'piksi_tools/_version.py',
-            'parse': scmtools_parse,
+            'tag_regex':  tag_regex,
             'version_scheme': version_scheme_add_v
         },
         setup_requires=['setuptools_scm'],
