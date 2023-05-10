@@ -11,7 +11,7 @@ import jinja2
 from .settings_list import SettingsList
 
 swift_nav_style_path = "../libsbp/docs"
-environment_variables_to_append = ["TEXINPUTS", "PATH"]
+environment_variables_to_append = ["PATH"]
 myenviron = os.environ
 for each in environment_variables_to_append:
     try:
@@ -75,7 +75,7 @@ with open("settings_out.tex", 'w') as f:
     f.write(
         latex_template.render(
             groups=sorted(groups),
-            setting=sorted(settings.list_of_dicts),
+            setting=sorted(X.items() for X in settings.list_of_dicts),
             version='v0.15'))
 
 subprocess.Popen(

@@ -88,3 +88,4 @@ swift_nap_*.hex
 .conda_py35
 
 .*.sw?
+/settings_out*
