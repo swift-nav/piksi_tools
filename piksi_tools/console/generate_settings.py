@@ -80,4 +80,3 @@ with open("settings_out.tex", 'w') as f:
             version='v3.0.11'))
 
 subprocess.call(["pdflatex", "--shell-escape", "settings_out.tex"])
-subprocess.call(["mv", "settings_out.pdf", "../docs/settings.pdf"])
