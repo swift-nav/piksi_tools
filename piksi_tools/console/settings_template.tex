@@ -1,11 +1,11 @@
-\documentclass{article}
+\documentclass{extarticle}
 
+\usepackage[table]{xcolor}
 \usepackage{swiftnav}
-
-\usepackage{endnotes}
-
 \usepackage{standalone}
 \usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{xltabular}
 \usepackage{register}
 \usepackage{bytefield}
 \usepackage{booktabs}
@@ -23,12 +23,19 @@
 \numberwithin{table}{subsection}
 \numberwithin{field}{subsection}
 
-% \usepackage{draftwatermark}
-% \SetWatermarkLightness{0.9}
-% \SetWatermarkScale{1}
-
 \renewcommand{\regLabelFamily}{}
 \renewcommand\theversion{((( version )))}
+
+\newcolumntype{Z}{>{\hsize=.15\hsize}X}
+\newcolumntype{a}{>{\hsize=.2\hsize}X}
+\newcolumntype{b}{>{\hsize=.22\hsize}X}
+\newcolumntype{c}{>{\hsize=.3\hsize}X}
+\newcolumntype{d}{>{\hsize=.7\hsize}X}
+\newcolumntype{e}{>{\hsize=.13\hsize}X}
+\newcolumntype{f}{>{\hsize=.16\hsize}X}
+\newcolumntype{g}{>{\hsize=.77\hsize}X}
+\newcolumntype{h}{>{\hsize=.6\hsize}X}
+\newcolumntype{N}{>{\hsize=.77\hsize}X}
 
 % ---------------------------------------------------------------------------
 \title{Piksi Settings}
@@ -46,26 +53,35 @@
 Piksi Firmware has a number of settings that can be controlled by the end user via the provided Piksi Console or through the SBP binary message protocol.  This Document serves to enumerate these settings with an explanation and any relevant notes.
 
 ((* block settings_toc *))
-{
+
 \newpage
+
 \section{Settings Table}
-\centering
-  \begin{longtable}{llp{10cm}}
-    \toprule
-    Grouping & Name & Description \\
-    \midrule
-    ((*- for g in groups *))
-    \textbf{(((g|escape_tex_exp|no_us)))} & & \\
-    ((*- for m in setting *))
-    ((*- if m.group==g *))
-     & (((m.name|escape_tex_exp|no_us))) & (((m.Description|escape_tex_exp|no_us))) \\
-    ((*- endif *))
-    ((*- endfor *))
-    ((*- endfor *))
-    \bottomrule
-    \caption{Summary of message types}
-  \end{longtable}
-}
+
+\begin{xltabular}{\textwidth}{aXX}
+  \caption{Summary of message types} \label{summary}\\
+  \endlastfoot
+  \toprule
+  Grouping & Name & Description \\
+  \midrule
+  \showrowcolors
+  ((*- for g in groups *))
+  \textbf{(((g|escape_tex_exp|no_us)))} & & \\
+  ((*- for (i,m) in enumerate(setting) *))
+  ((*- if m.group==g *))
+  ((*- if mod(g) == 0 *))
+  \rowcolor{gray!20}
+  ((*- else *))
+  \rowcolor{gray!10}
+  ((*- endif *))
+  & (((m.name|escape_table_name|no_us))) & (((m.Description|escape_tex_exp|no_us))) \\
+  ((*- endif *))
+  ((*- endfor *))
+  & & \\
+  ((*- endfor *))
+  \bottomrule
+\end{xltabular}
+
 ((* endblock *))
 
 % ---------------------------------------------------------------------------
