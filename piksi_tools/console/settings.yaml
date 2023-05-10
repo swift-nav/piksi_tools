@@ -1860,6 +1860,19 @@
     from one receiver to the other as to efficiently use radio modem bandwidth and fit with user applications.
 
 - group: solution
+  name: min_modelled_baseline_len_km
+  expert: false
+  type: double
+  units: km
+  default value: '0.0'
+  readonly: false
+  enumerated possible values: N/A
+  Description: Minimum assumed baseline length to use in RTK model calculations. This parameter
+    can be used to improve performance with virtual reference station (VRS) services that generate
+    the virtual base at an arbitrary location, independent from the quality of atmospheric models.
+  Notes: Typically 50 km can be used with most VRS services.
+
+- group: solution
   name: known_baseline_n
   expert: false
   type: double
@@ -2313,7 +2326,7 @@
 - group: system_info
   name: serial_number
   expert: False
-  type: integer
+  type: string
   units: N/A
   default value: N/A
   readonly: True
