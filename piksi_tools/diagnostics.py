@@ -14,7 +14,7 @@ from __future__ import absolute_import, print_function
 import struct
 import time
 
-from ruamel.yaml import YAML
+import yaml
 
 
 from sbp.bootload import (SBP_MSG_BOOTLOADER_HANDSHAKE_DEP_A,
@@ -30,7 +30,6 @@ from sbp.system import SBP_MSG_HEARTBEAT, MsgHeartbeat
 
 from . import serial_link
 
-yaml = YAML(typ='safe')
 
 DIAGNOSTICS_FILENAME = "diagnostics.yaml"
 
@@ -142,7 +141,7 @@ def parse_device_details_yaml(device_details):
     """Parse from yaml string the device settings.
 
     """
-    return yaml.load(device_details)['settings']['system_info']
+    return yaml.load(device_details, yaml.SafeLoader)['settings']['system_info']
 
 
 def check_diagnostics(diagnostics_filename, version):
@@ -155,7 +154,7 @@ def check_diagnostics(diagnostics_filename, version):
     """
     if version is None:
         raise Exception("Empty version string!")
-    parsed = yaml.load(version)
+    parsed = yaml.load(version, yaml.SafeLoader)
     fw = parsed.get('fw', None)
     nap = parsed.get('hdl', None)
     with open(diagnostics_filename, 'r+') as f:
