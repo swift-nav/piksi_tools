@@ -1,0 +1,3262 @@
+---
+
+- group: acquisition
+  name: sbas_acquisition_enabled
+  expert: false
+  type: boolean
+  units: N/A
+  default value: 'True'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Enable SBAS acquisition.
+  Notes: If SBAS satellites are already being tracked, this setting will not remove them from tracking or exclude SBAS corrections from being used in positioning - the setting must be saved and the receiver must be restarted for this to take effect.
+
+- group: acquisition
+  name: bds2_acquisition_enabled
+  expert: false
+  type: boolean
+  units: N/A
+  default value: 'True'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Enable Beidou2 acquisition.
+  Notes: If Beidou2 satellites are already being tracked, this setting will not remove them from tracking or exclude them from being used in positioning - the setting must be saved and the receiver must be restarted for this to take effect.
+
+- group: acquisition
+  name: galileo_acquisition_enabled
+  expert: false
+  type: boolean
+  units: N/A
+  default value: 'True'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Enable Galileo acquisition.
+  Notes: If Galileo satellites are already being tracked, this setting will not remove them from tracking or exclude them from being used in positioning - the setting must be saved and the receiver must be restarted for this to take effect.
+
+- group: acquisition
+  name: qzss_acquisition_enabled
+  expert: true
+  type: boolean
+  units: N/A
+  default value: 'False'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Enable QZSS acquisition.
+  Notes:
+
+- group: acquisition
+  name: glonass_acquisition_enabled
+  expert: false
+  type: boolean
+  units: N/A
+  default value: 'True'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Enable GLONASS acquisition.
+  Notes: If GLONASS satellites are already being tracked, this setting will not remove them from tracking or exclude them from being used in positioning - the setting must be saved and the receiver must be restarted for this to take effect.
+
+- group: acquisition
+  name: almanacs_enabled
+  expert: true
+  type: boolean
+  units: N/A
+  default value: 'False'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Enable the almanac-based acquisition.
+  Notes:
+
+- group: cell_modem
+  name: modem_type
+  expert: true
+  type: enum
+  enumerated possible values: GSM,CDMA
+  default value: 'GSM'
+  readonly: false
+  Description: The type of cell modem in use.
+
+- group: cell_modem
+  name: debug
+  expert: true
+  type: boolean
+  default value: 'False'
+  readonly: false
+  Description: Additional debug messages for cell modem. This setting must be saved and the device rebooted for it to take effect.
+
+- group: cell_modem
+  name: enable
+  expert: true
+  type: boolean
+  default value: 'False'
+  readonly: false
+  units: N/A
+
+- group: cell_modem
+  name: device
+  expert: true
+  type: string
+  default value: 'ttyACM0'
+  readonly: false
+  units: N/A
+
+- group: cell_modem
+  name: APN
+  expert: true
+  type: string
+  default value: INTERNET
+  readonly: false
+  Description: Access point name (provided by cell carrier).
+  units: N/A
+
+- group: cell_modem
+  name: device_override
+  expert: true
+  type: string
+  default value: ''
+  readonly: false
+  Description: Override the device used for cell modem connectivity. If left empty, uses default device discovery to determine the correct device to use.
+  Notes: Cell modem 'enable' must be 'False' in order to change this setting.
+
+- group: ethernet
+  name: interface_mode
+  expert: false
+  type: enum
+  enumerated possible values: Config,Active
+  units: N/A
+  default value: 'Active'
+  readonly: false
+  Description: Ethernet configuration mode.
+  Notes: |
+    "Config" IP configuration can be changed freely, but no change is made on the device. Returning to 'Active' mode will refresh ethernet connection with current values.
+
+    "Active" The current IP configuration is sent to the device and updated. Afterward, no IP settings can be changed until returned to 'Config' mode.
+
+- group: ethernet
+  name: ip_config_mode
+  expert: false
+  type: enum
+  enumerated possible values: Static,DHCP
+  units: N/A
+  default value: 'Static'
+  readonly: false
+  Description: Ethernet configuration mode.
+  Notes: "If DHCP is chosen the IP address will be assigned automatically. Note: The DHCP assigned IP address cannot be viewed under the Settings tab, instead use the Advanced -> Networking Tab and click on 'Refresh Network Status'."
+
+- group: ethernet
+  name: ip_address
+  expert: false
+  type: string
+  units: N/A
+  default value: '192.168.0.222'
+  readonly: false
+  Description: The static IP address.
+  Notes: "The configured IP address in XXX.XXX.XXX.XXX format. Note: If DHCP is used, the DHCP assigned IP address cannot be viewed under the Settings tab, instead use the Advanced -> Networking Tab and click on 'Refresh Network Status'."
+
+- group: ethernet
+  name: netmask
+  expert: false
+  type: string
+  units: N/A
+  default value: '255.255.255.0'
+  readonly: false
+  Description: The netmask for the IP config.
+  Notes: The configured netmask in XXX.XXX.XXX.XXX format.
+
+- group: ethernet
+  name: gateway
+  expert: false
+  type: string
+  units: N/A
+  default value: '192.168.0.1'
+  readonly: false
+  Description: The default gateway for the IP config.
+  Notes: The configured gateway in XXX.XXX.XXX.XXX format.
+
+- group: ext_event_a
+  name: edge_trigger
+  expert: false
+  type: enum
+  units: N/A
+  default value: None
+  readonly: false
+  enumerated possible values: None,Rising,Falling,Both
+  Description: Select edges to trigger timestamped event capture.
+  Notes: You can use this to record the exact time that some external
+    event in your system occurred, e.g. camera shutter time. Upon
+    detecting the event, receiver will generate a MSG_EXT_EVENT message
+    reporting the event, including a timestamp accurate to better than
+    a microsecond.
+
+- group: ext_event_a
+  name: sensitivity
+  expert: false
+  type: integer
+  units: us (microseconds)
+  default value: '0'
+  readonly: false
+  enumerated possible values:
+  Description: Minimum time between events (0 = disabled).
+  Notes: Any event that is triggered within the sensitivity window after the previous event will be ignored and no MSG_EXT_EVENT will be generated.
+
+- group: ext_event_b
+  name: edge_trigger
+  expert: true
+  type: enum
+  units: N/A
+  default value: None
+  readonly: false
+  enumerated possible values: None,Rising,Falling,Both
+  Description: Duro only. Select edges to trigger timestamped event capture.
+  Notes: You can use this to record the exact time that some external
+    event in your system occurred, e.g. camera shutter time. Upon
+    detecting the event, receiver will generate a MSG_EXT_EVENT message
+    reporting the event, including a timestamp accurate to better than
+    a microsecond.
+
+- group: ext_event_b
+  name: sensitivity
+  expert: true
+  type: integer
+  units: us (microseconds)
+  default value: '0'
+  readonly: false
+  enumerated possible values:
+  Description: Duro only. Minimum time between events (0 = disabled).
+  Notes: Any event that is triggered within the sensitivity window after the previous event will be ignored and no MSG_EXT_EVENT will be generated.
+
+- group: ext_event_c
+  name: edge_trigger
+  expert: true
+  type: enum
+  units: N/A
+  default value: None
+  readonly: false
+  enumerated possible values: None,Rising,Falling,Both
+  Description: Duro only. Select edges to trigger timestamped event capture.
+  Notes: You can use this to record the exact time that some external
+    event in your system occurred, e.g. camera shutter time. Upon
+    detecting the event, receiver will generate a MSG_EXT_EVENT message
+    reporting the event, including a timestamp accurate to better than
+    a microsecond.
+
+- group: ext_event_c
+  name: sensitivity
+  expert: true
+  type: integer
+  units: us (microseconds)
+  default value: '0'
+  readonly: false
+  enumerated possible values:
+  Description: Duro only. Minimum time between events (0 = disabled).
+  Notes: Any event that is triggered within the sensitivity window after the previous event will be ignored and no MSG_EXT_EVENT will be generated.
+
+- group: frontend
+  expert: false
+  name: antenna_selection
+  type: enum
+  units: N/A
+  default value: 'Primary'
+  readonly: false
+  enumerated possible values: Primary,Secondary
+  Description: Determines which antenna to use.
+  Notes: This setting selects the antenna input that should be used by the receiver.
+    Piksi Multi boards and Duro units ship with only a "Primary" antenna connector,
+    so this should always be set to "Primary."
+
+- group: frontend
+  name: antenna_bias
+  expert: false
+  type: bool
+  units: N/A
+  default value: 'True'
+  readonly: false
+  Description: Enable/Disable 4.85V antenna bias.
+  Notes: Most active antennas require an antenna bias in order to power
+    the amplifier in the antenna.
+
+- group: frontend
+  name: use_ext_clk
+  expert: false
+  type: bool
+  units: N/A
+  default value: 'False'
+  readonly: false
+  Description: Enable/Disable External Clock Input.
+  Notes: This setting toggles the hardware switch for Piksi Multi 10Mhz clock source.
+    When true, Piksi Multi will be configured to use an external clock source rather
+    than its onboard oscillator. It is only available on Piksi Multi hardware versions
+    greater than or equal to 5.1 (00108-05 rev 1). The external clock input signal can
+    be provided on the Piksi Multi evaluation board through a labeled SMA connector.
+    It is not exposed on Duro.
+
+- group: frontend
+  name: activate_clock_steering
+  expert: true
+  type: bool
+  units: N/A
+  default value: 'False'
+  readonly: false
+  Description: Enable/Disable Clock Steering of RF frontend.
+  Notes: This setting toggles the clock steering for the RF frontend. If timing drift
+    is detected in the onboard oscillator, the clock will be continuously adjusted to align
+    more precisely with clock data encoded within the GNSS signals received by the device.
+
+- group: imu
+  name: imu_raw_output
+  expert: false
+  type: boolean
+  default value: 'False'
+  readonly: false
+  Description: Enable/Disable IMU raw data output from onboard Bosch BMI160 IMU.
+  Notes:  The IMU raw data can be seen in the Advanced Tab of the Swift Console.
+    The default enabled_sbp_messages settings on all interfaces decimate the
+    raw IMU messages sent by the device by a factor of 50 to reduce bandwidth.
+
+- group: imu
+  name: imu_rate
+  expert: false
+  type: enum
+  default value: '100'
+  readonly: false
+  enumerated possible values: 25,50,100,200
+  units: Hz
+  Description: The data rate (in Hz) for IMU raw output.
+  Notes: It is recommended to use Ethernet or USB for IMU data output
+    for data rates over 25 Hz. Make sure that the rate is greater than that of
+    INS solutions.
+
+- group: imu
+  name: acc_range
+  expert: false
+  type: enum
+  default value: '8'
+  readonly: false
+  enumerated possible values: 2,4,8,16
+  units: g
+  Description: The approximate range of accelerations that can be measured.
+  Notes: When 2 g is chosen, it means the accelerometer is scaled to measure
+    about +/- 2 g of acceleration. Refer to the IMU datasheet for detailed information.
+
+- group: imu
+  name: gyro_range
+  expert: false
+  type: enum
+  default value: '125'
+  readonly: false
+  enumerated possible values: 125,250,500,1000,2000
+  units: deg/s
+  Description: The approximate range of angular rate that can be measured.
+  Notes: When 125 is chosen, it means the gyro is scaled to measure
+    about +/- 125 deg/s of angular rate. Refer to the IMU datasheet for detailed information.
+
+- group: imu
+  name: mag_raw_output
+  expert: false
+  type: boolean
+  default value: 'False'
+  readonly: false
+  Description: Enable/Disable raw data output from onboard Bosch BMM150 Magnetometer.
+  Notes:  The magnetometer raw data can be seen in the Advanced Tab of the Swift Console. imu.imu_raw_output must also be set to True for the magnetometer output to be enabled.
+
+- group: imu
+  name: mag_rate
+  expert: false
+  type: enum
+  default value: '12.5'
+  readonly: false
+  enumerated possible values: 6.25,12.5,25
+  units: Hz
+  Description: The data rate (in Hz) for magnetometer raw output.
+
+- group: ins
+  name: output_mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'Disabled'
+  readonly: false
+  enumerated possible values: Disabled, Loosely Coupled
+  Description: Determines output mode of the inertial navigation outputs.
+  Notes: |
+         Disabled - output GNSS-only solutions.
+         Loosely Coupled - output loosely coupled solutions, utilizing GNSS and inertial data.
+
+- group: ins
+  name: odometry_noise_1
+  expert: true
+  type: double
+  units: m/s
+  default value: '0.28'
+  readonly: false
+  Description: Noise parameter for odometry source 1
+
+- group: ins
+  name: odometry_noise_2
+  expert: true
+  type: double
+  units: m/s
+  default value: '0.28'
+  readonly: false
+  Description: Noise parameter for odometry source 2
+
+- group: ins
+  name: odometry_noise_3
+  expert: true
+  type: double
+  units: m/s
+  default value: '0.28'
+  readonly: false
+  Description: Noise parameter for odometry source 3
+
+- group: ins
+  name: odometry_noise_4
+  expert: true
+  type: double
+  units: m/s
+  default value: '0.28'
+  readonly: false
+  Description: Noise parameter for odometry source 4
+
+- group: ins
+  name: vehicle_frame_roll
+  expert: false
+  type: double
+  units: degrees
+  default value: '0'
+  readonly: false
+  Description: Roll angle representing rotation from vehicle frame to device frame.
+  Notes:       The euler angles are applied extrinsically in order roll, pitch, then yaw
+               about the defined vehicle axes to describe how the vehicle should rotate to align
+               with the device frame as mounted in the vehicle. These rotations directly affect
+               body velocities, attitude outputs.
+
+- group: ins
+  name: vehicle_frame_pitch
+  expert: false
+  type: double
+  units: degrees
+  default value: '0'
+  readonly: false
+  Description: Pitch angle representing rotation from vehicle frame to device frame.
+  Notes:       The euler angles are applied extrinsically in order roll, pitch, then yaw
+               about the defined vehicle axes to describe how the vehicle should rotate to align
+               with the device frame as mounted in the vehicle. These rotations directly affect
+               body velocities, attitude outputs.
+
+- group: ins
+  name: vehicle_frame_yaw
+  expert: false
+  type: double
+  units: degrees
+  default value: '0'
+  readonly: false
+  Description: Yaw angle representing rotation from vehicle frame to device frame.
+  Notes:       The euler angles are applied extrinsically in order roll, pitch, then yaw
+               about the defined vehicle axes to describe how the vehicle should rotate to align
+               with the device frame as mounted in the vehicle. These rotations directly affect
+               body velocities, attitude outputs.
+
+- group: ins
+  name: antenna_offset_x
+  expert: false
+  type: double
+  units: meters
+  default value: '0'
+  readonly: false
+  Description: X component of vector from device frame to antenna phase center
+  Notes:       The vector is measured in the device frame according to the markings on the device.
+
+- group: ins
+  name: antenna_offset_y
+  expert: false
+  type: double
+  units: meters
+  default value: '0'
+  readonly: false
+  Description: Y component of vector from device frame to antenna phase center
+  Notes:       The vector is measured in the device frame according to the markings on the device.
+
+- group: ins
+  name: antenna_offset_z
+  expert: false
+  type: double
+  units: meters
+  default value: '-0.12674'
+  readonly: false
+  Description: Z component of vector from device frame to antenna phase center
+  Notes:       The vector is measured in the device frame according to the markings on the device. The default
+               value represents the offset from the Duro Device Frame to the antenna phase center when the antenna
+               mounting bracket shipped with Duro is in use.
+
+- group: ins
+  name: vehicle_frame_offset_x
+  expert: false
+  type: double
+  units: meters
+  default value: '0'
+  readonly: false
+  Description: X component of vector from device frame to vehicle frame origin in which inertial outputs are provided
+  Notes: The vector is measured in the device frame according to the markings on the device. In order to output inertial solutions at the antenna phase center, this should be the same value (both sign and magnitude) as antenna_offset_x setting.
+
+- group: ins
+  name: vehicle_frame_offset_y
+  expert: false
+  type: double
+  units: meters
+  default value: '0'
+  readonly: false
+  Description: Y component of vector from device frame to vehicle frame origin in which inertial outputs are provided
+  Notes: The vector is measured in the device frame according to the markings on the device. In order to output inertial solutions at the antenna phase center, this should be the same value (both sign and magnitude) as antenna_offset_x setting.
+
+- group: ins
+  name: vehicle_frame_offset_z
+  expert: false
+  type: double
+  units: meters
+  default value: '-0.12674'
+  readonly: false
+  Description: Z component of vector from device frame to vehicle frame origin in which inertial outputs are provided
+  Notes: The vector is measured in the device frame according to the markings on the device. In order to output inertial solutions at the antenna phase center, this should be the same value (both sign and magnitude) as antenna_offset_x setting.
+         The default value represents vehicle outpus at the antenna phase center when the Duro antenna mounting bracket is in use.
+
+- group: ins
+  name: constrain_vehicle_sideslip
+  expert: true
+  type: boolean
+  units: N/A
+  default value: false
+  readonly: false
+  Description: Experimental non-holonomic constraint feature that allows inertial system to make assumptions about vehicle dynamics
+  Notes: This settings should only be enabled provided the vehicle frame Euler angles are measured precisely and are correct. It assumes a vehicle can have no velocity in the direction aligned with the vehicle "y" axis (i.e no sideslip). This is a reasonable assumption for passenger vehicles and many tractors.
+
+- group: ins
+  name: stillness_detection_enable
+  expert: true
+  type: boolean
+  units: N/A
+  default value: false
+  readonly: false
+  Description: Experimental stillness detection feature
+  Notes: This settings attempts to automatically determine that a particular vehicle is still based upon its vibration and dynamics profile. It can improve performance on vehicles when stopped and/or idling.
+
+- group: ins
+  name: dr_duration_max
+  expert: false
+  type: double
+  units: seconds
+  default value: '600'
+  readonly: false
+  Description: Indicates the maximum duration in seconds for which the inertial system will dead reckon.
+  Notes: The default value of 600 seconds was chosen as the expected duration for which the Duro Inertial solution can maintain sub-meter accuracy.
+
+- group: ins
+  name: dr_timeout_pos_stddev
+  expert: false
+  type: double
+  units: meters
+  default value: '20'
+  readonly: false
+  Description: Indicates the maximum standard deviation of position for which the inertial system will dead reckon.
+  Notes: The default value of 20 meters was chosen as the logical minimum standard of the position accuracy during dead reckon mode. 
+
+- group: ins
+  name: build_name
+  expert: true
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: true
+  Description: inertial navigation system build name
+
+- group: ins
+  name: build_date
+  expert: true
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: true
+  Description: inertial navigation system build date
+
+- group: ins
+  name: antenna_offset_deviation
+  type: double
+  units: meters
+  default value: '0.05'
+  readonly: False
+  Description: Standard deviation of antenna lever arm measurement.
+  Notes: |
+    Must be greater than 0.
+
+    This value should overestimate the actual expected error.
+
+- group: ins
+  name: pos_std_deviation_cutoff_meters
+  expert: true
+  type: double
+  units: meters
+  default value: '30'
+  readonly: False
+  Description: GNSS position standard deviation cutoff - only solutions with a standard deviation lower than this will be used.
+  Notes: |
+
+- group: ins
+  name: vehicle_frame_deviation
+  type: double
+  units: degrees
+  default value: '1'
+  readonly: False
+  Description: Standard deviation of misalignment measurement.
+  Notes: |
+    Must be greater than 0.
+
+    This value should overestimate the actual expected error.
+
+- group: ins
+  name: fused_soln_freq
+  type: double
+  expert: False
+  units: hertz
+  default value: '10'
+  readonly: False
+  Description: Fusion engine output rate in Hertz.
+  Notes: Make sure that the rate is less than the imu rate.
+
+- group: ins
+  name: solution_accuracy_confidence_level
+  type: enum
+  expert: true
+  units: percent
+  default value: '68'
+  readonly: False
+  enumerated possible values: 40,68
+  Description: Sets the confidence level for the message SBP MSG_LLH_ACC.
+  Notes: |
+
+- group: ins
+  name: gyro_angular_random_walk_degpersqrth_sensorframe_x
+  type: double
+  expert: true
+  units: degrees per square root hour
+  default value: '.69'
+  readonly: False
+  Description: Angular rate white noise.
+  Notes: |
+
+- group: ins
+  name: gyro_angular_random_walk_degpersqrth_sensorframe_y
+  type: double
+  expert: true
+  units: degrees per square root hour
+  default value: '.69'
+  readonly: False
+  Description: Angular rate white noise.
+  Notes: |
+
+- group: ins
+  name: gyro_angular_random_walk_degpersqrth_sensorframe_z
+  type: double
+  expert: true
+  units: degrees per square root hour
+  default value: '.69'
+  readonly: False
+  Description: Angular rate white noise.
+  Notes: |
+
+- group: ins
+  name: gyro_bias_instability_avar_degperh_sensorframe_x
+  type: double
+  expert: true
+  units: degrees per hour
+  default value: '10'
+  readonly: False
+  Description: Angular rate bias instability as defined in an Allan Variance plot.
+  Notes: |
+
+- group: ins
+  name: gyro_bias_instability_avar_degperh_sensorframe_y
+  type: double
+  expert: true
+  units: degrees per hour
+  default value: '10'
+  readonly: False
+  Description: Angular rate bias instability as defined in an Allan Variance plot.
+  Notes: |
+
+- group: ins
+  name: gyro_bias_instability_avar_degperh_sensorframe_z
+  type: double
+  expert: true
+  units: degrees per hour
+  default value: '10'
+  readonly: False
+  Description: Angular rate bias instability as defined in an Allan Variance plot.
+  Notes: |
+
+- group: ins
+  name: accel_velocity_random_walk_microgpersqrtHz_sensorframe_x
+  type: double
+  expert: true
+  units: micro-g per square root hertz
+  default value: '177'
+  readonly: False
+  Description: Accelerometer white noise.
+  Notes: |
+
+- group: ins
+  name: accel_velocity_random_walk_microgpersqrtHz_sensorframe_y
+  type: double
+  expert: true
+  units: micro-g per square root hertz
+  default value: '177'
+  readonly: False
+  Description: Accelerometer white noise.
+  Notes: |
+
+- group: ins
+  name: accel_velocity_random_walk_microgpersqrtHz_sensorframe_z
+  type: double
+  expert: true
+  units: micro-g per square root hertz
+  default value: '177'
+  readonly: False
+  Description: Accelerometer white noise.
+  Notes: |
+
+- group: ins
+  name: accel_bias_instability_avar_millig_sensorframe_x
+  type: double
+  expert: true
+  units: milli-g
+  default value: '0.3'
+  readonly: False
+  Description: Accelerometer bias instability as defined in an Allan Variance plot.
+  Notes: |
+
+- group: ins
+  name: accel_bias_instability_avar_millig_sensorframe_y
+  type: double
+  expert: true
+  units: milli-g
+  default value: '0.3'
+  readonly: False
+  Description: Accelerometer bias instability as defined in an Allan Variance plot.
+  Notes: |
+
+- group: ins
+  name: accel_bias_instability_avar_millig_sensorframe_z
+  type: double
+  expert: true
+  units: milli-g
+  default value: '0.3'
+  readonly: False
+  Description: Accelerometer bias instability as defined in an Allan Variance plot.
+  Notes: |
+
+- group: ins
+  name: lowpass_filter_cutoff_hz
+  type: double
+  expert: true
+  units: gertz
+  default value: '1'
+  readonly: False
+  Description: The cut-off frequency of the low-pass filter (smaller than half the nominal_sample_rate_hz).
+  Notes: |
+
+- group: ins
+  name: zupt_acceleration_threshold_mpers2
+  type: double
+  expert: true
+  units: meters per second squared
+  default value: '0.05'
+  readonly: False
+  Description: Maximum allowed acceleration while in ZUPT.
+  Notes: |
+
+- group: ins
+  name: zupt_angular_rate_threshold_degpers
+  type: double
+  expert: true
+  units:  degrees per second
+  default value: '0.3'
+  readonly: False
+  Description: Maximum allowed angular rate while in in ZUPT.
+  Notes: |
+
+- group: ins
+  name: zupt_enable_partial_zerovel_update
+  type: boolean
+  expert: true
+  units:
+  default value: 'true'
+  readonly: False
+  Description: Enable partial zero-velocity update (ZUPT).
+  Notes: |
+
+- group: ins
+  name: zupt_enable_full_zerovel_update
+  type: boolean
+  expert: true
+  units:
+  default value: 'true'
+  readonly: False
+  Description: Enable full zero-velocity update (ZUPT).
+  Notes: |
+
+- group: ins
+  name: zupt_enable_zero_angular_rate_update
+  type: boolean
+  expert: true
+  units:
+  default value: 'true'
+  readonly: False
+  Description: Enable zero angular rate update.
+  Notes: |
+
+- group: ins
+  name: zupt_settings_1
+  type: double
+  expert: True
+  units:
+  default value: '0.1'
+  readonly: False
+  Description:
+  Notes: |
+
+- group: ins
+  name: zupt_settings_2
+  type: double
+  expert: True
+  units:
+  default value: '0.1'
+  readonly: False
+  Description:
+  Notes: |
+
+- group: ins
+  name: zupt_settings_3
+  type: double
+  expert: True
+  units:
+  default value: '0.05'
+  readonly: False
+  Description:
+  Notes: |
+
+- group: ins
+  name: zupt_settings_4
+  type: double
+  expert: True
+  units:
+  default value: '0.5'
+  readonly: False
+  Description:
+  Notes: |
+
+- group: ins
+  name: zupt_settings_5
+  type: double
+  expert: True
+  units:
+  default value: '4'
+  readonly: False
+  Description:
+  Notes: |
+
+- group: ins
+  name: alignment_cog_enable
+  type: boolean
+  expert: true
+  units:
+  default value: 'true'
+  readonly: False
+  Description: Enable updating the alignment algorithm by assuming course over ground (i.e. the horizontal direction of the velocity vector) is equal to the vehicle heading.
+  Notes: |
+
+- group: ins
+  name: alignment_cog_low_speed_disambiguation_enable
+  type: boolean
+  expert: true
+  units:
+  default value: 'false'
+  readonly: False
+  Description: If this parameter is set to true, COG updates will also be used if the current vehicle speed does not exceed alignment_cog_min_speed_meters_per_second.
+  Notes: |
+
+- group: ins
+  name: alignment_cog_min_speed_meters_per_second
+  type: double
+  expert: true
+  units: meters per second
+  default value: '5'
+  readonly: False
+  Description: If enabled, COG updates will only be used if the current vehicle speed exceeds this threshold. Value should be >= 1m/s.
+  Notes: |
+
+- group: ins
+  name: alignment_settings_1
+  type: double
+  expert: true
+  units:
+  default value: '3'
+  readonly: False
+  Description:
+  Notes: |
+
+- group: ins
+  name:  filter_vel_max_half_life_ms
+  expert: true
+  type: float
+  units: milliseconds
+  default_value: 20000
+  Description: Time constant parameter for low-speed velocity filtering
+
+- group: ins
+  name:  filter_vel_half_life_alpha
+  expert: true
+  type: float
+  units: N/A
+  default_value: 0.02
+  Description: Parameter for low-speed velocity filtering
+
+- group: ins
+  name:  filter_vel_max
+  expert: true
+  type: float
+  units: m/s
+  default_value: 0.4
+  Description: Velocity above which to disable velocity filtering
+
+- group: ins
+  name:  filter_vel_min
+  expert: true
+  type: float
+  units: m/s
+  default_value: 0.1
+  Description: Velocity below whih to enable advanced velocity filtering
+
+- group: ins
+  name:  filter_vel
+  expert: true
+  type: boolean
+  default_value: false
+  Description: Enabled low-speed velocity filtering (advanced use only)
+
+- group: ins
+  name:  filter_pos
+  expert: true
+  type: boolean
+  default_value: false
+  Description: Enabled low-speed position filtering (advanced use only)
+
+- group: ins
+  name:  stillness_autotune
+  expert: true
+  type: boolean
+  default_value: false
+  Description: Automatically attempt to tune stillness detection thresholds
+
+- group: ins
+  name:  gyro_still_threshold
+  expert: true
+  type: float
+  units: rad/sec
+  default_value: 0.0005
+  Description: Gyro magnitude stillness thresold
+
+- group: ins
+  name:  accel_still_threshold
+  expert: true
+  type: float
+  units: Gs
+  default_value: 0.01
+  readonly: false
+  Description: Gyro magnitude stillness thresold
+
+- group: ins
+  name:  vel_still_threshold
+  expert: true
+  type: float
+  units: m/s
+  default_value: 0.02
+  Description: Gyro magnitude stillness thresold
+
+- group: ins
+  name:  stillness_detection_use_accel
+  expert: true
+  type: boolean
+  default_value: False
+  Description: Use accelermoter in detecting stillness
+
+- group: ins
+  name:  stillness_detection_use_gyro
+  expert: true
+  type: boolean
+  default_value: False
+  Description: Use gyro in detecting stillness
+
+- group: ins
+  name:  accel_noise
+  expert: true
+  type: float
+  units: Gs
+  default_value: 0.08
+  Description: Noise estimate for raw sensor
+
+- group: ins
+  name:  gyro_noise
+  expert: true
+  type: float
+  units: deg/s
+  default_value: 0.002
+  Description: Noise estimate for raw sensor
+
+- group: metrics_daemon
+  name: metrics_update_interval
+  expert: true
+  type: integer
+  units: seconds
+  default value: '1'
+  readonly: false
+  Description: Set metric update interval
+  Notes:
+
+- group: metrics_daemon
+  name: enable_log_to_file
+  expert: true
+  type: bool
+  units: N/A
+  default value: 'true'
+  readonly: false
+  Description: Enable metric logging to file
+  Notes:
+
+- group: ndb
+  name: erase_ephemeris
+  expert: true
+  type: boolean
+  default value: 'True'
+  readonly: false
+  Description: Erase stored ephmerides during boot.
+
+- group: ndb
+  name: erase_almanac
+  expert: true
+  type: boolean
+  default value: 'False'
+  readonly: false
+  Description: Erase stored almanacs during boot.
+
+- group: ndb
+  name: erase_almanac_wn
+  expert: true
+  type: boolean
+  default value: 'False'
+  readonly: false
+  Description: Erase stored almanac week numbers during boot.
+
+- group: ndb
+  name: erase_iono
+  expert: true
+  type: boolean
+  default value: 'False'
+  readonly: false
+  Description: Erase stored ionospheric parameters during boot.
+
+- group: ndb
+  name: erase_lgf
+  expert: true
+  type: boolean
+  default value: 'True'
+  readonly: false
+  Description: Erase stored last fix information during boot.
+
+- group: ndb
+  name: erase_gnss_capb
+  expert: true
+  type: boolean
+  default value: 'False'
+  readonly: false
+  Description: Erase stored GNSS capability mask during boot.
+
+- group: ndb
+  name: erase_utc_params
+  expert: true
+  type: boolean
+  default value: 'False'
+  readonly: false
+  Description: Erase stored UTC offset parameters during boot.
+
+- group: ndb
+  name: lgf_update_s
+  expert: true
+  type: int
+  default value: '1800'
+  readonly: false
+  units: seconds
+  Description: Update period for navigation database last good fix.
+
+- group: ndb
+  name: lgf_update_m
+  expert: true
+  type: int
+  default value: '10000'
+  readonly: false
+  units: meters
+  Description: Change in position required to update last good fix.
+
+- group: ndb
+  name: valid_alm_days
+  expert: true
+  type: int
+  default value: '6'
+  readonly: false
+  units: days
+  Description: Number of days for which Almanac is valid.
+
+- group: ndb
+  name: valid_eph_acc
+  expert: true
+  type: int
+  default value: '100'
+  readonly: false
+  units: meters
+
+- group: ndb
+  name: valid_alm_acc
+  expert: true
+  type: int
+  default value: '5000'
+  readonly: false
+  units: meters
+
+- group: nmea
+  name: gpgsv_msg_rate
+  expert: false
+  type: integer
+  units: Solution Period
+  default value: '10'
+  readonly: false
+  Description: Number of Solution Periods between GSV NMEA messages being sent.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz. If this setting is 0, the msg will be suppressed.
+
+- group: nmea
+  name: gpgga_msg_rate
+  expert: false
+  type: integer
+  units: Solution Period
+  default value: '1'
+  readonly: false
+  Description: Number of Solution Periods between GGA NMEA messages being sent.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz. If this setting is 0, the msg will be suppressed.
+
+- group: nmea
+  name: gphdt_msg_rate
+  expert: false
+  type: integer
+  units: Solution Period
+  default value: '1'
+  readonly: false
+  Description: Number of Solution Periods between HDT NMEA messages being sent.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz. If this setting is 0, the msg will be suppressed.
+
+- group: nmea
+  name: gprmc_msg_rate
+  expert: false
+  type: integer
+  units: Solution Period
+  default value: '10'
+  readonly: false
+  Description: Number of Solution Periods between RMC NMEA messages being sent.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz. If this setting is 0, the msg will be suppressed.
+
+- group: nmea
+  name: gpvtg_msg_rate
+  expert: false
+  type: integer
+  units: Solution Period
+  default value: '1'
+  readonly: false
+  Description: Number of Solution Periods between VTG NMEA messages being sent.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz. If this setting is 0, the msg will be suppressed.
+
+- group: nmea
+  name: gpgll_msg_rate
+  expert: false
+  type: integer
+  units: Solution Period
+  default value: '10'
+  readonly: false
+  Description: Number of Solution Periods between GLL NMEA messages being sent.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz. If this setting is 0, the msg will be suppressed.
+
+- group: nmea
+  name: gpzda_msg_rate
+  expert: false
+  type: integer
+  units: Solution Period
+  default value: '10'
+  readonly: false
+  enumerated possible values:
+  Description: Number of Solution Periods between ZDA NMEA messages being sent.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz. If this setting is 0, the msg will be suppressed.
+
+- group: nmea
+  name: gsa_msg_rate
+  expert: false
+  type: integer
+  units: Solution Periods
+  default value: '10'
+  readonly: false
+  enumerated possible values:
+  Description: Number of Solution Periods between GSA NMEA messages being sent.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message. For example, if the solution rate is 10 Hz, and this rate setting is 2, the NMEA message will be sent every two solution epochs at a rate of 5 Hz. If this setting is 0, the msg will be suppressed.
+
+- group: nmea
+  name: gpgsa_msg_rate
+  expert: false
+  type: integer
+  units: Solution Period
+  default value: '10'
+  readonly: false
+  enumerated possible values:
+  Description: Number of Solution Periods between GSA NMEA messages being sent.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message.
+
+- group: nmea
+  name: gpgst_msg_rate
+  expert: false
+  type: integer
+  units: Solution Period
+  default value: '1'
+  readonly: false
+  enumerated possible values:
+  Description: Number of Solution Periods between GST NMEA messages being sent.
+  Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message.
+
+- group: nmea
+  name: cog_output_min_speed
+  expert: true
+  type: float
+  units: Meters per second
+  digits: '2'
+  default value: '0.1'
+  readonly: false
+  enumerated possible values:
+  Description: Minimum speed for outputting Course-Over-Ground values.
+  Notes: For value '0' Course-Over-Ground is output always when fix is available.
+
+- group: nmea
+  name: cog_update_min_speed
+  expert: true
+  type: float
+  units: Meters per second
+  digits: '2'
+  default value: '0.1'
+  readonly: false
+  enumerated possible values:
+  Description: Minimum speed for updating the current Course-Over-Ground value.
+  Notes: For value '0' Course-Over-Ground is updated always when a fix is available. For non '0' values, the Course-Over-Ground value will only be recomputed and updated when the speed exceeds the specified value.
+
+- group: ntrip
+  name: enable
+  expert: false
+  type: boolean
+  units: N/A
+  default value: 'False'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Enable NTRIP client.
+  Notes: If True, NTRIP client will be used.
+
+- group: ntrip
+  name: url
+  expert: false
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: false
+  enumerated possible values:
+  Description: NTRIP URL to use.
+  Notes: NTRIP must be enabled to use this setting. URLs should be HTTP URLs with a port, and a mountpoint path such as example.com:2101/BAZ_RTCM3.
+    NTRIP 'enable' must be 'False' in order to change this setting.
+
+- group: ntrip
+  name: username
+  expert: false
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: false
+  enumerated possible values:
+  Description: NTRIP username to use.
+  Notes: Username to use with NTRIP client. NTRIP must be enabled to use this setting.
+
+- group: ntrip
+  name: password
+  expert: false
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: false
+  enumerated possible values:
+  Description: NTRIP password to use.
+  Notes: Password to use with NTRIP client. NTRIP must be enabled to use this setting.
+
+- group: ntrip
+  name: gga_out_interval
+  expert: false
+  type: integer
+  units: seconds
+  default value: '0'
+  readonly: false
+  enumerated possible values:
+  Description: Interval at which the NMEA GGA sentence is uploaded to the NTRIP server
+  Notes: The interval (in seconds) at which the NMEA GGA sentence is uploaded to
+     the specified NTRIP server. The default of 0 disables the GGA sentence upload.
+
+- group: ntrip
+  name: gga_out_rev1
+  expert: true
+  type: boolean
+  units: seconds
+  default value: 'False'
+  readonly: false
+  enumerated possible values:
+  Description: If True, the NTRIP client will use an NTRIP 1.0 formatted GGA sentence.
+  Notes: |
+    By default, the NTRIP client will use an NTRIP 2.0 formatted GGA sentence,
+    which prefixes the GGA sentence with "Ntrip-GGA: ". If this option is
+    enabled, the prefix will be dropped.
+
+- group: ntrip
+  name: debug
+  expert: true
+  type: boolean
+  default value: 'False'
+  readonly: false
+  Description: Additional debug messages for NTRIP (sent to /var/log/messages).
+
+- group: pps
+  name: width
+  expert: false
+  type: integer
+  units: us (microseconds)
+  default value: '2000'
+  readonly: false
+  enumerated possible values:
+  Description: Number of microseconds the PPS will remain active (allowed range from 1 to 999999 us).
+  Notes:
+
+- group: pps
+  name: polarity
+  expert: false
+  type: integer
+  units: Logic Level
+  default value: '1'
+  readonly: false
+  enumerated possible values: 0, 1
+  Description: Logic level on output pin when the PPS is active.
+  Notes:
+
+- group: pps
+  name: offset
+  expert: false
+  type: integer
+  units: ns (nanoseconds)
+  default value: '0'
+  readonly: false
+  enumerated possible values:
+  Description: Offset in nanoseconds between GPS time and the PPS.
+  Notes: This setting can be used to compensate for cable delays in timing systems.
+
+- group: pps
+  name: frequency
+  expert: false
+  type: double
+  units: Hz
+  default value: '1.0'
+  readonly: false
+  enumerated possible values:
+  Description: Generate a pulse with the given frequency (maximum = 20 Hz).
+  Notes:
+
+- group: pps
+  name: propagation_mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: Time Limited
+  enumerated possible values: None,Time Limited,Unlimited
+  Description: Configures the behavior of the PPS when no GNSS fix is available.
+
+- group: pps
+  name: propagation_timeout
+  expert: false
+  type: float
+  units: seconds
+  default value: '5'
+  readonly: false
+  Description: Configures the timeout length of the PPS when using the "Time Limited" propagation mode.
+
+- group: rtcm_out
+  name: output_mode
+  expert: true
+  type: enum
+  units: N/A
+  default value: 'MSM5'
+  readonly: false
+  enumerated possible values: Legacy, MSM4, MSM5
+  Description: Selects the format of RTCM observation messages for the RTCMv3 OUT protocol
+  Notes: Legacy mode outputs the RTCMv3.1 1004 & 1012 observation messages (GPS&GLO only),
+    whereas the RTCMv3.2 MSM4 and MSM5 modes send observations from all constellations.
+
+- group: rtcm_out
+  name: rcv_descriptor
+  expert: true
+  type: string
+  units: N/A
+  default value: 'PIKSI'
+  readonly: false
+  enumerated possible values:
+  Description: Receiver type description to be sent out in the RTCMv3 1033 message.
+  Notes: Alphanumeric characters. Maxmimum 31 characters.
+
+- group: rtcm_out
+  name: ant_descriptor
+  expert: true
+  type: string
+  units: N/A
+  default value: 'HXCGPS500       NONE'
+  readonly: false
+  enumerated possible values:
+  Description: Antenna description to be sent out in RTCMv3 messages 1008 and 1033.
+  Notes: Alphanumeric characters. IGS limits the number of characters to 20 at
+    this time, but this setting allows for 31 characters for future extension.
+
+- group: rtcm_out
+  name: antenna_height
+  expert: true
+  type: double
+  units: meters
+  default value: '0.0'
+  readonly: false
+  enumerated possible values:
+  Description: Antenna height to be sent out in RTCMv3 message 1006.
+  Notes: The Antenna Height field provides the height of the Antenna Reference Point
+    above the marker used in the survey campaign.
+
+- group: rtcm_out
+  name: enable_ephemeris
+  expert: true
+  type: boolean
+  units: N/A
+  default value: 'false'
+  readonly: false
+  enumerated possible values:
+  Description: Allow output of RTCMv3 ephemeris messages.
+  Notes: RTCM Message Type - 1019 (GPS Ephemeris), 1020 (GLONASS Ephemeris),
+    1045/1046 (Galileo Ephemeris), 1042 (Beidou Ephemeris)
+
+- group: sample_daemon
+  name: enabled
+  expert: true
+  type: boolean
+  units: N/A
+  default value: 'false'
+  readonly: false
+  Description: Enables or disables the SDK sample daemon.
+
+- group: sample_daemon
+  name: enable_broadcast
+  expert: true
+  type: boolean
+  units: N/A
+  default value: 'false'
+  readonly: false
+  Description: Enables or disables UDP broadcast in the SDK sample daemon.
+
+- group: sample_daemon
+  name: offset
+  expert: true
+  type: float
+  units: meters
+  default value: '-32.1597'
+  readonly: false
+  Description: Sets the height offset for the SDK sample daemon.
+
+- group: sample_daemon
+  name: broadcast_hostname
+  expert: true
+  type: string
+  units: N/A
+  default value: '255.255.255.255'
+  readonly: false
+  Description: Sets the broadcast hostname for the SDK sample daemon.
+
+- group: sample_daemon
+  name: broadcast_port
+  expert: true
+  type: integer
+  units: N/A
+  default value: '56666'
+  readonly: false
+  Description: Sets the broadcast port for the SDK sample daemon.
+
+- group: sbp
+  name: obs_msg_max_size
+  expert: true
+  type: integer
+  units: bytes
+  default value: '255'
+  readonly: false
+  enumerated possible values:
+  Description: Determines the maximum message length for raw observation sbp messages.
+  Notes: This parameter is useful for tuning observation messages for compatibility
+    with radio modems. Some serial modems will internally split serial packets for
+    their protocol and this parameter allows the size of the message to be reduced
+    as to prevent the modem from sending multiple packets. If the parameter exceeds
+    255 bytes (the maximum size of an SBP message), the receiver firmware will ignore
+    the parameter and use 255 bytes. If the parameter is set smaller than the size
+    of one observation, the firmware will ignore the parameter and use the size
+    of one observation as the maximum message size.
+
+- group: simulator
+  expert: false
+  name: enabled
+  type: boolean
+  units: N/A
+  default value: 'False'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Toggles the receiver internal simulator on and off.
+  Notes: The simulator will provide simulated outputs of a
+    stationary base station and the Local receiver moving in a circle around the
+    base station. The simulator is intended to aid in system integration by
+    providing realistic looking outputs but does not faithfully simulate every
+    aspect of device operation.
+
+- group: simulator
+  name: base_ecef_x
+  expert: false
+  type: double
+  units: meters
+  default value: '-2706098.845'
+  readonly: false
+  enumerated possible values:
+  Description: Simulated base station position.
+  Notes: Earth Centered Earth Fixed (ECEF) x position of the simulated base station.
+
+- group: simulator
+  name: base_ecef_y
+  expert: false
+  type: double
+  units: meters
+  default value: '-4261216.475'
+  readonly: false
+  enumerated possible values:
+  Description: Simulated base station position.
+  Notes: Earth Centered Earth Fixed (ECEF) y position of the simulated base station.
+
+- group: simulator
+  name: base_ecef_z
+  expert: false
+  type: double
+  units: meters
+  default value: '3885597.912'
+  readonly: false
+  enumerated possible values:
+  Description: Simulated base station position.
+  Notes: Earth Centered Earth Fixed (ECEF) z position of the simulated base station.
+
+- group: simulator
+  name: speed
+  expert: false
+  type: double
+  units: m/s
+  default value: '4'
+  readonly: false
+  enumerated possible values:
+  Description: Simulated tangential speed of the receiver.
+  Notes:
+
+- group: simulator
+  name: radius
+  expert: false
+  type: double
+  units: meters
+  default value: '100'
+  readonly: false
+  enumerated possible values:
+  Description: Radius of the circle around which the simulated receiver will move.
+  Notes:
+
+- group: simulator
+  name: pos_sigma
+  expert: false
+  type: double
+  units: meters^2
+  default value: '1.5'
+  readonly: false
+  enumerated possible values:
+  Description: Standard deviation of simulated single point position.
+  Notes:
+
+- group: simulator
+  name: speed_sigma
+  expert: false
+  type: double
+  units: meters^2/s^2
+  default value: '0.15'
+  readonly: false
+  enumerated possible values:
+  Description: Standard deviation of noise addition to simulated tangential speed.
+  Notes:
+
+- group: simulator
+  name: cn0_sigma
+  expert: false
+  type: double
+  units: dBm-Hz
+  default value: '0.3'
+  readonly: false
+  enumerated possible values:
+  Description: Standard deviation of noise added to the simulated signal to noise.
+    ratio
+  Notes:
+
+- group: simulator
+  name: pseudorange_sigma
+  expert: false
+  type: double
+  units: meters
+  default value: '4'
+  readonly: false
+  enumerated possible values:
+  Description: Standard deviation of noise added to the simulated pseudo range.
+  Notes:
+
+- group: simulator
+  name: phase_sigma
+  expert: false
+  type: double
+  units: cycles
+  default value: '0.03'
+  readonly: false
+  enumerated possible values:
+  Description: Standard deviation of noise added to the simulated carrier phase.
+  Notes:
+
+- group: simulator
+  name: num_sats
+  expert: false
+  type: integer
+  units: N/A
+  default value: '9'
+  readonly: false
+  enumerated possible values:
+  Description: The number of satellites for the simulator.
+  Notes:
+
+- group: simulator
+  name: mode_mask
+  expert: false
+  type: packed bitfield
+  units: N/A
+  default value: 15 (decimal), 0xF (hexadecimal)
+  readonly: false
+  enumerated possible values:
+  Description: Determines the types of position outputs for the simulator.
+  Notes: |
+    bit 0 (decimal value 1) turns on single point position PVT simulated outputs
+    bit 1 (decimal value 2) turns on the satellite tracking simulated outputs
+    bit 2 (decimal value 4) turns on Float IAR simulated RTK outputs
+    bit 3 (decimal value 8) turns on Fixed IAR simulated RTK outputs
+
+- group: solution
+  name: elevation_mask
+  expert: false
+  type: float
+  units: degrees
+  default value: '10'
+  readonly: false
+  enumerated possible values:
+  Description: SPP / RTK solution elevation mask.
+  Notes: Satellites must be above the horizon by at least this angle before they
+    will be used in a solution.
+
+- group: solution
+  name: dgnss_filter
+  expert: true
+  type: enum
+  units: N/A
+  default value: 'Fixed'
+  readonly: false
+  enumerated possible values: Fixed,Float
+  Description: Determines the type of carrier phase ambiguity resolution that the receiver will attempt to achieve.
+  Notes: If "fixed", the receiver will output a integer fixed ambiguity estimate. If
+    no fixed solution is available, it will revert to the float solution. If "float",
+    the device will only output the float ambiguity estimate.
+
+- group: solution
+  name: dynamic_motion_model
+  expert: true
+  type: enum
+  units: N/A
+  default value: 'High Dynamics'
+  readonly: false
+  enumerated possible values: High Dynamics, High Horizontal Dynamics, Low Dynamics
+  Description: Selects the Filter Uncertainity of position, velocity & acceleration in the Horizontal &
+    Vertical directions.
+  Notes: High dynamics - suitable when dynamics are high in all axes, High horizontal dynamics - suitable
+    when dynamics are high in the horizontal plane and low in the vertical axis and Low dynamics - suitable
+    when dynamics are high in all axes.
+
+- group: solution
+  name: correction_age_max
+  expert: false
+  type: float
+  units: seconds
+  default value: '30'
+  readonly: false
+  enumerated possible values:
+  Description: The maximum age of corrections for which an RTK solution will be generated.
+  Notes:
+
+- group: solution
+  name: enable_glonass
+  expert: false
+  type: boolean
+  units: N/A
+  default value: 'True'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Enable GLONASS measurement processing in the navigation filter.
+  Notes: If set to True, GLONASS measurements are processed in the navigation filter for SPP and RTK.
+
+- group: solution
+  name: enable_galileo
+  expert: false
+  type: boolean
+  units: N/A
+  default value: 'True'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Enable Galileo measurement processing in the navigation filter.
+  Notes: If set to True, Galileo measurements are processed in the navigation filter for SPP and RTK.
+
+- group: solution
+  name: enable_beidou
+  expert: false
+  type: boolean
+  units: N/A
+  default value: 'True'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Enable Beidou measurement processing in the navigation filter.
+  Notes: If set to True, Beidou measurements are processed in the navigation filter for SPP and RTK.
+
+- group: solution
+  name: glonass_measurement_std_downweight_factor
+  expert: true
+  type: float
+  units: N/A
+  default value: '4.0'
+  readonly: false
+  enumerated possible values:
+  Description: Down weights GLONASS measurements by a given factor in the navigation filter.
+  Notes: This parameter down weights GLONASS observations relative to GPS observations by this factor.
+
+- group: solution
+  name: dgnss_solution_mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'Low Latency'
+  readonly: false
+  enumerated possible values: Low Latency, Time Matched, No DGNSS
+  Description: Selects the type of RTK solution to output.
+  Notes: A "Low Latency" solution uses an internal model of anticipated satellite observations
+    to provide RTK output with minimal latency but slightly reduced accuracy. "Low Latency" mode
+    assumes that the base station is stationary. For applications where accuracy is desired over timeliness
+    or when both receivers are moving, "Time Matched" mode should be chosen. This
+    means that the RTK output will require a corresponding set of correction observations
+    for each timestamp. When "No DGNSS" is chosen, no differential output will be
+    attempted by the receiver.
+
+- group: solution
+  name: heading_offset
+  expert: False
+  type: double
+  units:  degrees
+  default value: '0.0'
+  readonly: false
+  enumerated possible values: N/A
+  Description: Rotate the heading output.
+  Notes: |
+    Adds an offset to the heading output to rotate the heading vector to align the
+    baseline heading with a desired 0 heading. Valid values are -180.0 to 180.0 degrees
+
+- group: solution
+  name: send_heading
+  expert: False
+  type: boolean
+  units:  N/A
+  default value: 'False'
+  readonly: false
+  enumerated possible values: True,False
+  Description: |
+    Enables SBP heading output.
+    Heading is calculated from base station to rover and represents
+    the inverse tangent of the north and east components of the baseline.
+  Notes: |
+    No smoothing or additional processing is provided to improve heading output.
+    The heading feature requires the following additional settings
+        Time Matched Mode
+        Equal Observation rate between both base and rover
+    The observation rate will also determine the heading output rate and is defined as "soln freq" / "output every n obs"
+
+- group: solution
+  name: disable_raim
+  expert: true
+  type: boolean
+  units:
+  default value: 'False'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Receiver Autonomous Integrity Monitoring.
+  Notes: If True, RAIM checks will not be performed on observation output.
+
+- group: solution
+  name: soln_freq
+  expert: false
+  type: integer
+  units: Hz
+  default value: '10'
+  readonly: false
+  enumerated possible values:
+  Description: |
+    The frequency at which GNSS navigation solution is computed.
+  Notes: |
+    Minimum is 1 Hz. Maximum is 10 Hz for RTK positioning with a maximum of 15 used satellites. 
+    At 5 Hz and lower the maximum number of used satellites is 22. 20 Hz is an absolute maximum with 
+    a limit of 5 used satellites.
+
+    System with inertial fusion (Duro Inertial, Piksi Multi Inertial) can output position at a higher rate 
+    than the GNSS-only solution. See fused_soln_freq in the INS group.
+
+- group: solution
+  name: output_every_n_obs
+  expert: false
+  type: integer
+  units: N/A
+  default value: '10'
+  readonly: false
+  enumerated possible values:
+  Description: Integer divisor of solution frequency for which the observations will
+    be output.
+  Notes: For instance, if the solution frequency (soln_freq) is 10 Hz, and the output_every_n_obs
+    setting is 10, it means that the observation output will occur at a rate
+    of 1 Hz. This parameter is designed to tune the rate at which correction information is passed
+    from one receiver to the other as to efficiently use radio modem bandwidth and fit with user applications.
+
+- group: solution
+  name: min_modelled_baseline_len_km
+  expert: false
+  type: double
+  units: km
+  default value: '0.0'
+  readonly: false
+  enumerated possible values: N/A
+  Description: Minimum assumed baseline length to use in RTK model calculations. This parameter
+    can be used to improve performance with virtual reference station (VRS) services that generate
+    the virtual base at an arbitrary location, independent from the quality of atmospheric models.
+  Notes: Typically 50 km can be used with most VRS services.
+
+- group: solution
+  name: known_baseline_n
+  expert: false
+  type: double
+  units: meters
+  default value: '0'
+  readonly: false
+  enumerated possible values:
+  Description: Determines the baseline vector for the "init known baseline" feature.
+  Notes: This sets the number of meters that the rover is North from the
+    base station when the "init known baseline" feature is used.
+
+- group: solution
+  name: known_baseline_e
+  expert: false
+  type: double
+  units: meters
+  default value: '0'
+  readonly: false
+  enumerated possible values:
+  Description: Determines the baseline vector for the "init known baseline" feature.
+  Notes: This sets the number of meters that the rover is East from the
+    base station when the "init known baseline" feature is used.
+
+- group: solution
+  name: known_baseline_d
+  expert: false
+  type: double
+  units: meters
+  default value: '0'
+  readonly: false
+  enumerated possible values:
+  Description: Determines the baseline vector for the "init known baseline" feature.
+  Notes: This sets the number of meters that the rover is Down from the
+    base station when the "init known baseline" feature is used.
+
+- group: solution
+  name: disable_klobuchar_correction
+  expert: false
+  type: boolean
+  units: N/A
+  default value: 'False'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Disable Klobuchar ionospheric corrections.
+  Notes: |
+      If True, Klobuchar ionospheric corrections will not be applied.
+
+- group: standalone_logging
+  name: blacklist_sdcard
+  expert: true
+  type: boolean
+  default value: 'False'
+  readonly: false
+  Description: Enable/Disable SD Card.
+
+- group: standalone_logging
+  name: enable
+  type: boolean
+  expert: false
+  default value: 'False'
+  readonly: false
+  units: N/A
+  Description: Standalone logging enabled.
+  Notes: Setting this to true triggers the logger to start trying to write logs to the output_directory.
+         Setting this to false will immediately close the current file and stop logging.
+         Reenabling logging will increment the session counter which is reflected in the log file names (see USB Logging File Output section).
+
+- group: standalone_logging
+  name: output_directory
+  expert: false
+  type: string
+  default value: '/media/sda1/'
+  readonly: false
+  Description: Standalone logging path.
+  units: N/A
+  Notes: Sets the paths in which to write logs. A warning will be logged every 30 seconds if this path is invalid or unavailable. The system will not create a folder that does not exist.
+         If this setting is changed while logging is enabled, it will go into effect on the next file that’s created.
+
+- group: standalone_logging
+  name: sdcard_enable
+  expert: true
+  type: boolean
+  default value: 'False'
+  readonly: false
+  Description: Enable/Disable SD Card.
+
+- group: standalone_logging
+  name: max_fill
+  expert: false
+  type: int
+  default value: '95'
+  readonly: false
+  Description: Maximum storage device usage.
+  units: percent
+  Notes: Sets a limit on how full the storage device can be before logging is stopped. If the drive is more than this percent full, no new log files will be created and a warning will be logged every 30 seconds.
+         If this setting is changed while logging is enabled, it will go into effect on the next file that’s created.
+
+- group: standalone_logging
+  name: file_duration
+  expert: false
+  type: int
+  default value: '10'
+  readonly: false
+  Description: Duration of each logfile.
+  units: minutes
+  Notes: Sets the number of minutes to output to each standalone log file before opening the next one.
+         If this setting is changed while logging is enabled, it will go into effect immediately which will close the current file if its length exceeds the new duration.
+
+- group: standalone_logging
+  name: logging_file_system
+  type: enum
+  expert: true
+  default value: 'FAT'
+  readonly: false
+  units: N/A
+  Description: Configure the file-system used for standalone logging (SD card only).
+  Notes: Configures the file-system used for standalone logging.
+         Setting this to F2FS will reparition and the reformat any SD card
+         that is not formatted with F2FS upon system reboot. Settings must
+         be persisted for this to take effect.
+
+- group: standalone_logging
+  name: copy_system_logs
+  type: boolean
+  expert: true
+  default value: 'False'
+  readonly: false
+  units: N/A
+  Description: Copy system logs to the SD card at regular intervals.
+  Notes: Setting this to true will cause the device to copy the system logs to the SD card at regular intervals.
+         Setting this to false will stop the device from copying the systems logs to the SD card.
+
+- group: surveyed_position
+  name: broadcast
+  expert: false
+  type: boolean
+  units:
+  default value: 'False'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Broadcast surveyed base station position.
+  Notes: This flag ultimately determines whether the SBP message with identifier
+    MSG_BASE_POS_ECEF will be calculated and sent. Logically, setting this attribute to
+    "true" sets the Local receiver as a base station and configures the unit to send
+    its surveyed position coordinates to the other receiver(s) with which the base
+    station is communicating. If "true", the remote receiver that receives the
+    surveyed position will calculate and communicate a pseudo absolute
+    RTK position based upon the received position.
+
+- group: surveyed_position
+  name: surveyed_lat
+  expert: false
+  type: Double
+  units: degrees
+  default value: '0'
+  readonly: false
+  enumerated possible values:
+  Description: Surveyed latitude of the antenna.
+  Notes: This setting represents the latitude of the local receiver's antenna, expressed
+    in decimal degrees relative to the equator (north = positive, south = negative).
+    If surveyed position "broadcast" is set to "true", the coordinate will be
+    communicated to remote receivers for use in calculating their pseudo-absolute
+    RTK position. The value should be as accurate as possible and should have
+    precision to at least 7 digits following the decimal point. For reference,
+    1e-7 degrees of latitude is about 1.1 cm on the surface of the earth. Any
+    errors in the surveyed position will directly affect the pseudo-absolute
+    RTK position measurement reported by the remote receiver.
+
+- group: surveyed_position
+  name: surveyed_lon
+  expert: false
+  type: Double
+  units: degrees
+  default value: '0'
+  readonly: false
+  enumerated possible values:
+  Description: Surveyed longitude of the antenna.
+  Notes: This setting represents the longitude of the local receiver's antenna, expressed
+    in decimal degrees relative to the Prime Meridian (east = positive, west = negative).
+    If surveyed position "broadcast" is set to "true", the coordinate will be
+    communicated to remote receivers for use in calculating their pseudo-absolute
+    RTK position. The value should be as accurate as possible and should have
+    precision to at least 7 digits following the decimal point. For reference,
+    1e-7 degrees of longitude at 35 degree latitude is about 1 cm. Any
+    errors in the surveyed position will directly affect the pseudo-absolute
+    RTK position measurement reported by the remote receiver.
+
+- group: surveyed_position
+  name: surveyed_alt
+  expert: false
+  type: Double
+  units: meters
+  default value: '0'
+  readonly: false
+  enumerated possible values:
+  Description: Surveyed altitude of the antenna.
+  Notes: This setting represents the altitude of the receiver's antenna above the
+    WGS84 ellipsoid, in meters. If surveyed position "broadcast" is set to "true",
+    this coordinate will be communicated to remote receivers for use in calculating
+    their pseudo-absolute position. This value should be precise to 1 cm. Any
+    errors in the surveyed position will directly affect the pseudo-absolute
+    RTK position measurement reported by the Rover.
+
+- group: system
+  name: system_time
+  type: enum
+  expert: false
+  default value: 'GPS'
+  enumerated possible values: GPS+NTP,GPS,NTP
+  readonly: false
+  Description: Sources for Linux System Time.
+  units: N/A
+  Notes: Configures the possible sources for Linux system time on the Swift Device.
+         Linux system time is required for HTTPS certification validation and other Linux system functionality.
+
+- group: system
+  name: log_ping_activity
+  type: boolean
+  expert: true
+  default value: 'False'
+  readonly: false
+  units: N/A
+  Description: If set to true, the network poll service will also log ping activity.
+  Notes: Configures the network poll service to log ping activity to /var/log/ping.log.
+
+- group: system
+  name: connectivity_check_frequency
+  type: float
+  expert: true
+  default value: '0.1'
+  readonly: false
+  units: Hz
+  Description: The frequency at which the network poll service checks for connectivity.
+  Notes: The network poll service will perform a connectivity check with a well known IP
+         address at the frequency configured by this setting. A value of 0 will disable
+         the connectivity check and the Link LED will not show Internet access status.
+
+- group: system
+  name: connectivity_retry_frequency
+  type: float
+  expert: true
+  default value: '1.0'
+  readonly: false
+  units: Hz
+  Description: The frequency at which the network poll service retries after a failed connectivity check.
+  Notes: If a connectivity check fails, this settings controls the frequency at which a new
+         connectivity check is performed.
+
+- group: system
+  name: connectivity_check_addresses
+  type: string
+  expert: true
+  default value: '8.8.8.8'
+  readonly: false
+  units: N/A
+  Description: A comma separated list of addresses to ping to check for network connectivity.
+  Notes: 'A comma separated list of addresses, for example: 8.8.8.8,1.1.1.1 to which
+         an ICMP echo request is sent, each in succession until a successful response
+         is received.'
+
+- group: system
+  name: ota_enabled
+  type: boolean
+  expert: true
+  default value: 'False'
+  readonly: false
+  units: N/A
+  Description: Enables or disables the Over-The-Air upgrade daemon.
+  Notes: The OTA daemon contacts the OTA server once per hour and checks if the offered version is newer
+         than currently installed. If the offered version is newer, then the image is downloaded and an
+         upgrade is performed. After the upgrade the device is automatically rebooted.
+
+- group: system
+  name: ota_debug
+  type: boolean
+  expert: true
+  default value: 'False'
+  readonly: false
+  units: N/A
+  Description: Enables or disables the Over-The-Air upgrade daemon's verbose output.
+  Notes: The OTA daemon must be disabled in order to change this setting.
+
+- group: system
+  name: ota_url
+  type: string
+  expert: true
+  default value: N/A
+  readonly: false
+  units: N/A
+  Description: Set the URL of the Over-The-Air upgrade server. If empty, an internal
+               default address is used.
+  Notes: The OTA daemon must be disabled in order to change this setting.
+
+- group: system
+  name: heading_forwarding
+  type: boolean
+  expert: false
+  default value: 'False'
+  readonly: false
+  units: N/A
+  Description: Resend any SBP_MSG_HEADING or SBP_MSG_BASELINE_NED messages
+               received by this device to this device's output interfaces
+  Notes: This is intended to enable a dual piksi / duro installation so a consumer
+         can read both RTK heading or moving baseline and RTK position
+         from the same communication interface.
+
+- group: system
+  name: resource_monitor_update_interval
+  expert: true
+  type: integer
+  units: seconds
+  default value: '0'
+  readonly: false
+  Description: Interval to run the resource monitor at
+  Notes: Value of 0 disables the resource monitor
+
+- group: system_info
+  name: imageset_build_id
+  expert: True
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: True
+  enumerated possible values:
+  Description: Build id for the linux system image.
+  Notes: Relevant for determining uimage version when using DEV image,
+    otherwise this will be identical to the firmware build id. This is a read only setting.
+
+- group: system_info
+  name: firmware_build_id
+  expert: False
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: True
+  enumerated possible values:
+  Description: Full build id for firmware version.
+  Notes: For user generated images, this will appear
+    the same as the command "git describe --dirty". This is a read only setting.
+
+- group: system_info
+  name: firmware_version
+  expert: False
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: True
+  enumerated possible values:
+  Description: Firmware version of the receiver.
+  Notes: The git hash is removed from this version identifier. This is a read only setting.
+
+- group: system_info
+  name: firmware_build_date
+  expert: False
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: True
+  enumerated possible values:
+  Description: Firmware build date.
+  Notes: This is a read only setting.
+
+- group: system_info
+  name: loader_build_id
+  expert: true
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: True
+  enumerated possible values:
+  Description: build id for loader (uboot).
+  Notes: This is a read only setting
+
+- group: system_info
+  name: loader_build_date
+  expert: true
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: True
+  enumerated possible values:
+  Description: build date for boot loader (uboot).
+  Notes: This is a read only setting.
+
+- group: system_info
+  name: hw_version
+  expert: True
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: True
+  enumerated possible values:
+  Description: Hardware version number.
+  Notes: This is a read only setting that corresponds to the version number printed on the oem module hardware version sticker.
+
+- group: system_info
+  name: hw_revision
+  expert: True
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: True
+  enumerated possible values:
+  Description: Hardware revision of the receiver.
+  Notes: This is a read only setting that refers to the product family of the hardware.
+
+- group: system_info
+  name: hw_variant
+  expert: True
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: True
+  enumerated possible values:
+  Description: Hardware Product Variant
+  Notes: This is a read only setting that corresponds to the variant of the current hardware revision that is connected to the console.
+
+- group: system_info
+  name: product_id
+  expert: False
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: True
+  enumerated possible values:
+  Description: Product ID
+  Notes: This is a read only setting that displays the product id of the device.
+
+- group: system_info
+  name: build_variant
+  expert: true
+  type: string
+  units: N/A
+  default value: 'release'
+  readonly: True
+  enumerated possible values:
+  Description: The build variant type for the current firmware.
+  Notes: This is a read only setting.
+
+- group: system_info
+  name: sbp_sender_id
+  expert: false
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: True
+  enumerated possible values:
+  Description: The SBP sender ID for any messages sent by the device.
+  Notes: ID value is equal to the lower 16 bits of the UUID. This is a read only setting.
+
+- group: system_info
+  name: serial_number
+  expert: False
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: True
+  enumerated possible values:
+  Description: The serial number of the receiver.
+  Notes: This number should match the number on the barcode on the board and cannot be modified.
+
+- group: system_info
+  name: pfwp_build_id
+  expert: true
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: True
+  enumerated possible values:
+  Description: build id for real-time GNSS firmware (piksi_firmware).
+  Notes: This is a read only setting.
+
+- group: system_info
+  name: pfwp_build_date
+  expert: true
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: True
+  enumerated possible values:
+  Description: build date for real-time GNSS firmware (piksi_firmware).
+  Notes: This is a read only setting.
+
+- group: system_info
+  name: nap_build_id
+  expert: true
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: True
+  enumerated possible values:
+  Description: build id for SwiftNap FPGA bitstream.
+  Notes: This is a read only setting.
+
+- group: system_info
+  name: nap_build_date
+  expert: true
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: True
+  enumerated possible values:
+  Description: build date for SwiftNap FPGA bitstream.
+  Notes: This is a read only setting.
+
+- group: system_info
+  name: nap_channels
+  expert: true
+  type: string
+  units: N/A
+  default value: '40'
+  readonly: True
+  enumerated possible values:
+  Description: Number of channels in SwiftNap FPGA.
+  Notes: This is a read only setting.
+
+- group: system_info
+  name: mac_address
+  expert: False
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: True
+  enumerated possible values:
+  Description: The MAC address of the receiver.
+  Notes: This is a read only setting.
+
+- group: system_info
+  name: uuid
+  expert: False
+  type: string
+  units: N/A
+  default value: N/A
+  readonly: True
+  enumerated possible values:
+  Description: The UUID of the receiver.
+  Notes: The UUID is a Universally Unique IDentifier for this receiver.
+    The lower 16 bits of the UUID are used for the SBP Sender ID. This is a read only setting.
+
+- group: system_monitor
+  name: heartbeat_period_milliseconds
+  expert: true
+  type: integer
+  units: ms
+  default value: '1000'
+  readonly: false
+  enumerated possible values:
+  Description: Period for sending the SBP_HEARTBEAT messages.
+  Notes:
+
+- group: system_monitor
+  name: spectrum_analyzer
+  expert: true
+  type: boolean
+  units: N/A
+  default value: 'False'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Enable spectrum analyzer.
+  Notes: This setting enables the on-device spectrum analyzer and associated SBP output.
+    The spectrum analyzer is available from the "Advanced" tab of the console.
+
+- group: system_monitor
+  name: watchdog
+  expert: true
+  type: boolean
+  units: N/A
+  default value: 'True'
+  readonly: false
+  enumerated possible values: True,False
+  Description: Enable hardware watchdog timer to reset the receiver if it locks up for.
+    any reason
+  Notes: You must reset the receiver for this change to take effect.
+
+- group: tls_client0
+  name: mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'Disabled'
+  readonly: false
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
+  Description: Communication protocol for TLS client 0. The client will initiate a connection with the server and establish bi-directional communications.
+  Notes: |
+    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GLL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
+
+    The connection is bi-directional so these modes behave the same as the UART modes.
+
+- group: tls_client0
+  name: enabled_sbp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: '23,65,72,74,81,97,117,134,136,137,138,139, 144,149,163,165,166,167,171,175,181, 185,187,188,189,190,257,258,259,520,522, 524,526,527,528,1025,2304/50,2305,2306/50, 30583,65280,65282,65535'
+  readonly: false
+  Description: Configure which messages should be sent on the port. Does not effect which incoming messages are listened to.
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
+    the default value is optimal for logging and communication with the console.
+
+- group: tls_client0
+  name: address
+  expert: false
+  type: string
+  units: N/A
+  default value: ''
+  readonly: false
+  Description: IP address and port for TLS client 0 to connect to.
+  Notes: The address setting is defined according to the convention "hostname:port".
+    For example, it should match the format 192.168.0.222:55555 or xxxxx.net:2101 .
+
+- group: tcp_client0
+  name: mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'Disabled'
+  readonly: false
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
+  Description: Communication protocol for TCP client 0. The client will initiate a connection with the server and establish bi-directional communications.
+  Notes: |
+    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GLL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
+
+    The connection is bi-directional so these modes behave the same as the UART modes.
+
+- group: tcp_client0
+  name: enabled_sbp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: '23,65,72,74,81,97,117,134,136,137,138,139, 144,149,163,165,166,167,171,175,181, 185,187,188,189,190,257,258,259,520,522, 524,526,527,528,1025,2304/50,2305,2306/50, 30583,65280,65282,65535'
+  readonly: false
+  Description: Configure which messages should be sent on the port. Does not effect which incoming messages are listened to.
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
+    the default value is optimal for logging and communication with the console.
+
+- group: tcp_client0
+  name: address
+  expert: false
+  type: string
+  units: N/A
+  default value: ''
+  readonly: false
+  Description: IP address and port for TCP client 0 to connect to.
+  Notes: The address setting is defined according to the convention "hostname:port".
+    For example, it should match the format 192.168.0.222:55555 or xxxxx.net:2101 .
+
+- group: tcp_client1
+  name: mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'Disabled'
+  readonly: false
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
+  Description: Communication protocol for TCP client 1. The client will initiate a connection with the server and establish bi-directional communications.
+  Notes: |
+    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GLL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
+
+    The connection is bi-directional so these modes behave the same as the UART modes.
+
+- group: tcp_client1
+  name: enabled_sbp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: '23,65,72,74,81,97,117,134,136,137,138,139, 144,149,163,165,166,167,171,175,181, 185,187,188,189,190,257,258,259,520,522, 524,526,527,528,1025,2304/50,2305,2306/50, 30583,65280,65282,65535'
+  readonly: false
+  Description: Configure which messages should be sent on the port. Does not effect which incoming messages are listened to.
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
+    the default value is optimal for logging and communication with the console.
+
+- group: tcp_client1
+  name: address
+  expert: false
+  type: string
+  units: N/A
+  default value: ''
+  readonly: false
+  Description: IP address and port for TCP client 1 to connect to.
+  Notes: The address setting is defined according to the convention "hostname:port".
+    For example, it should match the format 192.168.0.222:55555 or xxxxx.net:2101 .
+
+- group: tcp_server0
+  name: mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'SBP (Swift Binary Protocol)'
+  readonly: false
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
+  Description: Communication protocol for TCP server 0. The server will listen for incoming client connections and establish a bi-directional communications.
+  Notes: |
+    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GLL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
+
+    The connection is bi-directional so these modes behave the same as the UART modes.
+
+- group: tcp_server0
+  name: enabled_sbp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: '23,65,72,74,81,97,117,134,136,137,138,139, 144,149,163,165,166,167,171,175,181, 185,187,188,189,190,257,258,259,520,522, 524,526,527,528,1025,2304/50,2305,2306/50, 30583,65280,65282,65535'
+  readonly: false
+  Description: Configure which messages should be sent on the port. Does not effect which incoming messages are listened to.
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
+    the default value is optimal for logging and communication with the console.
+
+- group: tcp_server0
+  name: port
+  expert: false
+  type: integer
+  units: N/A
+  default value: '55555'
+  readonly: false
+  Description: Port for TCP server 0 to listen on.
+  Notes:
+
+- group: tcp_server1
+  name: mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'SBP (Swift Binary Protocol)'
+  readonly: false
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
+  Description: Communication protocol for TCP server 1. The server will listen for incoming client connections and establish a bi-directional communications.
+  Notes: |
+    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GLL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
+
+    The connection is bi-directional so these modes behave the same as the UART modes.
+
+- group: tcp_server1
+  name: enabled_sbp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: '23,65,72,74,81,97,117,134,136,137,138,139, 144,149,163,165,166,167,171,175,181, 185,187,188,189,190,257,258,259,520,522, 524,526,527,528,1025,2304/50,2305,2306/50, 30583,65280,65282,65535'
+  readonly: false
+  Description: Configure which messages should be sent on the port. Does not effect which incoming messages are listened to.
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
+    the default value is optimal for logging and communication with the console.
+
+- group: tcp_server1
+  name: port
+  expert: false
+  type: integer
+  units: N/A
+  default value: '55556'
+  readonly: false
+  Description: Port for TCP server 1 to listen on.
+  Notes:
+
+- group: track
+  name: elevation_mask
+  expert: true
+  type: float
+  units: degrees
+  default value: '0'
+  readonly: false
+  enumerated possible values:
+  Description: Tracking elevation mask.
+  Notes: Satellites must be above the horizon by at least this angle before they
+    will be tracked.
+
+- group: track
+  name: send_trk_detailed
+  expert: true
+  type: boolean
+  default value: false
+  readonly: false
+  Description: send detailed tracking state message.
+  Notes:
+
+- group: track
+  name: mode
+  expert: true
+  type: enum
+  default value: rover
+  readonly: false
+  enumerated possible values: rover,base station
+  Description: Set the tracking loop configuration
+  Notes: Base station profile should only be used in situations where the receiver is kept static. Degraded performance will be seen if the receiver is moving with base station profile enabled.
+
+- group: track
+  name: iq_output_mask
+  expert: true
+  type: integer
+  units: N/A
+  default value: 0
+  readonly: false
+  enumerated possible values:
+  Description: Output raw I/Q correlations.
+  Notes: Bitmask of channel IDs (not PRNs)
+
+- group: track
+  name: max_pll_integration_time_ms
+  expert: true
+  type: integer
+  units: N/A
+  default value: '20'
+  readonly: false
+  enumerated possible values:
+  Description: Controls maximum possible integration time for a measurement.
+  Notes: This can be used to configure the sensitivity and dynamic tracking modes permitted to be used by receiver.
+     Lower values provide lower sensitivity and noisier phase measurements but better performance in dynamic conditions.
+
+- group: uart0
+  name: baudrate
+  expert: false
+  type: integer
+  units: bps
+  default value: '115200'
+  readonly: false
+  enumerated possible values:
+  Description: The Baud rate for the UART 0.
+  Notes: The maximum baud rate supported by the USB to RS232 adapter cable provided in the Piksi Multi / Duro kits is 230400.
+
+- group: uart0
+  name: flow_control
+  expert: false
+  type: enum
+  units: NA
+  default value: 'None'
+  readonly: false
+  enumerated possible values: None,RTS/CTS
+  Description: Enable hardware flow control (RTS/CTS).
+  Notes:
+
+- group: uart0
+  name: mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'SBP (Swift Binary Protocol)'
+  readonly: false
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
+  Description: Communication protocol for UART0.
+  Notes: |
+    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GLL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
+
+- group: uart0
+  name: enabled_sbp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: '72,74,117,65535'
+  readonly: false
+  Description: Configure which messages should be sent on the port.
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For uart1,
+    the default value is optimal for logging and communication with the console.
+
+- group: uart1
+  name: baudrate
+  expert: false
+  type: integer
+  units: bps
+  default value: '115200'
+  readonly: false
+  enumerated possible values:
+  Description: The Baud rate for the UART 1.
+  Notes: The maximum baud rate supported by the USB to RS232 adapter cable provided in the Piksi Multi / Duro kits is 230400.
+
+- group: uart1
+  name: flow_control
+  expert: false
+  type: enum
+  units: NA
+  default value: 'None'
+  readonly: false
+  enumerated possible values: None,RTS/CTS
+  Description: Enable hardware flow control (RTS/CTS).
+  Notes:
+
+- group: uart1
+  name: mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'SBP (Swift Binary Protocol)'
+  readonly: false
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
+  Description: Communication protocol for UART 1.
+  Notes: |
+    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GLL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
+
+- group: uart1
+  name: enabled_sbp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: '23,65,72,74,81,97,117,134,136,137,138,139, 144,149,163,165,166,167,171,175,181, 185,187,188,189,190,257,258,259,520,522, 524,526,527,528,1025,2304/50,2305,2306/50, 30583,65280,65282,65535'
+  readonly: false
+  Description: Configure which messages should be sent on the port.
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For uart1,
+    the default value is optimal for logging and communication with the console.
+
+- group: udp_client0
+  name: mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'Disabled'
+  readonly: false
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN, RTCMv3 OUT
+  Description: Communication protocol for UDP client 0. The client will send packets to a server for uni-directional communications.
+  Notes: |
+    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting.
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GLL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3 IN" has no effect for UDP clients.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
+
+- group: udp_client0
+  name: enabled_sbp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: '23,65,72,74,81,97,117,134,136,137,138,139, 144,149,163,165,166,167,171,175,181, 185,187,188,189,190,257,258,259,520,522, 524,526,527,528,1025,2304/50,2305,2306/50, 30583,65280,65282,65535'
+  readonly: false
+  Description: Configure which messages should be sent to the server.
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
+    the default value is optimal for logging and communication with the console.
+
+- group: udp_client0
+  name: address
+  expert: false
+  type: string
+  units: N/A
+  default value: ''
+  readonly: false
+  Description: IP address for UDP client 0.
+  Notes: The address setting is defined according to the convention "hostname:port".
+    For example, it should match the format 192.168.0.222:55555 or xxxxx.net:2101 .
+
+- group: udp_client1
+  name: mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'Disabled'
+  readonly: false
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
+  Description: Communication protocol for UDP client 1. The client will send packets to a server for uni-directional communications.
+  Notes: |
+    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting.
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GLL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3 IN" has no effect for UDP clients.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages
+
+- group: udp_client1
+  name: enabled_sbp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: '23,65,72,74,81,97,117,134,136,137,138,139, 144,149,163,165,166,167,171,175,181, 185,187,188,189,190,257,258,259,520,522, 524,526,527,528,1025,2304/50,2305,2306/50, 30583,65280,65282,65535'
+  readonly: false
+  Description: Configure which messages should be sent to the server.
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
+    the default value is optimal for logging and communication with the console.
+
+- group: udp_client1
+  name: address
+  expert: false
+  type: string
+  units: N/A
+  default value: ''
+  readonly: false
+  Description: IP address for UDP client 1.
+  Notes: The address setting is defined according to the convention "hostname:port".
+    For example, it should match the format 192.168.0.222:55555 or xxxxx.net:2101 .
+
+- group: udp_server0
+  name: mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'SBP (Swift Binary Protocol)'
+  readonly: false
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
+  Description: Communication protocol for UDP server 0. The server will listen for incoming packets from a client for uni-directional communications.
+  Notes: |
+    "SBP" configures the interface to receive incoming SBP messages.
+
+    "NMEA OUT" has no effect for a UDP server.
+
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not receive any other messages.
+
+    "RTCMv3 OUT" has no effect for a UDP server.
+
+- group: udp_server0
+  name: enabled_sbp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: 'blank - all messages are enabled'
+  readonly: false
+  Description: Configure which messages should be sent on the port.
+  Notes: Has no effect for a UDP server.
+
+- group: udp_server0
+  name: port
+  expert: false
+  type: integer
+  units: N/A
+  default value: '55557'
+  readonly: false
+  Description: Port for UDP server 0 to listen to.
+  Notes:
+
+- group: udp_server1
+  name: mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'SBP (Swift Binary Protocol)'
+  readonly: false
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
+  Description: Communication protocol for UDP server 1. The server will listen for incoming packets from a client for uni-directional communications.
+  Notes: |
+    "SBP" configures the interface to receive incoming SBP messages.
+
+    "NMEA OUT" has no effect for a UDP server.
+
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not receive any other messages.
+
+    "RTCMv3 OUT" has no effect for a UDP server.
+
+- group: udp_server1
+  name: enabled_sbp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: ''
+  readonly: false
+  Description: Configure which messages should be sent on the port.
+  Notes: Has no effect for a UDP server.
+
+- group: udp_server1
+  name: port
+  expert: false
+  type: integer
+  units: N/A
+  default value: '55558'
+  readonly: false
+  Description: Port for UDP server 1 to listen to.
+  Notes:
+
+- group: usb0
+  name: enabled_sbp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: 'blank - all messages are enabled'
+  readonly: false
+  Description: Configure which messages should be sent on the port.
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For uart1,
+    the default value is optimal for logging and communication with the console.
+
+- group: usb0
+  name: mode
+  expert: false
+  type: enum
+  units: N/A
+  default value: 'SBP (Swift Binary Protocol)'
+  readonly: false
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
+  Description: Communication protocol for USB0.
+  Notes: |
+    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GLL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
+
+- group: can0
+  name: mode
+  expert: true
+  type: enum
+  units: N/A
+  default value: 'Disabled'
+  readonly: false
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 Out
+  Description: Communication protocol for CAN client 0. The client will send packets to a CAN bus.
+  Notes: |
+    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting.
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GLL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
+
+- group: can0
+  name: enabled_sbp_messages
+  expert: true
+  type: string
+  units: N/A
+  default value: '72,74,117,522,527'
+  readonly: false
+  Description: Configure which messages should be sent to the server.
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
+    the default value is optimal for logging and communication with the console.
+
+- group: can1
+  name: mode
+  expert: true
+  type: enum
+  units: N/A
+  default value: 'Disabled'
+  readonly: false
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 Out
+  Description: Communication protocol for CAN client 0. The client will send packets to a CAN bus.
+  Notes: |
+    "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting.
+
+    "NMEA OUT" configures the interface to transmit the GGA, RMC, GLL, VTG, ZDA, GSA, and GSV NMEA 0183 messages. The interface will not receive incoming messages.
+
+    "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
+
+    "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
+
+- group: can1
+  name: enabled_sbp_messages
+  expert: true
+  type: string
+  units: N/A
+  default value: '72,74,117,522,527'
+  readonly: false
+  Description: Configure which messages should be sent to the server.
+  Notes: The enabled sbp messages settings is a list of message types
+    and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent. If not blank, a comma separated list of
+    SBP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each id. For example, an entry of
+    3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
+    the default value is optimal for logging and communication with the console.
+
+- group: can1
+  name: termination
+  expert: true
+  type: boolean
+  units: N/A
+  default value: 'false'
+  readonly: false
+  Description: Configure status of CAN termination resistor on Duro.
+  Notes: This setting toggles the 120 ohm termination resistor
+    for the CAN interface available on the AUX connector of Duro.
+    It should only appear on Duro devices.
+
+- group: csac
+  name: telemetry_enabled
+  expert: false
+  type: boolean
+  units: N/A
+  default value: 'false'
+  readonly: false
+  Description: Enables or disables the CSAC daemon which can communicate with Microsemi timing devices on UART0.
+
+- group: cn0_est
+  name: pri2sec_threshold
+  type: float
+  expert: true
+  Description: Cn0 threshold to transition to 2nd stage tracking.
+  readonly: false
+
+- group: cn0_est
+  name: sec2pri_threshold
+  type: float
+  expert: true
+  Description: Cn0 threshold to transition to out of 2nd stage tracking.
+  readonly: false
+
+- group: l1ca_track
+  name: show_unconfirmed
+  expert: true
+  type: boolean
+  Description: Show unconfirmed tracking channels in tracking state.
+  readonly: false
+
+- group: l1ca_track
+  name: xcorr_cof
+  expert: true
+  type: float
+  Description: cross correlation coefficient.
+  readonly: false
+
+- group: l1ca_track
+  name: xcorr_delta
+  expert: true
+  type: float
+  Description: cross correlation delta.
+  readonly: false
+
+- group: l1ca_track
+  name: xcorr_time
+  expert: true
+  type: float
+  Description: cross correlation time.
+  readonly: false
+
+- group: glo_l1of_track
+  name: show_unconfirmed
+  expert: true
+  type: boolean
+  Description: Show unconfirmed tracking channels in tracking state.
+  readonly: false
+
+- group: glo_l1of_track
+  name: xcorr_cof
+  expert: true
+  type: float
+  Description: cross correlation coefficient.
+  readonly: false
+
+- group: glo_l1of_track
+  name: xcorr_delta
+  expert: true
+  type: float
+  Description: cross correlation delta.
+  readonly: false
+
+- group: glo_l1of_track
+  name: xcorr_time
+  expert: true
+  type: float
+  Description: cross correlation time.
+  readonly: false
+
+- group: l2c_track
+  name: xcorr_cof
+  expert: true
+  type: float
+  Description: cross correlation coefficient.
+  readonly: false
+
+- group: l2c_track
+  name: xcorr_delta
+  expert: true
+  type: float
+  Description: cross correlation delta.
+  readonly: false
+
+- group: l2c_track
+  name: xcorr_time
+  expert: true
+  type: float
+  Description: cross correlation time.
+  readonly: false
+
+- group: l2c_track
+  name: show_unconfirmed
+  expert: true
+  type: bool
+  Description: Show unconfirmed tracking channels in tracking state.
+  readonly: false
+
+- group: glo_l2of_track
+  name: show_unconfirmed
+  expert: true
+  type: boolean
+  Description: Show unconfirmed tracking channels in tracking state.
+  readonly: false
+
+- group: glo_l2of_track
+  name: xcorr_cof
+  expert: true
+  type: float
+  Description: cross correlation coefficient.
+  readonly: false
+
+- group: glo_l2of_track
+  name: xcorr_delta
+  expert: true
+  type: float
+  Description: cross correlation delta.
+  readonly: false
+
+- group: glo_l2of_track
+  name: xcorr_time
+  expert: true
+  type: float
+  Description: cross correlation time.
+  readonly: false
