@@ -10,5 +10,4 @@ include LICENSE
 include tox.ini
 include *.yaml
 recursive-include piksi_tools/ *.py
-recursive-include piksi_tools/console/images *
 prune docs/_build

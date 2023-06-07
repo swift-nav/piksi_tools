@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools", "wheel", "setuptools_scm"]
+build-backend = 'setuptools.build_meta'
+
+[tool.poetry]
+name = "piksi-tools"
+version = "4.0.0"
+description = "Piksi Tools"
+authors = ["Swift Navigation <dev@swift-nav.com>"]
+license = "LICENSE"
+packages = [
+    { include = "piksi_tools" }
+]
+
+[tool.poetry.dependencies]
+python = ">= 3.7"
+
+[tool.poetry.group.dev.dependencies]
+tox = "^4.6.0"
