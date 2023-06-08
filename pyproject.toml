@@ -4,7 +4,7 @@ build-backend = 'setuptools.build_meta'
 
 [tool.poetry]
 name = "piksi-tools"
-version = "4.0.0"
+version = "4.0.1"
 description = "Piksi Tools"
 authors = ["Swift Navigation <dev@swift-nav.com>"]
 license = "LICENSE"
@@ -13,7 +13,28 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">= 3.7"
+python = "^3.9"
+setuptools-scm = "3.3.3"
+numpy = "1.24.3"
+configparser = "^5.0.2"
+future = "0.17.1"
+futures = "3.1.1"
+pep8 = "1.7.0"
+pyserial = "3.4"
+pylibftdi = "0.16.1.2"
+pyparsing = "2.2.0"
+pygments = "2.7.4"
+requests = "^2.20.0"
+six = "1.13.0"
+libsettings = "0.1.14"
+pybase64 = "1.2.3"
+sbp = "4.0.2"
+ruamel-yaml = "0.17.16"
+monotonic = "1.5"
 
-[tool.poetry.group.dev.dependencies]
+[tool.poetry.dev-dependencies]
+cython = "0.29.35"
 tox = "^4.6.0"
+pytest = "7.3.1"
+pytest-faulthandler = "1.6.0"
+pre-commit = "1.10.3"
