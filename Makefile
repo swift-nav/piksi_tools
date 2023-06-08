@@ -37,6 +37,9 @@ deps:
 .conda_py36:
 	conda create -p $(PWD)/.conda_py36 python=3.6 --yes
 
+.conda_py39:
+	conda create -p $(PWD)/.conda_py39 python=3.9 --yes
+
 tox_all:
 	@echo Using TESTENV=$(TESTENV), TOXENV=$(TOXENV)...
 	tox $(if $(filter y,$(VERBOSE)), -v,)
@@ -51,6 +54,13 @@ tox: tox_$(UNAME)
 
 test: tox
 
+install-deps:
+	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3
+
+install:
+	poetry install
+
+# TODO remove requirements.txt
 serial_deps:
 	pip install -r requirements.txt
 

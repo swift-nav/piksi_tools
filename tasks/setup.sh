@@ -92,7 +92,7 @@ function validate_linux_mint19() {
     if linux_mint19 && ! detect_virtualenv; then
         log_error "On Linux Mint, the console must be installed inside a virtualenv."
         log_error "Create one by running:"
-        log_error $'\t'"virtualenv -p python3.6 py3 --system-site-packages"
+        log_error $'\t'"virtualenv -p python3.9 py3 --system-site-packages"
         log_error $'\t'"source py3/bin/activate"
         exit 1
     fi
@@ -104,11 +104,11 @@ function run_apt_install() {
 }
 
 function run_pip3_install() {
-    python3.6 -m pip install --ignore-installed $*
+    python3.9 -m pip install --ignore-installed $*
 }
 
 function run_pip3_uninstall() {
-    python3.6 -m pip uninstall -y $*
+    python3.9 -m pip uninstall -y $*
 }
 
 function all_dependencies_debian () {
@@ -128,7 +128,7 @@ function all_dependencies_debian () {
     fi
     sudo add-apt-repository -y ppa:fkrull/deadsnakes
     sudo apt update
-    sudo apt-get install -y python3.6-dev python3.6-venv
+    sudo apt-get install -y python3.9-dev python3.9-venv
     sudo apt-get install -y awscli
     install_dev_libs
     validate_linux_mint19
@@ -195,7 +195,7 @@ function install_python_deps_osx () {
     local conda_env_name
     conda_env_name=$(echo "$ROOT" | sed -e "s@${HOME}/@@" -e 's@/@_@g')
 
-    conda create -n "$conda_env_name" python=3.6 --yes
+    conda create -n "$conda_env_name" python=3.9 --yes
     {
       export PS1=''
 

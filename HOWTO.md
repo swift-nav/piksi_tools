@@ -61,6 +61,8 @@ pip install pyqt5==5.10.0               # again, currently used version is in to
 pip install -r requirements_gui.txt
 pip install -e .
 
+# TODO: Update READMEs
+
 # To run the console
 python -m piksi_tools.console
 ```
