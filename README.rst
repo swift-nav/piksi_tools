@@ -44,6 +44,18 @@ those versions that you don't have installed, run::
 Finally, to run *all* tests for all supported Python versions::
 
   $ PYTHONPATH=. tox -e py37
+  
+Releasing
+---------
+
+To release this project, run the following:
+
+  # ... Or, activate your appropriate conda environment ...
+  conda activate piksi_tools
+  pip install build
+  python -m build --wheel
+  python -m build --sdist
+  pypi upload -u $PYPI_USER -p $PYPI_PASS dist/*
 
 USB issues on OS X
 ------------------
