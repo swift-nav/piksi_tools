@@ -48,7 +48,7 @@ Finally, to run *all* tests for all supported Python versions::
 Releasing
 ---------
 
-To release this project, run the following:
+To release this project, run the following::
 
   # ... Or, activate your appropriate conda environment ...
   conda activate piksi_tools
