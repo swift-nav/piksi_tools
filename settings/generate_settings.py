@@ -8,7 +8,7 @@ import subprocess
 
 import jinja2
 
-from .settings_list import SettingsList
+from piksi_tools.console.settings_list import SettingsList
 
 settings = SettingsList("settings.yaml")
 groups = settings.return_groups()
