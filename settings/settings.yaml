@@ -1,5 +1,182 @@
 ---
 
+- group: aar
+  name: pnm_id
+  expert: false
+  type: integer
+  units: N/A
+  default value: '0'
+  readonly: false
+  Description: PNM Identification. Range [0..2]. 0 = Non-locomotive, startup, advanced configuration; 1 = PNM1; 2 = PNM2
+  Notes:
+
+- group: aar
+  name: pcps_pos_reference
+  expert: false
+  type: string
+  units: N/A
+  default value: '1'
+  readonly: false
+  Description: Reported locomotive position reference. Range [1..4]. 1 = Antenna ARP; 2 = Antenna Centroid; 3 = Front Coupler; 4 = Rear Coupler
+  Notes: Valid locomotive attitude is required to compute Antenna Centroid, Front Coupler and Rear Coupler positions. Attitude may not be available after receiver start before the locomotive movement in a good sky visibility conditions.
+
+- group: aar
+  name: pcsh_ss_ssd_thr_high_precision_mph
+  expert: true
+  type: float
+  units: MPH
+  default_value: 0.2
+  Description: Speed SD threshold below which speed High Precision mode is reported. Range [0.0..1000.0].
+  Notes:
+
+- group: aar
+  name: pcsh_ss_ssd_thr_standard_mph
+  expert: true
+  type: float
+  units: MPH
+  default_value: 1.0
+  Description: Speed SD threshold below which speed Standard mode is reported. Range [0.0..1000.0].
+  Notes:
+
+- group: aar
+  name: pcsh_ss_ssd_thr_degraded_mph
+  expert: true
+  type: float
+  units: MPH
+  default_value: 2.5
+  Description: Speed SD threshold below which speed Degraded mode is reported. Range [0.0..1000.0].
+  Notes: Speed Very Low Confidence mode is reported when the speed is valid and speed SD is above this threshold.
+
+- group: aar
+  name: pcsh_ss_hsd_thr_high_precision_deg
+  expert: true
+  type: float
+  units: degrees
+  default_value: 0.5
+  Description: Heading SD threshold below which heading High Precision mode is reported. Range [0.0..180.0].
+  Notes:
+
+- group: aar
+  name: pcsh_ss_hsd_thr_standard_deg
+  expert: true
+  type: float
+  units: degrees
+  default_value: 2.0
+  Description: Heading SD threshold below which heading Standard mode is reported. Range [0.0..180.0].
+  Notes:
+
+- group: aar
+  name: pcsh_ss_hsd_thr_degraded_deg
+  expert: true
+  type: float
+  units: degrees
+  default_value: 5.0
+  Description: Heading SD threshold below which heading Degraded mode is reported. Range [0.0..180.0].
+  Notes: Heading Very Low Confidence mode is reported when the heading is valid and heading SD is above this threshold.
+
+- group: aar
+  name: pcof_along_track_offset_m
+  expert: false
+  type: float
+  units: m
+  default_value: 0.0
+  Description: Antenna ARP Along Track Offset. Range [0.0..655.35].
+  Notes: Distance is measured from the pulling face of the front coupler towards the rear of the locomotive.
+
+- group: aar
+  name: pcof_cross_track_offset_m
+  expert: false
+  type: float
+  units: m
+  default_value: 0.0
+  Description: Antenna ARP Cross Track Offset. Range [-327.68..327.67].
+  Notes: Distance is measured from the locomotive centerline towards the right of the locomotive.
+
+- group: aar
+  name: pcof_vertical_offset_m
+  expert: false
+  type: float
+  units: m
+  default_value: 0.0
+  Description: Antenna ARP Vertical Offset. Range [0.0..655.35].
+  Notes: Distance is measured from the top of the rail up.
+
+- group: aar
+  name: pcof_along_track_offset_ac_m
+  expert: false
+  type: float
+  units: m
+  default_value: 0.0
+  Description: Antenna Centroid Along Track Offset. Range [0.0..655.35].
+  Notes: Distance is measured from the pulling face of the front coupler towards the rear of the locomotive.
+
+- group: aar
+  name: pcof_cross_track_offset_ac_m
+  expert: false
+  type: float
+  units: m
+  default_value: 0.0
+  Description: Antenna Centroid Cross Track Offset. Range [-327.68..327.67].
+  Notes: Distance is measured from the locomotive centerline towards the right of the locomotive.
+
+- group: aar
+  name: pcof_vertical_offset_ac_m
+  expert: false
+  type: float
+  units: m
+  default_value: 0.0
+  Description: Antenna Centroid Vertical Offset. Range [0.0..655.35].
+  Notes: Distance is measured from the top of the rail up.
+
+- group: aar
+  name: pcof_loco_length_m
+  expert: false
+  type: float
+  units: m
+  default_value: 0.0
+  Description: Locomotive length. Range [0.0..655.35].
+  Notes: Distance is measured from the pulling face of the front coupler to the pulling face of the rear coupler.
+
+- group: aar
+  name: pccf_mfg_id
+  expert: true
+  type: integer
+  units: N/A
+  default value: '0'
+  readonly: false
+  Description: Manufacturer ID. Range [0..255].
+  Notes:
+
+- group: aar
+  name: pccf_device_reported
+  expert: true
+  type: integer
+  units: N/A
+  default value: '0'
+  readonly: false
+  Description: Device being reported. Range [0..65535].
+  Notes:
+
+- group: aar
+  name: pccf_equipment_description
+  expert: true
+  type: string
+  units: N/A
+  default value: ''
+  readonly: false
+  Description: Equipment description. Maximum 255 characters.
+  Notes:
+
+- group: aar
+  name: pcsd_imu_stat_period_s
+  expert: true
+  type: integer
+  units: N/A
+  default value: '1'
+  readonly: false
+  Description: IMU statistic computation period. Range [0..1000].
+  Notes: When set to zero statistic will be computed at the position output rate.
+
 - group: acquisition
   name: sbas_acquisition_enabled
   expert: false
@@ -557,7 +734,7 @@
   default value: '20'
   readonly: false
   Description: Indicates the maximum standard deviation of position for which the inertial system will dead reckon.
-  Notes: The default value of 20 meters was chosen as the logical minimum standard of the position accuracy during dead reckon mode. 
+  Notes: The default value of 20 meters was chosen as the logical minimum standard of the position accuracy during dead reckon mode.
 
 - group: ins
   name: build_name
@@ -1837,11 +2014,11 @@
   Description: |
     The frequency at which GNSS navigation solution is computed.
   Notes: |
-    Minimum is 1 Hz. Maximum is 10 Hz for RTK positioning with a maximum of 15 used satellites. 
-    At 5 Hz and lower the maximum number of used satellites is 22. 20 Hz is an absolute maximum with 
+    Minimum is 1 Hz. Maximum is 10 Hz for RTK positioning with a maximum of 15 used satellites.
+    At 5 Hz and lower the maximum number of used satellites is 22. 20 Hz is an absolute maximum with
     a limit of 5 used satellites.
 
-    System with inertial fusion (Duro Inertial, Piksi Multi Inertial) can output position at a higher rate 
+    System with inertial fusion (Duro Inertial, Piksi Multi Inertial) can output position at a higher rate
     than the GNSS-only solution. See fused_soln_freq in the INS group.
 
 - group: solution
@@ -2512,6 +2689,8 @@
 
     "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
 
+    "EMP OUT" configures the interface to transmit messages specified in the 'enabled emp messages' setting.
+
     The connection is bi-directional so these modes behave the same as the UART modes.
 
 - group: tcp_client0
@@ -2529,6 +2708,18 @@
     a divisor can be specified after the / character for each id. For example, an entry of
     3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
     the default value is optimal for logging and communication with the console.
+
+- group: tcp_client0
+  name: enabled_emp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: '50,51,52,53,54,55'
+  readonly: false
+  Description: Configure which AAR S-9103 EMP messages should be sent to the port. This setting is used only if EMP OUT mode is selected.
+  Notes: The enabled emp messages settings is a list of message IDs and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent at their default rates. If not blank, a comma separated list of EMP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each ID. For example, an entry of 50/10 would provide message with ID 50 at 1/10th the normal rate.
 
 - group: tcp_client0
   name: address
@@ -2559,6 +2750,8 @@
 
     "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
 
+    "EMP OUT" configures the interface to transmit messages specified in the 'enabled emp messages' setting.
+
     The connection is bi-directional so these modes behave the same as the UART modes.
 
 - group: tcp_client1
@@ -2576,6 +2769,18 @@
     a divisor can be specified after the / character for each id. For example, an entry of
     3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
     the default value is optimal for logging and communication with the console.
+
+- group: tcp_client1
+  name: enabled_emp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: '50,51,52,53,54,55'
+  readonly: false
+  Description: Configure which AAR S-9103 EMP messages should be sent to the port. This setting is used only if EMP OUT mode is selected.
+  Notes: The enabled emp messages settings is a list of message IDs and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent at their default rates. If not blank, a comma separated list of EMP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each ID. For example, an entry of 50/10 would provide message with ID 50 at 1/10th the normal rate.
 
 - group: tcp_client1
   name: address
@@ -2595,7 +2800,7 @@
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT,EMP OUT
   Description: Communication protocol for TCP server 0. The server will listen for incoming client connections and establish a bi-directional communications.
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
@@ -2605,6 +2810,8 @@
     "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
 
     "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
+
+    "EMP OUT" configures the interface to transmit messages specified in the 'enabled emp messages' setting.
 
     The connection is bi-directional so these modes behave the same as the UART modes.
 
@@ -2623,6 +2830,18 @@
     a divisor can be specified after the / character for each id. For example, an entry of
     3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
     the default value is optimal for logging and communication with the console.
+
+- group: tcp_server0
+  name: enabled_emp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: '50,51,52,53,54,55'
+  readonly: false
+  Description: Configure which AAR S-9103 EMP messages should be sent to the port. This setting is used only if EMP OUT mode is selected.
+  Notes: The enabled emp messages settings is a list of message IDs and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent at their default rates. If not blank, a comma separated list of EMP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each ID. For example, an entry of 50/10 would provide message with ID 50 at 1/10th the normal rate.
 
 - group: tcp_server0
   name: port
@@ -2641,7 +2860,7 @@
   units: N/A
   default value: 'SBP (Swift Binary Protocol)'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT,EMP OUT
   Description: Communication protocol for TCP server 1. The server will listen for incoming client connections and establish a bi-directional communications.
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
@@ -2651,6 +2870,8 @@
     "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
 
     "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
+
+    "EMP OUT" configures the interface to transmit messages specified in the 'enabled emp messages' setting.
 
     The connection is bi-directional so these modes behave the same as the UART modes.
 
@@ -2669,6 +2890,18 @@
     a divisor can be specified after the / character for each id. For example, an entry of
     3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
     the default value is optimal for logging and communication with the console.
+
+- group: tcp_server1
+  name: enabled_emp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: '50,51,52,53,54,55'
+  readonly: false
+  Description: Configure which AAR S-9103 EMP messages should be sent to the port. This setting is used only if EMP OUT mode is selected.
+  Notes: The enabled emp messages settings is a list of message IDs and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent at their default rates. If not blank, a comma separated list of EMP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each ID. For example, an entry of 50/10 would provide message with ID 50 at 1/10th the normal rate.
 
 - group: tcp_server1
   name: port
@@ -2774,6 +3007,8 @@
 
     "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
 
+    "EMP OUT" configures the interface to transmit messages specified in the 'enabled emp messages' setting.
+
 - group: uart0
   name: enabled_sbp_messages
   expert: false
@@ -2789,6 +3024,18 @@
     a divisor can be specified after the / character for each id. For example, an entry of
     3456/10 would provide message with ID 3456 at 1/10th the normal rate. For uart1,
     the default value is optimal for logging and communication with the console.
+
+- group: uart0
+  name: enabled_emp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: '50,51,52,53,54,55'
+  readonly: false
+  Description: Configure which AAR S-9103 EMP messages should be sent to the port. This setting is used only if EMP OUT mode is selected.
+  Notes: The enabled emp messages settings is a list of message IDs and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent at their default rates. If not blank, a comma separated list of EMP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each ID. For example, an entry of 50/10 would provide message with ID 50 at 1/10th the normal rate.
 
 - group: uart1
   name: baudrate
@@ -2830,6 +3077,8 @@
 
     "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
 
+    "EMP OUT" configures the interface to transmit messages specified in the 'enabled emp messages' setting.
+
 - group: uart1
   name: enabled_sbp_messages
   expert: false
@@ -2846,6 +3095,18 @@
     3456/10 would provide message with ID 3456 at 1/10th the normal rate. For uart1,
     the default value is optimal for logging and communication with the console.
 
+- group: uart0
+  name: enabled_emp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: '50,51,52,53,54,55'
+  readonly: false
+  Description: Configure which AAR S-9103 EMP messages should be sent to the port. This setting is used only if EMP OUT mode is selected.
+  Notes: The enabled emp messages settings is a list of message IDs and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent at their default rates. If not blank, a comma separated list of EMP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each ID. For example, an entry of 50/10 would provide message with ID 50 at 1/10th the normal rate.
+
 - group: udp_client0
   name: mode
   expert: false
@@ -2853,7 +3114,7 @@
   units: N/A
   default value: 'Disabled'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN, RTCMv3 OUT
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN, RTCMv3 OUT,EMP OUT
   Description: Communication protocol for UDP client 0. The client will send packets to a server for uni-directional communications.
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting.
@@ -2863,6 +3124,8 @@
     "RTCMv3 IN" has no effect for UDP clients.
 
     "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
+
+    "EMP OUT" configures the interface to transmit messages specified in the 'enabled emp messages' setting.
 
 - group: udp_client0
   name: enabled_sbp_messages
@@ -2879,6 +3142,18 @@
     a divisor can be specified after the / character for each id. For example, an entry of
     3456/10 would provide message with ID 3456 at 1/10th the normal rate. For Ethernet,
     the default value is optimal for logging and communication with the console.
+
+- group: udp_client0
+  name: enabled_emp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: '50,51,52,53,54,55'
+  readonly: false
+  Description: Configure which AAR S-9103 EMP messages should be sent to the server. This setting is used only if EMP OUT mode is selected.
+  Notes: The enabled emp messages settings is a list of message IDs and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent at their default rates. If not blank, a comma separated list of EMP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each ID. For example, an entry of 50/10 would provide message with ID 50 at 1/10th the normal rate.
 
 - group: udp_client0
   name: address
@@ -2891,6 +3166,16 @@
   Notes: The address setting is defined according to the convention "hostname:port".
     For example, it should match the format 192.168.0.222:55555 or xxxxx.net:2101 .
 
+- group: udp_client0
+  name: multicast_ttl
+  expert: true
+  type: integer
+  units: N/A
+  default value: '1'
+  readonly: false
+  Description: Multicast Time To Live property. Range [1..255].
+  Notes:
+
 - group: udp_client1
   name: mode
   expert: false
@@ -2898,7 +3183,7 @@
   units: N/A
   default value: 'Disabled'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT,EMP OUT
   Description: Communication protocol for UDP client 1. The client will send packets to a server for uni-directional communications.
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting.
@@ -2908,6 +3193,8 @@
     "RTCMv3 IN" has no effect for UDP clients.
 
     "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages
+
+    "EMP OUT" configures the interface to transmit messages specified in the 'enabled emp messages' setting.
 
 - group: udp_client1
   name: enabled_sbp_messages
@@ -2926,6 +3213,18 @@
     the default value is optimal for logging and communication with the console.
 
 - group: udp_client1
+  name: enabled_emp_messages
+  expert: false
+  type: string
+  units: N/A
+  default value: '50,51,52,53,54,55'
+  readonly: false
+  Description: Configure which AAR S-9103 EMP messages should be sent to the server. This setting is used only if EMP OUT mode is selected.
+  Notes: The enabled emp messages settings is a list of message IDs and rate divisors that will be sent out of the interface. If left blank, all
+    messages will be sent at their default rates. If not blank, a comma separated list of EMP message IDs in base 10 integer format should be provided. Optionally,
+    a divisor can be specified after the / character for each ID. For example, an entry of 50/10 would provide message with ID 50 at 1/10th the normal rate.
+
+- group: udp_client1
   name: address
   expert: false
   type: string
@@ -2935,6 +3234,16 @@
   Description: IP address for UDP client 1.
   Notes: The address setting is defined according to the convention "hostname:port".
     For example, it should match the format 192.168.0.222:55555 or xxxxx.net:2101 .
+
+- group: udp_client1
+  name: multicast_ttl
+  expert: true
+  type: integer
+  units: N/A
+  default value: '1'
+  readonly: false
+  Description: Multicast Time To Live property. Range [1..255].
+  Notes:
 
 - group: udp_server0
   name: mode
