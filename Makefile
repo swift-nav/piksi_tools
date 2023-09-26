@@ -1,5 +1,5 @@
 CR := conda run -n piksi_tools --live-stream
-VERSION ?= v3.0.19
+VERSION ?= Piksi Firmware version v3.0.17-2-AAR
 
 settings-pdf:
 	cd settings; $(CR) python ./generate_settings.py "$(VERSION)"
