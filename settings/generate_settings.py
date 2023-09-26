@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import, print_function
 
-import os
+import sys
 import re
 import subprocess
 
@@ -96,12 +96,14 @@ jenv.filters['no_us'] = no_us
 
 latex_template = jenv.get_template('settings_template.tex')
 
+VERSION = sys.argv[1]
+
 with open("settings_out.tex", 'w') as f:
     f.write(
         latex_template.render(
             groups=sorted(groups),
             setting=sorted(settings.list_of_dicts, key=lambda x: repr(x)),
-            version='v3.0.17',
+            version=VERSION,
             enumerate=enumerate,
             mod=mod))
 
