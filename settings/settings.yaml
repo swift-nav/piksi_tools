@@ -164,7 +164,7 @@
   units: N/A
   default value: ''
   readonly: false
-  Description: Equipment description. Maximum 255 characters.
+  Description: Equipment description. Maximum 32 characters.
   Notes:
 
 - group: aar
@@ -348,6 +348,16 @@
   readonly: false
   Description: The default gateway for the IP config.
   Notes: The configured gateway in XXX.XXX.XXX.XXX format.
+
+- group: ethernet
+  name: ip_address2
+  expert: true
+  type: string
+  units: N/A
+  default value: ''
+  readonly: false
+  Description: The secondary static IP address in XXX.XXX.XXX.XXX format.
+  Notes: Secondary IP is used only if the ip_config_mode is set to static and ip_address2 is set to a valid IP address on the same subnet as the main IP address.
 
 - group: ext_event_a
   name: edge_trigger
@@ -555,8 +565,8 @@
   enumerated possible values: Disabled, Loosely Coupled
   Description: Determines output mode of the inertial navigation outputs.
   Notes: |
-         Disabled - output GNSS-only solutions.
-         Loosely Coupled - output loosely coupled solutions, utilizing GNSS and inertial data.
+    Disabled - output GNSS-only solutions.
+    Loosely Coupled - output loosely coupled solutions, utilizing GNSS and inertial data.
 
 - group: ins
   name: odometry_noise_1
@@ -603,9 +613,9 @@
   readonly: false
   Description: Roll angle representing rotation from vehicle frame to device frame.
   Notes:       The euler angles are applied extrinsically in order roll, pitch, then yaw
-               about the defined vehicle axes to describe how the vehicle should rotate to align
-               with the device frame as mounted in the vehicle. These rotations directly affect
-               body velocities, attitude outputs.
+    about the defined vehicle axes to describe how the vehicle should rotate to align
+    with the device frame as mounted in the vehicle. These rotations directly affect
+    body velocities, attitude outputs.
 
 - group: ins
   name: vehicle_frame_pitch
@@ -616,9 +626,9 @@
   readonly: false
   Description: Pitch angle representing rotation from vehicle frame to device frame.
   Notes:       The euler angles are applied extrinsically in order roll, pitch, then yaw
-               about the defined vehicle axes to describe how the vehicle should rotate to align
-               with the device frame as mounted in the vehicle. These rotations directly affect
-               body velocities, attitude outputs.
+    about the defined vehicle axes to describe how the vehicle should rotate to align
+    with the device frame as mounted in the vehicle. These rotations directly affect
+    body velocities, attitude outputs.
 
 - group: ins
   name: vehicle_frame_yaw
@@ -629,9 +639,9 @@
   readonly: false
   Description: Yaw angle representing rotation from vehicle frame to device frame.
   Notes:       The euler angles are applied extrinsically in order roll, pitch, then yaw
-               about the defined vehicle axes to describe how the vehicle should rotate to align
-               with the device frame as mounted in the vehicle. These rotations directly affect
-               body velocities, attitude outputs.
+    about the defined vehicle axes to describe how the vehicle should rotate to align
+    with the device frame as mounted in the vehicle. These rotations directly affect
+    body velocities, attitude outputs.
 
 - group: ins
   name: antenna_offset_x
@@ -662,8 +672,8 @@
   readonly: false
   Description: Z component of vector from device frame to antenna phase center
   Notes:       The vector is measured in the device frame according to the markings on the device. The default
-               value represents the offset from the Duro Device Frame to the antenna phase center when the antenna
-               mounting bracket shipped with Duro is in use.
+    value represents the offset from the Duro Device Frame to the antenna phase center when the antenna
+    mounting bracket shipped with Duro is in use.
 
 - group: ins
   name: vehicle_frame_offset_x
@@ -694,7 +704,7 @@
   readonly: false
   Description: Z component of vector from device frame to vehicle frame origin in which inertial outputs are provided
   Notes: The vector is measured in the device frame according to the markings on the device. In order to output inertial solutions at the antenna phase center, this should be the same value (both sign and magnitude) as antenna_offset_x setting.
-         The default value represents vehicle outpus at the antenna phase center when the Duro antenna mounting bracket is in use.
+    The default value represents vehicle outpus at the antenna phase center when the Duro antenna mounting bracket is in use.
 
 - group: ins
   name: constrain_vehicle_sideslip
@@ -1411,6 +1421,72 @@
   Notes: This setting represents the integer number of solution periods between each transmission of the NMEA message.
 
 - group: nmea
+  name: pcps_msg_rate
+  expert: false
+  type: integer
+  units: Solution Period
+  default value: '1'
+  readonly: false
+  enumerated possible values:
+  Description: Number of Solution Periods between AAR PNM PCPS messages being sent.
+  Notes:
+
+- group: nmea
+  name: pcsh_msg_rate
+  expert: false
+  type: integer
+  units: Solution Period
+  default value: '1'
+  readonly: false
+  enumerated possible values:
+  Description: Number of Solution Periods between AAR PNM PCSH messages being sent.
+  Notes:
+
+- group: nmea
+  name: pcgd_msg_rate
+  expert: false
+  type: integer
+  units: Solution Period
+  default value: '5'
+  readonly: false
+  enumerated possible values:
+  Description: Number of Solution Periods between AAR PNM PCGD messages being sent.
+  Notes:
+
+- group: nmea
+  name: pcof_msg_rate
+  expert: false
+  type: integer
+  units: Solution Period
+  default value: '50'
+  readonly: false
+  enumerated possible values:
+  Description: Number of Solution Periods between AAR PNM PCOF messages being sent.
+  Notes:
+
+- group: nmea
+  name: pccf_msg_rate
+  expert: false
+  type: integer
+  units: Solution Period
+  default value: '50'
+  readonly: false
+  enumerated possible values:
+  Description: Number of Solution Periods between AAR PNM PCCF messages being sent.
+  Notes:
+
+- group: nmea
+  name: pcsd_msg_rate
+  expert: false
+  type: integer
+  units: Solution Period
+  default value: '5'
+  readonly: false
+  enumerated possible values:
+  Description: Number of Solution Periods between AAR PNM PCSD messages being sent.
+  Notes:
+
+- group: nmea
   name: cog_output_min_speed
   expert: true
   type: float
@@ -1489,7 +1565,7 @@
   enumerated possible values:
   Description: Interval at which the NMEA GGA sentence is uploaded to the NTRIP server
   Notes: The interval (in seconds) at which the NMEA GGA sentence is uploaded to
-     the specified NTRIP server. The default of 0 disables the GGA sentence upload.
+    the specified NTRIP server. The default of 0 disables the GGA sentence upload.
 
 - group: ntrip
   name: gga_out_rev1
@@ -1711,6 +1787,59 @@
     base station. The simulator is intended to aid in system integration by
     providing realistic looking outputs but does not faithfully simulate every
     aspect of device operation.
+
+- group: simulator
+  name: start_date
+  expert: false
+  type: string
+  default value: '2023-01-01'
+  readonly: false
+  Description: Simulation start date in format YYYY-MM-DD.
+  units: N/A
+  Notes:
+
+- group: simulator
+  name: start_time
+  expert: false
+  type: string
+  default value: '00:00:00'
+  readonly: false
+  Description: Simulation start UTC time in format HH:MM:SS, HH in range [00..23], MM and SS in range [00..59].
+  units: N/A
+  Notes:
+
+- group: simulator
+  name: base_lat_deg
+  expert: false
+  type: double
+  units: degrees
+  default value: '0.0'
+  readonly: false
+  enumerated possible values:
+  Description: Simulated base station latitude. Range [-90.0..90.0].
+  Notes: ECEF base position is used if base_lat_deg, base_lon_deg and base_alt_m are zeroes.
+
+- group: simulator
+  name: base_lon_deg
+  expert: false
+  type: double
+  units: degrees
+  default value: '0.0'
+  readonly: false
+  enumerated possible values:
+  Description: Simulated base station longitude. Range [-180.0..180.0].
+  Notes: ECEF base position is used if base_lat_deg, base_lon_deg and base_alt_m are zeroes.
+
+- group: simulator
+  name: base_alt_m
+  expert: false
+  type: double
+  units: degrees
+  default value: '0.0'
+  readonly: false
+  enumerated possible values:
+  Description: Simulated base station altitude. Range [-1000.0..10000.0].
+  Notes: ECEF base position is used if base_lat_deg, base_lon_deg and base_alt_m are zeroes.
 
 - group: simulator
   name: base_ecef_x
@@ -2095,7 +2224,7 @@
   enumerated possible values: True,False
   Description: Disable Klobuchar ionospheric corrections.
   Notes: |
-      If True, Klobuchar ionospheric corrections will not be applied.
+    If True, Klobuchar ionospheric corrections will not be applied.
 
 - group: standalone_logging
   name: blacklist_sdcard
@@ -2114,8 +2243,8 @@
   units: N/A
   Description: Standalone logging enabled.
   Notes: Setting this to true triggers the logger to start trying to write logs to the output_directory.
-         Setting this to false will immediately close the current file and stop logging.
-         Reenabling logging will increment the session counter which is reflected in the log file names (see USB Logging File Output section).
+    Setting this to false will immediately close the current file and stop logging.
+    Reenabling logging will increment the session counter which is reflected in the log file names (see USB Logging File Output section).
 
 - group: standalone_logging
   name: output_directory
@@ -2126,7 +2255,7 @@
   Description: Standalone logging path.
   units: N/A
   Notes: Sets the paths in which to write logs. A warning will be logged every 30 seconds if this path is invalid or unavailable. The system will not create a folder that does not exist.
-         If this setting is changed while logging is enabled, it will go into effect on the next file that’s created.
+    If this setting is changed while logging is enabled, it will go into effect on the next file that’s created.
 
 - group: standalone_logging
   name: sdcard_enable
@@ -2145,7 +2274,7 @@
   Description: Maximum storage device usage.
   units: percent
   Notes: Sets a limit on how full the storage device can be before logging is stopped. If the drive is more than this percent full, no new log files will be created and a warning will be logged every 30 seconds.
-         If this setting is changed while logging is enabled, it will go into effect on the next file that’s created.
+    If this setting is changed while logging is enabled, it will go into effect on the next file that’s created.
 
 - group: standalone_logging
   name: file_duration
@@ -2156,7 +2285,7 @@
   Description: Duration of each logfile.
   units: minutes
   Notes: Sets the number of minutes to output to each standalone log file before opening the next one.
-         If this setting is changed while logging is enabled, it will go into effect immediately which will close the current file if its length exceeds the new duration.
+    If this setting is changed while logging is enabled, it will go into effect immediately which will close the current file if its length exceeds the new duration.
 
 - group: standalone_logging
   name: logging_file_system
@@ -2167,9 +2296,9 @@
   units: N/A
   Description: Configure the file-system used for standalone logging (SD card only).
   Notes: Configures the file-system used for standalone logging.
-         Setting this to F2FS will reparition and the reformat any SD card
-         that is not formatted with F2FS upon system reboot. Settings must
-         be persisted for this to take effect.
+    Setting this to F2FS will reparition and the reformat any SD card
+    that is not formatted with F2FS upon system reboot. Settings must
+    be persisted for this to take effect.
 
 - group: standalone_logging
   name: copy_system_logs
@@ -2180,7 +2309,7 @@
   units: N/A
   Description: Copy system logs to the SD card at regular intervals.
   Notes: Setting this to true will cause the device to copy the system logs to the SD card at regular intervals.
-         Setting this to false will stop the device from copying the systems logs to the SD card.
+    Setting this to false will stop the device from copying the systems logs to the SD card.
 
 - group: surveyed_position
   name: broadcast
@@ -2263,7 +2392,7 @@
   Description: Sources for Linux System Time.
   units: N/A
   Notes: Configures the possible sources for Linux system time on the Swift Device.
-         Linux system time is required for HTTPS certification validation and other Linux system functionality.
+    Linux system time is required for HTTPS certification validation and other Linux system functionality.
 
 - group: system
   name: log_ping_activity
@@ -2284,8 +2413,8 @@
   units: Hz
   Description: The frequency at which the network poll service checks for connectivity.
   Notes: The network poll service will perform a connectivity check with a well known IP
-         address at the frequency configured by this setting. A value of 0 will disable
-         the connectivity check and the Link LED will not show Internet access status.
+    address at the frequency configured by this setting. A value of 0 will disable
+    the connectivity check and the Link LED will not show Internet access status.
 
 - group: system
   name: connectivity_retry_frequency
@@ -2296,7 +2425,7 @@
   units: Hz
   Description: The frequency at which the network poll service retries after a failed connectivity check.
   Notes: If a connectivity check fails, this settings controls the frequency at which a new
-         connectivity check is performed.
+    connectivity check is performed.
 
 - group: system
   name: connectivity_check_addresses
@@ -2319,8 +2448,8 @@
   units: N/A
   Description: Enables or disables the Over-The-Air upgrade daemon.
   Notes: The OTA daemon contacts the OTA server once per hour and checks if the offered version is newer
-         than currently installed. If the offered version is newer, then the image is downloaded and an
-         upgrade is performed. After the upgrade the device is automatically rebooted.
+    than currently installed. If the offered version is newer, then the image is downloaded and an
+    upgrade is performed. After the upgrade the device is automatically rebooted.
 
 - group: system
   name: ota_debug
@@ -2340,7 +2469,7 @@
   readonly: false
   units: N/A
   Description: Set the URL of the Over-The-Air upgrade server. If empty, an internal
-               default address is used.
+    default address is used.
   Notes: The OTA daemon must be disabled in order to change this setting.
 
 - group: system
@@ -2351,10 +2480,10 @@
   readonly: false
   units: N/A
   Description: Resend any SBP_MSG_HEADING or SBP_MSG_BASELINE_NED messages
-               received by this device to this device's output interfaces
+    received by this device to this device's output interfaces
   Notes: This is intended to enable a dual piksi / duro installation so a consumer
-         can read both RTK heading or moving baseline and RTK position
-         from the same communication interface.
+    can read both RTK heading or moving baseline and RTK position
+    from the same communication interface.
 
 - group: system
   name: resource_monitor_update_interval
@@ -2589,6 +2718,17 @@
   Notes: The UUID is a Universally Unique IDentifier for this receiver.
     The lower 16 bits of the UUID are used for the SBP Sender ID. This is a read only setting.
 
+- group: system_info
+  name: uptime_s
+  expert: False
+  type: integer
+  units: s
+  default value: ''
+  readonly: True
+  enumerated possible values:
+  Description: Device uptime measured from power up / reset.
+  Notes:
+
 - group: system_monitor
   name: heartbeat_period_milliseconds
   expert: true
@@ -2631,7 +2771,7 @@
   units: N/A
   default value: 'Disabled'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT,EMP OUT
   Description: Communication protocol for TLS client 0. The client will initiate a connection with the server and establish bi-directional communications.
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
@@ -2642,6 +2782,8 @@
 
     "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
 
+    "EMP OUT" configures the interface to transmit messages specified in the 'enabled emp messages' setting.
+    
     The connection is bi-directional so these modes behave the same as the UART modes.
 
 - group: tls_client0
@@ -2678,7 +2820,7 @@
   units: N/A
   default value: 'Disabled'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT,EMP OUT,Disabled
   Description: Communication protocol for TCP client 0. The client will initiate a connection with the server and establish bi-directional communications.
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
@@ -2714,7 +2856,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '50,51,52,53,54,55'
+  default value: '50,51,52/5,53/50,54/50,55/5'
   readonly: false
   Description: Configure which AAR S-9103 EMP messages should be sent to the port. This setting is used only if EMP OUT mode is selected.
   Notes: The enabled emp messages settings is a list of message IDs and rate divisors that will be sent out of the interface. If left blank, all
@@ -2739,7 +2881,7 @@
   units: N/A
   default value: 'Disabled'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT,EMP OUT,Disabled
   Description: Communication protocol for TCP client 1. The client will initiate a connection with the server and establish bi-directional communications.
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
@@ -2775,7 +2917,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '50,51,52,53,54,55'
+  default value: '50,51,52/5,53/50,54/50,55/5'
   readonly: false
   Description: Configure which AAR S-9103 EMP messages should be sent to the port. This setting is used only if EMP OUT mode is selected.
   Notes: The enabled emp messages settings is a list of message IDs and rate divisors that will be sent out of the interface. If left blank, all
@@ -2798,7 +2940,7 @@
   expert: false
   type: enum
   units: N/A
-  default value: 'SBP (Swift Binary Protocol)'
+  default value: 'SBP'
   readonly: false
   enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT,EMP OUT
   Description: Communication protocol for TCP server 0. The server will listen for incoming client connections and establish a bi-directional communications.
@@ -2836,7 +2978,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '50,51,52,53,54,55'
+  default value: '50,51,52/5,53/50,54/50,55/5'
   readonly: false
   Description: Configure which AAR S-9103 EMP messages should be sent to the port. This setting is used only if EMP OUT mode is selected.
   Notes: The enabled emp messages settings is a list of message IDs and rate divisors that will be sent out of the interface. If left blank, all
@@ -2858,7 +3000,7 @@
   expert: false
   type: enum
   units: N/A
-  default value: 'SBP (Swift Binary Protocol)'
+  default value: 'SBP'
   readonly: false
   enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT,EMP OUT
   Description: Communication protocol for TCP server 1. The server will listen for incoming client connections and establish a bi-directional communications.
@@ -2896,7 +3038,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '50,51,52,53,54,55'
+  default value: '50,51,52/5,53/50,54/50,55/5'
   readonly: false
   Description: Configure which AAR S-9103 EMP messages should be sent to the port. This setting is used only if EMP OUT mode is selected.
   Notes: The enabled emp messages settings is a list of message IDs and rate divisors that will be sent out of the interface. If left blank, all
@@ -2965,16 +3107,16 @@
   enumerated possible values:
   Description: Controls maximum possible integration time for a measurement.
   Notes: This can be used to configure the sensitivity and dynamic tracking modes permitted to be used by receiver.
-     Lower values provide lower sensitivity and noisier phase measurements but better performance in dynamic conditions.
+    Lower values provide lower sensitivity and noisier phase measurements but better performance in dynamic conditions.
 
 - group: uart0
   name: baudrate
   expert: false
-  type: integer
+  type: enum
   units: bps
   default value: '115200'
   readonly: false
-  enumerated possible values:
+  enumerated possible values: 57600,115200,230400,460800,921600
   Description: The Baud rate for the UART 0.
   Notes: The maximum baud rate supported by the USB to RS232 adapter cable provided in the Piksi Multi / Duro kits is 230400.
 
@@ -2994,9 +3136,9 @@
   expert: false
   type: enum
   units: N/A
-  default value: 'SBP (Swift Binary Protocol)'
+  default value: 'SBP'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT,EMP OUT
   Description: Communication protocol for UART0.
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
@@ -3030,7 +3172,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '50,51,52,53,54,55'
+  default value: '50,51,52/5,53/50,54/50,55/5'
   readonly: false
   Description: Configure which AAR S-9103 EMP messages should be sent to the port. This setting is used only if EMP OUT mode is selected.
   Notes: The enabled emp messages settings is a list of message IDs and rate divisors that will be sent out of the interface. If left blank, all
@@ -3040,11 +3182,11 @@
 - group: uart1
   name: baudrate
   expert: false
-  type: integer
+  type: enum
   units: bps
   default value: '115200'
   readonly: false
-  enumerated possible values:
+  enumerated possible values: 57600,115200,230400,460800,921600
   Description: The Baud rate for the UART 1.
   Notes: The maximum baud rate supported by the USB to RS232 adapter cable provided in the Piksi Multi / Duro kits is 230400.
 
@@ -3064,9 +3206,9 @@
   expert: false
   type: enum
   units: N/A
-  default value: 'SBP (Swift Binary Protocol)'
+  default value: 'SBP'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT,EMP OUT
   Description: Communication protocol for UART 1.
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
@@ -3095,12 +3237,12 @@
     3456/10 would provide message with ID 3456 at 1/10th the normal rate. For uart1,
     the default value is optimal for logging and communication with the console.
 
-- group: uart0
+- group: uart1
   name: enabled_emp_messages
   expert: false
   type: string
   units: N/A
-  default value: '50,51,52,53,54,55'
+  default value: '50,51,52/5,53/50,54/50,55/5'
   readonly: false
   Description: Configure which AAR S-9103 EMP messages should be sent to the port. This setting is used only if EMP OUT mode is selected.
   Notes: The enabled emp messages settings is a list of message IDs and rate divisors that will be sent out of the interface. If left blank, all
@@ -3148,7 +3290,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '50,51,52,53,54,55'
+  default value: '50,51,52/5,53/50,54/50,55/5'
   readonly: false
   Description: Configure which AAR S-9103 EMP messages should be sent to the server. This setting is used only if EMP OUT mode is selected.
   Notes: The enabled emp messages settings is a list of message IDs and rate divisors that will be sent out of the interface. If left blank, all
@@ -3217,7 +3359,7 @@
   expert: false
   type: string
   units: N/A
-  default value: '50,51,52,53,54,55'
+  default value: '50,51,52/5,53/50,54/50,55/5'
   readonly: false
   Description: Configure which AAR S-9103 EMP messages should be sent to the server. This setting is used only if EMP OUT mode is selected.
   Notes: The enabled emp messages settings is a list of message IDs and rate divisors that will be sent out of the interface. If left blank, all
@@ -3250,9 +3392,9 @@
   expert: false
   type: enum
   units: N/A
-  default value: 'SBP (Swift Binary Protocol)'
+  default value: 'SBP'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT,EMP OUT
   Description: Communication protocol for UDP server 0. The server will listen for incoming packets from a client for uni-directional communications.
   Notes: |
     "SBP" configures the interface to receive incoming SBP messages.
@@ -3262,6 +3404,8 @@
     "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not receive any other messages.
 
     "RTCMv3 OUT" has no effect for a UDP server.
+
+    "EMP OUT" configures the interface to transmit messages specified in the 'enabled emp messages' setting.
 
 - group: udp_server0
   name: enabled_sbp_messages
@@ -3288,9 +3432,9 @@
   expert: false
   type: enum
   units: N/A
-  default value: 'SBP (Swift Binary Protocol)'
+  default value: 'SBP'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT,EMP OUT
   Description: Communication protocol for UDP server 1. The server will listen for incoming packets from a client for uni-directional communications.
   Notes: |
     "SBP" configures the interface to receive incoming SBP messages.
@@ -3300,6 +3444,8 @@
     "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not receive any other messages.
 
     "RTCMv3 OUT" has no effect for a UDP server.
+
+    "EMP OUT" configures the interface to transmit messages specified in the 'enabled emp messages' setting.
 
 - group: udp_server1
   name: enabled_sbp_messages
@@ -3319,6 +3465,36 @@
   default value: '55558'
   readonly: false
   Description: Port for UDP server 1 to listen to.
+  Notes:
+
+- group: user
+  name: string1
+  expert: false
+  type: string
+  default value: ''
+  readonly: false
+  Description: User string 1. Maximum 200 characters.
+  units: N/A
+  Notes:
+
+- group: user
+  name: string2
+  expert: false
+  type: string
+  default value: ''
+  readonly: false
+  Description: User string 2. Maximum 200 characters.
+  units: N/A
+  Notes:
+
+- group: user
+  name: string3
+  expert: false
+  type: string
+  default value: ''
+  readonly: false
+  Description: User string 3. Maximum 200 characters.
+  units: N/A
   Notes:
 
 - group: usb0
@@ -3342,9 +3518,9 @@
   expert: false
   type: enum
   units: N/A
-  default value: 'SBP (Swift Binary Protocol)'
+  default value: 'SBP'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT,EMP OUT
   Description: Communication protocol for USB0.
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting and to receive incoming SBP messages. If the mode is changed from SBP the console will no longer be able to communicate over the interface.
@@ -3354,6 +3530,8 @@
     "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
 
     "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
+    
+    "EMP OUT" configures the interface to transmit messages specified in the 'enabled emp messages' setting.
 
 - group: can0
   name: mode
@@ -3362,7 +3540,7 @@
   units: N/A
   default value: 'Disabled'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 Out
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT,EMP OUT
   Description: Communication protocol for CAN client 0. The client will send packets to a CAN bus.
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting.
@@ -3372,6 +3550,8 @@
     "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
 
     "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
+    
+    "EMP OUT" configures the interface to transmit messages specified in the 'enabled emp messages' setting.
 
 - group: can0
   name: enabled_sbp_messages
@@ -3396,7 +3576,7 @@
   units: N/A
   default value: 'Disabled'
   readonly: false
-  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 Out
+  enumerated possible values: SBP,NMEA OUT,RTCMv3 IN,RTCMv3 OUT,EMP OUT
   Description: Communication protocol for CAN client 0. The client will send packets to a CAN bus.
   Notes: |
     "SBP" configures the interface to transmit messages specified in the 'enabled_sbp_messages' setting.
@@ -3406,6 +3586,8 @@
     "RTCMv3 IN" configures the interface to receive RTK corrections in RTCMv3 format. The interface will receive 1002, 1004, 1005, 1006, 1010, 1012, 1033, 1230 and MSM4-7 RTCMv3 messages and will not transmit or receive any other messages.
 
     "RTCMv3 OUT" configures the interface to transmit RTCMv3 messages.
+    
+    "EMP OUT" configures the interface to transmit messages specified in the 'enabled emp messages' setting.
 
 - group: can1
   name: enabled_sbp_messages
